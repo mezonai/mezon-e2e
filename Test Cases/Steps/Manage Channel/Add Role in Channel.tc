@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Add Role in Channel</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>ae014979-2d76-40f7-9aa4-ef06874ca8c1</testCaseGuid>
-</TestCaseEntity>

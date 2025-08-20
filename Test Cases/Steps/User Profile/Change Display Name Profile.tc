@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Change Display Name Profile</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>c5e990d5-678d-412b-9667-89be4ae441ee</testCaseGuid>
-</TestCaseEntity>

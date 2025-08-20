@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Change Category of Channel</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>18209b7d-978f-41c6-9a77-1100da0c96fc</testCaseGuid>
-</TestCaseEntity>

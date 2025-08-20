@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Create and Delete Channel With Type Voice</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>b24c87af-97da-413d-9f7b-9002d4bde946</testCaseGuid>
-</TestCaseEntity>

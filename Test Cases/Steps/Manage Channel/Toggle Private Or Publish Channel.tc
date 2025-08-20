@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Toggle Private Or Publish Channel</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>7c7af216-5194-46c1-ab7f-fb5fda263c26</testCaseGuid>
-</TestCaseEntity>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Send message Buzz</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>c36ccbf9-e3ac-473e-94e4-52b1b4e45885</testCaseGuid>
-</TestCaseEntity>

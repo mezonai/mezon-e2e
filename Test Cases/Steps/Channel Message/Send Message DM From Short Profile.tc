@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Send Message DM From Short Profile</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>9f047780-25e3-47c8-87cf-e880fd2193ef</testCaseGuid>
-</TestCaseEntity>

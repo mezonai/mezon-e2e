@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Send multiple file media</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>f56f9e6e-7c37-4486-99ae-2060b04a6cca</testCaseGuid>
-</TestCaseEntity>

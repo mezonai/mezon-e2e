@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Create and Delete New Private Channel</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>c0cecf2b-0fbc-44cd-8152-37e1fc131f78</testCaseGuid>
-</TestCaseEntity>

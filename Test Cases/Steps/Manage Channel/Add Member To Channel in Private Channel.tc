@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Add Member To Channel in Private Channel</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>315fb1f7-9377-4b30-ae17-7838bbb36e52</testCaseGuid>
-</TestCaseEntity>

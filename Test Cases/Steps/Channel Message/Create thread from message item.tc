@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Create thread from message item</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>edcb8ef0-894c-4fde-af93-8fbaaef74282</testCaseGuid>
-</TestCaseEntity>

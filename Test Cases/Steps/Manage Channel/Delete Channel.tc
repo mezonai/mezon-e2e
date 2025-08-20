@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Delete Channel</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>1e1a9fb0-fa22-4a7b-b5b9-d64eca330ffc</testCaseGuid>
-</TestCaseEntity>

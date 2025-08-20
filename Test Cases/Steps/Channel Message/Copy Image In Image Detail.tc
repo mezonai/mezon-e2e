@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Copy Image In Image Detail</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>fe9ffbd2-daa9-4169-944c-1c3c17b1ad77</testCaseGuid>
-</TestCaseEntity>

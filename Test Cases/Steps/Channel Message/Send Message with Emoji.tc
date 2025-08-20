@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Send Message with Emoji</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>75c94a15-3979-4605-aa39-2fd0eff137d8</testCaseGuid>
-</TestCaseEntity>

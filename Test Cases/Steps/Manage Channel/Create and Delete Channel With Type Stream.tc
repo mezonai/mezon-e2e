@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Create and Delete Channel With Type Stream</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>1a124723-5d60-4648-9ae9-74a902f485e3</testCaseGuid>
-</TestCaseEntity>
