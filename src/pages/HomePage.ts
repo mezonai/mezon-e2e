@@ -11,10 +11,10 @@ export class HomePage extends BasePage {
     heroSection: 'h1',
     featuresSection: 'h2:has-text("Our features")',
     footerSection: 'text="© 2024 Mezon. All rights reserved."',
-    
+
     navigationMenu: '.header',
     mobileMenuToggle: '.menu-toggle, .hamburger, [data-testid="mobile-menu"]',
-    
+
     mainContent: 'body, main, div:has(h1)',
     pageTitle: 'h1',
   };
@@ -33,7 +33,7 @@ export class HomePage extends BasePage {
     const currentUrl = this.page.url();
     const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL;
     expect(currentUrl).toContain(baseUrl);
-    
+
     await expect(this.page.locator(this.selectors.mainContent)).toBeVisible();
   }
 
@@ -68,16 +68,16 @@ export class HomePage extends BasePage {
   async verifyMobileNavigation(): Promise<void> {
     const mobileToggle = this.page.locator(this.selectors.mobileMenuToggle);
     const navigation = this.page.locator(this.selectors.navigationMenu);
-    
+
     const isMobileToggleVisible = await mobileToggle.isVisible();
     const isNavigationVisible = await navigation.isVisible();
-    
+
     expect(isMobileToggleVisible || isNavigationVisible).toBeTruthy();
   }
 
   async verifyResponsiveLayout(): Promise<void> {
     await expect(this.page.locator(this.selectors.mainContent)).toBeVisible();
-    
+
     const viewport = await this.page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(375);
   }
@@ -91,7 +91,7 @@ export class HomePage extends BasePage {
   async verifyNoBrokenLinks(): Promise<void> {
     const links = await this.page.locator('a[href]').all();
     let brokenLinksCount = 0;
-    
+
     for (const link of links.slice(0, 5)) {
       try {
         const href = await link.getAttribute('href');
@@ -101,11 +101,12 @@ export class HomePage extends BasePage {
             brokenLinksCount++;
           }
         }
-      } catch (error) {
+      } catch {
+        // Ignore errors
         console.log(`Could not check link: ${error}`);
       }
     }
-    
+
     expect(brokenLinksCount).toBe(0);
   }
 
@@ -114,6 +115,7 @@ export class HomePage extends BasePage {
       const loginBtn = this.page.locator(this.selectors.loginButton);
       return !(await loginBtn.isVisible());
     } catch {
+      // Ignore errors
       return false;
     }
   }

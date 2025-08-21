@@ -6,7 +6,7 @@ export interface RegistrationData {
   // Basic signup info
   name: string;
   email: string;
-  
+
   // Account information
   title: 'Mr' | 'Mrs';
   password: string;
@@ -17,7 +17,7 @@ export interface RegistrationData {
   };
   newsletter: boolean;
   offers: boolean;
-  
+
   // Address information
   firstName: string;
   lastName: string;
@@ -61,19 +61,29 @@ export interface AddressInformation {
 
 // Constants for dropdown values
 export const COUNTRIES = [
-  "India",
-  "United States", 
-  "Canada",
-  "Australia",
-  "Israel",
-  "New Zealand",
-  "Singapore"
+  'India',
+  'United States',
+  'Canada',
+  'Australia',
+  'Israel',
+  'New Zealand',
+  'Singapore',
 ] as const;
 
 export const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ] as const;
 
-export type Country = typeof COUNTRIES[number];
-export type Month = typeof MONTHS[number];
+export type Country = (typeof COUNTRIES)[number];
+export type Month = (typeof MONTHS)[number];

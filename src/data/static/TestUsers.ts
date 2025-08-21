@@ -208,8 +208,6 @@ export const URL_PATHS = {
   API_LIST: '/api_list',
 };
 
-
-
 /**
  * Mezon Test User Interface
  */
@@ -222,9 +220,9 @@ export interface MezonTestUser {
 }
 
 // Auth file paths
-export const authUserFile = path.join(__dirname, "../.auth/user.json");
-export const authAdminFile = path.join(__dirname, "../.auth/admin.json");
-export const authModeratorFile = path.join(__dirname, "../.auth/moderator.json");
+export const authUserFile = path.join(__dirname, '../.auth/user.json');
+export const authAdminFile = path.join(__dirname, '../.auth/admin.json');
+export const authModeratorFile = path.join(__dirname, '../.auth/moderator.json');
 
 /**
  * Mezon test users with multi-role support
