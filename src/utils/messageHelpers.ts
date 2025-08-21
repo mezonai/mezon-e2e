@@ -1937,7 +1937,7 @@ export class MessageTestHelpers {
     await this.sendTextMessage(baseMessage);
 
     const lastMessage = await this.findLastMessage();
-    const _messageText = await lastMessage.textContent();
+    const messageText = await lastMessage.textContent();
 
     for (const link of links) {
       if (messageText?.includes(link)) {

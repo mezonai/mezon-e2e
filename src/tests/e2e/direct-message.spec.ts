@@ -3,7 +3,7 @@ import { HomePage } from '../../pages/HomePage';
 import { MessgaePage } from '@/pages/MessagePage';
 
 test.describe('Onboarding Guide Task Completion', () => {
-  test.beforeEach(async ({ _page }) => {
+  test.beforeEach(async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.navigate();
 
@@ -51,7 +51,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     expect(finalUrl).not.toMatch(/login|signin|authentication/);
   });
 
-  test('Create group chat ', async ({ _page }) => {
+  test('Create group chat ', async ({ page }) => {
     const messagePage = new MessgaePage(page);
 
     const prevGroupCount = await messagePage.countGroups();
@@ -65,7 +65,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     expect(groupCreated).toBeTruthy();
   });
 
-  test('Add more member to group chat', async ({ _page }) => {
+  test('Add more member to group chat', async ({ page }) => {
     const messagePage = new MessgaePage(page);
 
     const getMemberCount = await messagePage.getMemberCount();

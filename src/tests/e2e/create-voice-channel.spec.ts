@@ -3,7 +3,7 @@ import { VoiceChannelPage } from '../../pages/VoiceChannelPage';
 import { HomePage } from '../../pages/HomePage';
 
 test.describe('Create Voice Channels', () => {
-  test.beforeEach(async ({ _page }) => {
+  test.beforeEach(async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.navigate();
 
@@ -55,7 +55,7 @@ test.describe('Create Voice Channels', () => {
   const voiceChannelPublic = 'voice-channel-public';
   const voiceChannelCancel = 'voice-channel-cancel';
 
-  test('should create private voice channel', async ({ _page }) => {
+  test('should create private voice channel', async ({ page }) => {
     const voiceChannelPage = new VoiceChannelPage(page);
 
     await page.goto(
@@ -74,7 +74,7 @@ test.describe('Create Voice Channels', () => {
     });
   });
 
-  test('should create public voice channel', async ({ _page }) => {
+  test('should create public voice channel', async ({ page }) => {
     const voiceChannelPage = new VoiceChannelPage(page);
 
     await page.goto(

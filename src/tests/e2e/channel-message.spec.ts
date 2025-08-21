@@ -86,7 +86,7 @@ test.describe('Channel Message Functionality', () => {
     await navigationHelpers.clickUserInChatList(TARGET_USERNAME);
   });
 
-  test('Click into an image in the message and copy from detail', async ({ _page }) => {
+  test('Click into an image in the message and copy from detail', async () => {
     const targetImage = await messageHelpers.findImage();
     const initialImageCount = await messageHelpers.countImages();
 
@@ -99,7 +99,7 @@ test.describe('Channel Message Functionality', () => {
     expect(finalImageCount).toBeGreaterThan(initialImageCount);
   });
 
-  test('Copy image from context menu outside the message', async ({ _page }) => {
+  test('Copy image from context menu outside the message', async () => {
     const targetImage = await messageHelpers.findImage();
     const initialImageCount = await messageHelpers.countImages();
 
@@ -110,7 +110,7 @@ test.describe('Channel Message Functionality', () => {
     expect(finalImageCount).toBeGreaterThanOrEqual(initialImageCount);
   });
 
-  test('Copy message text and send it', async ({ _page }) => {
+  test('Copy message text and send it', async () => {
     const initialMessageCount = await messageHelpers.countMessages();
 
     const testMessage = `Test message ${Date.now()}`;
@@ -219,7 +219,7 @@ test.describe('Channel Message Functionality', () => {
       await page.waitForTimeout(3000);
 
       const updatedMessage = await messageHelpers.findLastMessage();
-      const _messageText = await updatedMessage.textContent();
+      const messageText = await updatedMessage.textContent();
 
       const hasOriginal = messageText?.includes('Original message');
       const hasEdited = messageText?.includes('Edited message');

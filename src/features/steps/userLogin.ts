@@ -48,7 +48,7 @@ Then('I should see successful login', async ({ PageObjects }) => {
   await PageObjects.LoginPage.verifySuccessfulLogin();
 });
 
-Then('I should be redirected to homepage', async ({ _page }) => {
+Then('I should be redirected to homepage', async ({ page }) => {
   const currentUrl = page.url();
   expect(currentUrl).toMatch(/chat|callback/); // Mezon redirects to chat or callback
 });

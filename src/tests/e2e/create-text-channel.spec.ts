@@ -3,7 +3,7 @@ import { TextChannelPage } from '../../pages/TextChannelPage';
 import { HomePage } from '../../pages/HomePage';
 
 test.describe('Create Text Channels', () => {
-  test.beforeEach(async ({ _page }) => {
+  test.beforeEach(async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.navigate();
 
@@ -51,11 +51,11 @@ test.describe('Create Text Channels', () => {
     expect(finalUrl).not.toMatch(/login|signin|authentication/);
   });
 
-  const _textChannelPrivate = 'text-channel-private7';
-  const _textChannelPublic = 'text-channel-public';
+  const textChannelPrivate = 'text-channel-private7';
+  const textChannelPublic = 'text-channel-public';
   const textChannelCancel = 'text-channel-cancel';
 
-  // test('should create private voice channel', async ({ _page }) => {
+  // test('should create private voice channel', async ({ page }) => {
   //     const voiceChannelPage = new TextChannelPage(page);
 
   //     await page.goto('https://dev-mezon.nccsoft.vn/chat/clans/1840654642682269696/channels/1840654642703241216');
@@ -72,7 +72,7 @@ test.describe('Create Text Channels', () => {
   //     });
   // });
 
-  // test('should create public voice channel', async ({ _page }) => {
+  // test('should create public voice channel', async ({ page }) => {
   //     const voiceChannelPage = new TextChannelPage(page);
 
   //     await page.goto('https://dev-mezon.nccsoft.vn/chat/clans/1840654642682269696/channels/1840654642703241216');

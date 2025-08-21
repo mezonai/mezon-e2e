@@ -1,6 +1,6 @@
 import { Given, When, Then, expect } from '../../fixtures/page.fixture';
 
-Given('I am on the clan settings page', async ({ _page }) => {
+Given('I am on the clan settings page', async ({ page }) => {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
 
@@ -12,7 +12,7 @@ Given('I am on the clan settings page', async ({ _page }) => {
   console.log('✅ User is authenticated and ready to navigate to clan settings');
 });
 
-Given('I navigate to the clan sticker settings', async ({ _page }) => {
+Given('I navigate to the clan sticker settings', async ({ page }) => {
   const clanMenuSelectors = [
     '[data-testid="clan-menu"]',
     'button:has-text("Clan")',
@@ -91,7 +91,7 @@ Given('I navigate to the clan sticker settings', async ({ _page }) => {
   console.log('✅ Successfully navigated to clan sticker settings');
 });
 
-When('I click on "Image Stickers" section', async ({ _page }) => {
+When('I click on "Image Stickers" section', async ({ page }) => {
   const stickerSelectors = [
     '[data-testid="image-stickers"]',
     'button:has-text("Image Stickers")',
@@ -131,7 +131,7 @@ When('I click on "Image Stickers" section', async ({ _page }) => {
   await page.waitForTimeout(1000);
 });
 
-When('I click on "Upload Stickers" button', async ({ _page }) => {
+When('I click on "Upload Stickers" button', async ({ page }) => {
   const uploadSelectors = [
     '[data-testid="upload-stickers"]',
     'button:has-text("Upload Stickers")',
@@ -176,7 +176,7 @@ When('I click on "Upload Stickers" button', async ({ _page }) => {
   await page.waitForTimeout(1000);
 });
 
-Then('the upload modal should be displayed', async ({ _page }) => {
+Then('the upload modal should be displayed', async ({ page }) => {
   const modalSelectors = [
     '.modal',
     '.dialog',
@@ -238,14 +238,14 @@ Then('the upload modal should be displayed', async ({ _page }) => {
   expect(modalFound || true).toBeTruthy(); // Allow test to continue even if modal detection fails
 });
 
-When('I press the ESC key once', async ({ _page }) => {
+When('I press the ESC key once', async ({ page }) => {
   console.log('🔑 Pressing ESC key...');
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'debug-after-first-esc.png', fullPage: true });
 });
 
-Then('only the top modal should be closed', async ({ _page }) => {
+Then('only the top modal should be closed', async ({ page }) => {
   const modalSelectors = [
     '.modal',
     '.dialog',
@@ -274,7 +274,7 @@ Then('only the top modal should be closed', async ({ _page }) => {
   (global as any).modalCountAfterESC = visibleModals;
 });
 
-Then('the underlying modal should remain open', async ({ _page }) => {
+Then('the underlying modal should remain open', async ({ page }) => {
   const modalCount = (global as any).modalCountAfterESC || 0;
 
   if (modalCount === 0) {
@@ -291,14 +291,14 @@ Then('the underlying modal should remain open', async ({ _page }) => {
   }
 });
 
-When('I press the ESC key again', async ({ _page }) => {
+When('I press the ESC key again', async ({ page }) => {
   console.log('🔑 Pressing ESC key again...');
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'debug-after-second-esc.png', fullPage: true });
 });
 
-Then('the next modal should be closed', async ({ _page }) => {
+Then('the next modal should be closed', async ({ page }) => {
   const modalSelectors = [
     '.modal',
     '.dialog',
@@ -334,7 +334,7 @@ Then('the next modal should be closed', async ({ _page }) => {
   }
 });
 
-Then('I should return to the previous interface level', async ({ _page }) => {
+Then('I should return to the previous interface level', async ({ page }) => {
   // Verify we're back to the settings page or clan interface
   await page.waitForTimeout(1000);
 
@@ -356,7 +356,7 @@ Then('I should return to the previous interface level', async ({ _page }) => {
 
 // Additional steps for other scenarios
 
-When('I open the sticker upload modal', async ({ _page }) => {
+When('I open the sticker upload modal', async ({ page }) => {
   // Combination of previous steps
   await page
     .getByText(/image sticker/i)
@@ -370,7 +370,7 @@ When('I open the sticker upload modal', async ({ _page }) => {
   await page.waitForTimeout(1000);
 });
 
-Then('the modal should be focusable', async ({ _page }) => {
+Then('the modal should be focusable', async ({ page }) => {
   // Check if modal can receive focus
   const focusableElements = page.locator(
     'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -384,7 +384,7 @@ Then('the modal should be focusable', async ({ _page }) => {
   }
 });
 
-Then('the ESC key should provide proper navigation', async ({ _page }) => {
+Then('the ESC key should provide proper navigation', async ({ page }) => {
   // Test that ESC doesn't break navigation
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
@@ -398,7 +398,7 @@ Then('the ESC key should provide proper navigation', async ({ _page }) => {
   console.log('✅ Page remains responsive after ESC');
 });
 
-Then('the focus should return to the triggering element after modal closes', async ({ _page }) => {
+Then('the focus should return to the triggering element after modal closes', async ({ page }) => {
   // This tests accessibility - focus should return to the button that opened the modal
   const activeElement = await page.evaluate(() => {
     return document.activeElement?.tagName;
@@ -414,7 +414,7 @@ Then('the focus should return to the triggering element after modal closes', asy
   }
 });
 
-Given('I have multiple modals open in the interface', async ({ _page }) => {
+Given('I have multiple modals open in the interface', async ({ page }) => {
   // This is a setup step for testing modal stack behavior
   console.log('ℹ️ Setting up multiple modal scenario...');
 
@@ -429,7 +429,7 @@ Given('I have multiple modals open in the interface', async ({ _page }) => {
   console.log('⚠️ Note: This step should be enhanced to create multiple nested modals');
 });
 
-When('I press ESC key multiple times', async ({ _page }) => {
+When('I press ESC key multiple times', async ({ page }) => {
   console.log('🔑 Testing multiple ESC key presses...');
 
   // Press ESC up to 5 times to test modal stack behavior
@@ -451,7 +451,7 @@ When('I press ESC key multiple times', async ({ _page }) => {
   }
 });
 
-Then('each ESC press should close only the topmost modal', async ({ _page }) => {
+Then('each ESC press should close only the topmost modal', async ({ page }) => {
   // This assertion would need to be implemented with proper modal tracking
   console.log('ℹ️ This assertion requires detailed modal stack tracking');
   console.log('Current implementation provides basic ESC behavior testing');
@@ -465,12 +465,12 @@ Then('each ESC press should close only the topmost modal', async ({ _page }) => 
   console.log(`Modal still visible: ${hasVisibleModal}`);
 });
 
-Then('the modal stack should be maintained properly', async ({ _page }) => {
+Then('the modal stack should be maintained properly', async ({ page }) => {
   console.log('ℹ️ Modal stack maintenance check');
   // This would require more sophisticated modal tracking in a real implementation
 });
 
-Then('all modals should eventually be closed one by one', async ({ _page }) => {
+Then('all modals should eventually be closed one by one', async ({ page }) => {
   const hasVisibleModal = await page
     .locator('.modal, .dialog, [role="dialog"]')
     .first()

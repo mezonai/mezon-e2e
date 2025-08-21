@@ -1,6 +1,6 @@
 import { Given, When, Then } from '../../fixtures/page.fixture';
 
-Given('I navigate to login page', async ({ _page }) => {
+Given('I navigate to login page', async ({ page }) => {
   await page.goto('/login');
 });
 

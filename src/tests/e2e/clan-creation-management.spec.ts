@@ -5,7 +5,7 @@ import { ClanPage } from '@/pages/ClanPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 
 test.describe('Create Category', () => {
-  test.beforeEach(async ({ _page }) => {
+  test.beforeEach(async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.navigate();
 
@@ -57,7 +57,7 @@ test.describe('Create Category', () => {
   const textCategoryPublic = 'category-public';
   const textCategoryCancel = 'category-cancel';
 
-  test('should create private category', async ({ _page }) => {
+  test('should create private category', async ({ page }) => {
     const categoryPage = new CategoryPage(page);
 
     await page.goto(
@@ -76,7 +76,7 @@ test.describe('Create Category', () => {
     });
   });
 
-  test('should create public category', async ({ _page }) => {
+  test('should create public category', async ({ page }) => {
     const categoryPage = new CategoryPage(page);
 
     await page.goto(
@@ -116,7 +116,7 @@ test.describe('Create Category', () => {
     });
   });
 
-  test('shoud create clan', async ({ _page }) => {
+  test('shoud create clan', async ({ page }) => {
     const clanPage = new ClanPage(page);
     const onboardingPage = new OnboardingPage(page);
 
@@ -165,7 +165,7 @@ test.describe('Create Category', () => {
     });
   });
 
-  test('Select clans', async ({ _page }) => {
+  test('Select clans', async ({ page }) => {
     const clanPage = new ClanPage(page);
 
     const clanNames = await clanPage.getAllClanNames();
