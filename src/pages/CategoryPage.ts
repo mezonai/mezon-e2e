@@ -9,6 +9,8 @@ export class CategoryPage {
     readonly confirmButton: Locator;
     readonly showEmtyCategoryButton: Locator;
     readonly cancelButton: Locator;
+    readonly categories: Locator;
+    readonly clan: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -19,12 +21,20 @@ export class CategoryPage {
         this.confirmButton = page.locator('button:has-text("Create Category")');
         this.showEmtyCategoryButton = page.locator('#id-c01');
         this.cancelButton = page.locator('button:has-text("Cancel")');
+        this.categories = page.locator('button span.one-line');
+        this.clan = page.locator('div[title]').nth(1);
     }
 
-    async createCategory(name: string, type: 'private' | 'public'): Promise<boolean> {
+     async showCategory(): Promise<void> {
+        await this.clan.click();
         await this.clanName.click();
 
         await this.showEmtyCategoryButton.click();
+    }
+
+    async createCategory(name: string, type: 'private' | 'public'): Promise<void> {
+        await this.clan.click();
+        await this.clanName.click();
 
         await this.createCategoryButton.click();
 
@@ -37,26 +47,38 @@ export class CategoryPage {
         }
 
         await this.confirmButton.click();
+    }
 
-        try {
-            await this.page.waitForSelector(`div[data-index] p:has-text("${name}")`, { timeout: 5000 });
+    // async isCategoryPresent(categoryName: string): Promise<boolean> {
+    //     const nameCategorySpan = await this.nameCategory.innerText();
+    //     if (categoryName !== nameCategorySpan){
+    //         return false;
+    //     }
+    //     return true;
+    // }
+
+    async countCategories(): Promise<number> {
+        await this.page.waitForTimeout(3000);
+        const count = await this.categories.count();
+        return count;
+    }
+
+    async isCategoryPresent(categoryName: string, prevCategoryCount: number): Promise<boolean> {
+        const categoryLocator = this.page.locator('button span.one-line', { hasText: categoryName });
+
+        if (await categoryLocator.isVisible()) {
+            const currentCategoryCount = await this.countCategories();
+            if (currentCategoryCount !== prevCategoryCount + 1) {
+                return false;
+            }
             return true;
-        } catch {
+        } else {
             return false;
         }
     }
 
-    async isCategoryPresent(categoryName: string): Promise<boolean> {
-        const categoryLocator = this.page.locator(`div[data-index] p:has-text("${categoryName}")`);
-        try {
-            await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    async cancelCreateCategory(name: string): Promise<boolean> {
+    async cancelCreateCategory(name: string): Promise<void> {
+        await this.clan.click();
         await this.clanName.click();
 
         await this.showEmtyCategoryButton.click();
@@ -67,7 +89,5 @@ export class CategoryPage {
         await this.categoryNameInput.fill(name);
 
         await this.cancelButton.click();
-
-        return !(await this.isCategoryPresent(name));
     }
 }

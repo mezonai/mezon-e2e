@@ -70,6 +70,9 @@ export class ClanPage extends BasePage {
     '[aria-label*="message" i]'
   ];
 
+  clanNameSelected: string = "";
+  clanName: string = "";
+
   constructor(page: Page, baseURL?: string) {
     super(page, baseURL);
   }
@@ -116,6 +119,8 @@ export class ClanPage extends BasePage {
       '.clan-name-input',
       'input[type="text"]'
     ];
+
+    this.clanName = clanName;
 
     const nameInputResult = await this.findElementBySelectors(clanNameInputSelectors);
     if (!nameInputResult.found || !nameInputResult.element) {
@@ -373,28 +378,67 @@ export class ClanPage extends BasePage {
     return names;
   }
 
-  async clickClanByName(targetName: string) {
-    const clanElements = this.page.locator('.clan');
-    const count = await clanElements.count();
-    for (let i = 0; i < count; i++) {
-      const el = clanElements.nth(i);
-      const name = (await el.textContent())?.trim();
-      if (name === targetName) {
-        await el.click();
-        return true;
-      }
-    }
-    throw new Error(`Clan "${targetName}" not found`);
+  // async clickClanByName(targetName: string) {
+  //   const clanElements = this.page.locator('.clan');
+  //   const count = await clanElements.count();
+  //   for (let i = 0; i < count; i++) {
+  //     const el = clanElements.nth(i);
+  //     const name = (await el.textContent())?.trim();
+  //     if (name === targetName) {
+  //       await el.click();
+  //       return true;
+  //     }
+  //   }
+  //   throw new Error(`Clan "${targetName}" not found`);
+  // }
+
+  async selectClan() {
+    const clan = this.page.locator('div[title]').nth(1);
+    this.clanNameSelected = await clan.innerText();
+    clan.click();
+    await this.page.waitForTimeout(1000);
   }
 
-  async isClanSelected(name: string) {
+  async isClanSelected() {
     const selectedName = await this.page.textContent(
       'p.text-theme-primary-active.text-base.font-semibold.select-none.one-line'
     );
-
     const firstChar = selectedName?.trim().charAt(0);
-    console.log('First char:', firstChar);
 
-    return firstChar === name;
+    return firstChar === this.clanNameSelected;
+  }
+
+  async countClans(): Promise<number> {
+    const clans = this.page.locator('div.clan');
+    return await clans.count();
+  }
+
+  async isNewClanCreated(preClan: number): Promise<boolean> {
+    await this.page.waitForTimeout(2000);
+
+    const currentClanCount = await this.countClans();
+    if (currentClanCount !== preClan + 1) {
+      return false;
+    }
+
+    const clanNames = this.getAllClanNames();
+    const currentClanNames = (this.clanName?.charAt(0) || "").toUpperCase();
+    if (!(await clanNames).includes(currentClanNames)) {
+      return false;
+    }
+
+    const clanName = await this.page.locator('div.cursor-pointer p.text-theme-primary-active').innerText();
+    if (clanName !== this.clanName.toUpperCase()) {
+      return false;
+    }
+
+    const publicChannelText = await this.page.locator('button span.one-line', { hasText: "PUBLIC CHANNELS" }).innerText();
+    const generalText = await this.page.locator('span.flex p').innerText();
+    if (!publicChannelText || !generalText) {
+      return false; 
+    }
+
+    return true;
   }
 }
+
