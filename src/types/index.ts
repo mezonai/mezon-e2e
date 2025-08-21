@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -10,7 +9,7 @@ export interface User {
 
 export enum UserRole {
   // ADMIN = "admin",
-  // USER = "user", 
+  // USER = "user",
   // MODERATOR = "moderator",
   // GUEST = "guest"
 }
@@ -45,7 +44,7 @@ export interface ApiResponse<T = unknown> {
 // Test result types
 export interface TestResult {
   testName: string;
-  status: "passed" | "failed" | "skipped";
+  status: 'passed' | 'failed' | 'skipped';
   duration: number;
   error?: string;
 }

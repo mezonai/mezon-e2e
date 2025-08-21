@@ -15,7 +15,7 @@ export class MessageTestHelpers {
       'li:has-text("Reply")',
       'div:has-text("Reply")',
       '[aria-label*="Reply" i]',
-      '[title*="Reply" i]'
+      '[title*="Reply" i]',
     ];
 
     for (const selector of replySelectors) {
@@ -45,7 +45,10 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(1500);
   }
 
-  async verifyLastMessageIsReplyTo(originalMessageText: string, replyText: string): Promise<boolean> {
+  async verifyLastMessageIsReplyTo(
+    originalMessageText: string,
+    replyText: string
+  ): Promise<boolean> {
     const last = await this.findLastMessage();
     const text = (await last.textContent()) || '';
     if (!text.includes(replyText)) return false;
@@ -60,18 +63,18 @@ export class MessageTestHelpers {
   async findImage(): Promise<Locator> {
     const imageSelectors = [
       'img[src*="blob:"]',
-      'img[src*="cdn.mezon.ai"]', 
+      'img[src*="cdn.mezon.ai"]',
       'img[src*="mezon"]',
       'div[class*="message"] img',
       '.message img',
       'img[alt*="image"]',
-      'img[draggable="true"]'
+      'img[draggable="true"]',
     ];
 
     for (const selector of imageSelectors) {
       const images = this.page.locator(selector);
       const count = await images.count();
-      
+
       if (count > 0) {
         for (let i = 0; i < count; i++) {
           const img = images.nth(i);
@@ -82,7 +85,7 @@ export class MessageTestHelpers {
         }
       }
     }
-    
+
     throw new Error('Could not find any visible image in the conversation');
   }
 
@@ -97,7 +100,7 @@ export class MessageTestHelpers {
       'input[placeholder*="message" i]',
       '.message-input',
       '.chat-input',
-      '[aria-label*="message" i]'
+      '[aria-label*="message" i]',
     ];
 
     for (const selector of messageInputSelectors) {
@@ -106,7 +109,7 @@ export class MessageTestHelpers {
         return element;
       }
     }
-    
+
     throw new Error('Could not find message input element');
   }
 
@@ -114,20 +117,20 @@ export class MessageTestHelpers {
     const modalSelectors = [
       'div.justify-center.items-center.flex.flex-col.fixed.z-40.inset-0',
       'div[class*="modal"]',
-      'div[class*="overlay"]', 
+      'div[class*="overlay"]',
       'div[role="dialog"]',
       '[data-testid="image-modal"]',
       'div[class*="image-viewer"]',
       'div[class*="lightbox"]',
       'div[class*="image-detail"]',
       'div[style*="position: fixed"]',
-      'div[style*="z-index"]'
+      'div[style*="z-index"]',
     ];
 
     for (const selector of modalSelectors) {
       const modal = this.page.locator(selector);
       const count = await modal.count();
-      
+
       if (count > 0) {
         for (let i = 0; i < count; i++) {
           const modalItem = modal.nth(i);
@@ -137,7 +140,7 @@ export class MessageTestHelpers {
         }
       }
     }
-    
+
     return { found: false };
   }
 
@@ -149,7 +152,7 @@ export class MessageTestHelpers {
       'li:has-text("Copy Image")',
       'div:has-text("Copy Image")',
       '[aria-label*="Copy Image" i]',
-      '[title*="Copy Image" i]'
+      '[title*="Copy Image" i]',
     ];
 
     for (const selector of copySelectors) {
@@ -158,7 +161,7 @@ export class MessageTestHelpers {
         return element;
       }
     }
-    
+
     throw new Error('Could not find Copy Image option in context menu');
   }
 
@@ -178,7 +181,7 @@ export class MessageTestHelpers {
       'div:has-text("Copy")',
       '[role="menuitem"]:nth-child(3)',
       '[role="menuitem"] span:has-text("Copy")',
-      '.context-menu-item:has-text("Copy")'
+      '.context-menu-item:has-text("Copy")',
     ];
 
     for (const selector of copyTextSelectors) {
@@ -187,7 +190,7 @@ export class MessageTestHelpers {
         return element;
       }
     }
-    
+
     throw new Error('Could not find Copy Text option in context menu');
   }
 
@@ -197,13 +200,13 @@ export class MessageTestHelpers {
       '.message:has-text',
       '[data-testid="message"]:has-text',
       '.chat-message:has-text',
-      'div[role="article"]:has-text'
+      'div[role="article"]:has-text',
     ];
 
     for (const selector of messageSelectors) {
       const messages = this.page.locator(selector);
       const count = await messages.count();
-      
+
       if (count > 0) {
         for (let i = 0; i < count; i++) {
           const message = messages.nth(i);
@@ -217,7 +220,7 @@ export class MessageTestHelpers {
         }
       }
     }
-    
+
     throw new Error('Could not find any message with text content');
   }
 
@@ -231,7 +234,8 @@ export class MessageTestHelpers {
           }
         }
         return false;
-      } catch (error) {
+      } catch {
+      // Ignore errors
         return false;
       }
     });
@@ -242,7 +246,8 @@ export class MessageTestHelpers {
       try {
         const text = await navigator.clipboard.readText();
         return text && text.trim().length > 0 ? text : null;
-      } catch (error) {
+      } catch {
+      // Ignore errors
         return null;
       }
     });
@@ -278,7 +283,7 @@ export class MessageTestHelpers {
       'div[class*="message"]',
       '.message',
       '[data-testid="message"]',
-      '.chat-message'
+      '.chat-message',
     ];
 
     let totalMessages = 0;
@@ -290,16 +295,18 @@ export class MessageTestHelpers {
         break;
       }
     }
-    
+
     return totalMessages;
   }
 
-  async clickImageAndHandleModal(image: Locator): Promise<{ modalFound: boolean; imageToRightClick: Locator }> {
+  async clickImageAndHandleModal(
+    image: Locator
+  ): Promise<{ modalFound: boolean; imageToRightClick: Locator }> {
     await image.click();
     await this.page.waitForTimeout(3000);
-    
+
     const modalResult = await this.findModal();
-    
+
     let imageToRightClick = image;
     if (modalResult.found && modalResult.element) {
       const modalImage = modalResult.element.locator('img').first();
@@ -307,21 +314,21 @@ export class MessageTestHelpers {
         imageToRightClick = modalImage;
       }
     }
-    
+
     return {
       modalFound: modalResult.found,
-      imageToRightClick
+      imageToRightClick,
     };
   }
 
   async copyImage(imageElement: Locator): Promise<void> {
     await imageElement.click({ button: 'right' });
     await this.page.waitForTimeout(1000);
-    
+
     const copyButton = await this.findCopyImageOption();
     await copyButton.click();
     await this.page.waitForTimeout(1000);
-    
+
     const hasImage = await this.verifyImageInClipboard();
     if (!hasImage) {
       throw new Error('Image was not copied to clipboard');
@@ -345,40 +352,41 @@ export class MessageTestHelpers {
 
   async findLastMessage(): Promise<Locator> {
     await this.page.waitForTimeout(2000);
-    
+
     const testMessageSelector = this.page.locator('text=/Test message \\d+/').last();
     if (await testMessageSelector.isVisible({ timeout: 3000 })) {
       return testMessageSelector;
     }
-    
+
     const chatAreaSelectors = [
       '.chat-area .message',
-      '.messages-container .message',  
+      '.messages-container .message',
       '.conversation .message',
       '[class*="chat"][class*="messages"] [class*="message"]',
       '[class*="conversation"] [class*="message"]',
       'div[class*="message"]:has(text):not(:has(input)):not(:has(textarea))',
-      'div:contains("Test message"):not([placeholder])'
+      'div:contains("Test message"):not([placeholder])',
     ];
 
     for (const selector of chatAreaSelectors) {
       const messages = this.page.locator(selector);
       const count = await messages.count();
-      
+
       if (count > 0) {
         for (let i = count - 1; i >= 0; i--) {
           const message = messages.nth(i);
           const textContent = await message.textContent();
-          
-          if (textContent && 
-              textContent.trim().length > 0 &&
-              !textContent.includes('Write your thoughts') &&
-              !textContent.includes('placeholder') &&
-              await message.isVisible({ timeout: 1000 })) {
-            
+
+          if (
+            textContent &&
+            textContent.trim().length > 0 &&
+            !textContent.includes('Write your thoughts') &&
+            !textContent.includes('placeholder') &&
+            (await message.isVisible({ timeout: 1000 }))
+          ) {
             const tagName = await message.evaluate(el => el.tagName.toLowerCase());
-            const hasInput = await message.locator('input, textarea').count() > 0;
-            
+            const hasInput = (await message.locator('input, textarea').count()) > 0;
+
             if (!['input', 'textarea'].includes(tagName) && !hasInput) {
               return message;
             }
@@ -386,7 +394,7 @@ export class MessageTestHelpers {
         }
       }
     }
-    
+
     throw new Error('Could not find any sent messages (excluding input areas)');
   }
 
@@ -395,16 +403,16 @@ export class MessageTestHelpers {
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(2000);
-    
+
     const copyTextButton = await this.findCopyTextOption();
     await copyTextButton.click();
     await this.page.waitForTimeout(1000);
-    
+
     const copiedText = await this.verifyTextInClipboard();
     if (!copiedText) {
       throw new Error('Text was not copied to clipboard');
     }
-    
+
     return copiedText;
   }
 
@@ -421,7 +429,7 @@ export class MessageTestHelpers {
       '[role="menuitem"]:has-text("Create Thread")',
       'button:has-text("Create Thread")',
       'li:has-text("Create Thread")',
-      'div:has-text("Create Thread")'
+      'div:has-text("Create Thread")',
     ];
 
     for (const selector of topicSelectors) {
@@ -430,7 +438,7 @@ export class MessageTestHelpers {
         return element;
       }
     }
-    
+
     throw new Error('Could not find Topic Discussion option in context menu');
   }
 
@@ -439,7 +447,7 @@ export class MessageTestHelpers {
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(2000);
-    
+
     const topicButton = await this.findTopicDiscussionOption();
     await topicButton.click();
     await this.page.waitForTimeout(3000);
@@ -458,7 +466,7 @@ export class MessageTestHelpers {
       '[role="menuitem"]:has-text("Start Thread")',
       'button:has-text("Start Thread")',
       'li:has-text("Start Thread")',
-      'div:has-text("Start Thread")'
+      'div:has-text("Start Thread")',
     ];
 
     for (const selector of createThreadSelectors) {
@@ -467,7 +475,7 @@ export class MessageTestHelpers {
         return element;
       }
     }
-    
+
     throw new Error('Could not find Create Thread option in context menu');
   }
 
@@ -476,18 +484,18 @@ export class MessageTestHelpers {
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(2000);
-    
+
     const createThreadButton = await this.findCreateThreadOption();
     await createThreadButton.click();
     await this.page.waitForTimeout(3000);
-    
+
     const defaultThreadName = threadName || `Thread ${Date.now()}`;
     await this.fillThreadName(defaultThreadName);
   }
 
   async fillThreadName(threadName: string): Promise<void> {
     await this.page.waitForTimeout(2000);
-    
+
     const threadNameInputSelectors = [
       '.new-thread input[placeholder*="Thread reply"]',
       'input[placeholder*="Thread reply"]',
@@ -497,14 +505,14 @@ export class MessageTestHelpers {
       '[class*="thread-name"] input',
       '[data-testid="thread-name-input"]',
       'div[class*="w-"]:has-text("Thread Name") input[type="text"]',
-      'input[type="text"]:not([placeholder*="Search"])'
+      'input[type="text"]:not([placeholder*="Search"])',
     ];
 
     let threadNameInput = null;
     for (const selector of threadNameInputSelectors) {
       const elements = this.page.locator(selector);
       const count = await elements.count();
-      
+
       if (count > 0) {
         for (let i = 0; i < count; i++) {
           const element = elements.nth(i);
@@ -522,9 +530,9 @@ export class MessageTestHelpers {
 
     if (!threadNameInput) {
       const rightPanelInputs = this.page.locator('input[type="text"]').filter({
-        hasNotText: 'Search'
+        hasNotText: 'Search',
       });
-      
+
       const count = await rightPanelInputs.count();
       for (let i = 0; i < count; i++) {
         const input = rightPanelInputs.nth(i);
@@ -539,19 +547,21 @@ export class MessageTestHelpers {
     }
 
     if (!threadNameInput) {
-      throw new Error('Could not find thread name input field. Make sure Create Thread panel is open.');
+      throw new Error(
+        'Could not find thread name input field. Make sure Create Thread panel is open.'
+      );
     }
 
     await threadNameInput.scrollIntoViewIfNeeded();
     await this.page.waitForTimeout(500);
-    
+
     await threadNameInput.click({ force: true });
     await this.page.waitForTimeout(500);
-    
+
     await threadNameInput.selectText();
     await threadNameInput.fill(threadName);
     await this.page.waitForTimeout(500);
-    
+
     await threadNameInput.press('Enter');
     await this.page.waitForTimeout(3000);
   }
@@ -569,7 +579,7 @@ export class MessageTestHelpers {
       '[role="menuitem"]:has-text("Delete")',
       'button:has-text("Delete")',
       'li:has-text("Delete")',
-      'div:has-text("Delete")'
+      'div:has-text("Delete")',
     ];
 
     for (const selector of deleteSelectors) {
@@ -578,7 +588,7 @@ export class MessageTestHelpers {
         return element;
       }
     }
-    
+
     throw new Error('Could not find Delete Message option in context menu');
   }
 
@@ -587,11 +597,11 @@ export class MessageTestHelpers {
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(2000);
-    
+
     const deleteButton = await this.findDeleteMessageOption();
     await deleteButton.click();
     await this.page.waitForTimeout(1000);
-    
+
     await this.handleDeleteConfirmation();
   }
 
@@ -603,7 +613,7 @@ export class MessageTestHelpers {
       '[data-testid="confirm-delete"]',
       '.confirm-button',
       'button[class*="danger"]',
-      'button[class*="destructive"]'
+      'button[class*="destructive"]',
     ];
 
     for (const selector of confirmSelectors) {
@@ -614,14 +624,14 @@ export class MessageTestHelpers {
         return;
       }
     }
-    
+
     await this.page.waitForTimeout(2000);
   }
 
   async findEditButton(messageElement: Locator): Promise<Locator> {
     await messageElement.hover();
     await this.page.waitForTimeout(2000);
-    
+
     const editSelectors = [
       'button[aria-label*="Edit" i]',
       'button[title*="Edit" i]',
@@ -637,13 +647,13 @@ export class MessageTestHelpers {
       '.message-actions button',
       '.hover-actions button',
       'button:near(:has-text("Original message"))',
-      'button:visible'
+      'button:visible',
     ];
 
     for (const selector of editSelectors) {
       const elements = this.page.locator(selector);
       const count = await elements.count();
-      
+
       if (count > 0) {
         for (let i = 0; i < count; i++) {
           const element = elements.nth(i);
@@ -651,35 +661,37 @@ export class MessageTestHelpers {
             const ariaLabel = await element.getAttribute('aria-label');
             const title = await element.getAttribute('title');
             const innerText = await element.textContent();
-            
-            if ((ariaLabel && ariaLabel.toLowerCase().includes('edit')) ||
-                (title && title.toLowerCase().includes('edit')) ||
-                (innerText && innerText.toLowerCase().includes('edit'))) {
+
+            if (
+              (ariaLabel && ariaLabel.toLowerCase().includes('edit')) ||
+              (title && title.toLowerCase().includes('edit')) ||
+              (innerText && innerText.toLowerCase().includes('edit'))
+            ) {
               return element;
             }
           }
         }
       }
     }
-    
+
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(1000);
-    
+
     const editMenuSelectors = [
       'text="Edit Message"',
       '[role="menuitem"]:has-text("Edit Message")',
       'button:has-text("Edit Message")',
       'li:has-text("Edit Message")',
-      'div:has-text("Edit Message")'
+      'div:has-text("Edit Message")',
     ];
-    
+
     for (const selector of editMenuSelectors) {
       const element = this.page.locator(selector).first();
       if (await element.isVisible({ timeout: 2000 })) {
         return element;
       }
     }
-    
+
     throw new Error('Could not find edit button on message hover or in context menu');
   }
 
@@ -687,7 +699,7 @@ export class MessageTestHelpers {
     const editButton = await this.findEditButton(messageElement);
     await editButton.click();
     await this.page.waitForTimeout(1000);
-    
+
     const editInputSelectors = [
       'textarea[value]',
       'input[value]',
@@ -695,7 +707,7 @@ export class MessageTestHelpers {
       'input:focus',
       '.edit-input',
       '.message-edit-input',
-      '[data-testid="message-edit-input"]'
+      '[data-testid="message-edit-input"]',
     ];
 
     let editInput = null;
@@ -717,7 +729,7 @@ export class MessageTestHelpers {
     await editInput.selectText();
     await editInput.fill(newContent);
     await this.page.waitForTimeout(500);
-    
+
     await editInput.press('Enter');
     await this.page.waitForTimeout(2000);
   }
@@ -725,7 +737,7 @@ export class MessageTestHelpers {
   async sendMessageInThread(message: string): Promise<void> {
     const threadInputSelectors = [
       '.topic-panel textarea',
-      '.thread-panel textarea', 
+      '.thread-panel textarea',
       '.discussion-panel textarea',
       '[class*="topic"] textarea',
       '[class*="thread"] textarea',
@@ -739,14 +751,14 @@ export class MessageTestHelpers {
       '.thread-input textarea',
       '.reply-input textarea',
       '[data-testid="thread-input"]',
-      '[data-testid="reply-input"]'
+      '[data-testid="reply-input"]',
     ];
 
     let threadInput = null;
     for (const selector of threadInputSelectors) {
       const elements = this.page.locator(selector);
       const count = await elements.count();
-      
+
       if (count > 0) {
         for (let i = 0; i < count; i++) {
           const element = elements.nth(i);
@@ -762,7 +774,7 @@ export class MessageTestHelpers {
     if (!threadInput) {
       const allTextareas = this.page.locator('textarea');
       const count = await allTextareas.count();
-      
+
       for (let i = count - 1; i >= 0; i--) {
         const textarea = allTextareas.nth(i);
         if (await textarea.isVisible({ timeout: 1000 })) {
@@ -790,7 +802,7 @@ export class MessageTestHelpers {
       'text="Forward Message"',
       '[role="menuitem"]:has-text("Forward")',
       'div:has-text("Forward Message")',
-      'span:has-text("Forward")'
+      'span:has-text("Forward")',
     ];
 
     for (const selector of selectors) {
@@ -799,17 +811,17 @@ export class MessageTestHelpers {
         return element;
       }
     }
-    
+
     throw new Error('Could not find Forward Message option in context menu');
   }
 
   async openForwardModal(messageElement: Locator): Promise<void> {
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(1000);
-    
+
     const forwardOption = await this.findForwardMessageOption();
     await forwardOption.click();
-    
+
     await this.page.waitForTimeout(2000);
   }
 
@@ -819,7 +831,7 @@ export class MessageTestHelpers {
       '[role="dialog"]:has-text("Forward")',
       'div:has-text("Forward Message")',
       'button:has-text("Send")',
-      'button:has-text("Cancel")'
+      'button:has-text("Cancel")',
     ];
 
     for (const selector of modalSelectors) {
@@ -828,7 +840,7 @@ export class MessageTestHelpers {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -844,9 +856,11 @@ export class MessageTestHelpers {
 
   async selectForwardTarget(targetName?: string): Promise<void> {
     const defaultTarget = targetName || 'XULxpDPsoJ';
-    
-    const modalContainer = this.page.locator('[role="dialog"], .modal, div:has-text("Forward Message")').first();
-    
+
+    const modalContainer = this.page
+      .locator('[role="dialog"], .modal, div:has-text("Forward Message")')
+      .first();
+
     const targetSelectors = [
       `[role="option"]:has-text("${defaultTarget}")`,
       `li:has-text("${defaultTarget}")`,
@@ -858,15 +872,15 @@ export class MessageTestHelpers {
       `[class*="option"]:has-text("${defaultTarget}")`,
       `div:has-text("${defaultTarget}")`,
       `span:has-text("${defaultTarget}")`,
-      `button:has-text("${defaultTarget}")`
+      `button:has-text("${defaultTarget}")`,
     ];
 
     let targetElement = null;
-    
+
     for (const selector of targetSelectors) {
       const elements = modalContainer.locator(selector);
       const count = await elements.count();
-      
+
       for (let i = 0; i < count; i++) {
         const element = elements.nth(i);
         if (await element.isVisible({ timeout: 2000 })) {
@@ -883,7 +897,7 @@ export class MessageTestHelpers {
     if (!targetElement) {
       const allElementsInModal = modalContainer.locator(`*:has-text("${defaultTarget}")`);
       const count = await allElementsInModal.count();
-      
+
       for (let i = 0; i < count; i++) {
         const element = allElementsInModal.nth(i);
         if (await element.isVisible({ timeout: 1000 })) {
@@ -938,7 +952,7 @@ export class MessageTestHelpers {
       '[aria-label*="pin" i]',
       '[title*="pin" i]',
       '.context-menu-item:has-text("Pin")',
-      '.menu-item:has-text("Pin")'
+      '.menu-item:has-text("Pin")',
     ];
 
     for (const selector of selectors) {
@@ -947,37 +961,42 @@ export class MessageTestHelpers {
         return element;
       }
     }
-    
+
     const allElements = this.page.locator('*');
     const count = await allElements.count();
-    
+
     for (let i = 0; i < count; i++) {
       const element = allElements.nth(i);
       try {
         const text = await element.textContent();
-        if (text && text.toLowerCase().includes('pin') && await element.isVisible({ timeout: 1000 })) {
+        if (
+          text &&
+          text.toLowerCase().includes('pin') &&
+          (await element.isVisible({ timeout: 1000 }))
+        ) {
           return element;
         }
-      } catch (e) {
+      } catch {
+      // Ignore errors
         continue;
       }
     }
-    
+
     throw new Error('Could not find Pin Message option in context menu');
   }
 
   async pinMessage(messageElement: Locator): Promise<void> {
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(1000);
-    
+
     const contextMenuSelectors = [
       '[role="menu"]',
       '.context-menu',
       '.menu',
       '[class*="context"]',
-      '[class*="menu"]'
+      '[class*="menu"]',
     ];
-    
+
     for (const selector of contextMenuSelectors) {
       const menu = this.page.locator(selector);
       if (await menu.isVisible({ timeout: 2000 })) {
@@ -986,12 +1005,12 @@ export class MessageTestHelpers {
         break;
       }
     }
-    
+
     const pinOption = await this.findPinMessageOption();
     await pinOption.click();
-    
+
     await this.page.waitForTimeout(2000);
-    
+
     await this.confirmPinMessage();
   }
 
@@ -1003,7 +1022,7 @@ export class MessageTestHelpers {
       'button[aria-label*="confirm" i]',
       '.confirm-button',
       'button:has-text("Yes")',
-      'button:has-text("Confirm")'
+      'button:has-text("Confirm")',
     ];
 
     for (const selector of confirmSelectors) {
@@ -1014,7 +1033,7 @@ export class MessageTestHelpers {
         return;
       }
     }
-    
+
     throw new Error('Could not find pin confirmation button');
   }
 
@@ -1031,7 +1050,7 @@ export class MessageTestHelpers {
       '[aria-label*="Pinned" i]',
       '[data-testid*="pinned"]',
       'button:has-text("📌")',
-      '.pinned-messages-button'
+      '.pinned-messages-button',
     ];
 
     for (const selector of pinIconSelectors) {
@@ -1039,16 +1058,18 @@ export class MessageTestHelpers {
       if (await element.isVisible({ timeout: 3000 })) {
         const title = await element.getAttribute('title');
         const ariaLabel = await element.getAttribute('aria-label');
-        
-        if (title?.includes('Pinned Messages') || 
-            ariaLabel?.includes('Pinned Messages') ||
-            title?.toLowerCase().includes('pin') ||
-            ariaLabel?.toLowerCase().includes('pin')) {
+
+        if (
+          title?.includes('Pinned Messages') ||
+          ariaLabel?.includes('Pinned Messages') ||
+          title?.toLowerCase().includes('pin') ||
+          ariaLabel?.toLowerCase().includes('pin')
+        ) {
           return element;
         }
       }
     }
-    
+
     throw new Error('Could not find Pinned Messages button');
   }
 
@@ -1060,7 +1081,7 @@ export class MessageTestHelpers {
 
   async verifyMessageInPinnedModal(messageText: string): Promise<boolean> {
     await this.page.waitForTimeout(3000);
-    
+
     const modalElement = this.page.locator('[role="dialog"]').first();
     if (!(await modalElement.isVisible({ timeout: 3000 }))) {
       return false;
@@ -1074,7 +1095,7 @@ export class MessageTestHelpers {
     const shortText = messageText.substring(0, 15);
     const firstWord = messageText.split(' ')[0];
     const lastNumbers = messageText.match(/\d+/g)?.slice(-1)[0] || '';
-    
+
     const messageSearchTerms = [
       messageText,
       shortText,
@@ -1082,7 +1103,7 @@ export class MessageTestHelpers {
       lastNumbers,
       'Message to pin',
       'Thread starter',
-      'starter message'
+      'starter message',
     ];
 
     for (const searchTerm of messageSearchTerms) {
@@ -1104,7 +1125,7 @@ export class MessageTestHelpers {
       '[aria-label="Close"]',
       '.close-button',
       '[data-testid="close"]',
-      'button[aria-label*="close" i]'
+      'button[aria-label*="close" i]',
     ];
 
     for (const selector of closeSelectors) {
@@ -1121,29 +1142,31 @@ export class MessageTestHelpers {
   }
 
   async findJumpButton(messageText?: string): Promise<Locator> {
-    const modalContainer = this.page.locator('.group\\/item-pinMess, [class*="group/item-pinMess"], [role="dialog"]').first();
-    
+    const modalContainer = this.page
+      .locator('.group\\/item-pinMess, [class*="group/item-pinMess"], [role="dialog"]')
+      .first();
+
     if (messageText) {
       const shortText = messageText.substring(0, 15);
       const searchTerms = [messageText, shortText, messageText.split(' ')[0]];
-      
+
       for (const searchTerm of searchTerms) {
         if (searchTerm) {
           const messageRow = modalContainer.locator(`div:has-text("${searchTerm}")`);
           const jumpInRow = messageRow.locator('button:has-text("Jump")');
-          
+
           if (await jumpInRow.isVisible({ timeout: 2000 })) {
             return jumpInRow.first();
           }
         }
       }
     }
-    
+
     const jumpButton = modalContainer.locator('button:has-text("Jump")').first();
     if (await jumpButton.isVisible({ timeout: 3000 })) {
       return jumpButton;
     }
-    
+
     throw new Error('Could not find Jump button');
   }
 
@@ -1155,14 +1178,14 @@ export class MessageTestHelpers {
 
   async verifyMessageVisibleInMainChat(messageText: string): Promise<boolean> {
     await this.page.waitForTimeout(2000);
-    
+
     const mainChatSelectors = [
       '.chat-messages',
       '.messages-container',
       '[class*="message"]',
       '.channel-content',
       '#mainChat',
-      '[data-testid="messages"]'
+      '[data-testid="messages"]',
     ];
 
     for (const selector of mainChatSelectors) {
@@ -1175,7 +1198,7 @@ export class MessageTestHelpers {
             messageText,
             shortText,
             messageText.split(' ')[0],
-            messageText.split(' ').slice(-2).join(' ')
+            messageText.split(' ').slice(-2).join(' '),
           ];
 
           for (const searchTerm of searchTerms) {
@@ -1191,7 +1214,7 @@ export class MessageTestHelpers {
     if (allPageText) {
       const shortText = messageText.substring(0, 15);
       const searchTerms = [messageText, shortText];
-      
+
       for (const searchTerm of searchTerms) {
         if (searchTerm && allPageText.includes(searchTerm)) {
           return true;
@@ -1221,7 +1244,7 @@ export class MessageTestHelpers {
       '[data-testid="channel-suggestions"]',
       'div[class*="mention"]',
       'ul[role="listbox"]',
-      '.channel-mention-list'
+      '.channel-mention-list',
     ];
 
     for (const selector of channelListSelectors) {
@@ -1231,8 +1254,10 @@ export class MessageTestHelpers {
       }
     }
 
-    const anyVisibleList = this.page.locator('div:visible:has-text("general"), ul:visible:has-text("general"), li:visible:has-text("general")');
-    if (await anyVisibleList.count() > 0) {
+    const anyVisibleList = this.page.locator(
+      'div:visible:has-text("general"), ul:visible:has-text("general"), li:visible:has-text("general")'
+    );
+    if ((await anyVisibleList.count()) > 0) {
       return true;
     }
 
@@ -1246,17 +1271,17 @@ export class MessageTestHelpers {
       'text-channel-privatee',
       'text-channel-privateee',
       'text-channel-private1',
-      'text-channel-private2'
+      'text-channel-private2',
     ];
 
     const foundChannelNames = new Set<string>();
-    
+
     for (const channelName of expectedChannels) {
       const channelSelectors = [
         `[role="option"]:has-text("${channelName}")`,
         `li:has-text("${channelName}")`,
         `div:has-text("${channelName}")`,
-        `span:has-text("${channelName}")`
+        `span:has-text("${channelName}")`,
       ];
 
       for (const selector of channelSelectors) {
@@ -1288,7 +1313,7 @@ export class MessageTestHelpers {
       'li',
       'div[class*="option"]',
       'div[class*="item"]',
-      '.channel-mention-list [role="option"]'
+      '.channel-mention-list [role="option"]',
     ];
     for (const sel of candidates) {
       const list = this.page.locator(sel);
@@ -1311,6 +1336,7 @@ export class MessageTestHelpers {
       await this.page.waitForTimeout(300);
       return true;
     } catch {
+      // Ignore errors
       return false;
     }
   }
@@ -1325,7 +1351,7 @@ export class MessageTestHelpers {
       `li:has-text("# ${name}")`,
       `li:has-text("${name}")`,
       `div[class*="option"]:has-text("${name}")`,
-      `div[class*="item"]:has-text("${name}")`
+      `div[class*="item"]:has-text("${name}")`,
     ];
     for (const sel of selectors) {
       const items = this.page.locator(sel);
@@ -1345,11 +1371,15 @@ export class MessageTestHelpers {
     return false;
   }
 
-  async sendMessageWithHashtag(baseMessage: string, hashtagPartial?: string, targetHashtagName?: string): Promise<void> {
+  async sendMessageWithHashtag(
+    baseMessage: string,
+    hashtagPartial?: string,
+    targetHashtagName?: string
+  ): Promise<void> {
     const input = await this.findMessageInput();
     await input.click();
     await this.page.waitForTimeout(300);
-    
+
     await input.fill(baseMessage);
     await this.page.waitForTimeout(2000);
     await input.type(' #');
@@ -1365,11 +1395,11 @@ export class MessageTestHelpers {
         await this.pickFirstHashtagFromList();
       }
     }
-    
+
     await this.page.waitForTimeout(1000);
     const inputValue = await input.inputValue();
     console.log(`Input value after hashtag selection: "${inputValue}"`);
-    
+
     await input.press('Enter');
     await this.page.waitForTimeout(1200);
   }
@@ -1382,7 +1412,7 @@ export class MessageTestHelpers {
       '[data-testid="mention-suggestions"]',
       'div:has-text("MEMBERS")',
       'ul[role="listbox"]',
-      'li[role="option"]'
+      'li[role="option"]',
     ];
 
     for (const selector of mentionListSelectors) {
@@ -1394,7 +1424,7 @@ export class MessageTestHelpers {
     }
 
     const options = this.page.locator('li[role="option"], [role="option"]');
-    if (await options.count() > 0) {
+    if ((await options.count()) > 0) {
       return true;
     }
 
@@ -1420,7 +1450,10 @@ export class MessageTestHelpers {
     }
 
     const bodyText = (await this.page.textContent('body')) || '';
-    if (expectedNames && expectedNames.some(n => bodyText.toLowerCase().includes(n.toLowerCase()))) {
+    if (
+      expectedNames &&
+      expectedNames.some(n => bodyText.toLowerCase().includes(n.toLowerCase()))
+    ) {
       return true;
     }
 
@@ -1497,7 +1530,6 @@ export class MessageTestHelpers {
       }
     }
 
-
     const mentionCandidates = last.locator('a, span, div');
     const count = await mentionCandidates.count();
     for (let i = 0; i < count; i++) {
@@ -1524,7 +1556,7 @@ export class MessageTestHelpers {
       '[data-testid*="emoji"]',
       'svg.w-5.h-5.text-theme-primary',
       'svg.w-5.h-5.text-theme-primary-hover',
-      'div.cursor-pointer:has(svg.w-5.h-5)'
+      'div.cursor-pointer:has(svg.w-5.h-5)',
     ];
     for (const selector of selectors) {
       const el = this.page.locator(selector).first();
@@ -1540,15 +1572,17 @@ export class MessageTestHelpers {
       try {
         await btn.click();
       } catch {
+      // Ignore errors
         const parent = btn.locator('xpath=..');
         await parent.click();
       }
       await this.page.waitForTimeout(800);
-    } catch (e) {
+    } catch {
+      // Ignore errors
       const gifBtnCandidates = [
         'button:has-text("GIF")',
         'button[aria-label*="gif" i]',
-        'button[title*="gif" i]'
+        'button[title*="gif" i]',
       ];
       for (const sel of gifBtnCandidates) {
         const b = this.page.locator(sel).first();
@@ -1559,19 +1593,22 @@ export class MessageTestHelpers {
         }
       }
 
-      const emojisTab = this.page.locator('button:has-text("Emojis"), [role="tab"]:has-text("Emojis"), div[role="tab"]:has-text("Emojis")').first();
+      const emojisTab = this.page
+        .locator(
+          'button:has-text("Emojis"), [role="tab"]:has-text("Emojis"), div[role="tab"]:has-text("Emojis")'
+        )
+        .first();
       if (await emojisTab.isVisible({ timeout: 1500 })) {
         await emojisTab.click();
         await this.page.waitForTimeout(600);
       }
     }
 
-
     const containers = [
       '.emoji-picker',
       '[role="dialog"]:has-text("Emojis")',
       'div[role="dialog"]',
-      'div:has-text("Gifs"):has-text("Emojis"):has-text("Sounds")'
+      'div:has-text("Gifs"):has-text("Emojis"):has-text("Sounds")',
     ];
     for (const sel of containers) {
       const c = this.page.locator(sel).first();
@@ -1588,7 +1625,7 @@ export class MessageTestHelpers {
       '[role="dialog"] input[type="text"]',
       'input.bg-theme-input',
       'input.outline-none.bg-theme-input',
-      'div:has-text("Emojis") >> input[type="text"]'
+      'div:has-text("Emojis") >> input[type="text"]',
     ];
 
     const containers = this.page.locator('.emoji-picker, [role="dialog"]');
@@ -1604,10 +1641,17 @@ export class MessageTestHelpers {
     const frames = this.page.locator('iframe');
     const frameCount = await frames.count();
     for (let i = 0; i < frameCount; i++) {
-      const frameLoc = this.page.frameLocator('iframe').nth(i).locator('input[type="text"], input.bg-theme-input, input[placeholder]');
+      const frameLoc = this.page
+        .frameLocator('iframe')
+        .nth(i)
+        .locator('input[type="text"], input.bg-theme-input, input[placeholder]');
       const count = await frameLoc.count();
       if (count > 0) {
-        const cand = this.page.frameLocator('iframe').nth(i).locator('input[type="text"], input.bg-theme-input, input[placeholder]').first();
+        const cand = this.page
+          .frameLocator('iframe')
+          .nth(i)
+          .locator('input[type="text"], input.bg-theme-input, input[placeholder]')
+          .first();
         try {
           if (await cand.isVisible({ timeout: 1000 })) return cand;
         } catch {}
@@ -1628,7 +1672,7 @@ export class MessageTestHelpers {
       '.emoji-picker button:has(img)',
       '.emoji-picker [role="button"]:has(img)',
       '[role="dialog"] button:has(img)',
-      'button[aria-label*=":" i]'
+      'button[aria-label*=":" i]',
     ];
 
     const containers = this.page.locator('.emoji-picker, [role="dialog"]');
@@ -1651,7 +1695,10 @@ export class MessageTestHelpers {
     const frames = this.page.locator('iframe');
     const frameCount = await frames.count();
     for (let i = 0; i < frameCount; i++) {
-      const list = this.page.frameLocator('iframe').nth(i).locator('button:has(img), [role="button"]:has(img)');
+      const list = this.page
+        .frameLocator('iframe')
+        .nth(i)
+        .locator('button:has(img), [role="button"]:has(img)');
       const count = await list.count();
       if (count > 0) {
         const first = list.first();
@@ -1690,43 +1737,39 @@ export class MessageTestHelpers {
 
   async verifyLastMessageHasHashtag(expectedHashtag: string): Promise<boolean> {
     await this.page.waitForTimeout(2000);
-    
+
     const lastMessage = await this.findLastMessage();
     const textContent = await lastMessage.textContent();
-    
 
     const hasHashtagWithHash = textContent?.includes(`#${expectedHashtag}`) || false;
     const hasHashtagWithoutHash = textContent?.includes(expectedHashtag) || false;
-    
 
     const hashtagSelectors = [
       `a:has-text("#${expectedHashtag}")`,
       `span:has-text("#${expectedHashtag}")`,
       `[data-hashtag="${expectedHashtag}"]`,
       `.hashtag:has-text("${expectedHashtag}")`,
-      `[class*="hashtag"]:has-text("${expectedHashtag}")`
+      `[class*="hashtag"]:has-text("${expectedHashtag}")`,
     ];
-    
+
     for (const selector of hashtagSelectors) {
       const hashtagElement = lastMessage.locator(selector);
       if (await hashtagElement.isVisible({ timeout: 1000 })) {
         return true;
       }
     }
-    
+
     console.log(`Checking hashtag "${expectedHashtag}" in message content: "${textContent}"`);
     return hasHashtagWithHash || hasHashtagWithoutHash;
   }
 
   async verifyLastMessageHasLink(expectedLink: string): Promise<boolean> {
     await this.page.waitForTimeout(2000);
-    
+
     const lastMessage = await this.findLastMessage();
     const textContent = await lastMessage.textContent();
-    
 
     const hasLinkText = textContent?.includes(expectedLink) || false;
-    
 
     const linkSelectors = [
       `a[href="${expectedLink}"]`,
@@ -1736,9 +1779,9 @@ export class MessageTestHelpers {
       `.link:has-text("${expectedLink}")`,
       `[class*="link"]:has-text("${expectedLink}")`,
       'a[target="_blank"]',
-      'a[rel*="noopener"]'
+      'a[rel*="noopener"]',
     ];
-    
+
     for (const selector of linkSelectors) {
       const linkElement = lastMessage.locator(selector);
       if (await linkElement.isVisible({ timeout: 1000 })) {
@@ -1749,7 +1792,6 @@ export class MessageTestHelpers {
         }
       }
     }
-    
 
     const linkPreviewSelectors = [
       '.link-preview',
@@ -1758,39 +1800,41 @@ export class MessageTestHelpers {
       '[class*="url-card"]',
       '[class*="preview"]',
       '.embed',
-      '[class*="embed"]'
+      '[class*="embed"]',
     ];
-    
+
     for (const selector of linkPreviewSelectors) {
       const previewElement = lastMessage.locator(selector);
       if (await previewElement.isVisible({ timeout: 1000 })) {
         const previewText = await previewElement.textContent();
-        if (previewText && previewText.includes(expectedLink.replace('https://', '').replace('http://', ''))) {
+        if (
+          previewText &&
+          previewText.includes(expectedLink.replace('https://', '').replace('http://', ''))
+        ) {
           console.log(`Found link preview: ${previewText}`);
           return true;
         }
       }
     }
-    
+
     console.log(`Checking link "${expectedLink}" in message content: "${textContent}"`);
     return hasLinkText;
   }
 
   async verifyLastMessageHasMultipleLinks(expectedLinks: string[]): Promise<boolean> {
     await this.page.waitForTimeout(2000);
-    
+
     const lastMessage = await this.findLastMessage();
     const textContent = await lastMessage.textContent();
-    
+
     console.log(`Checking multiple links in message content: "${textContent}"`);
-    
+
     let foundLinksCount = 0;
     const detectedLinks: string[] = [];
-    
+
     for (const link of expectedLinks) {
-  
       const hasLinkText = textContent?.includes(link) || false;
-      
+
       if (hasLinkText) {
         foundLinksCount++;
         detectedLinks.push(link);
@@ -1798,14 +1842,13 @@ export class MessageTestHelpers {
       } else {
         console.log(`✗ Missing link text: ${link}`);
       }
-      
 
       const specificLinkSelectors = [
         `a[href="${link}"]`,
         `a[href*="${link.replace('https://', '')}"]`,
-        `a:has-text("${link}")`
+        `a:has-text("${link}")`,
       ];
-      
+
       for (const selector of specificLinkSelectors) {
         const linkElements = lastMessage.locator(selector);
         const count = await linkElements.count();
@@ -1815,9 +1858,10 @@ export class MessageTestHelpers {
         }
       }
     }
-    
-    console.log(`Found ${foundLinksCount}/${expectedLinks.length} links. Detected: [${detectedLinks.join(', ')}]`);
-    
+
+    console.log(
+      `Found ${foundLinksCount}/${expectedLinks.length} links. Detected: [${detectedLinks.join(', ')}]`
+    );
 
     return foundLinksCount === expectedLinks.length;
   }
@@ -1834,9 +1878,9 @@ export class MessageTestHelpers {
       'textarea[placeholder*="message" i]',
       '.modal textarea',
       '[role="dialog"] textarea',
-      'textarea:visible'
+      'textarea:visible',
     ];
-    
+
     let textAreaFound = false;
     for (const selector of buzzTextAreaSelectors) {
       const textArea = this.page.locator(selector).first();
@@ -1849,11 +1893,11 @@ export class MessageTestHelpers {
         break;
       }
     }
-    
+
     if (!textAreaFound) {
       throw new Error('Buzz textarea not found');
     }
-    
+
     await this.page.waitForTimeout(1000);
     const sendButtonSelectors = [
       'button:has-text("Send")',
@@ -1861,9 +1905,9 @@ export class MessageTestHelpers {
       '.modal button:has-text("Send")',
       '[role="dialog"] button:has-text("Send")',
       'button[type="submit"]',
-      'button:visible:has-text("Send")'
+      'button:visible:has-text("Send")',
     ];
-    
+
     for (const selector of sendButtonSelectors) {
       const sendButton = this.page.locator(selector).first();
       if (await sendButton.isVisible({ timeout: 2000 })) {
@@ -1872,29 +1916,29 @@ export class MessageTestHelpers {
         break;
       }
     }
-    
+
     await this.page.waitForTimeout(2000);
   }
 
   async verifyLastMessageHasText(expectedText: string): Promise<boolean> {
     await this.page.waitForTimeout(2000);
-    
+
     const lastMessage = await this.findLastMessage();
     const textContent = await lastMessage.textContent();
-    
+
     console.log(`Checking text "${expectedText}" in message content: "${textContent}"`);
-    
+
     return textContent?.includes(expectedText) || false;
   }
 
   async sendMessageWithMultipleLinks(links: string[]): Promise<void> {
     const baseMessage = `Multiple links test ${Date.now()} - ${links.join(' | ')}`;
-    
+
     await this.sendTextMessage(baseMessage);
-    
+
     const lastMessage = await this.findLastMessage();
-    const messageText = await lastMessage.textContent();
-    
+    const _messageText = await lastMessage.textContent();
+
     for (const link of links) {
       if (messageText?.includes(link)) {
         console.log(`✓ Verified link: ${link}`);
@@ -1902,7 +1946,7 @@ export class MessageTestHelpers {
         throw new Error(`Link not found in message: ${link}`);
       }
     }
-    
+
     console.log(`✓ All ${links.length} links verified successfully`);
   }
 
@@ -1912,7 +1956,7 @@ export class MessageTestHelpers {
 
     const reactionButtonSelectors = [
       'button[aria-label*="Add reaction" i]',
-      'button[title*="Add reaction" i]', 
+      'button[title*="Add reaction" i]',
       'button[aria-label*="React" i]',
       'button[title*="React" i]',
       'button:has([data-testid*="reaction"])',
@@ -1924,24 +1968,31 @@ export class MessageTestHelpers {
       'button:has(span):has-text("🙂")',
       'button:has(span):has-text("+")',
       '.message-hover-actions button',
-      '.message-actions button'
+      '.message-actions button',
     ];
 
     for (const selector of reactionButtonSelectors) {
       const buttons = messageElement.locator(selector);
       const count = await buttons.count();
-      
+
       for (let i = 0; i < count; i++) {
         const button = buttons.nth(i);
         if (await button.isVisible({ timeout: 500 })) {
-          const ariaLabel = (await button.getAttribute('aria-label') || '').toLowerCase();
-          const title = (await button.getAttribute('title') || '').toLowerCase();
-          const text = await button.textContent() || '';
-          
-          if (ariaLabel.includes('reaction') || ariaLabel.includes('react') || 
-              title.includes('reaction') || title.includes('react') ||
-              ariaLabel.includes('emoji') || title.includes('emoji') ||
-              text.includes('😀') || text.includes('🙂') || text.includes('+')) {
+          const ariaLabel = ((await button.getAttribute('aria-label')) || '').toLowerCase();
+          const title = ((await button.getAttribute('title')) || '').toLowerCase();
+          const text = (await button.textContent()) || '';
+
+          if (
+            ariaLabel.includes('reaction') ||
+            ariaLabel.includes('react') ||
+            title.includes('reaction') ||
+            title.includes('react') ||
+            ariaLabel.includes('emoji') ||
+            title.includes('emoji') ||
+            text.includes('😀') ||
+            text.includes('🙂') ||
+            text.includes('+')
+          ) {
             return button;
           }
         }
@@ -1952,7 +2003,7 @@ export class MessageTestHelpers {
       'button[aria-label*="Add reaction" i]',
       'button[aria-label*="React" i]',
       'button:has([class*="reaction"])',
-      'button:has([data-testid*="reaction"])'
+      'button:has([data-testid*="reaction"])',
     ];
 
     for (const selector of globalSelectors) {
@@ -2002,12 +2053,12 @@ export class MessageTestHelpers {
       '😂': ['😂', '😆', 'joy', 'laugh', 'tears'],
       '👍': ['👍', 'thumbs', 'up', 'like'],
       '💯': ['💯', '100', 'hundred'],
-      '😊': ['😊', '😀', '🙂', 'grinning', 'smiling']
+      '😊': ['😊', '😀', '🙂', 'grinning', 'smiling'],
     };
 
     for (const targetEmoji of emojis) {
       const searchTerms = emojiMap[targetEmoji] || [targetEmoji];
-      
+
       for (const term of searchTerms) {
         const emojiSelectors = [
           `button:has-text("${term}")`,
@@ -2017,13 +2068,13 @@ export class MessageTestHelpers {
           `[title*="${term}" i]`,
           `img[alt*="${term}" i]`,
           `.emoji:has-text("${term}")`,
-          `[data-emoji*="${term}" i]`
+          `[data-emoji*="${term}" i]`,
         ];
 
         for (const selector of emojiSelectors) {
           const elements = this.page.locator(selector);
           const count = await elements.count();
-          
+
           for (let i = 0; i < count; i++) {
             const element = elements.nth(i);
             if (await element.isVisible({ timeout: 500 })) {
@@ -2031,7 +2082,8 @@ export class MessageTestHelpers {
                 await element.click();
                 await this.page.waitForTimeout(1000);
                 return targetEmoji;
-              } catch (e) {
+              } catch {
+      // Ignore errors
                 continue;
               }
             }
@@ -2045,19 +2097,20 @@ export class MessageTestHelpers {
       'div[class*="emoji"]',
       'span[class*="emoji"]',
       '[role="button"]:has(img)',
-      'button:has(span):visible'
+      'button:has(span):visible',
     ];
 
     for (const selector of fallbackSelectors) {
       const elements = this.page.locator(selector);
       const count = await elements.count();
-      
+
       if (count > 0) {
         try {
           await elements.first().click();
           await this.page.waitForTimeout(1000);
           return emojis[0];
-        } catch (e) {
+        } catch {
+      // Ignore errors
           continue;
         }
       }
@@ -2068,12 +2121,12 @@ export class MessageTestHelpers {
 
   async verifyReactionOnMessage(messageElement: Locator, emojis: string[]): Promise<boolean> {
     await this.page.waitForTimeout(2000);
-    
+
     if (emojis.length === 0) return false;
-    
+
     const globalReactionSelectors = [
       'button[class*="reaction"]',
-      'div[class*="reaction"]', 
+      'div[class*="reaction"]',
       'span[class*="reaction"]',
       'button:has-text("😂")',
       'button:has-text("👍")',
@@ -2082,7 +2135,7 @@ export class MessageTestHelpers {
       'button:has(span):has-text("1")',
       'button:has(span):has-text("2")',
       'button:has(span):has-text("3")',
-      '[data-emoji]'
+      '[data-emoji]',
     ];
 
     for (const selector of globalReactionSelectors) {
@@ -2104,9 +2157,8 @@ export class MessageTestHelpers {
       'div:has(img):has-text("1")',
       'div:has(svg):has-text("1")',
       '.reactions button',
-      '.reactions div'
+      '.reactions div',
     ];
-
 
     for (const sel of candidates) {
       const el = messageElement.locator(sel).first();
@@ -2114,7 +2166,6 @@ export class MessageTestHelpers {
         return el;
       }
     }
-
 
     const msgBox = await messageElement.boundingBox();
     if (!msgBox) return null;
@@ -2140,7 +2191,10 @@ export class MessageTestHelpers {
     return null;
   }
 
-  async reactToMessage(messageElement: Locator, preferredEmojis: string[] = ['🙂', '💯', '👍', '😊', '😂']): Promise<string | null> {
+  async reactToMessage(
+    messageElement: Locator,
+    preferredEmojis: string[] = ['🙂', '💯', '👍', '😊', '😂']
+  ): Promise<string | null> {
     await messageElement.hover();
     await this.page.waitForTimeout(1500);
 
@@ -2153,7 +2207,7 @@ export class MessageTestHelpers {
     if (addBtn) {
       await addBtn.click();
       await this.page.waitForTimeout(1500);
-      
+
       const picked = await this.selectEmojiFromPicker(preferredEmojis);
       if (picked) {
         return picked;
@@ -2162,14 +2216,14 @@ export class MessageTestHelpers {
 
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(1000);
-    
+
     const contextReactionSelectors = [
       'text="Add Reaction"',
-      'text="React"', 
+      'text="React"',
       '[role="menuitem"]:has-text("Reaction")',
       '[role="menuitem"]:has-text("React")',
       'button:has-text("Reaction")',
-      'div:has-text("Add Reaction")'
+      'div:has-text("Add Reaction")',
     ];
 
     for (const selector of contextReactionSelectors) {
@@ -2177,7 +2231,7 @@ export class MessageTestHelpers {
       if (await contextReaction.isVisible({ timeout: 1000 })) {
         await contextReaction.click();
         await this.page.waitForTimeout(1500);
-        
+
         const picked = await this.selectEmojiFromPicker(preferredEmojis);
         if (picked) {
           return picked;
@@ -2194,21 +2248,22 @@ export class MessageTestHelpers {
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(600);
 
-
     const menuContainers = [
       '[role="menu"]',
       '[data-radix-menu-content]',
       '.context-menu',
       '.tippy-content',
-      'div[role="dialog"]:has(button:has-text("Add Reaction"))'
+      'div[role="dialog"]:has(button:has-text("Add Reaction"))',
     ];
 
     for (const containerSel of menuContainers) {
       const container = this.page.locator(containerSel).first();
       if (await container.isVisible({ timeout: 500 })) {
-        const item = container.locator(
-          'text="Add Reaction", [role="menuitem"]:has-text("Add Reaction"), button:has-text("Add Reaction"), li:has-text("Add Reaction"), .contextify_itemContent div:has-text("Add Reaction"), div.flex.justify-between.items-center:has-text("Add Reaction")'
-        ).first();
+        const item = container
+          .locator(
+            'text="Add Reaction", [role="menuitem"]:has-text("Add Reaction"), button:has-text("Add Reaction"), li:has-text("Add Reaction"), .contextify_itemContent div:has-text("Add Reaction"), div.flex.justify-between.items-center:has-text("Add Reaction")'
+          )
+          .first();
         if (await item.isVisible({ timeout: 500 })) {
           await item.click();
           await this.page.waitForTimeout(800);
@@ -2217,8 +2272,8 @@ export class MessageTestHelpers {
       }
     }
 
-
-    const selectorAll = 'text="Add Reaction", [role="menuitem"]:has-text("Add Reaction"), button:has-text("Add Reaction"), div:has-text("Add Reaction"), li:has-text("Add Reaction"), .contextify_itemContent div:has-text("Add Reaction"), div.flex.justify-between.items-center:has-text("Add Reaction")';
+    const selectorAll =
+      'text="Add Reaction", [role="menuitem"]:has-text("Add Reaction"), button:has-text("Add Reaction"), div:has-text("Add Reaction"), li:has-text("Add Reaction"), .contextify_itemContent div:has-text("Add Reaction"), div.flex.justify-between.items-center:has-text("Add Reaction")';
     for (let attempt = 0; attempt < 3; attempt++) {
       const addReactionInMenu = this.page.locator(selectorAll).first();
       if (await addReactionInMenu.count()) {
@@ -2256,29 +2311,29 @@ export class MessageTestHelpers {
     return picked;
   }
 
-  async searchAndPickEmojiFromPicker(messageElement: Locator, searchTerm: string): Promise<string | null> {
+  async searchAndPickEmojiFromPicker(
+    messageElement: Locator,
+    searchTerm: string
+  ): Promise<string | null> {
     await messageElement.hover();
     await this.page.waitForTimeout(1500);
-
 
     const quick = await this.tryClickQuickReaction(messageElement, ['😀', '😊', '🙂']);
     if (quick) {
       return quick;
     }
 
-
     const addBtn = await this.findAddReactionButton(messageElement);
     if (addBtn) {
       await addBtn.click();
       await this.page.waitForTimeout(1500);
-      
 
       try {
         const searchInput = await this.findEmojiSearchInput();
         await searchInput.click();
         await searchInput.fill(searchTerm);
         await this.page.waitForTimeout(800);
-        
+
         const emojiSelectors = [
           'img[alt*="smile" i]',
           'img[alt*="grinning" i]',
@@ -2287,9 +2342,9 @@ export class MessageTestHelpers {
           '[aria-label*="smile" i]',
           '[aria-label*="grinning" i]',
           'button[aria-label*="smile" i]',
-          '.emoji-picker img:visible'
+          '.emoji-picker img:visible',
         ];
-        
+
         for (const selector of emojiSelectors) {
           const emojis = this.page.locator(selector);
           const count = await emojis.count();
@@ -2297,27 +2352,24 @@ export class MessageTestHelpers {
             const first = emojis.first();
             if (await first.isVisible({ timeout: 500 })) {
               await first.click();
-                          await this.page.waitForTimeout(1000);
-            return '😀';
+              await this.page.waitForTimeout(1000);
+              return '😀';
             }
           }
         }
-      } catch (e) {
-
-      }
+      } catch {}
     }
-
 
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(1000);
-    
+
     const contextReactionSelectors = [
       'text="Add Reaction"',
-      'text="React"', 
+      'text="React"',
       '[role="menuitem"]:has-text("Reaction")',
       '[role="menuitem"]:has-text("React")',
       'button:has-text("Reaction")',
-      'div:has-text("Add Reaction")'
+      'div:has-text("Add Reaction")',
     ];
 
     for (const selector of contextReactionSelectors) {
@@ -2325,19 +2377,18 @@ export class MessageTestHelpers {
       if (await contextReaction.isVisible({ timeout: 1000 })) {
         await contextReaction.click();
         await this.page.waitForTimeout(1500);
-        
+
         try {
           const searchInput = await this.findEmojiSearchInput();
           await searchInput.click();
           await searchInput.fill(searchTerm);
           await this.page.waitForTimeout(800);
-          
+
           const picked = await this.selectEmojiFromPicker(['😀', '😊', '🙂']);
           if (picked) {
             return picked;
           }
-        } catch (e) {
-        }
+        } catch {}
       }
     }
 
@@ -2350,7 +2401,7 @@ export class MessageTestHelpers {
       'button[title*="Members"]',
       'button:has-text("Members")',
       'div:has-text("Members")',
-      '*:has-text("Members"):visible'
+      '*:has-text("Members"):visible',
     ];
 
     for (const selector of selectors) {
@@ -2366,12 +2417,12 @@ export class MessageTestHelpers {
 
   async clickMemberInList(memberName: string): Promise<void> {
     await this.page.waitForTimeout(2000);
-    
+
     const selectors = [
       `div[class*="cursor-pointer"][class*="flex"][class*="items-center"]:has-text("${memberName}")`,
       `div[class*="cursor-pointer"]:has-text("${memberName}")`,
       `div:has-text("${memberName}")`,
-      `*:has-text("${memberName}"):visible`
+      `*:has-text("${memberName}"):visible`,
     ];
 
     for (const selector of selectors) {
@@ -2387,13 +2438,13 @@ export class MessageTestHelpers {
 
   async sendMessageFromShortProfile(message: string): Promise<void> {
     await this.page.waitForTimeout(2000);
-    
+
     const selectors = [
       'input[placeholder*="Message @"]',
       'input[class*="w-full"][class*="border-theme-primary"][class*="text-theme-primary"]',
       'input[class*="bg-theme-contextify"]',
       'input.w-full.border-theme-primary',
-      'input[type="text"][class*="border-theme-primary"]'
+      'input[type="text"][class*="border-theme-primary"]',
     ];
 
     for (const selector of selectors) {
@@ -2412,22 +2463,22 @@ export class MessageTestHelpers {
 
   async verifyMarkdownMessage(originalMessage: string): Promise<boolean> {
     await this.page.waitForTimeout(3000);
-    
+
     const codeContent = originalMessage.replace(/```/g, '').trim();
-    
+
     const markdownSelectors = [
       'pre',
       'code',
       '.code-block',
       '[class*="code"]',
       '.markdown-code',
-      '.hljs'
+      '.hljs',
     ];
 
     for (const selector of markdownSelectors) {
       const codeBlocks = this.page.locator(selector);
       const count = await codeBlocks.count();
-      
+
       for (let i = 0; i < count; i++) {
         const block = codeBlocks.nth(i);
         const text = await block.textContent();
@@ -2445,10 +2496,10 @@ export class MessageTestHelpers {
     const input = await this.findMessageInput();
     await input.click();
     await this.page.waitForTimeout(500);
-    
+
     await input.fill(`${baseMessage} ${emojiQuery}`);
     await this.page.waitForTimeout(1000);
-    
+
     const emojiSuggestionSelectors = [
       '.emoji-suggestions',
       '.emoji-picker',
@@ -2460,14 +2511,14 @@ export class MessageTestHelpers {
       '[class*="emoji"]',
       'button:has(img[alt*="smile"])',
       'div[class*="suggestion"]:has(img)',
-      '.suggestion-item:has(img)'
+      '.suggestion-item:has(img)',
     ];
 
     let emojiSelected = false;
     for (const selector of emojiSuggestionSelectors) {
       const suggestions = this.page.locator(selector);
       const count = await suggestions.count();
-      
+
       if (count > 0) {
         const firstSuggestion = suggestions.first();
         if (await firstSuggestion.isVisible({ timeout: 2000 })) {
@@ -2490,14 +2541,14 @@ export class MessageTestHelpers {
   }
 
   async generateLongMessage(wordCount: number): Promise<string> {
-    const baseText = "This is a very long message to test file conversion functionality. ";
+    const baseText = 'This is a very long message to test file conversion functionality. ';
     const timestamp = Date.now();
     let longMessage = `Long message test ${timestamp} - `;
-    
+
     for (let i = 0; i < wordCount; i++) {
       longMessage += baseText;
     }
-    
+
     return longMessage;
   }
 
@@ -2505,10 +2556,10 @@ export class MessageTestHelpers {
     const input = await this.findMessageInput();
     await input.click();
     await this.page.waitForTimeout(500);
-    
+
     await input.fill(longMessage);
     await this.page.waitForTimeout(2000);
-    
+
     const fileConversionIndicators = [
       'text="Convert to file"',
       'text="Send as file"',
@@ -2521,7 +2572,7 @@ export class MessageTestHelpers {
       '[class*="file-conversion"]',
       '.file-indicator',
       'span:has-text("txt")',
-      'div:has-text("File will be sent")'
+      'div:has-text("File will be sent")',
     ];
 
     let conversionDetected = false;
@@ -2547,7 +2598,7 @@ export class MessageTestHelpers {
       'button:has-text("Send")',
       'button:has(svg[data-icon*="paper" i])',
       'button:has(svg[aria-label*="send" i])',
-      'button:has(svg):near(:text("txt"))'
+      'button:has(svg):near(:text("txt"))',
     ];
 
     let sendClicked = false;
@@ -2580,12 +2631,12 @@ export class MessageTestHelpers {
       '[class*="file-message"]',
       'div:has-text("Download")',
       'a[download]',
-      '[class*="file-item"]'
+      '[class*="file-item"]',
     ];
 
     // Wait and check if file attachment appears in chat
     await this.page.waitForTimeout(2500);
-    
+
     for (const selector of fileAttachmentSelectors) {
       const attachment = this.page.locator(selector).first();
       if (await attachment.isVisible({ timeout: 3000 })) {
@@ -2595,20 +2646,19 @@ export class MessageTestHelpers {
 
     // Also check page content for file-related text
     const pageContent = await this.page.textContent('body');
-    const hasFileIndicators = pageContent?.includes('.txt') || 
-                             pageContent?.includes('Download') || 
-                             pageContent?.includes('attachment') ||
-                             conversionDetected;
+    const hasFileIndicators =
+      pageContent?.includes('.txt') ||
+      pageContent?.includes('Download') ||
+      pageContent?.includes('attachment') ||
+      conversionDetected;
 
     return hasFileIndicators;
   }
-
 }
-
 
 export const LINK_TEST_URLS = [
   'https://www.google.com',
   'https://github.com',
   'https://stackoverflow.com',
-  'https://youtube.com'
+  'https://youtube.com',
 ];

@@ -12,7 +12,9 @@ export class VoiceChannelPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.createButton = page.locator('#channelList button.focus-visible\\:outline-none.text-theme-primary.text-theme-primary-hover');
+    this.createButton = page.locator(
+      '#channelList button.focus-visible\\:outline-none.text-theme-primary.text-theme-primary-hover'
+    );
     this.channelNameInput = page.locator('input.Input.grow.shrink.basis-0');
     this.voiceRadio = page.locator('input[type="radio"][name="drone"][value="10"]');
     this.privateToggle = page.locator('input[type="checkbox"].peer');
@@ -38,16 +40,22 @@ export class VoiceChannelPage {
     await this.confirmButton.click();
 
     try {
-      await this.page.waitForSelector(`.voice-channel-list > div.channel-item[data-name="${name}"]`, { timeout: 5000 });
+      await this.page.waitForSelector(
+        `.voice-channel-list > div.channel-item[data-name="${name}"]`,
+        { timeout: 5000 }
+      );
       return true;
     } catch {
+      // Ignore errors
       return false;
     }
   }
 
   async isVoiceChannelPresent(name: string): Promise<boolean> {
-    const channel = this.page.locator(`.voice-channel-list > div.channel-item[data-name="${name}"]`);
-    return await channel.count() > 0;
+    const channel = this.page.locator(
+      `.voice-channel-list > div.channel-item[data-name="${name}"]`
+    );
+    return (await channel.count()) > 0;
   }
 
   async cancelCreateVoiceChannel(name: string): Promise<boolean> {

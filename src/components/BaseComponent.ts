@@ -31,7 +31,11 @@ export abstract class BaseComponent {
   /**
    * Fill input field
    */
-  protected async fillInput(selector: string, text: string, timeout: number = 10000): Promise<void> {
+  protected async fillInput(
+    selector: string,
+    text: string,
+    timeout: number = 10000
+  ): Promise<void> {
     const locator = this.getLocator(selector);
     await locator.waitFor({ state: 'visible', timeout });
     await locator.clear();
@@ -56,6 +60,7 @@ export abstract class BaseComponent {
       await locator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
+      // Ignore errors
       return false;
     }
   }
@@ -83,7 +88,7 @@ export abstract class BaseComponent {
   protected async setCheckbox(selector: string, checked: boolean): Promise<void> {
     const locator = this.getLocator(selector);
     await locator.waitFor({ state: 'visible' });
-    
+
     const isCurrentlyChecked = await locator.isChecked();
     if (isCurrentlyChecked !== checked) {
       await locator.click();

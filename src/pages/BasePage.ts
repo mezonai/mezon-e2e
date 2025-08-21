@@ -36,6 +36,7 @@ export abstract class BasePage {
       await locator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
+      // Ignore errors
       return false;
     }
   }
@@ -49,9 +50,9 @@ export abstract class BasePage {
   }
 
   async takeScreenshot(name: string): Promise<void> {
-    await this.page.screenshot({ 
+    await this.page.screenshot({
       path: `screenshots/${name}-${Date.now()}.png`,
-      fullPage: true 
+      fullPage: true,
     });
   }
 
