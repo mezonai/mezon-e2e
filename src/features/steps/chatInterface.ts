@@ -1,6 +1,6 @@
 import { Given, When, Then } from '../../fixtures/page.fixture';
 
-Given('I am authenticated with valid session', async ({ _page }) => {
+Given('I am authenticated with valid session', async ({ page }) => {
   try {
     const sessionCheck = await page.evaluate(() => {
       try {
@@ -9,8 +9,8 @@ Given('I am authenticated with valid session', async ({ _page }) => {
           hasSession: !!session,
           sessionData: session ? JSON.parse(session) : null,
         };
-      } catch {
-      // Ignore errors
+      } catch (e) {
+        // Ignore errors
         return { hasSession: false, error: (e as Error).message };
       }
     });
@@ -20,13 +20,13 @@ Given('I am authenticated with valid session', async ({ _page }) => {
     } else {
       console.log('mezon_session not found or error:', sessionCheck.error || 'No session');
     }
-  } catch {
-      // Ignore errors
-    console.log('Could not check localStorage:', error.message);
+  } catch (error) {
+    // Ignore errors
+    console.log('Could not check localStorage:', (error as Error).message);
   }
 });
 
-Given('I navigate to the chat page after authentication', async ({ _page }) => {
+Given('I navigate to the chat page after authentication', async ({ page }) => {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000);
@@ -39,7 +39,7 @@ Given('I navigate to the chat page after authentication', async ({ _page }) => {
     });
     console.log(`🔍 localStorage mezon_session available: ${sessionCheck}`);
   } catch {
-      // Ignore errors
+    // Ignore errors
     console.log('⚠️ Cannot check localStorage at this point');
   }
   await page.goto('/chat/direct/friends');
@@ -70,14 +70,14 @@ Given('I navigate to the chat page after authentication', async ({ _page }) => {
   }
 });
 
-When('I wait for the chat interface to load completely', async ({ _page }) => {
+When('I wait for the chat interface to load completely', async ({ page }) => {
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(10000);
 
   await page.screenshot({ path: 'debug-chat-interface-loaded.png', fullPage: true });
 });
 
-Then('the "Find or start a conversation" input should be present', async ({ _page }) => {
+Then('the "Find or start a conversation" input should be present', async ({ page }) => {
   const inputSelectors = [
     'input[placeholder="Find or start a conversation"]',
     'input[placeholder*="Find or start"]',
@@ -128,9 +128,9 @@ Then('the "Find or start a conversation" input should be present', async ({ _pag
           break;
         }
       }
-    } catch {
+    } catch (error) {
       // Ignore errors
-      console.log(`⚠️ Error with selector ${selector}: ${error.message}`);
+      console.log(`⚠️ Error with selector ${selector}: ${(error as Error).message}`);
     }
   }
 
@@ -149,7 +149,7 @@ Then('the "Find or start a conversation" input should be present', async ({ _pag
           `  Input ${i}: type="${type}", placeholder="${placeholder}", visible=${isVisible}`
         );
       } catch {
-      // Ignore errors
+        // Ignore errors
         console.log(`  Input ${i}: Could not inspect`);
       }
     }
