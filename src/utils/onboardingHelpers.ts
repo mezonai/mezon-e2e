@@ -25,7 +25,7 @@ export class OnboardingHelpers {
             break;
           }
         } catch {
-      // Ignore errors
+          // Ignore errors
           continue;
         }
       }

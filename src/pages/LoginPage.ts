@@ -95,7 +95,7 @@ export class LoginPage extends BasePage {
           break;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         console.log('Selector failed:', selector);
         continue;
       }
@@ -167,7 +167,7 @@ export class LoginPage extends BasePage {
           break;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -235,7 +235,7 @@ export class LoginPage extends BasePage {
           break;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }

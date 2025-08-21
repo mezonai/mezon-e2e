@@ -83,7 +83,7 @@ export class ClanSettingsPage extends BasePage {
             break;
           }
         } catch {
-      // Ignore errors
+          // Ignore errors
           continue;
         }
       }
@@ -127,7 +127,7 @@ export class ClanSettingsPage extends BasePage {
           break;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -153,7 +153,7 @@ export class ClanSettingsPage extends BasePage {
               break;
             }
           } catch {
-      // Ignore errors
+            // Ignore errors
             continue;
           }
         }
@@ -179,7 +179,7 @@ export class ClanSettingsPage extends BasePage {
           break;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -217,7 +217,7 @@ export class ClanSettingsPage extends BasePage {
           break;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -255,7 +255,7 @@ export class ClanSettingsPage extends BasePage {
           break;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -303,7 +303,7 @@ export class ClanSettingsPage extends BasePage {
         console.log(`✅ Modal found using: ${selector}`);
         return { isDisplayed: true, selector };
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -390,7 +390,7 @@ export class ClanSettingsPage extends BasePage {
           return true;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -444,7 +444,7 @@ export class ClanSettingsPage extends BasePage {
           };
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -480,7 +480,7 @@ export class ClanSettingsPage extends BasePage {
           );
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         console.log(`  Input ${i}: Could not inspect`);
       }
     }
@@ -780,7 +780,7 @@ export class ClanSettingsPage extends BasePage {
             break;
           }
         } catch {
-      // Ignore errors
+          // Ignore errors
           continue;
         }
       }
@@ -851,7 +851,7 @@ export class ClanSettingsPage extends BasePage {
             return;
           }
         } catch {
-      // Ignore errors
+          // Ignore errors
           continue;
         }
       }

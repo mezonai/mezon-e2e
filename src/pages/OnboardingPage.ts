@@ -61,7 +61,7 @@ export class OnboardingPage extends BasePage {
           return true;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -77,7 +77,7 @@ export class OnboardingPage extends BasePage {
           return true;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -114,7 +114,7 @@ export class OnboardingPage extends BasePage {
                 break;
               }
             } catch {
-      // Ignore errors
+              // Ignore errors
               continue;
             }
           }
@@ -122,7 +122,7 @@ export class OnboardingPage extends BasePage {
           return { found: true, isDone, selector: `row-${i}` };
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -195,7 +195,7 @@ export class OnboardingPage extends BasePage {
           console.log(`Done indicator: ${hasDoneIndicator}`);
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         console.log(`  Task ${i}: Could not inspect`);
       }
     }

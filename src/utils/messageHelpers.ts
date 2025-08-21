@@ -235,7 +235,7 @@ export class MessageTestHelpers {
         }
         return false;
       } catch {
-      // Ignore errors
+        // Ignore errors
         return false;
       }
     });
@@ -247,7 +247,7 @@ export class MessageTestHelpers {
         const text = await navigator.clipboard.readText();
         return text && text.trim().length > 0 ? text : null;
       } catch {
-      // Ignore errors
+        // Ignore errors
         return null;
       }
     });
@@ -977,7 +977,7 @@ export class MessageTestHelpers {
           return element;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -1572,7 +1572,7 @@ export class MessageTestHelpers {
       try {
         await btn.click();
       } catch {
-      // Ignore errors
+        // Ignore errors
         const parent = btn.locator('xpath=..');
         await parent.click();
       }
@@ -2083,7 +2083,7 @@ export class MessageTestHelpers {
                 await this.page.waitForTimeout(1000);
                 return targetEmoji;
               } catch {
-      // Ignore errors
+                // Ignore errors
                 continue;
               }
             }
@@ -2110,7 +2110,7 @@ export class MessageTestHelpers {
           await this.page.waitForTimeout(1000);
           return emojis[0];
         } catch {
-      // Ignore errors
+          // Ignore errors
           continue;
         }
       }

@@ -33,7 +33,7 @@ test.describe('Create Category', () => {
             break;
           }
         } catch {
-      // Ignore errors
+          // Ignore errors
           continue;
         }
       }

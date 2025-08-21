@@ -31,7 +31,7 @@ test.describe('Create Text Channels', () => {
             break;
           }
         } catch {
-      // Ignore errors
+          // Ignore errors
           continue;
         }
       }

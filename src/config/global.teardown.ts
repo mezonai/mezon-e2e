@@ -43,7 +43,7 @@ async function globalTeardown() {
       }
     }
   } catch {
-      // Ignore errors
+    // Ignore errors
     // Ignore cleanup errors
   }
 }

@@ -2,7 +2,6 @@ import { test as setup } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { MEZON_TEST_USERS } from '../data/static/TestUsers';
 
-
 const authFile = 'playwright/.auth/user.json';
 
 setup('prepare mezon auth state', async ({ _page }) => {
@@ -32,7 +31,7 @@ setup('prepare mezon auth state', async ({ _page }) => {
       try {
         await loginPage.clickVerifyOtp();
       } catch {
-      // Ignore errors
+        // Ignore errors
         // Ignore verify OTP errors
       }
     }

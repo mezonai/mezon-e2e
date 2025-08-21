@@ -85,7 +85,7 @@ export class ClanPage extends BasePage {
           return { found: true, element };
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }
@@ -355,7 +355,7 @@ export class ClanPage extends BasePage {
           return true;
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         continue;
       }
     }

@@ -31,7 +31,7 @@ test.describe('Onboarding Guide Task Completion', () => {
             break;
           }
         } catch {
-      // Ignore errors
+          // Ignore errors
           continue;
         }
       }

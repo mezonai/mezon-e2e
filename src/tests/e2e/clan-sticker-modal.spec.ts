@@ -21,7 +21,7 @@ test.describe('Clan Sticker Modal ESC Key Behavior', () => {
         modalSetupSuccessful = true;
         console.log('✅ Successfully opened sticker upload modal');
       } catch {
-      // Ignore errors
+        // Ignore errors
         console.log(`⚠️ Could not open sticker upload modal: ${error.message}`);
         console.log('Will proceed with ESC test on current page state...');
         modalSetupSuccessful = false;

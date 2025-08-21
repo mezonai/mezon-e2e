@@ -102,7 +102,7 @@ export class HomePage extends BasePage {
           }
         }
       } catch {
-      // Ignore errors
+        // Ignore errors
         console.log(`Could not check link: ${error}`);
       }
     }
