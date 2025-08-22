@@ -3,6 +3,8 @@ import { HomePage } from '../../pages/HomePage';
 import { MessgaePage } from '@/pages/MessagePage';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import { environment } from '@/config/environment';
+import { dir } from 'console';
+import { DirectMessageHelper } from '@/utils/directMessageHelper';
 
 test.describe('Onboarding Guide Task Completion', () => {
     test.beforeEach(async ({ page }) => {
@@ -24,11 +26,12 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     test('Create direct message ', async ({ page }) => {
         const messagePage = new MessgaePage(page);
-        const prevUsersCount = await messagePage.countUsers();
+        const helpers = new DirectMessageHelper(page);
+        const prevUsersCount = await helpers.countUsers();
 
         await test.step(`Creat direct message`, async () => {
             await messagePage.createDM();
-            await page.waitForTimeout(3000);
+            await page.waitForTimeout(2000);
         });
 
         await test.step('Verify direct message is created', async () => {
@@ -67,7 +70,8 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     test('Create group chat ', async ({ page }) => {    
         const messagePage = new MessgaePage(page);
-        const prevGroupCount = await messagePage.countGroups();
+        const helpers = new DirectMessageHelper(page);
+        const prevGroupCount = await helpers.countGroups();
 
         await test.step(`Creat group chat`, async () => {
             await messagePage.createGroup();
@@ -111,7 +115,8 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     test('Close direct message', async ({ page }) => {
         const messagePage = new MessgaePage(page);
-        const prevUsersCount = await messagePage.countUsers();
+        const helpers = new DirectMessageHelper(page);
+        const prevUsersCount = await helpers.countUsers();
 
         await test.step(`Close direct message`, async () => {
             await messagePage.closeDM();
@@ -126,10 +131,27 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     test('Leave group', async ({ page }) => {
         const messagePage = new MessgaePage(page);
-        const prevGroupCount = await messagePage.countGroups();
+        const helpers = new DirectMessageHelper(page);
+        const prevGroupCount = await helpers.countGroups();
 
         await test.step(`Leave group chat`, async () => {
-            await messagePage.leaveGroup();
+            await messagePage.leaveGroupByXBtn();
+            await page.waitForTimeout(3000);
+        });
+
+        await test.step('Verify group chat is left', async () => {
+            const groupLeaved = await messagePage.isLeavedGroup(prevGroupCount);
+            expect(groupLeaved).toBeTruthy();
+        });
+    });
+
+    test('Leave group', async ({ page }) => {
+        const messagePage = new MessgaePage(page);
+        const helpers = new DirectMessageHelper(page);
+        const prevGroupCount = await helpers.countGroups();        
+
+        await test.step(`Leave group chat`, async () => {
+            await messagePage.leaveGroupByLeaveGroupBtn();
             await page.waitForTimeout(3000);
         });
 
