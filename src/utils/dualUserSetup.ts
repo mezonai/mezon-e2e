@@ -3,137 +3,147 @@ import { DualUserTestHelpers } from './dualUserTestHelpers';
 import { MEZON_TEST_USERS } from '../data/static/TestUsers';
 
 export interface DualUserConfig {
-	userA: {
-		email: string;
-		otp?: string;
-		isAutoOtp?: boolean;
-	};
-	userB: {
-		email: string;
-		otp?: string;
-		isAutoOtp?: boolean;
-	};
-	viewport?: {
-		width: number;
-		height: number;
-	};
+  userA: {
+    email: string;
+    otp?: string;
+    isAutoOtp?: boolean;
+  };
+  userB: {
+    email: string;
+    otp?: string;
+    isAutoOtp?: boolean;
+  };
+  viewport?: {
+    width: number;
+    height: number;
+  };
 }
 
 export interface DualUserSession {
-	primaryContext: BrowserContext;
-	secondaryContext: BrowserContext;
-	primaryPage: Page;
-	secondaryPage: Page;
-	primaryUser: DualUserTestHelpers;
-	secondaryUser: DualUserTestHelpers;
-	cleanup: () => Promise<void>;
+  primaryContext: BrowserContext;
+  secondaryContext: BrowserContext;
+  primaryPage: Page;
+  secondaryPage: Page;
+  primaryUser: DualUserTestHelpers;
+  secondaryUser: DualUserTestHelpers;
+  cleanup: () => Promise<void>;
 }
 
 export class DualUserSetup {
-	static readonly DEFAULT_CONFIG: DualUserConfig = {
-		userA: {
-			email: MEZON_TEST_USERS.MAIN_USER.email,
-			otp: MEZON_TEST_USERS.MAIN_USER.otp,
-			isAutoOtp: true
-		},
-		userB: {
-			email: MEZON_TEST_USERS.member.email,
-			isAutoOtp: false
-		},
-		viewport: {
-			width: 1280,
-			height: 720
-		}
-	};
+  static readonly DEFAULT_CONFIG: DualUserConfig = {
+    userA: {
+      email: MEZON_TEST_USERS.MAIN_USER.email,
+      otp: MEZON_TEST_USERS.MAIN_USER.otp,
+      isAutoOtp: true,
+    },
+    userB: {
+      email: MEZON_TEST_USERS.member.email,
+      isAutoOtp: false,
+    },
+    viewport: {
+      width: 1280,
+      height: 720,
+    },
+  };
 
-	static async createDualUserSession(browser: Browser, config?: Partial<DualUserConfig>): Promise<DualUserSession> {
-		const finalConfig = this.mergeConfig(config);
-		
-		const ctxA = await browser.newContext({
-			viewport: finalConfig.viewport!
-		});
-		const ctxB = await browser.newContext({
-			viewport: finalConfig.viewport!
-		});
+  static async createDualUserSession(
+    browser: Browser,
+    config?: Partial<DualUserConfig>
+  ): Promise<DualUserSession> {
+    const finalConfig = this.mergeConfig(config);
 
-		const pageA = await ctxA.newPage();
-		const pageB = await ctxB.newPage();
+    const ctxA = await browser.newContext({
+      viewport: finalConfig.viewport!,
+    });
+    const ctxB = await browser.newContext({
+      viewport: finalConfig.viewport!,
+    });
 
-		const userA = new DualUserTestHelpers(pageA);
-		const userB = new DualUserTestHelpers(pageB);
+    const pageA = await ctxA.newPage();
+    const pageB = await ctxB.newPage();
 
-		await Promise.allSettled([
-			userA.loginWithEmail(
-				finalConfig.userA.email,
-				finalConfig.userA.otp,
-				finalConfig.userA.isAutoOtp
-			),
-			userB.loginWithEmail(
-				finalConfig.userB.email,
-				finalConfig.userB.otp,
-				finalConfig.userB.isAutoOtp
-			)
-		]);
+    const userA = new DualUserTestHelpers(pageA);
+    const userB = new DualUserTestHelpers(pageB);
 
-		await pageA.waitForTimeout(3000);
-		await pageB.waitForTimeout(3000);
+    await Promise.allSettled([
+      userA.loginWithEmail(
+        finalConfig.userA.email,
+        finalConfig.userA.otp,
+        finalConfig.userA.isAutoOtp
+      ),
+      userB.loginWithEmail(
+        finalConfig.userB.email,
+        finalConfig.userB.otp,
+        finalConfig.userB.isAutoOtp
+      ),
+    ]);
 
-		const cleanup = async () => {
-			await ctxA.close();
-			await ctxB.close();
-		};
+    await pageA.waitForTimeout(3000);
+    await pageB.waitForTimeout(3000);
 
-		return {
-			primaryContext: ctxA,
-			secondaryContext: ctxB,
-			primaryPage: pageA,
-			secondaryPage: pageB,
-			primaryUser: userA,
-			secondaryUser: userB,
-			cleanup
-		};
-	}
+    const cleanup = async () => {
+      await ctxA.close();
+      await ctxB.close();
+    };
 
-	static async setupForClanChat(browser: Browser, clanChannelUrl: string, config?: Partial<DualUserConfig>): Promise<DualUserSession> {
-		const session = await this.createDualUserSession(browser, config);
-		
-		await session.primaryUser.ensureInClan(clanChannelUrl);
-		await session.secondaryUser.ensureInClan(clanChannelUrl);
-		
-		await session.primaryPage.waitForTimeout(2000);
-		await session.secondaryPage.waitForTimeout(2000);
+    return {
+      primaryContext: ctxA,
+      secondaryContext: ctxB,
+      primaryPage: pageA,
+      secondaryPage: pageB,
+      primaryUser: userA,
+      secondaryUser: userB,
+      cleanup,
+    };
+  }
 
-		return session;
-	}
+  static async setupForClanChat(
+    browser: Browser,
+    clanChannelUrl: string,
+    config?: Partial<DualUserConfig>
+  ): Promise<DualUserSession> {
+    const session = await this.createDualUserSession(browser, config);
 
-	static async setupWithCustomUsers(
-		browser: Browser, 
-		userAEmail: string, 
-		userBEmail: string, 
-		userAOtp?: string
-	): Promise<DualUserSession> {
-		const config: Partial<DualUserConfig> = {
-			userA: {
-				email: userAEmail,
-				otp: userAOtp,
-				isAutoOtp: !!userAOtp
-			},
-			userB: {
-				email: userBEmail,
-				isAutoOtp: false
-			}
-		};
+    await session.primaryUser.ensureInClan(clanChannelUrl);
+    await session.secondaryUser.ensureInClan(clanChannelUrl);
 
-		return this.createDualUserSession(browser, config);
-	}
+    await session.primaryPage.waitForTimeout(2000);
+    await session.secondaryPage.waitForTimeout(2000);
 
-	private static mergeConfig(config?: Partial<DualUserConfig>): DualUserConfig {
-		if (!config) return this.DEFAULT_CONFIG;
+    return session;
+  }
 
-		return {
-			userA: { ...this.DEFAULT_CONFIG.userA, ...config.userA },
-			userB: { ...this.DEFAULT_CONFIG.userB, ...config.userB },
-			viewport: { ...this.DEFAULT_CONFIG.viewport, ...(config.viewport || {}) } as { width: number; height: number }
-		};
-	}
+  static async setupWithCustomUsers(
+    browser: Browser,
+    userAEmail: string,
+    userBEmail: string,
+    userAOtp?: string
+  ): Promise<DualUserSession> {
+    const config: Partial<DualUserConfig> = {
+      userA: {
+        email: userAEmail,
+        otp: userAOtp,
+        isAutoOtp: !!userAOtp,
+      },
+      userB: {
+        email: userBEmail,
+        isAutoOtp: false,
+      },
+    };
+
+    return this.createDualUserSession(browser, config);
+  }
+
+  private static mergeConfig(config?: Partial<DualUserConfig>): DualUserConfig {
+    if (!config) return this.DEFAULT_CONFIG;
+
+    return {
+      userA: { ...this.DEFAULT_CONFIG.userA, ...config.userA },
+      userB: { ...this.DEFAULT_CONFIG.userB, ...config.userB },
+      viewport: { ...this.DEFAULT_CONFIG.viewport, ...(config.viewport || {}) } as {
+        width: number;
+        height: number;
+      },
+    };
+  }
 }
