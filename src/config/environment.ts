@@ -61,8 +61,9 @@ export const SESSION_CONFIGS = {
 function getEnvironmentConfig(): EnvironmentConfig {
   const env = process.env.NODE_ENV || 'development';
   const website = process.env.WEBSITE || 'MEZON';
-  const websiteConfig = WEBSITE_CONFIGS[website as keyof typeof WEBSITE_CONFIGS] || WEBSITE_CONFIGS.MEZON;
-  
+  const websiteConfig =
+    WEBSITE_CONFIGS[website as keyof typeof WEBSITE_CONFIGS] || WEBSITE_CONFIGS.MEZON;
+
   const baseConfig: EnvironmentConfig = {
     baseURL: process.env.BASE_URL || websiteConfig.baseURL,
     timeout: {

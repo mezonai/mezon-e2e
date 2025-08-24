@@ -126,15 +126,15 @@ export class NavigationComponent extends BaseComponent {
     availableLinks: string[];
   }> {
     const isLoggedIn = await this.isUserLoggedIn();
-    const username = isLoggedIn ? await this.getLoggedInUsername() : undefined;
-    
+    const _username = isLoggedIn ? await this.getLoggedInUsername() : undefined;
+
     const availableLinks: string[] = [];
     for (const [key, selector] of Object.entries(this.selectors)) {
       if (await this.isVisible(selector)) {
         availableLinks.push(key);
       }
     }
-    
+
     return {
       isLoggedIn,
       username,

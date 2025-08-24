@@ -60,7 +60,7 @@ export class UserFactory {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
-    
+
     return {
       title: faker.helpers.arrayElement(['Mr', 'Mrs'] as const),
       name: `${firstName} ${lastName}`,
@@ -105,7 +105,7 @@ export class UserFactory {
   } {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
-    
+
     return {
       title: faker.helpers.arrayElement(['Mr', 'Mrs'] as const),
       name: `${firstName} ${lastName}`,
@@ -133,7 +133,7 @@ export class UserFactory {
     const timestamp = Date.now();
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
-    
+
     return {
       name: `${firstName} ${lastName}`,
       email: `test_${scenario}_${timestamp}_${faker.string.alphanumeric(5)}@automation.test`,

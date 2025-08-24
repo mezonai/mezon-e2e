@@ -1,4 +1,4 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 interface SelectorResult {
@@ -19,7 +19,7 @@ export class ClanPage extends BasePage {
     '.create-clan-btn',
     '.add-clan-btn',
     '[aria-label*="create clan" i]',
-    '[aria-label*="add clan" i]'
+    '[aria-label*="add clan" i]',
   ];
 
   private readonly clanNameSelectors = [
@@ -28,7 +28,7 @@ export class ClanPage extends BasePage {
     '.clan-header h1',
     '.clan-title',
     'h1:has-text("CLAN")',
-    '[aria-label*="clan name" i]'
+    '[aria-label*="clan name" i]',
   ];
 
   private readonly invitePeopleSelectors = [
@@ -37,7 +37,7 @@ export class ClanPage extends BasePage {
     'a:has-text("Invite People")',
     '[aria-label*="invite people" i]',
     '.invite-button',
-    '.invite-people-btn'
+    '.invite-people-btn',
   ];
 
   private readonly createChannelSelectors = [
@@ -46,7 +46,7 @@ export class ClanPage extends BasePage {
     '.create-channel-btn',
     '.add-channel',
     '[aria-label*="create channel" i]',
-    '[aria-label*="add channel" i]'
+    '[aria-label*="add channel" i]',
   ];
 
   private readonly channelListSelectors = [
@@ -54,7 +54,7 @@ export class ClanPage extends BasePage {
     '.channel-list',
     '.channels-container',
     '.sidebar-channels',
-    'nav[aria-label*="channel" i]'
+    'nav[aria-label*="channel" i]',
   ];
 
   private readonly messageInputSelectors = [
@@ -67,7 +67,7 @@ export class ClanPage extends BasePage {
     'input[placeholder*="message" i]',
     '.message-input',
     '.chat-input',
-    '[aria-label*="message" i]'
+    '[aria-label*="message" i]',
   ];
 
   constructor(page: Page, baseURL?: string) {
@@ -75,7 +75,7 @@ export class ClanPage extends BasePage {
   }
 
   private async findElementBySelectors(
-    selectors: string[], 
+    selectors: string[],
     timeout: number = 3000
   ): Promise<SelectorResult> {
     for (const selector of selectors) {
@@ -84,13 +84,13 @@ export class ClanPage extends BasePage {
         if (await element.isVisible({ timeout })) {
           return { found: true, element };
         }
-      } catch (error) {
+      } catch {
+        // Ignore errors
         continue;
       }
     }
     return { found: false };
   }
-
 
   private async wait(ms: number): Promise<void> {
     await this.page.waitForTimeout(ms);
@@ -98,13 +98,13 @@ export class ClanPage extends BasePage {
 
   async clickCreateClanButton(): Promise<boolean> {
     const result = await this.findElementBySelectors(this.createClanButtonSelectors, 10000);
-    
+
     if (result.found && result.element) {
       await result.element.click();
       await this.wait(2000);
       return true;
     }
-    
+
     return false;
   }
 
@@ -114,7 +114,7 @@ export class ClanPage extends BasePage {
       'input[placeholder*="clan name" i]',
       'input[placeholder*="name" i]',
       '.clan-name-input',
-      'input[type="text"]'
+      'input[type="text"]',
     ];
 
     const nameInputResult = await this.findElementBySelectors(clanNameInputSelectors);
@@ -130,7 +130,7 @@ export class ClanPage extends BasePage {
       'button:has-text("Create")',
       'button:has-text("Create Clan")',
       '.create-btn',
-      '.create-clan-btn'
+      '.create-clan-btn',
     ];
 
     const createButtonResult = await this.findElementBySelectors(createButtonSelectors, 2000);
@@ -145,25 +145,25 @@ export class ClanPage extends BasePage {
 
   async clickOnClanName(): Promise<boolean> {
     const result = await this.findElementBySelectors(this.clanNameSelectors);
-    
+
     if (result.found && result.element) {
       await result.element.click();
       await this.wait(1000);
       return true;
     }
-    
+
     return false;
   }
 
   async openInvitePeopleModal(): Promise<boolean> {
     const result = await this.findElementBySelectors(this.invitePeopleSelectors);
-    
+
     if (result.found && result.element) {
       await result.element.click();
       await this.wait(1000);
       return true;
     }
-    
+
     return false;
   }
 
@@ -173,7 +173,7 @@ export class ClanPage extends BasePage {
       'input[placeholder*="search" i]',
       'input[placeholder*="user" i]',
       '.user-search',
-      '.search-input'
+      '.search-input',
     ];
 
     const searchResult = await this.findElementBySelectors(searchSelectors, 2000);
@@ -188,7 +188,7 @@ export class ClanPage extends BasePage {
       `button:has-text("Invite"):near(:text("${username}"))`,
       '[data-testid="invite-user-btn"]',
       '.invite-btn',
-      'button:has-text("Invite")'
+      'button:has-text("Invite")',
     ];
 
     const inviteResult = await this.findElementBySelectors(inviteButtonSelectors, 2000);
@@ -222,10 +222,13 @@ export class ClanPage extends BasePage {
     return result.found;
   }
 
-  async createChannel(channelName: string, channelType: 'text' | 'voice' = 'text'): Promise<boolean> {
+  async createChannel(
+    channelName: string,
+    channelType: 'text' | 'voice' = 'text'
+  ): Promise<boolean> {
     const channelTypeSelectors = [
       `[data-testid="channel-type-${channelType}"]`,
-      `button:has-text("${channelType}")`
+      `button:has-text("${channelType}")`,
     ];
 
     const typeResult = await this.findElementBySelectors(channelTypeSelectors, 2000);
@@ -237,7 +240,7 @@ export class ClanPage extends BasePage {
       '[data-testid="channel-name-input"]',
       'input[placeholder*="channel name" i]',
       'input[placeholder*="name" i]',
-      '.channel-name-input'
+      '.channel-name-input',
     ];
 
     const nameInputResult = await this.findElementBySelectors(nameInputSelectors, 2000);
@@ -253,7 +256,7 @@ export class ClanPage extends BasePage {
       'button:has-text("Create")',
       'button:has-text("Create Channel")',
       '.create-btn',
-      '.create-channel-btn'
+      '.create-channel-btn',
     ];
 
     const createResult = await this.findElementBySelectors(createButtonSelectors, 2000);
@@ -285,7 +288,7 @@ export class ClanPage extends BasePage {
       `div:has-text("${message}")`,
       `[data-testid="message"]:has-text("${message}")`,
       `.message:has-text("${message}")`,
-      `.chat-message:has-text("${message}")`
+      `.chat-message:has-text("${message}")`,
     ];
 
     const result = await this.findElementBySelectors(messageSelectors);
@@ -293,14 +296,11 @@ export class ClanPage extends BasePage {
   }
 
   async sendImage(imagePath: string): Promise<boolean> {
-    const fileInputSelectors = [
-      'input[type="file"][accept*="image/*"]',
-      'input[type="file"]',
-    ];
+    const fileInputSelectors = ['input[type="file"][accept*="image/*"]', 'input[type="file"]'];
 
     // Try to find direct file input first
     let fileInputResult = await this.findElementBySelectors(fileInputSelectors);
-    
+
     if (!fileInputResult.found) {
       // If no direct file input, try to find attach button
       const attachButtonSelectors = [
@@ -317,7 +317,7 @@ export class ClanPage extends BasePage {
       if (attachResult.found && attachResult.element) {
         await attachResult.element.click();
         await this.wait(1000);
-        
+
         // Try to find file input after clicking attach
         fileInputResult = await this.findElementBySelectors(fileInputSelectors);
       }
@@ -355,6 +355,7 @@ export class ClanPage extends BasePage {
           return true;
         }
       } catch {
+        // Ignore errors
         continue;
       }
     }

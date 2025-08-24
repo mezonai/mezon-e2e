@@ -1,7 +1,7 @@
-import { Page } from "@playwright/test";
-import { test as base, createBdd } from "playwright-bdd";
-import { LoginPage } from "../pages/LoginPage";
-import { HomePage } from "../pages/HomePage";
+import { Page } from '@playwright/test';
+import { test as base, createBdd } from 'playwright-bdd';
+import { LoginPage } from '../pages/LoginPage';
+import { HomePage } from '../pages/HomePage';
 
 export type PageObjects = {
   LoginPage: LoginPage;
@@ -19,21 +19,21 @@ export type WorldObject = {
   DataTest: Record<string, string>;
 };
 
-export const test = base.extend<{ 
-  PageObjects: PageObjects; 
-  WorldObject: WorldObject; 
+export const test = base.extend<{
+  PageObjects: PageObjects;
+  WorldObject: WorldObject;
 }>({
   PageObjects: async ({ page }, use) => {
     const pages: PageObjects = convertToPageObjects(page);
     await use(pages);
   },
-  WorldObject: async ({}, use) => {
+  WorldObject: async (_, use) => {
     await use({
       DataTest: {},
     });
   },
 });
 
-export { expect } from "@playwright/test";
+export { expect } from '@playwright/test';
 
 export const { Given, When, Then } = createBdd(test);

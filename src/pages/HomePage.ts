@@ -73,7 +73,6 @@ export class HomePage extends BasePage {
   async verifyMobileNavigation(): Promise<void> {
     const mobileToggle = this.buttons.menu;
     const navigation = this.container.header;
-
     const isMobileToggleVisible = await mobileToggle.isVisible();
     const isNavigationVisible = await navigation.isVisible();
 
@@ -82,7 +81,6 @@ export class HomePage extends BasePage {
 
   async verifyResponsiveLayout(): Promise<void> {
     await expect(this.container.main).toBeVisible();
-
     const viewport = await this.page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(375);
   }
@@ -106,7 +104,8 @@ export class HomePage extends BasePage {
             brokenLinksCount++;
           }
         }
-      } catch (error) {
+      } catch {
+        // Ignore errors
         console.log(`Could not check link: ${error}`);
       }
     }
