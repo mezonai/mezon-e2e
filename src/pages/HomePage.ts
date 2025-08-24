@@ -1,27 +1,32 @@
 import { type Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { WEBSITE_CONFIGS } from '../config/environment';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 export class HomePage extends BasePage {
-  private selectors = {
-    loginButton: 'a:has-text("Login")',
-    homeLink: 'a:has-text("Home")',
-    featuresLink: 'a:has-text("Features")',
-    developersLink: 'a:has-text("Developers")',
-    heroSection: 'h1',
-    featuresSection: 'h2:has-text("Our features")',
-    footerSection: 'text="© 2024 Mezon. All rights reserved."',
-
-    navigationMenu: '.header',
-    mobileMenuToggle: '.menu-toggle, .hamburger, [data-testid="mobile-menu"]',
-
-    mainContent: 'body, main, div:has(h1)',
-    pageTitle: 'h1',
-  };
-
   constructor(page: Page) {
     super(page);
   }
+  private container = {
+    main: this.page.locator(generateE2eSelector('homepage.main-page.container')),
+    header: this.page.locator(generateE2eSelector('homepage.header.container.navigation')),
+  };
+  private buttons = {
+    login: this.page.locator(generateE2eSelector('homepage.header.button.login')),
+    menu: this.page.locator(generateE2eSelector('homepage.header.button.menu')),
+  };
+  private links = {
+    home: this.page.locator(generateE2eSelector('homepage.header.link.home')),
+    features: this.page.locator(generateE2eSelector('homepage.header.link.feature')),
+    developers: this.page.locator(generateE2eSelector('homepage.header.link.developers')),
+  };
+  private text = {
+    copyright: this.page.locator(generateE2eSelector('homepage.footer.text.copyright')),
+    features: this.page.locator(generateE2eSelector('homepage.layout.title.features')),
+    title: this.page.locator(generateE2eSelector('homepage.main-page.heading.title')),
+  }
+
+
 
   async navigate(): Promise<void> {
     const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL;
@@ -34,15 +39,15 @@ export class HomePage extends BasePage {
     const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL;
     expect(currentUrl).toContain(baseUrl);
 
-    await expect(this.page.locator(this.selectors.mainContent)).toBeVisible();
+    await expect(this.container.main).toBeVisible();
   }
 
   async verifyNavigationMenu(): Promise<void> {
-    await expect(this.page.locator(this.selectors.navigationMenu)).toBeVisible();
+    await expect(this.container.header).toBeVisible();
   }
 
   async clickLogin(): Promise<void> {
-    const loginBtn = this.page.locator(this.selectors.loginButton);
+    const loginBtn = this.buttons.login;
     await loginBtn.waitFor({ state: 'visible', timeout: 10000 });
     await loginBtn.click();
     await this.page.waitForLoadState('networkidle');
@@ -54,21 +59,20 @@ export class HomePage extends BasePage {
   }
 
   async verifyHeroSection(): Promise<void> {
-    await expect(this.page.locator(this.selectors.heroSection)).toBeVisible();
+    await expect(this.text.title).toBeVisible();
   }
 
   async verifyFeaturesSection(): Promise<void> {
-    await expect(this.page.locator(this.selectors.featuresSection)).toBeVisible();
+    await expect(this.text.features).toBeVisible();
   }
 
   async verifyFooterSection(): Promise<void> {
-    await expect(this.page.locator(this.selectors.footerSection)).toBeVisible();
+    await expect(this.text.copyright).toBeVisible();
   }
 
   async verifyMobileNavigation(): Promise<void> {
-    const mobileToggle = this.page.locator(this.selectors.mobileMenuToggle);
-    const navigation = this.page.locator(this.selectors.navigationMenu);
-
+    const mobileToggle = this.buttons.menu;
+    const navigation = this.container.header;
     const isMobileToggleVisible = await mobileToggle.isVisible();
     const isNavigationVisible = await navigation.isVisible();
 
@@ -76,16 +80,15 @@ export class HomePage extends BasePage {
   }
 
   async verifyResponsiveLayout(): Promise<void> {
-    await expect(this.page.locator(this.selectors.mainContent)).toBeVisible();
-
+    await expect(this.container.main).toBeVisible();
     const viewport = await this.page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(375);
   }
 
   async verifyCriticalElements(): Promise<void> {
-    await expect(this.page.locator(this.selectors.mainContent)).toBeVisible();
-    await expect(this.page.locator(this.selectors.navigationMenu)).toBeVisible();
-    await expect(this.page.locator(this.selectors.loginButton)).toBeVisible();
+    await expect(this.container.main).toBeVisible();
+    await expect(this.container.header).toBeVisible();
+    await expect(this.buttons.login).toBeVisible();
   }
 
   async verifyNoBrokenLinks(): Promise<void> {
@@ -112,15 +115,14 @@ export class HomePage extends BasePage {
 
   async isUserLoggedIn(): Promise<boolean> {
     try {
-      const loginBtn = this.page.locator(this.selectors.loginButton);
+      const loginBtn = this.buttons.login;
       return !(await loginBtn.isVisible());
     } catch {
-      // Ignore errors
       return false;
     }
   }
 
   async verifyLoginButton(): Promise<void> {
-    await expect(this.page.locator(this.selectors.loginButton)).toBeVisible();
+    await expect(this.buttons.login).toBeVisible();
   }
 }
