@@ -457,7 +457,7 @@ test.describe('Channel Message Functionality', () => {
     expect(addedEmojis.length).toBeGreaterThanOrEqual(2);
   });
 
-  test('Mention specific user and send message', async ({ page, context }) => {
+  test('React to a message with multiple emojis', async ({ page, context }) => {
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(CLAN_CHANNEL_URL);
     await page.waitForLoadState('networkidle');
