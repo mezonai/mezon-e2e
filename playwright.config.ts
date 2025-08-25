@@ -91,12 +91,22 @@ export default defineConfig({
     {
       name: 'chromium-no-bdd',
       testDir: './src/tests',
+      testIgnore: [/dual-users-.*\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+    },
+    {
+      name: 'chromium-dual-user',
+      testDir: './src/tests',
+      testMatch: /dual-users-.*\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: undefined,
+      },
     },
 
     // BDD Tests - Login flow (NO AUTH)

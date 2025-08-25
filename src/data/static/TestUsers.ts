@@ -256,6 +256,9 @@ export const MEZON_TEST_USERS = {
     role: 'moderator',
     authFile: authModeratorFile,
   },
+  member: {
+    email: 'tdkien.99.vn@gmail.com',
+  },
 } as const;
 
 // Export for compatibility with ncc-erp pattern
