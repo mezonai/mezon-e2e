@@ -13,7 +13,7 @@ export class MessgaePage {
     readonly addToGroupButton: Locator;
     readonly sumMember: Locator;
     readonly memberCount: Locator;
-    readonly firstDM: Locator;
+    //readonly firstDM: Locator;
     readonly firsrDMUserName: Locator;
     readonly closeFirstDMButton: Locator;
     readonly firstUserAddDM: Locator;
@@ -40,20 +40,20 @@ export class MessgaePage {
     constructor(page: Page) {
         this.page = page;
         this.helpers = new DirectMessageHelper(page);
-        this.user = this.page.locator('.dm-wrap').filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) }).first();
-        this.addUserButton = page.locator('span[title="Add friends to DM"]');
+        this.user = this.page.locator('chat-direct-message-chatList').filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) }).first();
+        this.addUserButton = page.locator('chat-direct-message-create-group-button');
         // this.userItem = page.locator('div.bg-item-theme.flex.items-center.h-10.px-2.ml-3.mr-2.rounded-lg.cursor-pointer').first();
-        this.userItem = page.locator('div.bg-item-theme.flex.items-center.h-10.px-2.ml-3.mr-2.rounded-lg.cursor-pointer').first();
-        this.createGroupButton = page.locator('button:has-text("Create Group Chat")');
-        this.userNameItem = this.userItem.locator('span.text-base.font-medium.text-theme-primary-active.one-line');
-        this.addToGroupButton = page.locator('button:has-text("Add to Group Chat")');
-        this.sumMember = page.locator('button[title="Show Member List"]:not(.sbm\\:hidden)');
-        this.memberCount = page.locator('div.p-2.bg-item-hover');
-        this.firstDM = this.page.locator('.dm-wrap').filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) }).first();
-        this.firsrDMUserName = this.firstDM.locator('span.one-line');
-        this.closeFirstDMButton = this.firstDM.locator('button.absolute.right-2.text-gray-500.text-2xl.hover\\:text-red-500');
-        this.firstUserAddDM = this.page.locator('.group\\/list_friends').first();
-        this.firstUserNameAddDM = this.firstUserAddDM.locator('.one-line').first();
+        this.userItem = page.locator('chat-direct-message-friend-list-friend-item').first();
+        this.createGroupButton = page.locator('chat-direct-message-create-group-button');
+        this.userNameItem = this.userItem.locator('chat-direct-message-friend-list-username-friend-item');
+        this.addToGroupButton = page.locator('chat-direct-message-create-group-button');
+        this.sumMember = page.locator('chat-direct-message-member-list-button');
+        this.memberCount = page.locator('chat-direct-message-member-list-member-count');
+        //this.firstDM = this.page.locator('.dm-wrap').filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) }).first();
+        this.firsrDMUserName = this.user.locator('chat-direct-message-chat-item-username');
+        this.closeFirstDMButton = this.user.locator('chat-direct-message-chat-item-close-DM-button');
+        this.firstUserAddDM = this.page.locator('chat-direct-message-friend-list-all-friend').first();
+        this.firstUserNameAddDM = this.firstUserAddDM.locator('chat-direct-message-chat-item-username').first();
         this.userNameInDM = page.locator('div.overflow-hidden.whitespace-nowrap.text-ellipsis.none-draggable-area.pointer-events-none.cursor-default.font-medium.bg-transparent.outline-none.leading-10.text-theme-primary');
         this.secondClan = this.page.locator('div[title]').nth(1);
         this.messages = this.page.locator('div.message-list-item');
@@ -155,7 +155,7 @@ export class MessgaePage {
     }
 
     async closeDM(): Promise<void> {
-        await this.firstDM.hover();
+        await this.user.hover();
         await this.closeFirstDMButton.click({ force: true });
     }
 
@@ -193,16 +193,26 @@ export class MessgaePage {
         );
     }
 
-    // async leaveGroupByXBtn(): Promise<void> {
-    //     await this.helpers.group.hover();
-    //     await this.leaveGroupButton.click({ force: true });
-    //     await this.confirmLeaveGroupButton.click();
-    // }
+    async leaveGroupByXBtn(): Promise<void> {
+        await this.helpers.group.hover();
+        await this.leaveGroupButton.click({ force: true });
+        await this.confirmLeaveGroupButton.click();
+    }
 
     async leaveGroupByLeaveGroupBtn(): Promise<void> {
-        await this.helpers.group.hover();
-        await this.helpers.group.click({ button: 'right' });
-        //await this.leaveGroupButtonInPopup.click({ force: true });
+        // await this.helpers.group.hover();
+        // await this.helpers.group.click({ button: 'right' });
+        // await this.helpers.group.dispatchEvent('contextmenu');
+
+        // bắn sự kiện chuột phải lên group
+        await this.helpers.group.dispatchEvent('contextmenu');
+
+        // chờ menu "Leave Group" hiện ra
+        // const leaveGroupBtn = this.page.locator('text=Leave Group');
+        // await leaveGroupBtn.waitFor({ state: 'visible' });
+
+        // click vào "Leave Group"
+        //await leaveGroupBtn.click();
     }
 
     async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
@@ -214,7 +224,7 @@ export class MessgaePage {
     }
 
     async selectConversation(): Promise<void> {
-        await this.firstDM.click();
+        await this.user.click();
     }
 
     async isConversationSelected(): Promise<boolean> {
@@ -226,7 +236,7 @@ export class MessgaePage {
 
     async sendMessage(message: string): Promise<void> {
         this.message = message;
-        await this.firstDM.click();
+        await this.user.click();
         await this.helpers.textarea.click();
         await this.helpers.textarea.fill(message);
         await this.helpers.textarea.press('Enter');
