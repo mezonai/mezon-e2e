@@ -1,7 +1,7 @@
-import { type Page, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
-import { WEBSITE_CONFIGS } from '../config/environment';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { type Page, expect } from '@playwright/test';
+import { WEBSITE_CONFIGS } from '../config/environment';
+import { BasePage } from './BasePage';
 
 export class HomePage extends BasePage {
   constructor(page: Page) {
@@ -23,10 +23,8 @@ export class HomePage extends BasePage {
   private text = {
     copyright: this.page.locator(generateE2eSelector('homepage.footer.text.copyright')),
     features: this.page.locator(generateE2eSelector('homepage.layout.title.features')),
-    title: this.page.locator(generateE2eSelector('homepage.main_page.heading.title')),
-  }
-
-
+    title: this.page.locator(generateE2eSelector('homepage.main-page.heading.title')),
+  };
 
   async navigate(): Promise<void> {
     const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL;

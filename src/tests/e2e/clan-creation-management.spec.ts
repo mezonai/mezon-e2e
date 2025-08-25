@@ -1,6 +1,4 @@
-import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { expect, test } from '@playwright/test';
-import { CategoryPage } from '../../pages/CategoryPage';
+import { test } from '@playwright/test';
 
 test.describe('Create Clan', () => {
   const clanName = `Test Clan ${Date.now()}`;
@@ -14,7 +12,7 @@ test.describe('Create Clan', () => {
   test('Verify that I can create a Clan', async ({ page }) => {
     const clanPage = new ClanPageV2(page);
     const createClanClicked = await clanPage.clickCreateClanButton();
-    
+
     if (createClanClicked) {
       console.log('Successfully double clicked create clan button');
 
@@ -49,7 +47,6 @@ test.describe('Create Category', () => {
     const createClanClicked = await clanPage.clickCreateClanButton();
     if (createClanClicked) {
       console.log('Successfully double clicked create clan button');
-
 
       await clanPage.createNewClan(clanName);
 
