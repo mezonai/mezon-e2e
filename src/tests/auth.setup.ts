@@ -8,10 +8,10 @@ const authFile = 'playwright/.auth/user.json';
 setup('prepare mezon auth state', async ({ page }) => {
   if (LOCAL_CONFIG.isLocal && LOCAL_CONFIG.skipLogin) {
     try {
-        await page.goto(GLOBAL_CONFIG.LOCAL_BASE_URL);
-        await page.waitForLoadState('networkidle');
-      
-      await page.evaluate((authData) => {
+      await page.goto(GLOBAL_CONFIG.LOCAL_BASE_URL);
+      await page.waitForLoadState('networkidle');
+
+      await page.evaluate(authData => {
         localStorage.setItem(authData.persist.key, JSON.stringify(authData.persist.value));
         localStorage.setItem(authData.mezonSession.key, authData.mezonSession.value);
       }, LOCAL_AUTH_DATA);
@@ -24,7 +24,7 @@ setup('prepare mezon auth state', async ({ page }) => {
       return;
     } catch (error) {}
   }
-  
+
   const fs = await import('fs');
   if (fs.existsSync(authFile)) {
     const stats = fs.statSync(authFile);
@@ -50,8 +50,7 @@ setup('prepare mezon auth state', async ({ page }) => {
     if (!page.url().includes('/login/callback') && !page.url().includes('/chat')) {
       try {
         await loginPage.clickVerifyOtp();
-      } catch {
-      }
+      } catch {}
     }
 
     await page.waitForLoadState('networkidle');
@@ -66,8 +65,7 @@ setup('prepare mezon auth state', async ({ page }) => {
       await page.evaluate(sessionConfig => {
         localStorage.setItem('mezon_session', JSON.stringify(sessionConfig));
       }, mezonSession);
-    } catch {
-    }
+    } catch {}
 
     await page.context().storageState({ path: authFile });
   } catch (error: unknown) {
@@ -84,7 +82,7 @@ async function clickOpenMezonButton(page: any) {
       '[data-testid="open-mezon"]',
       '.open-mezon-btn',
       'a:has-text("Open Mezon")',
-      'a:has-text("Open mezon")'
+      'a:has-text("Open mezon")',
     ];
 
     for (const selector of openMezonSelectors) {
@@ -95,9 +93,7 @@ async function clickOpenMezonButton(page: any) {
           await page.waitForLoadState('networkidle');
           return;
         }
-      } catch (e) {
-      }
+      } catch (e) {}
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 }

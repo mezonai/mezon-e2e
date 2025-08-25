@@ -4,8 +4,7 @@ import { GLOBAL_CONFIG } from '../../config/environment';
 
 const MEZON_BASE_URL = GLOBAL_CONFIG.LOCAL_BASE_URL;
 const DIRECT_CHAT_URL = `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/direct/message/1840654754858930176/2`;
-const CLAN_CHANNEL_URL =
-  `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/clans/1786228934740807680/channels/1786228934753390593`;
+const CLAN_CHANNEL_URL = `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/clans/1786228934740807680/channels/1786228934753390593`;
 const TARGET_USERNAME = 'andynguyn19';
 
 interface NavigationHelpers {
@@ -128,10 +127,10 @@ test.describe('Channel Message Functionality', () => {
     await messageHelpers.sendTextMessage(pastedText);
 
     await page.waitForTimeout(2000);
-    
+
     const sentMessage = page.locator(`text="${pastedText}"`).first();
     const messageFound = await sentMessage.isVisible({ timeout: 5000 });
-    
+
     expect(messageFound).toBe(true);
   });
 
@@ -158,7 +157,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Create thread from message and send reply', async ({ page, context }) => {
-
     messageHelpers = new MessageTestHelpers(page);
     const navigationHelpers = createNavigationHelpers(page);
 
@@ -228,9 +226,9 @@ test.describe('Channel Message Functionality', () => {
       const hasEdited = messageText?.includes('Edited message');
 
       expect(hasOriginal || hasEdited).toBeTruthy();
-          } catch {
-        expect(true).toBeTruthy();
-      }
+    } catch {
+      expect(true).toBeTruthy();
+    }
   });
 
   test('Forward message - select target and send', async ({ page, context }) => {

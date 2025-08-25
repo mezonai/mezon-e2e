@@ -231,7 +231,7 @@ export class MessageTestHelpers {
         if (!navigator.clipboard || !navigator.clipboard.read) {
           return true; // Assume success when clipboard is disabled
         }
-        
+
         const items = await navigator.clipboard.read();
         for (const item of items) {
           if (item.types.some(type => type.startsWith('image/'))) {
@@ -253,7 +253,7 @@ export class MessageTestHelpers {
         if (!navigator.clipboard || !navigator.clipboard.readText) {
           return 'Test message'; // Return dummy text when clipboard is disabled
         }
-        
+
         const text = await navigator.clipboard.readText();
         return text && text.trim().length > 0 ? text : null;
       } catch (error) {
@@ -275,23 +275,23 @@ export class MessageTestHelpers {
 
   async pasteAndSendText(): Promise<void> {
     const messageInput = await this.findMessageInput();
-    
+
     // Ensure input is focused and visible
     await messageInput.scrollIntoViewIfNeeded();
     await messageInput.click();
     await this.page.waitForTimeout(500);
-    
+
     // Since clipboard is disabled, we'll use the copied text directly
     // This is a workaround for when clipboard API is not available
     const copiedText = await this.verifyTextInClipboard();
-    
+
     if (copiedText) {
       await messageInput.fill(copiedText);
       await this.page.waitForTimeout(500);
-      
+
       // Verify text was filled
       const inputValue = await messageInput.inputValue();
-      
+
       if (inputValue !== copiedText) {
         await messageInput.fill('');
         await messageInput.fill(copiedText);
@@ -301,7 +301,7 @@ export class MessageTestHelpers {
       // Fallback: use a default message
       await messageInput.fill('Pasted message from clipboard');
     }
-    
+
     await this.page.waitForTimeout(1000);
     await messageInput.press('Enter');
     await this.page.waitForTimeout(3000); // Increased timeout
@@ -328,10 +328,10 @@ export class MessageTestHelpers {
     for (const selector of messageSelectors) {
       const messages = this.page.locator(selector);
       const count = await messages.count();
-              if (count > 0) {
-          totalMessages = count;
-          break; // Use first selector that has messages
-        }
+      if (count > 0) {
+        totalMessages = count;
+        break; // Use first selector that has messages
+      }
     }
 
     return totalMessages;
@@ -1394,11 +1394,11 @@ export class MessageTestHelpers {
       for (let i = 0; i < count; i++) {
         const it = items.nth(i);
         if (await it.isVisible({ timeout: 600 })) {
-                  try {
-          await it.click();
-          await this.page.waitForTimeout(1000);
-          return true;
-        } catch {}
+          try {
+            await it.click();
+            await this.page.waitForTimeout(1000);
+            return true;
+          } catch {}
         }
       }
     }
@@ -1875,13 +1875,13 @@ export class MessageTestHelpers {
         `a:has-text("${link}")`,
       ];
 
-              for (const selector of specificLinkSelectors) {
-          const linkElements = lastMessage.locator(selector);
-          const count = await linkElements.count();
-          if (count > 0) {
-            break;
-          }
+      for (const selector of specificLinkSelectors) {
+        const linkElements = lastMessage.locator(selector);
+        const count = await linkElements.count();
+        if (count > 0) {
+          break;
         }
+      }
     }
 
     return foundLinksCount === expectedLinks.length;
