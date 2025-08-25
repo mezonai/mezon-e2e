@@ -1,6 +1,4 @@
-import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { expect, test } from '@playwright/test';
-import { CategoryPage } from '../../pages/CategoryPage';
+import { test } from '@playwright/test';
 
 test.describe('Create Clan', () => {
   const clanName = `Test Clan ${Date.now()}`;

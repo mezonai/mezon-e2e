@@ -1,7 +1,7 @@
-import { type Page, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
-import { WEBSITE_CONFIGS } from '../config/environment';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { type Page, expect } from '@playwright/test';
+import { WEBSITE_CONFIGS } from '../config/environment';
+import { BasePage } from './BasePage';
 
 export class HomePage extends BasePage {
   constructor(page: Page) {
