@@ -39,7 +39,8 @@ export interface EnvironmentConfig {
  */
 export const WEBSITE_CONFIGS = {
   MEZON: {
-    baseURL: 'https://dev-mezon.nccsoft.vn',
+    //baseURL: 'https://dev-mezon.nccsoft.vn',
+    baseURL: 'http://localhost:4200/',
     name: 'Mezon Development',
   },
 } as const;
@@ -201,4 +202,9 @@ export const LOG_LEVELS = {
 export const getLogLevel = (): number => {
   const level = process.env.LOG_LEVEL?.toUpperCase() || 'INFO';
   return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
+};
+
+export const environment = {
+  baseUrl: 'https://mezon.app',  
+  authPageRegex: /login|signin|authentication/,
 };
