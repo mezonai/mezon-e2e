@@ -8,7 +8,7 @@ Then('I should see the main navigation menu', async ({ PageObjects }) => {
   await PageObjects.HomePage.verifyNavigationMenu();
 });
 
-Then('I should be redirected to login page', async ({ _page }) => {
+Then('I should be redirected to login page', async ({ page }) => {
   const currentUrl = page.url();
   expect(currentUrl).toContain('/login');
 });
@@ -39,7 +39,7 @@ Then('I should see the footer section', async ({ PageObjects }) => {
   await PageObjects.HomePage.verifyFooterSection();
 });
 
-When('I resize browser to mobile view', async ({ _page }) => {
+When('I resize browser to mobile view', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
 });
 

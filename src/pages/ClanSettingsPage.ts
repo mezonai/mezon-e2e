@@ -607,7 +607,7 @@ export class ClanSettingsPage extends BasePage {
       });
 
       const finalInputVisible = await this.isMentionInputVisible();
-      const _finalInputDetails = await this.getMentionInputDetails();
+      const finalInputDetails = await this.getMentionInputDetails();
 
       // Enhanced final check
       const escTriggeredInput = inputTriggered; // Use the enhanced logic

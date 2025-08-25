@@ -27,6 +27,28 @@ export class MessageTestHelpers {
     throw new Error('Could not find Reply option in context menu');
   }
 
+  async findEditOption(): Promise<Locator> {
+    const editSelectors = [
+      'text="Edit Message"',
+      'text="Edit"',
+      'text="Edit message"',
+      '[role="menuitem"]:has-text("Edit")',
+      'button:has-text("Edit")',
+      'li:has-text("Edit")',
+      'div:has-text("Edit")',
+      '[aria-label*="Edit" i]',
+      '[title*="Edit" i]',
+    ];
+
+    for (const selector of editSelectors) {
+      const element = this.page.locator(selector).first();
+      if (await element.isVisible({ timeout: 5000 })) {
+        return element;
+      }
+    }
+    throw new Error('Could not find Edit option in context menu');
+  }
+
   async replyToMessage(messageElement: Locator, replyText: string): Promise<void> {
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
@@ -43,6 +65,120 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(300);
     await input.press('Enter');
     await this.page.waitForTimeout(1500);
+  }
+
+  async editMessage(messageElement: Locator, newText: string): Promise<void> {
+    await messageElement.scrollIntoViewIfNeeded();
+    await messageElement.hover();
+    await messageElement.click({ button: 'right' });
+    await this.page.waitForTimeout(1000);
+
+    const editBtn = await this.findEditOption();
+    await editBtn.click();
+    await this.page.waitForTimeout(1000);
+
+    const editInputSelectors = [
+      'div[contenteditable="true"]:not(.mentions_input):not(.mentions_control)',
+      'input[type="text"]:not([readonly])',
+      'textarea:not([readonly]):not(#editorReactMentionChannel)',
+      '.edit-input',
+      '.message-edit-input',
+      '[data-testid="message-edit-input"]',
+      'div[contenteditable="true"]:focus',
+      'input:focus',
+      'textarea:focus',
+    ];
+
+    let editInput = null;
+    for (const selector of editInputSelectors) {
+      const element = this.page.locator(selector).first();
+      if (await element.isVisible({ timeout: 2000 })) {
+        const isComposer = await element.evaluate(el => {
+          const parent = el.closest(
+            '.mentions, .mentions_control, .mentions_input, textarea#editorReactMentionChannel'
+          );
+          return parent !== null;
+        });
+
+        if (!isComposer) {
+          editInput = element;
+          break;
+        }
+      }
+    }
+
+    if (!editInput) {
+      throw new Error('Could not find edit input after clicking Edit Message');
+    }
+
+    await editInput.click();
+    await editInput.focus();
+    await this.page.waitForTimeout(2000);
+
+    let currentContent = (await editInput.textContent()) || '';
+    if (!currentContent.includes('@kien.trinh')) {
+      await editInput.fill('@kien.trinh test');
+      await this.page.waitForTimeout(1000);
+      currentContent = (await editInput.textContent()) || '';
+    }
+
+    await editInput.type(` ${newText}`);
+    await this.page.waitForTimeout(1000);
+
+    const finalContent = (await editInput.textContent()) || '';
+
+    try {
+      await editInput.press('Enter');
+      await this.page.waitForTimeout(2000);
+
+      const messageTextAfterEdit = (await messageElement.textContent()) || '';
+
+      if (messageTextAfterEdit.includes(newText)) {
+        return;
+      }
+    } catch (error) {}
+
+    try {
+      const saveButton = this.page
+        .locator('button:has-text("Save"), .save-btn, [data-testid="save-edit"]')
+        .first();
+      if (await saveButton.isVisible({ timeout: 2000 })) {
+        await saveButton.click();
+        await this.page.waitForTimeout(2000);
+
+        const messageTextAfterSave = (await messageElement.textContent()) || '';
+        if (messageTextAfterSave.includes(newText)) {
+          return;
+        }
+      }
+    } catch (error) {}
+
+    try {
+      await editInput.press('Escape');
+      await this.page.waitForTimeout(1000);
+
+      await messageElement.click({ button: 'right' });
+      await this.page.waitForTimeout(1000);
+      const editBtn = await this.findEditOption();
+      await editBtn.click();
+      await this.page.waitForTimeout(1000);
+
+      const newEditInput = this.page
+        .locator('div[contenteditable="true"]:focus, input:focus, textarea:focus')
+        .first();
+      if (await newEditInput.isVisible({ timeout: 2000 })) {
+        await newEditInput.fill(`@kien.trinh test ${newText}`);
+        await newEditInput.press('Enter');
+        await this.page.waitForTimeout(2000);
+
+        const finalMessageText = (await messageElement.textContent()) || '';
+        if (finalMessageText.includes(newText)) {
+          return;
+        }
+      }
+    } catch (error) {}
+
+    throw new Error(`Edit failed: message does not contain "${newText}" after all attempts`);
   }
 
   async verifyLastMessageIsReplyTo(
@@ -695,45 +831,6 @@ export class MessageTestHelpers {
     throw new Error('Could not find edit button on message hover or in context menu');
   }
 
-  async editMessage(messageElement: Locator, newContent: string): Promise<void> {
-    const editButton = await this.findEditButton(messageElement);
-    await editButton.click();
-    await this.page.waitForTimeout(1000);
-
-    const editInputSelectors = [
-      'textarea[value]',
-      'input[value]',
-      'textarea:focus',
-      'input:focus',
-      '.edit-input',
-      '.message-edit-input',
-      '[data-testid="message-edit-input"]',
-    ];
-
-    let editInput = null;
-    for (const selector of editInputSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 3000 })) {
-        editInput = element;
-        break;
-      }
-    }
-
-    if (!editInput) {
-      editInput = this.page.locator('textarea:focus, input:focus').first();
-      if (!(await editInput.isVisible({ timeout: 2000 }))) {
-        throw new Error('Could not find edit input field');
-      }
-    }
-
-    await editInput.selectText();
-    await editInput.fill(newContent);
-    await this.page.waitForTimeout(500);
-
-    await editInput.press('Enter');
-    await this.page.waitForTimeout(2000);
-  }
-
   async sendMessageInThread(message: string): Promise<void> {
     const threadInputSelectors = [
       '.topic-panel textarea',
@@ -1000,8 +1097,6 @@ export class MessageTestHelpers {
     for (const selector of contextMenuSelectors) {
       const menu = this.page.locator(selector);
       if (await menu.isVisible({ timeout: 2000 })) {
-        const menuText = await menu.textContent();
-        console.log('Context menu content:', menuText);
         break;
       }
     }
@@ -1937,7 +2032,7 @@ export class MessageTestHelpers {
     await this.sendTextMessage(baseMessage);
 
     const lastMessage = await this.findLastMessage();
-    const _messageText = await lastMessage.textContent();
+    const messageText = await lastMessage.textContent();
 
     for (const link of links) {
       if (messageText?.includes(link)) {

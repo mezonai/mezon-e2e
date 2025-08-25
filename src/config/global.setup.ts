@@ -18,7 +18,7 @@ async function globalSetup() {
     baseURL: ENV_CONFIG.baseURL,
   });
 
-  const _page = await context.newPage();
+  const page = await context.newPage();
 
   await page.goto('/');
 

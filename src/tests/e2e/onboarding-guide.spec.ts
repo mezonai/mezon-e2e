@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
+import { OnboardingPage } from '@/pages/OnboardingPage';
+import { ClanPage } from '@/pages/ClanPage';
 
 test.describe('Onboarding Guide Task Completion', () => {
-  test.beforeEach(async ({ _page }) => {
+  test.beforeEach(async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.navigate();
 
@@ -45,7 +47,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     });
   });
 
-  test('should mark "Invite People" task as done after user invites someone', async ({ _page }) => {
+  test('should mark "Invite People" task as done after user invites someone', async ({ page }) => {
     const clanPage = new ClanPage(page);
     const onboardingPage = new OnboardingPage(page);
 
@@ -65,7 +67,7 @@ test.describe('Onboarding Guide Task Completion', () => {
         await onboardingPage.openOnboardingGuide();
       }
 
-      const _initialTaskStatus = await onboardingPage.getTaskStatus('invitePeople');
+      const initialTaskStatus = await onboardingPage.getTaskStatus('invitePeople');
 
       await page.screenshot({ path: 'debug-invite-task-initial.png', fullPage: true });
     });
@@ -73,6 +75,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     await test.step('Perform invite people workflow', async () => {
       const clanNameClicked = await clanPage.clickOnClanName();
       if (!clanNameClicked) {
+        // Clan name click failed, continue with test
       }
 
       const inviteModalOpened = await clanPage.openInvitePeopleModal();
@@ -81,7 +84,9 @@ test.describe('Onboarding Guide Task Completion', () => {
         const userInvited = await clanPage.searchAndInviteUser(testUsername);
 
         if (userInvited) {
+          // User invitation successful
         } else {
+          // User invitation failed, continue with test
         }
 
         await page.screenshot({ path: 'debug-after-invite-attempt.png', fullPage: true });
@@ -97,12 +102,13 @@ test.describe('Onboarding Guide Task Completion', () => {
       );
 
       if (isTaskMarkedDone) {
+        // Task marked as done successfully
       } else {
         await onboardingPage.debugOnboardingTasks();
         await page.screenshot({ path: 'debug-invite-task-not-done.png', fullPage: true });
       }
 
-      const _finalTaskStatus = await onboardingPage.getTaskStatus('invitePeople');
+      const finalTaskStatus = await onboardingPage.getTaskStatus('invitePeople');
 
       expect(
         isTaskMarkedDone,
@@ -133,7 +139,7 @@ test.describe('Onboarding Guide Task Completion', () => {
         await onboardingPage.openOnboardingGuide();
       }
 
-      const _initialTaskStatus = await onboardingPage.getTaskStatus('createChannel');
+      const initialTaskStatus = await onboardingPage.getTaskStatus('createChannel');
 
       await page.screenshot({ path: 'debug-channel-task-initial.png', fullPage: true });
     });
@@ -145,7 +151,9 @@ test.describe('Onboarding Guide Task Completion', () => {
         const channelCreated = await clanPage.createChannel(testChannelName, 'text');
 
         if (channelCreated) {
+          // Channel creation successful
         } else {
+          // Channel creation failed, continue with test
         }
 
         await page.screenshot({ path: 'debug-after-channel-creation.png', fullPage: true });
@@ -161,12 +169,13 @@ test.describe('Onboarding Guide Task Completion', () => {
       );
 
       if (isTaskMarkedDone) {
+        // Channel task marked as done successfully
       } else {
         await onboardingPage.debugOnboardingTasks();
         await page.screenshot({ path: 'debug-channel-task-not-done.png', fullPage: true });
       }
 
-      const _finalTaskStatus = await onboardingPage.getTaskStatus('createChannel');
+      const finalTaskStatus = await onboardingPage.getTaskStatus('createChannel');
 
       expect(
         isTaskMarkedDone,
@@ -175,7 +184,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     });
   });
 
-  test('should test both Join new clan and Create new clan scenarios', async ({ _page }) => {
+  test('should test both Join new clan and Create new clan scenarios', async ({ page }) => {
     const onboardingPage = new OnboardingPage(page);
 
     await test.step('Test comprehensive onboarding scenarios', async () => {

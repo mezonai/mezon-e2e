@@ -4,7 +4,7 @@ import { MEZON_TEST_USERS } from '../data/static/TestUsers';
 
 const authFile = 'playwright/.auth/user.json';
 
-setup('prepare mezon auth state', async ({ _page }) => {
+setup('prepare mezon auth state', async ({ page }) => {
   const fs = await import('fs');
   if (fs.existsSync(authFile)) {
     const stats = fs.statSync(authFile);
@@ -54,7 +54,7 @@ setup('prepare mezon auth state', async ({ _page }) => {
     }
 
     await page.context().storageState({ path: authFile });
-  } catch (_error: unknown) {
+  } catch (error: unknown) {
     await page.screenshot({ path: 'debug-auth-setup.png', fullPage: true });
     await page.context().storageState({ path: authFile });
   }
