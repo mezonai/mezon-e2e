@@ -6,7 +6,7 @@ export abstract class BasePage {
 
   constructor(page: Page, baseURL: string = '') {
     this.page = page;
-    this.baseURL = baseURL || 'https://dev-mezon.nccsoft.vn';
+    this.baseURL = baseURL || process.env.BASE_URL || 'http://127.0.0.1:4200';
   }
 
   async navigate(path: string = ''): Promise<void> {

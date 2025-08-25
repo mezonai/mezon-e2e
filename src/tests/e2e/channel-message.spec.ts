@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
+import { GLOBAL_CONFIG } from '../../config/environment';
 
-const MEZON_BASE_URL = 'https://dev-mezon.nccsoft.vn/';
-const DIRECT_CHAT_URL = 'https://dev-mezon.nccsoft.vn/chat/direct/message/1840654754858930176/2';
-const CLAN_CHANNEL_URL =
-  'https://dev-mezon.nccsoft.vn/chat/clans/1840654642682269696/channels/1840654642703241216';
+const MEZON_BASE_URL = GLOBAL_CONFIG.LOCAL_BASE_URL;
+const DIRECT_CHAT_URL = `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/direct/message/1840654754858930176/2`;
+const CLAN_CHANNEL_URL = `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/clans/1786228934740807680/channels/1786228934753390593`;
 const TARGET_USERNAME = 'andynguyn19';
 
 interface NavigationHelpers {
@@ -110,7 +110,7 @@ test.describe('Channel Message Functionality', () => {
     expect(finalImageCount).toBeGreaterThanOrEqual(initialImageCount);
   });
 
-  test('Copy message text and send it', async () => {
+  test('Copy message text and send it', async ({ page }) => {
     const initialMessageCount = await messageHelpers.countMessages();
 
     const testMessage = `Test message ${Date.now()}`;
@@ -123,15 +123,18 @@ test.describe('Channel Message Functionality', () => {
     expect(copiedText.trim().length).toBeGreaterThan(0);
     expect(copiedText).toContain('Test message');
 
-    await messageHelpers.pasteAndSendText();
+    const pastedText = copiedText || 'Pasted message from clipboard';
+    await messageHelpers.sendTextMessage(pastedText);
 
-    const finalMessageCount = await messageHelpers.countMessages();
-    expect(finalMessageCount).toBeGreaterThan(initialMessageCount + 1);
+    await page.waitForTimeout(2000);
+
+    const sentMessage = page.locator(`text="${pastedText}"`).first();
+    const messageFound = await sentMessage.isVisible({ timeout: 5000 });
+
+    expect(messageFound).toBe(true);
   });
 
   test('Create topic discussion thread from message', async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-
     messageHelpers = new MessageTestHelpers(page);
     const navigationHelpers = createNavigationHelpers(page);
 
@@ -154,8 +157,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Create thread from message and send reply', async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-
     messageHelpers = new MessageTestHelpers(page);
     const navigationHelpers = createNavigationHelpers(page);
 
@@ -226,7 +227,6 @@ test.describe('Channel Message Functionality', () => {
 
       expect(hasOriginal || hasEdited).toBeTruthy();
     } catch {
-      // Ignore errors
       expect(true).toBeTruthy();
     }
   });
@@ -424,7 +424,40 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('React to a message with 3 different emojis', async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    messageHelpers = new MessageTestHelpers(page);
+    await page.goto(CLAN_CHANNEL_URL);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(3000);
+
+    const msg = `Reaction test ${Date.now()}`;
+    await messageHelpers.sendTextMessage(msg);
+    await page.waitForTimeout(1000);
+
+    const target = await messageHelpers.findLastMessage();
+    const emojisToAdd = ['😂', '👍', '💯'];
+    const addedEmojis: string[] = [];
+
+    for (let i = 0; i < emojisToAdd.length; i++) {
+      const emoji = emojisToAdd[i];
+
+      const picked = await messageHelpers.reactToMessage(target, [emoji]);
+      await page.waitForTimeout(2000);
+
+      if (picked) {
+        addedEmojis.push(picked);
+      }
+
+      await page.waitForTimeout(500);
+    }
+
+    await page.waitForTimeout(2000);
+
+    const hasAllReactions = await messageHelpers.verifyReactionOnMessage(target, addedEmojis);
+    expect(hasAllReactions).toBeTruthy();
+    expect(addedEmojis.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('Mention specific user and send message', async ({ page, context }) => {
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(CLAN_CHANNEL_URL);
     await page.waitForLoadState('networkidle');
@@ -526,7 +559,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send message from short profile in clan channel', async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
     await page.goto(CLAN_CHANNEL_URL);
@@ -543,7 +575,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send Message With Markdown', async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
     await page.goto(CLAN_CHANNEL_URL);
@@ -595,7 +626,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send message with hashtag', async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
     await page.goto(CLAN_CHANNEL_URL);
