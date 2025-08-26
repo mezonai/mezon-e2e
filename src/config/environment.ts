@@ -34,13 +34,28 @@ export interface EnvironmentConfig {
   workers: number;
 }
 
+const persistentConfig = {
+  loadingStatus: '"loaded"',
+  session:
+    '{"1840652213735657500":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI5OGYwMDdlMi0wNDFiLTRlYWEtYTMwYS0xYjZmNjcwYjc0NzMiLCJ1aWQiOjE4NDA2NTIyMTM3MzU2NTc0NzIsInVzbiI6InlUa2dPb2RRbVQiLCJleHAiOjE3NTYwOTMwNTR9.qbGd4nGudraeb1uwF8L-i96-YL0AY9raOYk92QnACuk","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI5OGYwMDdlMi0wNDFiLTRlYWEtYTMwYS0xYjZmNjcwYjc0NzMiLCJ1aWQiOjE4NDA2NTIyMTM3MzU2NTc0NzIsInVzbiI6InlUa2dPb2RRbVQiLCJleHAiOjE3NTY2OTcyNTR9.i1lmnc9cVYF_WX00wxISj2o9A-1J1jz-Vn11nx0LaOA","created_at":1756092454,"is_remember":false,"refresh_expires_at":1756697254,"expires_at":1756093054,"username":"yTkgOodQmT","user_id":1840652213735657500}}',
+  isLogin: 'true',
+  isRegistering: '"not loaded"',
+  loadingStatusEmail: '"not loaded"',
+  redirectUrl: 'null',
+  activeAccount: '"1840652213735657500"',
+  _persist: '{"version":-1,"rehydrated":true}',
+};
+export const GLOBAL_CONFIG = {
+  LOCAL_BASE_URL: 'http://127.0.0.1:4200/',
+  DEV_BASE_URL: 'https://dev-mezon.nccsoft.vn/',
+} as const;
+
 /**
  * Website configurations for different test targets
  */
 export const WEBSITE_CONFIGS = {
   MEZON: {
-    //baseURL: 'https://dev-mezon.nccsoft.vn',
-    baseURL: 'http://localhost:4200/',
+    baseURL: process.env.BASE_URL || 'localhost:4200',
     name: 'Mezon Development',
   },
 } as const;
@@ -53,6 +68,42 @@ export const SESSION_CONFIGS = {
     host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
     port: process.env.MEZON_SESSION_PORT || '7305',
     ssl: process.env.MEZON_SESSION_SSL !== 'false' || true,
+  },
+} as const;
+
+/**
+ * Get session config based on environment
+ */
+export const getSessionConfig = () => {
+  // TODO: remove this after local is fixed
+  const isLocal = process.env.IS_LOCAL === 'true' || process.env.NODE_ENV === 'development';
+  return {
+    host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
+    port: process.env.MEZON_SESSION_PORT || '7305',
+    // ssl: isLocal ? false : (process.env.MEZON_SESSION_SSL !== 'false' || true),
+    ssl: true,
+  };
+};
+
+/**
+ * Local development configuration
+ */
+export const LOCAL_CONFIG = {
+  isLocal: process.env.IS_LOCAL === 'true' || process.env.NODE_ENV === 'development',
+  skipLogin: process.env.SKIP_LOGIN === 'true' || process.env.NODE_ENV === 'development',
+} as const;
+
+/**
+ * Authentication data for local development
+ */
+export const LOCAL_AUTH_DATA = {
+  persist: {
+    key: 'persist:auth',
+    value: persistentConfig,
+  },
+  mezonSession: {
+    key: 'mezon_session',
+    value: JSON.stringify(getSessionConfig()),
   },
 } as const;
 
@@ -169,7 +220,14 @@ export const isDebugMode = () => process.env.DEBUG === 'true';
 export const getBrowserConfig = () => ({
   headless: ENV_CONFIG.browser.headless,
   slowMo: ENV_CONFIG.browser.slowMo,
-  args: isCI() ? ['--disable-dev-shm-usage', '--no-sandbox'] : [],
+  args: isCI()
+    ? ['--disable-dev-shm-usage', '--no-sandbox']
+    : [
+        '--disable-clipboard-read-write',
+        '--disable-permissions-api',
+        '--disable-features=ClipboardReadWrite',
+        '--disable-clipboard-sanitization',
+      ],
 });
 
 /**
@@ -208,3 +266,4 @@ export const environment = {
   baseUrl: 'https://mezon.app',  
   authPageRegex: /login|signin|authentication/,
 };
+
