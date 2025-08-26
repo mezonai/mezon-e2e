@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { env } from 'process';
 
 // Load environment variables
 dotenv.config();
@@ -37,17 +38,20 @@ export interface EnvironmentConfig {
 const persistentConfig = {
   loadingStatus: '"loaded"',
   session:
-    '{"1840652213735657500":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI5OGYwMDdlMi0wNDFiLTRlYWEtYTMwYS0xYjZmNjcwYjc0NzMiLCJ1aWQiOjE4NDA2NTIyMTM3MzU2NTc0NzIsInVzbiI6InlUa2dPb2RRbVQiLCJleHAiOjE3NTYwOTMwNTR9.qbGd4nGudraeb1uwF8L-i96-YL0AY9raOYk92QnACuk","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI5OGYwMDdlMi0wNDFiLTRlYWEtYTMwYS0xYjZmNjcwYjc0NzMiLCJ1aWQiOjE4NDA2NTIyMTM3MzU2NTc0NzIsInVzbiI6InlUa2dPb2RRbVQiLCJleHAiOjE3NTY2OTcyNTR9.i1lmnc9cVYF_WX00wxISj2o9A-1J1jz-Vn11nx0LaOA","created_at":1756092454,"is_remember":false,"refresh_expires_at":1756697254,"expires_at":1756093054,"username":"yTkgOodQmT","user_id":1840652213735657500}}',
+    '{"1958389436492288000":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIxMTQ0NzZmNy04NzAwLTQ3ZDgtYjIwNS1jMTE2N2RkYTY4OTgiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1NjI3MzUzOX0.cY9_-hCXXt6W0J7QcEM5etCCK0WZFsJuoD2JOnt0Kh8","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIxMTQ0NzZmNy04NzAwLTQ3ZDgtYjIwNS1jMTE2N2RkYTY4OTgiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1Njg3NzczOX0._1m-40kAakBeEIXSWDOpvqaxSj2TuoU9sxPX48iy3Go","created_at":1756272939,"is_remember":false,"refresh_expires_at":1756877739,"expires_at":1756273539,"username":"tdkien.99.vn","user_id":1958389436492288000}}',
   isLogin: 'true',
   isRegistering: '"not loaded"',
   loadingStatusEmail: '"not loaded"',
   redirectUrl: 'null',
-  activeAccount: '"1840652213735657500"',
+  activeAccount: '"1958389436492288000"',
   _persist: '{"version":-1,"rehydrated":true}',
 };
 export const GLOBAL_CONFIG = {
-  LOCAL_BASE_URL: 'http://127.0.0.1:4200/',
-  DEV_BASE_URL: 'https://dev-mezon.nccsoft.vn/',
+  LOCAL_BASE_URL: process.env.BASE_URL,
+  DEV_BASE_URL: process.env.DEV_BASE_URL,
+  API_URL: process.env.API_URL,
+  IS_LOCAL: process.env.IS_LOCAL === 'true',
+  SKIP_LOGIN: process.env.SKIP_LOGIN === 'true',
 } as const;
 
 /**
@@ -55,7 +59,7 @@ export const GLOBAL_CONFIG = {
  */
 export const WEBSITE_CONFIGS = {
   MEZON: {
-    baseURL: process.env.BASE_URL || 'localhost:4200',
+     baseURL: process.env.BASE_URL,
     name: 'Mezon Development',
   },
 } as const;
@@ -117,7 +121,7 @@ function getEnvironmentConfig(): EnvironmentConfig {
     WEBSITE_CONFIGS[website as keyof typeof WEBSITE_CONFIGS] || WEBSITE_CONFIGS.MEZON;
 
   const baseConfig: EnvironmentConfig = {
-    baseURL: process.env.BASE_URL || websiteConfig.baseURL,
+    baseURL: (process.env.BASE_URL || websiteConfig.baseURL) as string,
     timeout: {
       default: parseInt(process.env.DEFAULT_TIMEOUT || '30000'),
       navigation: parseInt(process.env.NAVIGATION_TIMEOUT || '30000'),
@@ -148,7 +152,7 @@ function getEnvironmentConfig(): EnvironmentConfig {
     case 'production':
       return {
         ...baseConfig,
-        baseURL: process.env.BASE_URL || websiteConfig.baseURL,
+        baseURL: (process.env.BASE_URL || websiteConfig.baseURL) as string,
         browser: {
           ...baseConfig.browser,
           headless: true,
@@ -161,7 +165,7 @@ function getEnvironmentConfig(): EnvironmentConfig {
     case 'staging':
       return {
         ...baseConfig,
-        baseURL: process.env.BASE_URL || websiteConfig.baseURL,
+        baseURL: (process.env.BASE_URL || websiteConfig.baseURL) as string,
         retries: 2,
         workers: 2,
       };
@@ -262,8 +266,6 @@ export const getLogLevel = (): number => {
   return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
 };
 
-export const environment = {
-  baseUrl: 'https://mezon.app',  
-  authPageRegex: /login|signin|authentication/,
+export const ROUTES = {
+  DIRECT_FRIENDS: "chat/direct/friends",
 };
-

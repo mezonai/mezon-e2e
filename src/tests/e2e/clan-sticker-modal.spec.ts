@@ -3,7 +3,7 @@ import { HomePage } from '../../pages/HomePage';
 import { ClanSettingsPage } from '../../pages/ClanSettingsPage';
 
 test.describe('Clan Sticker Modal ESC Key Behavior', () => {
-  test.beforeEach(async ({ _page }) => {
+  test.beforeEach(async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.navigate();
 
@@ -11,7 +11,7 @@ test.describe('Clan Sticker Modal ESC Key Behavior', () => {
     expect(currentUrl).not.toMatch(/login|signin|authentication/);
   });
 
-  test('should close modals one by one when pressing ESC key', async ({ _page }) => {
+  test('should close modals one by one when pressing ESC key', async ({ page }) => {
     const clanSettingsPage = new ClanSettingsPage(page);
     let modalSetupSuccessful = false;
 
@@ -185,7 +185,7 @@ test.describe('Clan Sticker Modal ESC Key Behavior', () => {
     });
   });
 
-  test('should verify modal stack behavior with multiple ESC presses', async ({ _page }) => {
+  test('should verify modal stack behavior with multiple ESC presses', async ({ page }) => {
     const clanSettingsPage = new ClanSettingsPage(page);
 
     await test.step('Setup multiple modals scenario', async () => {

@@ -3,6 +3,7 @@ import { defineBddConfig } from 'playwright-bdd';
 import { OrtoniReportConfig } from 'ortoni-report';
 import type { GitHubActionOptions } from '@estruyf/github-actions-reporter';
 import dotenv from 'dotenv';
+import { GLOBAL_CONFIG, getBrowserConfig } from './src/config/environment';
 dotenv.config();
 
 const workers = parseInt(process.env.WORKERS || '1', 10) || 1;
@@ -26,7 +27,7 @@ const reportConfig: OrtoniReportConfig = {
     description: 'Playwright E2E test report for Mezon platform',
     testCycle: 'Main',
     release: '1.0.0',
-    environment: process.env.BASE_URL || 'https://dev-mezon.nccsoft.vn',
+    environment: process.env.BASE_URL || GLOBAL_CONFIG.LOCAL_BASE_URL,
   },
 };
 
@@ -68,7 +69,7 @@ export default defineConfig({
   outputDir: 'test-results/',
 
   use: {
-    baseURL: process.env.BASE_URL || 'https://dev-mezon.nccsoft.vn',
+    baseURL: process.env.BASE_URL || GLOBAL_CONFIG.LOCAL_BASE_URL,
     trace: process.env.CI ? 'retain-on-failure' : 'on',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -90,11 +91,22 @@ export default defineConfig({
     {
       name: 'chromium-no-bdd',
       testDir: './src/tests',
+      testIgnore: [/dual-users-.*\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
+        ...getBrowserConfig(),
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+    },
+    {
+      name: 'chromium-dual-user',
+      testDir: './src/tests',
+      testMatch: /dual-users-.*\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: undefined,
+      },
     },
 
     // BDD Tests - Login flow (NO AUTH)

@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { VoiceChannelPage } from '../../pages/VoiceChannelPage';
 import { HomePage } from '../../pages/HomePage';
+import { ENV_CONFIG } from '../../config/environment';
 
 test.describe('Create Voice Channels', () => {
-  test.beforeEach(async ({ _page }) => {
+  test.beforeEach(async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.navigate();
 
@@ -55,11 +56,11 @@ test.describe('Create Voice Channels', () => {
   const voiceChannelPublic = 'voice-channel-public';
   const voiceChannelCancel = 'voice-channel-cancel';
 
-  test('should create private voice channel', async ({ _page }) => {
+  test('should create private voice channel', async ({ page }) => {
     const voiceChannelPage = new VoiceChannelPage(page);
 
     await page.goto(
-      'https://dev-mezon.nccsoft.vn/chat/clans/1840654642682269696/channels/1840654642703241216'
+      `${ENV_CONFIG.baseURL}chat/clans/1840654642682269696/channels/1840654642703241216`
     );
 
     await test.step(`Create private voice channel named "${voiceChannelPrivate}"`, async () => {
@@ -74,11 +75,11 @@ test.describe('Create Voice Channels', () => {
     });
   });
 
-  test('should create public voice channel', async ({ _page }) => {
+  test('should create public voice channel', async ({ page }) => {
     const voiceChannelPage = new VoiceChannelPage(page);
 
     await page.goto(
-      'https://dev-mezon.nccsoft.vn/chat/clans/1840654642682269696/channels/1840654642703241216'
+      `${ENV_CONFIG.baseURL}chat/clans/1840654642682269696/channels/1840654642703241216`
     );
 
     await test.step(`Create public voice channel named "${voiceChannelPublic}"`, async () => {

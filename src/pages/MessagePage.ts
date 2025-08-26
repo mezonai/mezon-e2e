@@ -1,267 +1,276 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 export class MessgaePage {
-    private helpers: DirectMessageHelper;
-    readonly page: Page;
-    readonly user: Locator;
-    readonly addUserButton: Locator;
-    readonly userItem: Locator;
-    readonly createGroupButton: Locator;
-    readonly userNameItem: Locator;
-    readonly addToGroupButton: Locator;
-    readonly sumMember: Locator;
-    readonly memberCount: Locator;
-    //readonly firstDM: Locator;
-    readonly firsrDMUserName: Locator;
-    readonly closeFirstDMButton: Locator;
-    readonly firstUserAddDM: Locator;
-    readonly firstUserNameAddDM: Locator;
-    readonly userNameInDM: Locator;
-    readonly secondClan: Locator;
-    readonly messages: Locator;
-    readonly leaveGroupButton: Locator;
-    readonly confirmLeaveGroupButton: Locator;
-    readonly messagesInTopic: Locator;
-    readonly memberListInGroup: Locator;
-    readonly editGroupButton: Locator;
-    readonly groupNameInput: Locator;
-    readonly saveGroupNameButton: Locator;
-    readonly leaveGroupButtonInPopup: Locator;
+  private helpers: DirectMessageHelper;
+  readonly page: Page;
+  readonly user: Locator;
+  readonly addUserButton: Locator;
+  readonly userItem: Locator;
+  readonly createGroupButton: Locator;
+  readonly userNameItem: Locator;
+  readonly addToGroupButton: Locator;
+  readonly sumMember: Locator;
+  readonly memberCount: Locator;
+  //readonly firstDM: Locator;
+  readonly firsrDMUserName: Locator;
+  readonly closeFirstDMButton: Locator;
+  readonly firstUserAddDM: Locator;
+  readonly firstUserNameAddDM: Locator;
+  readonly userNameInDM: Locator;
+  readonly secondClan: Locator;
+  readonly messages: Locator;
+  readonly leaveGroupButton: Locator;
+  readonly confirmLeaveGroupButton: Locator;
+  readonly messagesInTopic: Locator;
+  readonly memberListInGroup: Locator;
+  readonly editGroupButton: Locator;
+  readonly groupNameInput: Locator;
+  readonly saveGroupNameButton: Locator;
+  readonly leaveGroupButtonInPopup: Locator;
 
-    firstUserNameText: string = "";
-    message: string = "";
-    messageCreateTopic: string = "";
-    messageInTopic: string = "";
-    groupNameText: string = "";
-    userNameItemText: string = "";
+  firstUserNameText: string = '';
+  message: string = '';
+  messageCreateTopic: string = '';
+  messageInTopic: string = '';
+  groupNameText: string = '';
+  userNameItemText: string = '';
 
-    constructor(page: Page) {
-        this.page = page;
-        this.helpers = new DirectMessageHelper(page);
-        this.user = this.page.locator('chat-direct-message-chatList').filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) }).first();
-        this.addUserButton = page.locator('chat-direct-message-create-group-button');
-        // this.userItem = page.locator('div.bg-item-theme.flex.items-center.h-10.px-2.ml-3.mr-2.rounded-lg.cursor-pointer').first();
-        this.userItem = page.locator('chat-direct-message-friend-list-friend-item').first();
-        this.createGroupButton = page.locator('chat-direct-message-create-group-button');
-        this.userNameItem = this.userItem.locator('chat-direct-message-friend-list-username-friend-item');
-        this.addToGroupButton = page.locator('chat-direct-message-create-group-button');
-        this.sumMember = page.locator('chat-direct-message-member-list-button');
-        this.memberCount = page.locator('chat-direct-message-member-list-member-count');
-        //this.firstDM = this.page.locator('.dm-wrap').filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) }).first();
-        this.firsrDMUserName = this.user.locator('chat-direct-message-chat-item-username');
-        this.closeFirstDMButton = this.user.locator('chat-direct-message-chat-item-close-DM-button');
-        this.firstUserAddDM = this.page.locator('chat-direct-message-friend-list-all-friend').first();
-        this.firstUserNameAddDM = this.firstUserAddDM.locator('chat-direct-message-chat-item-username').first();
-        this.userNameInDM = page.locator('div.overflow-hidden.whitespace-nowrap.text-ellipsis.none-draggable-area.pointer-events-none.cursor-default.font-medium.bg-transparent.outline-none.leading-10.text-theme-primary');
-        this.secondClan = this.page.locator('div[title]').nth(1);
-        this.messages = this.page.locator('div.message-list-item');
-        this.leaveGroupButton = this.helpers.group.locator('button.absolute.right-2.text-gray-500.text-2xl.hover\\:text-red-500');
-        this.confirmLeaveGroupButton = this.page.locator('div.bottom-block div', { hasText: 'Leave Group' });
-        this.messagesInTopic = page.locator('.thread-scroll .text-theme-message');
-        this.memberListInGroup = page.locator('span.one-line.text-start');
-        this.editGroupButton = page.locator('button[title="Edit Group"]');
-        this.groupNameInput = page.locator('input[placeholder="Enter group name"]');
-        this.saveGroupNameButton = page.locator('button:has-text("Save")');
-        this.leaveGroupButtonInPopup = page.locator('button:has-text("Leave Group")');
+  constructor(page: Page) {
+    this.page = page;
+    this.helpers = new DirectMessageHelper(page);
+    this.user = this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+      .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
+      .first();
+    this.addUserButton = page.locator(
+      generateE2eSelector('chat.direct_message.create_group.button')
+    );
+    this.userItem = page
+      .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
+      .first();
+    this.createGroupButton = page.locator(
+      generateE2eSelector('chat.direct_message.create_group.button')
+    );
+    this.userNameItem = this.userItem.locator(
+      generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
+    );
+    this.addToGroupButton = page.locator(
+      generateE2eSelector('chat.direct_message.create_group.button')
+    );
+    this.sumMember = page.locator(generateE2eSelector('chat.direct_message.member_list.button'));
+    this.memberCount = page.locator(
+      generateE2eSelector('chat.direct_message.member_list.member_count')
+    );
+    this.firsrDMUserName = this.user.locator(
+      generateE2eSelector('chat.direct_message.chat_item.username')
+    );
+    this.closeFirstDMButton = this.user.locator(
+      generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+    );
+    this.firstUserAddDM = this.page
+      .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
+      .first();
+    this.firstUserNameAddDM = this.firstUserAddDM
+      .locator(generateE2eSelector('chat.direct_message.chat_item.username'))
+      .first();
+    this.userNameInDM = page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
+    this.secondClan = this.page.locator('div[title]').nth(1);
+    this.messages = this.page.locator(
+      generateE2eSelector('chat.mention.input')
+    );
+    this.leaveGroupButton = this.helpers.group.locator(
+      generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+    );
+    this.confirmLeaveGroupButton = this.page.locator(
+      generateE2eSelector('chat.direct_message.leave_group.button')
+    );
+    this.messagesInTopic = page.locator('.thread-scroll .text-theme-message');
+    this.memberListInGroup = page.locator(
+      generateE2eSelector('chat.direct_message.member_list.member_count')
+    );
+    this.editGroupButton = page.locator('button[title="Edit Group"]');
+    this.groupNameInput = page.locator('input[placeholder="Enter group name"]');
+    this.saveGroupNameButton = page.locator('button:has-text("Save")');
+    this.leaveGroupButtonInPopup = page.locator(
+      generateE2eSelector('chat.direct_message.menu.leave_group.button')
+    );
+  }
 
+  async createDM(): Promise<void> {
+    await this.firstUserAddDM.waitFor({ state: 'visible' });
+    await this.firstUserAddDM.click();
+    this.firstUserNameText = (await this.firstUserNameAddDM.textContent())?.trim() ?? '';
+  }
+
+  async isDMCreated(prevUsersCount: number): Promise<boolean> {
+    await this.page.waitForTimeout(2000);
+
+    const currentUsersCount = await this.helpers.countUsers();
+    if (currentUsersCount !== prevUsersCount + 1) {
+      return false;
     }
 
-    async createDM(): Promise<void> {
-        await this.firstUserAddDM.click();
-        const fullText = (await this.firstUserNameAddDM.textContent())?.trim() ?? '';
-        this.firstUserNameText = fullText.split(' ')[0];
+    const firstUserNameInDMText = (await this.userNameInDM.textContent())?.trim() ?? '';
+    if (!this.firstUserNameText.toLowerCase().includes(firstUserNameInDMText.toLowerCase())) {
+      return false;
     }
 
-    async isDMCreated(prevUsersCount: number): Promise<boolean> {
+    return true;
+  }
 
-        await this.page.waitForTimeout(2000);
+  async createGroup(): Promise<void> {
+    await this.user.click();
+    this.firstUserNameText = (await this.userNameInDM.textContent())?.trim() ?? '';
+    await this.addUserButton.click();
+    await this.userItem.waitFor({ state: 'visible', timeout: 50000 });
+    await this.userItem.click();
+    await this.createGroupButton.click();
+  }
 
-        const currentUsersCount = await this.helpers.countUsers();
-        if (currentUsersCount !== prevUsersCount + 1) {
-            return false;
-        }
+  async isGroupCreated(prevGroupCount: number): Promise<boolean> {
+    await this.page.waitForTimeout(2000);
 
-        const firstUserNameInDMText = (await this.userNameInDM.textContent())?.trim() ?? '';
-        if (firstUserNameInDMText !== this.firstUserNameText) {
-            return false;
-        }
-
-        return true;
+    const currentGroupCount = await this.helpers.countGroups();
+    if (currentGroupCount !== prevGroupCount + 1) {
+      return false;
     }
 
-    async createGroup(): Promise<void> {
-        await this.user.click();
-        this.firstUserNameText = (await this.userNameInDM.textContent())?.trim() ?? '';
-        await this.addUserButton.click();
-        await this.userItem.waitFor({ state: 'visible', timeout: 50000 });
-        await this.userItem.click();
-        await this.createGroupButton.click();
+    const groupNames = await this.helpers.groupList.allTextContents();
+    const newGroupName = groupNames[groupNames.length - 1].trim();
+    if (!newGroupName.startsWith(this.firstUserNameText)) {
+      return false;
     }
 
-    async isGroupCreated(prevGroupCount: number): Promise<boolean> {
-        await this.page.waitForTimeout(2000);
+    return true;
+  }
 
-        const currentGroupCount = await this.helpers.countGroups();
-        if (currentGroupCount !== prevGroupCount + 1) {
-            return false;
-        }
+  async addMoreMemberToGroup(): Promise<void> {
+    await this.helpers.group.click();
+    await this.addUserButton.click();
+    await this.page.waitForTimeout(5000);
+    await this.userItem.click();
+    this.userNameItemText = (await this.userNameItem.textContent()) ?? '';
+    await this.addToGroupButton.click();
+    await this.page.waitForTimeout(1000);
+  }
 
-        const groupNames = await this.helpers.groupList.allTextContents();
-        const newGroupName = groupNames[groupNames.length - 1].trim();
-        if (!newGroupName.startsWith(this.firstUserNameText)) {
-            return false;
-        }
+  async getMemberCount(): Promise<number> {
+    await this.helpers.group.click();
+    await this.sumMember.click();
 
-        return true;
+    const memberItems = this.memberCount;
+    const count = await memberItems.count();
+
+    return count;
+  }
+
+  async isMemberAdded(previousCount: number): Promise<boolean> {
+    const memberItems = this.memberCount;
+    const newCount = await memberItems.count();
+    if (newCount !== previousCount + 1) {
+      return false;
     }
 
-    async addMoreMemberToGroup(): Promise<void> {
-        await this.helpers.group.click();
-        await this.addUserButton.click();
-        await this.page.waitForTimeout(5000);
-        await this.userItem.click();
-        this.userNameItemText = (await this.userNameItem.textContent()) ?? "";
-        await this.addToGroupButton.click();
-        await this.page.waitForTimeout(1000);
+    const userNamesRaw: string[] = await this.memberListInGroup.allTextContents();
+    const userNames: string[] = userNamesRaw
+      .flatMap(text => text.split(','))
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
+
+    if (!userNames.includes(this.userNameItemText)) {
+      return false;
     }
 
-    async getMemberCount(): Promise<number> {
-        await this.helpers.group.click();
-        await this.sumMember.click();
+    return true;
+  }
 
-        const memberItems = this.memberCount;
-        const count = await memberItems.count();
+  async closeDM(): Promise<void> {
+    await this.user.hover();
+    await this.closeFirstDMButton.click({ force: true });
+  }
 
-        return count;
-    }
+  async isDMClosed(prevUserCount: number): Promise<boolean> {
+    await this.page.waitForTimeout(2000);
 
-    async isMemberAdded(previousCount: number): Promise<boolean> {
-        const memberItems = this.memberCount;
-        const newCount = await memberItems.count();
-        if (newCount !== previousCount + 1) {
-            return false;
-        }
+    const currentUserCount = await this.helpers.countUsers();
 
-        const userNamesRaw: string[] = await this.memberListInGroup.allTextContents();
-        const userNames: string[] = userNamesRaw.flatMap(text => text.split(',')).map(name => name.trim()).filter(name => name.length > 0);
+    return currentUserCount === prevUserCount - 1;
+  }
 
-        if (!userNames.includes(this.userNameItemText)) {
-            return false;
-        }
+  async leaveGroupByXBtn(): Promise<void> {
+    await this.helpers.group.hover();
+    await this.leaveGroupButton.click({ force: true });
+    await this.confirmLeaveGroupButton.click();
+  }
 
-        return true;
-    }
+  async leaveGroupByLeaveGroupBtn(): Promise<void> {
+    // await this.helpers.group.hover();
+    // await this.helpers.group.click({ button: 'right' });
+    // await this.helpers.group.dispatchEvent('contextmenu');
 
-    async closeDM(): Promise<void> {
-        await this.user.hover();
-        await this.closeFirstDMButton.click({ force: true });
-    }
+    // bắn sự kiện chuột phải lên group
+    await this.helpers.group.dispatchEvent('contextmenu');
 
-    async isDMClosed(prevUserCount: number): Promise<boolean> {
-        await this.page.waitForTimeout(2000);
+    // chờ menu "Leave Group" hiện ra
+    // const leaveGroupBtn = this.page.locator('text=Leave Group');
+    // await leaveGroupBtn.waitFor({ state: 'visible' });
 
-        const currentUserCount = await this.helpers.countUsers();
+    // click vào "Leave Group"
+    //await leaveGroupBtn.click();
+  }
 
-        return currentUserCount === prevUserCount - 1;
-    }
+  async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
+    await this.page.waitForTimeout(2000);
 
-    async createTopic(message: string): Promise<void> {
-        const helpers = new MessageTestHelpers(this.page);
+    const currentGroupCount = await this.helpers.countGroups();
 
-        await this.secondClan.click();
+    return currentGroupCount === prevGroupCount - 1;
+  }
 
-        const lastMessage = this.messages.last();
-        await lastMessage.click({ button: 'right' });
+  async selectConversation(): Promise<void> {
+    await this.user.click();
+  }
 
-        await this.page.waitForTimeout(10000);
+  async isConversationSelected(): Promise<boolean> {
+    const firstDMName = await this.firsrDMUserName.innerText();
+    const firstUserNameInDMText = (await this.userNameInDM.textContent())?.trim() ?? '';
 
-        const topicButton = await helpers.findTopicDiscussionOption();
-        topicButton.click();
+    return firstUserNameInDMText === firstDMName;
+  }
 
-        await this.helpers.textAreaInTopic.fill(message);
-        await this.helpers.textAreaInTopic.press('Enter');
-    }
+  async sendMessage(message: string): Promise<void> {
+    this.message = message;
+    await this.user.click();
+    await this.helpers.textarea.click();
+    await this.helpers.textarea.fill(message);
+    await this.helpers.textarea.press('Enter');
+  }
 
-    async isTopicCreated(): Promise<boolean> {
-        await this.page.waitForTimeout(3000);
+  async isMessageSend(): Promise<boolean> {
+    const lastMessage = this.messages.last();
+    const text = await lastMessage.innerText();
+    console.log('Last message text:', text);
+    console.log('Expected message:', this.message);
 
-        return (
-            await this.helpers.containsMessage(this.messageCreateTopic) ||
-            await this.helpers.containsMessage(this.messageInTopic)
-        );
-    }
+    return text.trim() === this.message;
+  }
 
-    async leaveGroupByXBtn(): Promise<void> {
-        await this.helpers.group.hover();
-        await this.leaveGroupButton.click({ force: true });
-        await this.confirmLeaveGroupButton.click();
-    }
+  async updateNameGroupChatDM(groupName: string): Promise<void> {
+    this.groupNameText = groupName;
 
-    async leaveGroupByLeaveGroupBtn(): Promise<void> {
-        // await this.helpers.group.hover();
-        // await this.helpers.group.click({ button: 'right' });
-        // await this.helpers.group.dispatchEvent('contextmenu');
+    await this.helpers.group.click();
+    await this.editGroupButton.click();
+    await this.groupNameInput.click();
+    await this.groupNameInput.fill('');
+    await this.groupNameInput.fill(groupName);
+    await this.saveGroupNameButton.click();
+  }
 
-        // bắn sự kiện chuột phải lên group
-        await this.helpers.group.dispatchEvent('contextmenu');
-
-        // chờ menu "Leave Group" hiện ra
-        // const leaveGroupBtn = this.page.locator('text=Leave Group');
-        // await leaveGroupBtn.waitFor({ state: 'visible' });
-
-        // click vào "Leave Group"
-        //await leaveGroupBtn.click();
-    }
-
-    async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
-        await this.page.waitForTimeout(2000);
-
-        const currentGroupCount = await this.helpers.countGroups();
-
-        return currentGroupCount === prevGroupCount - 1;
-    }
-
-    async selectConversation(): Promise<void> {
-        await this.user.click();
-    }
-
-    async isConversationSelected(): Promise<boolean> {
-        const firstDMName = await this.firsrDMUserName.innerText();
-        const firstUserNameInDMText = (await this.userNameInDM.textContent())?.trim() ?? '';
-
-        return firstUserNameInDMText === firstDMName;
-    }
-
-    async sendMessage(message: string): Promise<void> {
-        this.message = message;
-        await this.user.click();
-        await this.helpers.textarea.click();
-        await this.helpers.textarea.fill(message);
-        await this.helpers.textarea.press('Enter');
-    }
-
-    async isMessageSend(): Promise<boolean> {
-        const lastMessage = this.messages.last();
-        const text = await lastMessage.innerText();
-
-        return text.trim() === this.message;
-    }
-
-    async updateNameGroupChatDM(groupName: string): Promise<void> {
-        this.groupNameText = groupName;
-
-        await this.helpers.group.click();
-        await this.editGroupButton.click();
-        await this.groupNameInput.click();
-        await this.groupNameInput.fill('');
-        await this.groupNameInput.fill(groupName);
-        await this.saveGroupNameButton.click();
-    }
-
-    async isGroupNameDMUpdated(): Promise<boolean> {
-        const groupName = (await this.helpers.groupName.innerText()).trim();
-        return groupName === this.groupNameText;
-    }
+  async isGroupNameDMUpdated(): Promise<boolean> {
+    const groupName = (await this.helpers.groupName.innerText()).trim();
+    return groupName === this.groupNameText;
+  }
 }
