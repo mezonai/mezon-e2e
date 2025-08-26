@@ -79,9 +79,29 @@ export default defineConfig({
     navigationTimeout: 30 * 1000,
   },
 
-  // Configure projects for major browsers
+  /* Configure projects for major browsers */
   projects: [
-    // Setup project for authentication
+    {
+      name: 'chromium',
+      testDir: './src/tests',
+      use: {
+        ...devices['Desktop Chrome'],
+        ...getBrowserConfig(),
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'firefox',
+      testDir: './src/tests',
+      use: {
+        ...devices['Desktop Chrome'],
+        ...getBrowserConfig(),
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
