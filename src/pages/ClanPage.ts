@@ -1,5 +1,7 @@
 import { type Page, type Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { create } from 'domain';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 interface SelectorResult {
   found: boolean;
@@ -7,55 +9,55 @@ interface SelectorResult {
 }
 
 export class ClanPage extends BasePage {
-  private readonly createClanButtonSelectors = [
-    'div[onclick*="openCreateClanModal"]',
-    'div.flex.items-center.justify-between.text-theme-primary.group[onclick*="openCreateClanModal"]',
-    'div.group:has(p.text-2xl.font-semibold:has-text("+"))',
-    'div:has(p:has-text("+"))',
-    'p.text-2xl.font-semibold:has-text("+"):up(div)',
-    '[onclick*="openCreateClanModal"]',
-    '[data-testid="create-clan"]',
-    'button:has-text("+")',
-    '.create-clan-btn',
-    '.add-clan-btn',
-    '[aria-label*="create clan" i]',
-    '[aria-label*="add clan" i]',
-  ];
 
-  private readonly clanNameSelectors = [
-    '[data-testid="clan-name"]',
-    '.clan-name',
-    '.clan-header h1',
-    '.clan-title',
-    'h1:has-text("CLAN")',
-    '[aria-label*="clan name" i]',
-  ];
+  private buttons = {
+    createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
+    clanName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
+    invitePeople: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.invite_people')),
+    createChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
+  }
 
-  private readonly invitePeopleSelectors = [
-    '[data-testid="invite-people"]',
-    'button:has-text("Invite People")',
-    'a:has-text("Invite People")',
-    '[aria-label*="invite people" i]',
-    '.invite-button',
-    '.invite-people-btn',
-  ];
+  // private readonly createClanButtonSelectors = [
+  //   'div[onclick*="openCreateClanModal"]',
+  //   'div.flex.items-center.justify-between.text-theme-primary.group[onclick*="openCreateClanModal"]',
+  //   'div.group:has(p.text-2xl.font-semibold:has-text("+"))',
+  //   'div:has(p:has-text("+"))',
+  //   'p.text-2xl.font-semibold:has-text("+"):up(div)',
+  //   '[onclick*="openCreateClanModal"]',
+  //   '[data-testid="create-clan"]',
+  //   'button:has-text("+")',
+  //   '.create-clan-btn',
+  //   '.add-clan-btn',
+  //   '[aria-label*="create clan" i]',
+  //   '[aria-label*="add clan" i]',
+  // ];
 
-  private readonly createChannelSelectors = [
-    '[data-testid="create-channel"]',
-    'button:has-text("+")',
-    '.create-channel-btn',
-    '.add-channel',
-    '[aria-label*="create channel" i]',
-    '[aria-label*="add channel" i]',
-  ];
+  // private readonly clanNameSelectors = [
+  //   '[data-testid="clan-name"]',
+  //   '.clan-name',
+  //   '.clan-header h1',
+  //   '.clan-title',
+  //   'h1:has-text("CLAN")',
+  //   '[aria-label*="clan name" i]',
+  // ];
 
-  private readonly channelListSelectors = [
-    '[data-testid="channel-list"]',
-    '.channel-list',
-    '.channels-container',
-    '.sidebar-channels',
-    'nav[aria-label*="channel" i]',
-  ];
+  // private readonly invitePeopleSelectors = [
+  //   '[data-testid="invite-people"]',
+  //   'button:has-text("Invite People")',
+  //   'a:has-text("Invite People")',
+  //   '[aria-label*="invite people" i]',
+  //   '.invite-button',
+  //   '.invite-people-btn',
+  // ];
+
+  // private readonly createChannelSelectors = [
+  //   '[data-testid="create-channel"]',
+  //   'button:has-text("+")',
+  //   '.create-channel-btn',
+  //   '.add-channel',
+  //   '[aria-label*="create channel" i]',
+  //   '[aria-label*="add channel" i]',
+  // ];
 
   private readonly messageInputSelectors = [
     'textarea#editorReactMentionChannel',
@@ -97,10 +99,8 @@ export class ClanPage extends BasePage {
   }
 
   async clickCreateClanButton(): Promise<boolean> {
-    const result = await this.findElementBySelectors(this.createClanButtonSelectors, 10000);
-
-    if (result.found && result.element) {
-      await result.element.click();
+    if (this.buttons.createClan) {
+      await this.buttons.createClan.click();
       await this.wait(2000);
       return true;
     }
@@ -144,10 +144,8 @@ export class ClanPage extends BasePage {
   }
 
   async clickOnClanName(): Promise<boolean> {
-    const result = await this.findElementBySelectors(this.clanNameSelectors);
-
-    if (result.found && result.element) {
-      await result.element.click();
+    if (this.buttons.clanName) {
+      await this.buttons.clanName.click();
       await this.wait(1000);
       return true;
     }
@@ -156,10 +154,8 @@ export class ClanPage extends BasePage {
   }
 
   async openInvitePeopleModal(): Promise<boolean> {
-    const result = await this.findElementBySelectors(this.invitePeopleSelectors);
-
-    if (result.found && result.element) {
-      await result.element.click();
+    if (this.buttons.invitePeople) {
+      await this.buttons.invitePeople.click();
       await this.wait(1000);
       return true;
     }
@@ -202,24 +198,13 @@ export class ClanPage extends BasePage {
   }
 
   async openCreateChannelModal(): Promise<boolean> {
-    const channelListFound = await this.findChannelList();
-    if (!channelListFound) {
-      return false;
-    }
-
-    const result = await this.findElementBySelectors(this.createChannelSelectors);
-    if (result.found && result.element) {
-      await result.element.click();
+    if (this.buttons.createChannel) {
+      await this.buttons.createChannel.click();
       await this.wait(1000);
       return true;
     }
 
     return false;
-  }
-
-  async findChannelList(): Promise<boolean> {
-    const result = await this.findElementBySelectors(this.channelListSelectors, 2000);
-    return result.found;
   }
 
   async createChannel(
