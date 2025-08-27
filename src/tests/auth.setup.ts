@@ -1,14 +1,14 @@
 import { test as setup } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { MEZON_TEST_USERS } from '../data/static/TestUsers';
-import { LOCAL_CONFIG, LOCAL_AUTH_DATA, GLOBAL_CONFIG } from '../config/environment';
+import { LOCAL_CONFIG, LOCAL_AUTH_DATA, WEBSITE_CONFIGS } from '../config/environment';
 
 const authFile = 'playwright/.auth/user.json';
 
 setup('prepare mezon auth state', async ({ page }) => {
   if (LOCAL_CONFIG.isLocal && LOCAL_CONFIG.skipLogin) {
     try {
-      await page.goto(GLOBAL_CONFIG.LOCAL_BASE_URL);
+      await page.goto(WEBSITE_CONFIGS.MEZON.baseURL as string);
       await page.waitForLoadState('networkidle');
 
       await page.evaluate(authData => {
