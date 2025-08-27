@@ -14,7 +14,9 @@ export class ClanPageV2 extends BasePage {
       generateE2eSelector('clan_page.header.modal_panel.invite_people')
     ),
     createChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
-    createClanConfirm: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.button.confirm')),
+    createClanConfirm: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_clan.button.confirm')
+    ),
   };
 
   private input = {
@@ -24,7 +26,7 @@ export class ClanPageV2 extends BasePage {
   private sidebar = {
     clanItem: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
-    }
+    },
   };
 
   async createNewClan(clanName: string): Promise<boolean> {
@@ -41,8 +43,10 @@ export class ClanPageV2 extends BasePage {
   }
 
   async isClanPresent(clanName: string): Promise<boolean> {
-
-    const clanLocator = this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name'), { hasText: clanName });
+    const clanLocator = this.page.locator(
+      generateE2eSelector('clan_page.side_bar.clan_item.name'),
+      { hasText: clanName }
+    );
 
     return clanLocator.isVisible();
   }

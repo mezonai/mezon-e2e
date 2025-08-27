@@ -24,9 +24,7 @@ export class HomePage extends BasePage {
     copyright: this.page.locator(generateE2eSelector('homepage.footer.text.copyright')),
     features: this.page.locator(generateE2eSelector('homepage.layout.title.features')),
     title: this.page.locator(generateE2eSelector('homepage.main_page.heading.title')),
-  }
-
-
+  };
 
   async navigate(): Promise<void> {
     const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL;

@@ -1,162 +1,140 @@
-import { test, expect } from '@playwright/test';
-import { HomePage } from '../../pages/HomePage';
+import { GLOBAL_CONFIG, ROUTES } from '@/config/environment';
 import { MessgaePage } from '@/pages/MessagePage';
-import { OnboardingHelpers } from '@/utils/onboardingHelpers';
-import { environment, GLOBAL_CONFIG, ROUTES } from '@/config/environment';
-import { dir } from 'console';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
+import { expect, test } from '@playwright/test';
+import { HomePage } from '../../pages/HomePage';
 
 test.describe('Onboarding Guide Task Completion', () => {
-    test.beforeEach(async ({ page }) => {
-        const homePage = new HomePage(page);
-        await homePage.navigate();
+  test.beforeEach(async ({ page }) => {
+    const homePage = new HomePage(page);
+    await homePage.navigate();
 
-        await page.goto(
-            `${GLOBAL_CONFIG.LOCAL_BASE_URL}${ROUTES.DIRECT_FRIENDS}`
-        );
+    await page.goto(`${GLOBAL_CONFIG.LOCAL_BASE_URL}${ROUTES.DIRECT_FRIENDS}`);
+  });
+
+  const now = new Date();
+  const dateTimeString = now.toISOString().replace(/[:.]/g, '-');
+
+  const messageText = `message-text-${dateTimeString}`;
+  const nameGroupChat = `name-groupchat-${dateTimeString}`;
+
+  test('Create direct message ', async ({ page }) => {
+    const messagePage = new MessgaePage(page);
+    const helpers = new DirectMessageHelper(page);
+    const prevUsersCount = await helpers.countUsers();
+
+    await test.step(`Creat direct message`, async () => {
+      await messagePage.createDM();
     });
 
-    const now = new Date();
-    const dateTimeString = now.toISOString().replace(/[:.]/g, '-');
+    await test.step('Verify direct message is created', async () => {
+      const DMCreated = await messagePage.isDMCreated(prevUsersCount);
+      expect(DMCreated).toBeTruthy();
+    });
+  });
 
-    const messageText = `message-text-${dateTimeString}`;
-    const nameGroupChat = `name-groupchat-${dateTimeString}`;
+  test('Select a conversation', async ({ page }) => {
+    const messagePage = new MessgaePage(page);
 
-    test('Create direct message ', async ({ page }) => {
-        const messagePage = new MessgaePage(page);
-        const helpers = new DirectMessageHelper(page);
-        const prevUsersCount = await helpers.countUsers();
-
-        await test.step(`Creat direct message`, async () => {
-            await messagePage.createDM();
-
-        });
-
-        await test.step('Verify direct message is created', async () => {
-            const DMCreated = await messagePage.isDMCreated(prevUsersCount);
-            expect(DMCreated).toBeTruthy();
-        });
+    await test.step(`Select a conversation`, async () => {
+      await messagePage.selectConversation();
+      await page.waitForTimeout(3000);
     });
 
-    test('Select a conversation', async ({ page }) => {
-        const messagePage = new MessgaePage(page);
+    await test.step('Verify the conversation is selected', async () => {
+      const conversationSelected = await messagePage.isConversationSelected();
+      expect(conversationSelected).toBeTruthy();
+    });
+  });
 
-        await test.step(`Select a conversation`, async () => {
-            await messagePage.selectConversation();
-            await page.waitForTimeout(3000);
-        });
+  test('Send a message', async ({ page }) => {
+    const messagePage = new MessgaePage(page);
 
-        await test.step('Verify the conversation is selected', async () => {
-            const conversationSelected = await messagePage.isConversationSelected();
-            expect(conversationSelected).toBeTruthy();
-        });
+    await test.step(`Send a message`, async () => {
+      await messagePage.sendMessage(messageText);
+      await page.waitForTimeout(3000);
     });
 
-    test('Send a message', async ({ page }) => {
-        const messagePage = new MessgaePage(page);
+    await test.step('Verify the message is send', async () => {
+      const messageSend = await messagePage.isMessageSend();
+      expect(messageSend).toBeTruthy();
+    });
+  });
 
-        await test.step(`Send a message`, async () => {
-            await messagePage.sendMessage(messageText);
-            await page.waitForTimeout(3000);
-        });
+  test('Create group chat ', async ({ page }) => {
+    const messagePage = new MessgaePage(page);
+    const helpers = new DirectMessageHelper(page);
+    const prevGroupCount = await helpers.countGroups();
 
-        await test.step('Verify the message is send', async () => {
-            const messageSend = await messagePage.isMessageSend();
-            expect(messageSend).toBeTruthy();
-        });
+    await test.step(`Creat group chat`, async () => {
+      await messagePage.createGroup();
+      await page.waitForTimeout(3000);
     });
 
-    test('Create group chat ', async ({ page }) => {    
-        const messagePage = new MessgaePage(page);
-        const helpers = new DirectMessageHelper(page);
-        const prevGroupCount = await helpers.countGroups();
+    await test.step('Verify group chat is ceated', async () => {
+      const groupCreated = await messagePage.isGroupCreated(prevGroupCount);
+      expect(groupCreated).toBeTruthy();
+    });
+  });
 
-        await test.step(`Creat group chat`, async () => {
-            await messagePage.createGroup();
-            await page.waitForTimeout(3000);
-        });
+  test('Add more member to group chat', async ({ page }) => {
+    const messagePage = new MessgaePage(page);
+    const getMemberCount = await messagePage.getMemberCount();
 
-        await test.step('Verify group chat is ceated', async () => {
-            const groupCreated = await messagePage.isGroupCreated(prevGroupCount);
-            expect(groupCreated).toBeTruthy();
-        });
+    await test.step(`Add more member to group chat`, async () => {
+      await messagePage.addMoreMemberToGroup();
+      await page.waitForTimeout(5000);
     });
 
-    test('Add more member to group chat', async ({ page }) => {
-        const messagePage = new MessgaePage(page);
-        const getMemberCount = await messagePage.getMemberCount();
+    await test.step('Verify group chat is added more member', async () => {
+      const memberAdded = await messagePage.isMemberAdded(getMemberCount);
+      expect(memberAdded).toBeTruthy();
+    });
+  });
 
-        await test.step(`Add more member to group chat`, async () => {
-            await messagePage.addMoreMemberToGroup();
-            await page.waitForTimeout(5000);
-        });
+  test('Update name for group chat DM', async ({ page }) => {
+    const messagePage = new MessgaePage(page);
 
-        await test.step('Verify group chat is added more member', async () => {
-            const memberAdded = await messagePage.isMemberAdded(getMemberCount);
-            expect(memberAdded).toBeTruthy();
-        });
+    await test.step(`Update name for group chat DM`, async () => {
+      await messagePage.updateNameGroupChatDM(nameGroupChat);
+      await page.waitForTimeout(3000);
     });
 
-    test('Update name for group chat DM', async ({ page }) => {
-        const messagePage = new MessgaePage(page);
+    await test.step('Verify the group name is updated', async () => {
+      const groupNameUpdated = await messagePage.isGroupNameDMUpdated();
+      expect(groupNameUpdated).toBeTruthy();
+    });
+  });
 
-        await test.step(`Update name for group chat DM`, async () => {
-            await messagePage.updateNameGroupChatDM(nameGroupChat);
-            await page.waitForTimeout(3000);
-        });
+  test('Close direct message', async ({ page }) => {
+    const messagePage = new MessgaePage(page);
+    const helpers = new DirectMessageHelper(page);
+    const prevUsersCount = await helpers.countUsers();
 
-        await test.step('Verify the group name is updated', async () => {
-            const groupNameUpdated = await messagePage.isGroupNameDMUpdated();
-            expect(groupNameUpdated).toBeTruthy();
-        });
+    await test.step(`Close direct message`, async () => {
+      await messagePage.closeDM();
+      await page.waitForTimeout(3000);
     });
 
-    test('Close direct message', async ({ page }) => {
-        const messagePage = new MessgaePage(page);
-        const helpers = new DirectMessageHelper(page);
-        const prevUsersCount = await helpers.countUsers();
+    await test.step('Verify direct message is closed', async () => {
+      const DMClosed = await messagePage.isDMClosed(prevUsersCount);
+      expect(DMClosed).toBeTruthy();
+    });
+  });
 
-        await test.step(`Close direct message`, async () => {
-            await messagePage.closeDM();
-            await page.waitForTimeout(3000);
-        });
+  test('Leave group', async ({ page }) => {
+    const messagePage = new MessgaePage(page);
+    const helpers = new DirectMessageHelper(page);
+    const prevGroupCount = await helpers.countGroups();
 
-        await test.step('Verify direct message is closed', async () => {
-            const DMClosed = await messagePage.isDMClosed(prevUsersCount);
-            expect(DMClosed).toBeTruthy();
-        });
+    await test.step(`Leave group chat`, async () => {
+      await messagePage.leaveGroupByXBtn();
+      await page.waitForTimeout(3000);
     });
 
-    test('Leave group', async ({ page }) => {
-        const messagePage = new MessgaePage(page);
-        const helpers = new DirectMessageHelper(page);
-        const prevGroupCount = await helpers.countGroups();
-
-        await test.step(`Leave group chat`, async () => {
-            await messagePage.leaveGroupByXBtn();
-            await page.waitForTimeout(3000);
-        });
-
-        await test.step('Verify group chat is left', async () => {
-            const groupLeaved = await messagePage.isLeavedGroup(prevGroupCount);
-            expect(groupLeaved).toBeTruthy();
-        });
+    await test.step('Verify group chat is left', async () => {
+      const groupLeaved = await messagePage.isLeavedGroup(prevGroupCount);
+      expect(groupLeaved).toBeTruthy();
     });
-
-    test('Leave group', async ({ page }) => {
-        const messagePage = new MessgaePage(page);
-        const helpers = new DirectMessageHelper(page);
-        const prevGroupCount = await helpers.countGroups();        
-
-        await test.step(`Leave group chat`, async () => {
-            await messagePage.leaveGroupByLeaveGroupBtn();
-            await page.waitForTimeout(3000);
-        });
-
-        await test.step('Verify group chat is left', async () => {
-            const groupLeaved = await messagePage.isLeavedGroup(prevGroupCount);
-            expect(groupLeaved).toBeTruthy();
-        });
-    });
+  });
 });
-

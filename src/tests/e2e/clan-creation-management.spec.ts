@@ -14,7 +14,7 @@ test.describe('Create Clan', () => {
   test('Verify that I can create a Clan', async ({ page }) => {
     const clanPage = new ClanPageV2(page);
     const createClanClicked = await clanPage.clickCreateClanButton();
-    
+
     if (createClanClicked) {
       console.log('Successfully double clicked create clan button');
 
@@ -49,7 +49,6 @@ test.describe('Create Category', () => {
     const createClanClicked = await clanPage.clickCreateClanButton();
     if (createClanClicked) {
       console.log('Successfully double clicked create clan button');
-
 
       await clanPage.createNewClan(clanName);
 

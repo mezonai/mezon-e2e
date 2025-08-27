@@ -78,9 +78,7 @@ export class MessgaePage {
       .first();
     this.userNameInDM = page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
     this.secondClan = this.page.locator('div[title]').nth(1);
-    this.messages = this.page.locator(
-      generateE2eSelector('chat.mention.input')
-    );
+    this.messages = this.page.locator(generateE2eSelector('chat.mention.input'));
     this.leaveGroupButton = this.helpers.group.locator(
       generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
     );

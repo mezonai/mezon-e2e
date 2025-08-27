@@ -267,5 +267,5 @@ export const getLogLevel = (): number => {
 };
 
 export const ROUTES = {
-  DIRECT_FRIENDS: "chat/direct/friends",
+  DIRECT_FRIENDS: 'chat/direct/friends',
 };
