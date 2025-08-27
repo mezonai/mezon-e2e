@@ -3,7 +3,7 @@ import { CategoryPage } from '../../pages/CategoryPage';
 import { HomePage } from '../../pages/HomePage';
 import { ClanPage } from '@/pages/ClanPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
-import { GLOBAL_CONFIG } from '../../config/environment';
+import { WEBSITE_CONFIGS } from '../../config/environment';
 
 test.describe('Create Category', () => {
   test.beforeEach(async ({ page }) => {
@@ -62,7 +62,7 @@ test.describe('Create Category', () => {
     const categoryPage = new CategoryPage(page);
 
     await page.goto(
-      `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/clans/1955152072231882752/channels/1955152072282214400`
+      `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1955152072231882752/channels/1955152072282214400`
     );
 
     await test.step(`Create private voice channel named "${textCategorylPrivate}"`, async () => {
@@ -81,7 +81,7 @@ test.describe('Create Category', () => {
     const categoryPage = new CategoryPage(page);
 
     await page.goto(
-      `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/clans/1955152072231882752/channels/1955152072282214400`
+      `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1955152072231882752/channels/1955152072282214400`
     );
 
     await test.step(`Create public voice channel named "${textCategoryPublic}"`, async () => {
@@ -102,7 +102,7 @@ test.describe('Create Category', () => {
     const categoryPage = new CategoryPage(page);
 
     await page.goto(
-      `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/clans/1955152072231882752/channels/1955152072282214400`
+      `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1955152072231882752/channels/1955152072282214400`
     );
 
     await test.step(`Attempt to create voice channel named "${textCategoryCancel}" and cancel`, async () => {
