@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { env } from 'process';
 
 // Load environment variables
 dotenv.config();
@@ -263,4 +264,8 @@ export const LOG_LEVELS = {
 export const getLogLevel = (): number => {
   const level = process.env.LOG_LEVEL?.toUpperCase() || 'INFO';
   return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
+};
+
+export const ROUTES = {
+  DIRECT_FRIENDS: "chat/direct/friends",
 };
