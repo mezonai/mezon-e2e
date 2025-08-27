@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
-import { GLOBAL_CONFIG } from '../../config/environment';
+import { WEBSITE_CONFIGS } from '../../config/environment';
 
-const MEZON_BASE_URL = GLOBAL_CONFIG.LOCAL_BASE_URL;
-const DIRECT_CHAT_URL = `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/direct/message/1840654754858930176/2`;
-const CLAN_CHANNEL_URL = `${GLOBAL_CONFIG.LOCAL_BASE_URL}chat/clans/1786228934740807680/channels/1786228934753390593`;
-const TARGET_USERNAME = 'andynguyn19';
+const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL;
+const DIRECT_CHAT_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/direct/message/1955879210568388608/3`;
+const CLAN_CHANNEL_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1786228934740807680/channels/1786228934753390593`;
+const TARGET_USERNAME = 'yTkgOodQmT';
 
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
