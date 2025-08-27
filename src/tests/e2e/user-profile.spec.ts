@@ -21,13 +21,17 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test('Change avatar clan - button visible', async ({ page }) => {
-    const changeAvatarButton = page.locator('[data-e2e="user_setting-profile-clan_profile-button_change_avatar"]');
+    const changeAvatarButton = page.locator(
+      '[data-e2e="user_setting-profile-clan_profile-button_change_avatar"]'
+    );
     await expect(changeAvatarButton).toBeVisible({ timeout: 10000 });
   });
 
   test('Change clan nickname', async ({ page }) => {
     await test.step('Enter new nickname', async () => {
-      const nicknameInput = page.locator('[data-e2e="user_setting-profile-clan_profile-input_nickname"]').first();
+      const nicknameInput = page
+        .locator('[data-e2e="user_setting-profile-clan_profile-input_nickname"]')
+        .first();
       await expect(nicknameInput).toBeVisible({ timeout: 10000 });
       await nicknameInput.click();
       const isMac = process.platform === 'darwin';
@@ -40,7 +44,10 @@ test.describe('User Profile - Clan Profiles', () => {
         await nicknameInput.type(target, { delay: 40 });
         await page.waitForTimeout(150);
         const v = await nicknameInput.inputValue();
-        if (v === target) { ok = true; break; }
+        if (v === target) {
+          ok = true;
+          break;
+        }
       }
       if (!ok) {
         await nicknameInput.evaluate((el: HTMLInputElement, value: string) => {
@@ -59,7 +66,9 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await test.step('Save nickname changes', async () => {
-      const saveChangesBtn = page.locator('[data-e2e="user_setting-profile-clan_profile-button_save_changes"]');
+      const saveChangesBtn = page.locator(
+        '[data-e2e="user_setting-profile-clan_profile-button_save_changes"]'
+      );
       await saveChangesBtn.scrollIntoViewIfNeeded();
       await expect(saveChangesBtn).toBeVisible({ timeout: 10000 });
       await expect(saveChangesBtn).toBeEnabled({ timeout: 10000 });
