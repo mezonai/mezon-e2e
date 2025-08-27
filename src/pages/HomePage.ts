@@ -8,7 +8,7 @@ export class HomePage extends BasePage {
     super(page);
   }
   private container = {
-    main: this.page.locator(generateE2eSelector('homepage.main-page.container')),
+    main: this.page.locator(generateE2eSelector('homepage.main_page.container')),
     header: this.page.locator(generateE2eSelector('homepage.header.container.navigation')),
   };
   private buttons = {
@@ -17,13 +17,13 @@ export class HomePage extends BasePage {
   };
   private links = {
     home: this.page.locator(generateE2eSelector('homepage.header.link.home')),
-    features: this.page.locator(generateE2eSelector('homepage.header.link.feature')),
+    features: this.page.locator(generateE2eSelector('homepage.header.link.features')),
     developers: this.page.locator(generateE2eSelector('homepage.header.link.developers')),
   };
   private text = {
     copyright: this.page.locator(generateE2eSelector('homepage.footer.text.copyright')),
     features: this.page.locator(generateE2eSelector('homepage.layout.title.features')),
-    title: this.page.locator(generateE2eSelector('homepage.main-page.heading.title')),
+    title: this.page.locator(generateE2eSelector('homepage.main_page.heading.title')),
   }
 
 
@@ -104,7 +104,7 @@ export class HomePage extends BasePage {
             brokenLinksCount++;
           }
         }
-      } catch {
+      } catch (error) {
         // Ignore errors
         console.log(`Could not check link: ${error}`);
       }

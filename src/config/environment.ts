@@ -59,7 +59,7 @@ export const GLOBAL_CONFIG = {
  */
 export const WEBSITE_CONFIGS = {
   MEZON: {
-     baseURL: process.env.BASE_URL,
+    baseURL: process.env.BASE_URL,
     name: 'Mezon Development',
   },
 } as const;

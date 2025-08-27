@@ -15,8 +15,9 @@ export const DATA_E2E_IDENTIFIER = {
     header: {
       link: {
         home: '',
-        feature: '',
+        features: '',
         developers: '',
+        overview: '',
       },
       button: {
         login: '',
@@ -26,7 +27,7 @@ export const DATA_E2E_IDENTIFIER = {
         navigation: '',
       },
     },
-    'main-page': {
+    main_page: {
       container: '',
       heading: {
         title: '',
@@ -40,6 +41,60 @@ export const DATA_E2E_IDENTIFIER = {
     footer: {
       text: {
         copyright: '',
+      },
+    },
+  },
+  clan_page: {
+    header: {
+      title: {
+        clan_name: '',
+      },
+      modal_panel: {
+        item: '',
+        create_category: '',
+        invite_people: '',
+        clan_settings: '',
+        notification_setting: '',
+        mark_as_read: '',
+        show_empty_category: '',
+      },
+    },
+    side_bar: {
+      clan_item: {
+        name: '',
+      },
+      channel_list: {
+        category: '',
+      },
+      button: {
+        add_clan: '',
+        add_channel: '',
+      },
+    },
+    modal: {
+      create_category: {
+        input: {
+          category_name: '',
+        },
+        toggle: {
+          private: '',
+        },
+        button: {
+          confirm: '',
+          cancel: '',
+        },
+      },
+      create_clan: {
+        input: {
+          clan_name: '',
+        },
+        toggle: {
+          private: '',
+        },
+        button: {
+          confirm: '',
+          cancel: '',
+        },
       },
     },
   },
@@ -79,9 +134,58 @@ export const DATA_E2E_IDENTIFIER = {
           button: '',
         },
       },
+      mention: {
+        input: '',
+      },
+    },
+    channel_message: {
+      header: {
+        left_container: '',
+        right_container: '',
+        text: {
+          channel_name: '',
+        },
+        button: {
+          file: '',
+          mute: '',
+          inbox: '',
+          pin: '',
+          canvas: '',
+          thread: '',
+          chat: '',
+        },
+      },
+      actions: {
+        add_reaction: '',
+        give_a_coffee: '',
+        edit_message: '',
+        pin_message: '',
+        reply: '',
+        copy_text: '',
+        add_to_inbox: '',
+        mark_unread: '',
+        topic_discussion: '',
+        forward_message: '',
+        delete_message: '',
+      },
     },
     mention: {
       input: '',
+      selected_file: '',
+      voice: '',
+      gif: '',
+      emoji: '',
+      sticker: '',
+    },
+  },
+  onboarding: {
+    chat: {
+      container: {
+        invite_member: '',
+        send_first_message: '',
+        download_app: '',
+        create_channel: '',
+      },
     },
   },
 };

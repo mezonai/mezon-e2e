@@ -3,7 +3,7 @@ import { defineBddConfig } from 'playwright-bdd';
 import { OrtoniReportConfig } from 'ortoni-report';
 import type { GitHubActionOptions } from '@estruyf/github-actions-reporter';
 import dotenv from 'dotenv';
-import { GLOBAL_CONFIG, getBrowserConfig } from './src/config/environment';
+import { getBrowserConfig } from './src/config/environment';
 dotenv.config();
 
 const workers = parseInt(process.env.WORKERS || '1', 10) || 1;
@@ -27,7 +27,7 @@ const reportConfig: OrtoniReportConfig = {
     description: 'Playwright E2E test report for Mezon platform',
     testCycle: 'Main',
     release: '1.0.0',
-    environment: process.env.BASE_URL || GLOBAL_CONFIG.LOCAL_BASE_URL,
+    environment: process.env.BASE_URL as string,
   },
 };
 
@@ -69,7 +69,7 @@ export default defineConfig({
   outputDir: 'test-results/',
 
   use: {
-    baseURL: process.env.BASE_URL || GLOBAL_CONFIG.LOCAL_BASE_URL,
+    baseURL: process.env.BASE_URL as string,
     trace: process.env.CI ? 'retain-on-failure' : 'on',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -79,9 +79,29 @@ export default defineConfig({
     navigationTimeout: 30 * 1000,
   },
 
-  // Configure projects for major browsers
+  /* Configure projects for major browsers */
   projects: [
-    // Setup project for authentication
+    {
+      name: 'chromium',
+      testDir: './src/tests',
+      use: {
+        ...devices['Desktop Chrome'],
+        ...getBrowserConfig(),
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'firefox',
+      testDir: './src/tests',
+      use: {
+        ...devices['Desktop Chrome'],
+        ...getBrowserConfig(),
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
