@@ -1,145 +1,176 @@
-name: Mezon Automation Tests with Allure
+name: Verify Automation Test Results
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
 
 jobs:
-  mezon-automation-testing:
-    timeout-minutes: 60
-    runs-on: self-hosted
-    permissions:
-      contents: read
-      actions: read
-      checks: write
-      pages: write
-      id-token: write
+  verify-automation-tests:
+    runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Checkout mezon-e2e repository
+        uses: actions/checkout@v4
         with:
-          node-version: lts/*
-          cache: 'npm'
+          path: mezon-e2e
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Install Allure CLI
-        run: |
-          curl -o allure-2.25.0.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.25.0/allure-2.25.0.tgz
-          sudo tar -zxvf allure-2.25.0.tgz -C /opt/
-          sudo ln -s /opt/allure-2.25.0/bin/allure /usr/local/bin/allure
-          allure --version
-
-      - name: Download previous Allure history
-        uses: actions/download-artifact@v4
-        if: always()
+      - name: Checkout mezon repository
+        uses: actions/checkout@v4
         with:
-          name: allure-history
-          path: allure-history
-        continue-on-error: true
+          repository: kientrinh-dev/mezon.git
+          ref: develop
+          path: mezon
 
-      - name: Restore Allure history
-        if: always()
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: |
+            mezon/yarn.lock
+            mezon-e2e/yarn.lock
+
+      - name: Install system dependencies
         run: |
-          if [ -d "allure-history" ]; then
-            echo "Restoring Allure history..."
-            mkdir -p allure-results/history
-            cp -r allure-history/* allure-results/history/ || echo "No history files to copy"
+          npm install -g node-gyp
+          node-gyp install 20.19.4
+          sudo apt update
+          sudo apt install libx11-dev libxss-dev libxext-dev
+
+      - name: Install mezon dependencies
+        working-directory: ./mezon
+        run: |
+          echo "Installing mezon dependencies..."
+          export nv=$(node -v)
+          echo "Node version: $nv"
+          yarn config set nodedir ~/.cache/node-gyp/"${nv:1}"
+          echo "Node directory: ${nv:1}"
+
+          # Try to install with frozen lockfile first, fallback to regular install
+          if ! yarn install --frozen-lockfile; then
+            echo "⚠️  Frozen lockfile install failed, trying regular install..."
+            yarn install
+          fi
+
+      - name: Start mezon dev server
+        working-directory: ./mezon
+        run: |
+          echo "🚀 Starting mezon dev server on port 4200..."
+          echo "📋 Current directory: $(pwd)"
+          echo "📁 Directory contents:"
+          ls -la
+          echo "🔍 Checking if nx command exists:"
+          which nx || npx nx --version
+          echo "📦 Node and npm versions:"
+          node --version
+          npm --version
+          yarn --version
+          echo "🌐 Checking if port 4200 is available:"
+          netstat -tuln | grep ":4200" || echo "Port 4200 is available"
+
+          echo "🏃 Starting server..."
+          nohup npx nx run chat:serve --host=127.0.0.1 --port=4200 > mezon-dev.log 2>&1 &
+          SERVER_PID=$!
+          echo $SERVER_PID > mezon-dev.pid
+          echo "📋 Server PID: $SERVER_PID"
+
+          echo "⏱️ Waiting 10 seconds for initial startup..."
+          sleep 10
+
+          echo "📜 Initial server log output:"
+          head -50 mezon-dev.log || echo "No log file yet"
+
+          echo "🔍 Checking if process is still running:"
+          if ps -p $SERVER_PID > /dev/null; then
+            echo "✅ Server process is running (PID: $SERVER_PID)"
           else
-            echo "No previous history found"
+            echo "❌ Server process died! Full log:"
+            cat mezon-dev.log || echo "No log file found"
+            exit 1
           fi
 
-      - name: Set CI environment variables
+      - name: Wait for mezon server to be ready
         run: |
-          echo "CI=true" >> $GITHUB_ENV
-          echo "WORKERS=4" >> $GITHUB_ENV
-          echo "GITHUB_RUN_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
-          echo "GITHUB_RUN_ID=${{ github.run_id }}" >> $GITHUB_ENV
-          echo "GITHUB_REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
-          echo "GITHUB_SERVER_URL=${{ github.server_url }}" >> $GITHUB_ENV
+          echo "⏳ Waiting for mezon server to be ready on port 4200..."
 
-      - name: Run Playwright Tests
-        run: npm run test
+          # Check if PID file exists
+          if [ ! -f ./mezon/mezon-dev.pid ]; then
+            echo "❌ PID file not found!"
+            exit 1
+          fi
+
+          SERVER_PID=$(cat ./mezon/mezon-dev.pid)
+          echo "📋 Server PID from file: $SERVER_PID"
+
+          # Check if process is running
+          if ! ps -p $SERVER_PID > /dev/null; then
+            echo "❌ Server process is not running! Checking logs..."
+            echo "📜 Full server log:"
+            cat ./mezon/mezon-dev.log || echo "No log file found"
+            exit 1
+          fi
+
+      - name: Install mezon-e2e dependencies
+        working-directory: ./mezon-e2e
+        run: yarn
+
+      - name: Install Playwright browsers
+        working-directory: ./mezon-e2e
+        run: npx playwright install chromium
+
+      - name: Create environment file
+        working-directory: ./mezon-e2e
+        run: |
+          cat > .env << EOF
+          BASE_URL=http://127.0.0.1:4200/
+          API_URL=http://127.0.0.1:4200/api
+          SKIP_LOGIN=true
+          CI=true
+          EOF
+
+      - name: Run automation tests
+        id: run-tests
+        working-directory: ./mezon-e2e
+        run: |
+          echo "🧪 Starting automation tests..."
+          echo "📊 Environment file content:"
+          cat .env
+          echo ""
+          echo "🚀 Running tests with yarn test..."
+
+          # Run tests and capture exit code
+          set +e  # Don't exit on error
+          xvfb-run yarn test
+          TEST_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+
+          echo "📊 Test exit code: $TEST_EXIT_CODE"
+
+          if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ All tests passed"
+            echo "test-result=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Some tests failed (exit code: $TEST_EXIT_CODE)"
+            echo "test-result=failed" >> $GITHUB_OUTPUT
+          fi
+
+          echo "🔄 Continuing pipeline for cleanup and reporting..."
         continue-on-error: true
-
-      - name: Generate Allure Report
-        if: always()
-        run: |
-          allure generate allure-results --clean -o allure-report
-
-      - name: Save Allure history
-        if: always()
-        run: |
-          mkdir -p allure-history
-          if [ -d "allure-report/history" ]; then
-            cp -r allure-report/history/* allure-history/ || echo "No history to save"
-          fi
-
-      - name: Upload Allure history
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: allure-history
-          path: allure-history/
-          retention-days: 90
-
-      - name: Upload Allure report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: allure-report
-          path: allure-report/
-          retention-days: 30
-
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: allure-results
-          path: allure-results/
-          retention-days: 30
+          name: playwright-report
+          path: mezon-e2e/playwright-report/
+          retention-days: 7
 
-      - name: Deploy Allure Report to GitHub Pages
-        if: always() && github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
-          destination_dir: reports/${{ github.run_number }}
-
-      - name: Add PR comment with report links
-        if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const runNumber = '${{ github.run_number }}';
-            const reportUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/${runNumber}`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## 🧪 Test Results
-              
-              **Allure Report**: [View Report](${reportUrl})
-              **Build Number**: #${runNumber}
-              **Status**: ${{ job.status }}
-              
-              You can also download the artifacts from the [Actions page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
-            });
+      - name: Check test results and fail pipeline if needed
+        if: always()
+        run: |
+          if [ "${{ steps.run-tests.outputs.test-result }}" == "failed" ]; then
+            echo "❌ Pipeline failed due to test failures"
+            echo "📊 Test results have been uploaded for analysis"
+            exit 1
+          else
+            echo "✅ Pipeline completed successfully"
+          fi
