@@ -65,11 +65,6 @@ This project uses multiple reporting mechanisms:
 - Shows errors, annotations, and test tags
 - Includes links to artifacts
 
-### Ortoni Reports
-
-- Custom HTML reports with charts and detailed analysis
-- Available at `ortoni-reports/index.html` after test execution
-
 ### Playwright Reports
 
 - Standard Playwright HTML reports

@@ -3,7 +3,6 @@ import { BasePage } from './BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 export class CategoryPage extends BasePage {
-
   constructor(page: Page) {
     super(page);
   }
@@ -24,9 +23,10 @@ export class CategoryPage extends BasePage {
   }
 
   readonly input = {
-    categoryName: this.page.locator(generateE2eSelector('clan_page.modal.create_category.input.category_name')),
-  }
-
+    categoryName: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_category.input.category_name')
+    ),
+  };
 
   async createCategory(name: string, type: 'private' | 'public'): Promise<boolean> {
     await this.text.clanName.click();
@@ -50,7 +50,10 @@ export class CategoryPage extends BasePage {
   }
 
   async isCategoryPresent(categoryName: string): Promise<boolean> {
-    const categoryLocator = this.page.locator(generateE2eSelector('clan_page.side_bar.channel_list.category'), { hasText: categoryName });
+    const categoryLocator = this.page.locator(
+      generateE2eSelector('clan_page.side_bar.channel_list.category'),
+      { hasText: categoryName }
+    );
     try {
       await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;

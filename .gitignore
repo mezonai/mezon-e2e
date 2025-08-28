@@ -9,8 +9,8 @@ test-results/
 test-archive/
 playwright-report/
 .features-gen
-ortoni-reports/
 allure-results/
+allure-report/
 reports/
 screenshots/
 videos/

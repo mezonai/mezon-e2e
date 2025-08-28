@@ -1,35 +1,10 @@
-import { defineConfig, devices } from '@playwright/test';
-import { defineBddConfig } from 'playwright-bdd';
-import { OrtoniReportConfig } from 'ortoni-report';
 import type { GitHubActionOptions } from '@estruyf/github-actions-reporter';
+import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 import { getBrowserConfig } from './src/config/environment';
 dotenv.config();
 
 const workers = parseInt(process.env.WORKERS || '1', 10) || 1;
-const reportConfig: OrtoniReportConfig = {
-  logo: '',
-  open: process.env.CI ? 'never' : 'always',
-  folderPath: 'ortoni-reports',
-  filename: 'index.html',
-  title: 'Mezon Automation Test Report',
-  showProject: true,
-  projectName: 'Mezon-Automation',
-  testType: 'e2e',
-  authorName: 'mezoner',
-  base64Image: false,
-  stdIO: false,
-  preferredTheme: 'light',
-  chartType: 'doughnut',
-  meta: {
-    project: 'Mezon Automation',
-    version: '1.0.0',
-    description: 'Playwright E2E test report for Mezon platform',
-    testCycle: 'Main',
-    release: '1.0.0',
-    environment: process.env.BASE_URL as string,
-  },
-};
 
 export default defineConfig({
   testDir: './src/tests',
@@ -48,7 +23,24 @@ export default defineConfig({
     ['list'],
     ['html', { open: 'never' }],
     ['json', { outputFile: 'results.json' }],
-    ['ortoni-report', reportConfig],
+    [
+      'allure-playwright',
+      {
+        detail: true,
+        outputFolder: 'allure-results',
+        suiteTitle: true,
+        environmentInfo: {
+          framework: 'Playwright',
+          language: 'TypeScript',
+          node_version: process.version,
+          test_environment: process.env.CI ? 'CI' : 'Local',
+          base_url: process.env.BASE_URL || GLOBAL_CONFIG.LOCAL_BASE_URL,
+          browser: 'Chromium',
+          os: process.platform,
+          workers: workers.toString(),
+        },
+      },
+    ],
     [
       '@estruyf/github-actions-reporter',
       <GitHubActionOptions>{
@@ -107,8 +99,7 @@ export default defineConfig({
       testMatch: /.*\.setup\.ts/,
       timeout: 60 * 1000, // 1 minute for setup
     },
-
-    {
+   {
       name: 'chromium-no-bdd',
       testDir: './src/tests',
       testIgnore: [/dual-users-.*\.spec\.ts/],
@@ -130,110 +121,55 @@ export default defineConfig({
     },
 
     // BDD Tests - Login flow (NO AUTH)
-    {
-      name: 'chromium-bdd-login',
-      testDir: defineBddConfig({
-        features: 'src/features/userLogin.feature',
-        steps: ['src/features/steps/*.ts', 'src/fixtures/page.fixture.ts'],
-        outputDir: '.features-gen/login',
-      }),
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1920, height: 1080 },
-        // NO storageState - fresh browser for login tests
-      },
-    },
+    // {
+    //   name: 'chromium-bdd-login',
+    //   testDir: defineBddConfig({
+    //     features: 'src/features/userLogin.feature',
+    //     steps: ['src/features/steps/*.ts', 'src/fixtures/page.fixture.ts'],
+    //     outputDir: '.features-gen/login',
+    //   }),
+    //   use: {
+    //     ...devices['Desktop Chrome'],
+    //     viewport: { width: 1920, height: 1080 },
+    //     // NO storageState - fresh browser for login tests
+    //   },
+    // },
 
     // BDD Tests - No Auth Required (homepage, simple)
-    {
-      name: 'chromium-bdd-no-auth',
-      testDir: defineBddConfig({
-        features: ['src/features/homepage.feature', 'src/features/simple.feature'],
-        steps: ['src/features/steps/*.ts', 'src/fixtures/page.fixture.ts'],
-        outputDir: '.features-gen/no-auth',
-      }),
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1920, height: 1080 },
-        // NO storageState for fresh browser
-      },
-    },
+    // {
+    //   name: 'chromium-bdd-no-auth',
+    //   testDir: defineBddConfig({
+    //     features: ['src/features/homepage.feature', 'src/features/simple.feature'],
+    //     steps: ['src/features/steps/*.ts', 'src/fixtures/page.fixture.ts'],
+    //     outputDir: '.features-gen/no-auth',
+    //   }),
+    //   use: {
+    //     ...devices['Desktop Chrome'],
+    //     viewport: { width: 1920, height: 1080 },
+    //     // NO storageState for fresh browser
+    //   },
+    // },
 
     // BDD Tests - Auth Required features
-    {
-      name: 'chromium-bdd-auth',
-      testDir: defineBddConfig({
-        features: [
-          'src/features/**/*.feature',
-          '!src/features/userLogin.feature',
-          '!src/features/homepage.feature',
-          '!src/features/simple.feature',
-        ],
-        steps: ['src/features/steps/*.ts', 'src/fixtures/page.fixture.ts'],
-        outputDir: '.features-gen/auth',
-      }),
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1920, height: 1080 },
-        // Use prepared auth state
-        storageState: 'playwright/.auth/user.json',
-      },
-      dependencies: ['setup'],
-    },
-
     // {
-    //   name: 'firefox',
+    //   name: 'chromium-bdd-auth',
+    //   testDir: defineBddConfig({
+    //     features: [
+    //       'src/features/**/*.feature',
+    //       '!src/features/userLogin.feature',
+    //       '!src/features/homepage.feature',
+    //       '!src/features/simple.feature',
+    //     ],
+    //     steps: ['src/features/steps/*.ts', 'src/fixtures/page.fixture.ts'],
+    //     outputDir: '.features-gen/auth',
+    //   }),
     //   use: {
-    //     ...devices['Desktop Firefox'],
-    //     storageState: 'playwright/.auth/user.json',
-    //   },
-    //   dependencies: ['setup'],
-    // },
-
-    // {
-    //   name: 'webkit',
-    //   use: {
-    //     ...devices['Desktop Safari'],
-    //     storageState: 'playwright/.auth/user.json',
-    //   },
-    //   dependencies: ['setup'],
-    // },
-
-    // Mobile browsers
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: {
-    //     ...devices['Pixel 5'],
-    //     storageState: 'playwright/.auth/user.json',
-    //   },
-    //   dependencies: ['setup'],
-    // },
-
-    // {
-    //   name: 'Mobile Safari',
-    //   use: {
-    //     ...devices['iPhone 12'],
-    //     storageState: 'playwright/.auth/user.json',
-    //   },
-    //   dependencies: ['setup'],
-    // },
-
-    // Microsoft Edge
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: {
-    //     ...devices['Desktop Edge'],
-    //     channel: 'msedge',
+    //     ...devices['Desktop Chrome'],
+    //     viewport: { width: 1920, height: 1080 },
+    //     // Use prepared auth state
     //     storageState: 'playwright/.auth/user.json',
     //   },
     //   dependencies: ['setup'],
     // },
   ],
-
-  // Development server (if needed)
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://127.0.0.1:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 });

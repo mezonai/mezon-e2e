@@ -49,7 +49,6 @@ export const GLOBAL_CONFIG = {
   LOCAL_BASE_URL: process.env.BASE_URL,
   DEV_BASE_URL: process.env.DEV_BASE_URL,
   API_URL: process.env.API_URL,
-  IS_LOCAL: process.env.IS_LOCAL === 'true',
   SKIP_LOGIN: process.env.SKIP_LOGIN === 'true',
 } as const;
 
@@ -79,7 +78,7 @@ export const SESSION_CONFIGS = {
  */
 export const getSessionConfig = () => {
   // TODO: remove this after local is fixed
-  const isLocal = process.env.IS_LOCAL === 'true' || process.env.NODE_ENV === 'development';
+  const isLocal = process.env.NODE_ENV === 'development';
   return {
     host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
     port: process.env.MEZON_SESSION_PORT || '7305',
@@ -92,7 +91,7 @@ export const getSessionConfig = () => {
  * Local development configuration
  */
 export const LOCAL_CONFIG = {
-  isLocal: process.env.IS_LOCAL === 'true' || process.env.NODE_ENV === 'development',
+  isLocal: process.env.NODE_ENV === 'development',
   skipLogin: process.env.SKIP_LOGIN === 'true' || process.env.NODE_ENV === 'development',
 } as const;
 
@@ -263,4 +262,8 @@ export const LOG_LEVELS = {
 export const getLogLevel = (): number => {
   const level = process.env.LOG_LEVEL?.toUpperCase() || 'INFO';
   return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
+};
+
+export const ROUTES = {
+  DIRECT_FRIENDS: 'chat/direct/friends',
 };

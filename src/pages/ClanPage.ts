@@ -9,13 +9,14 @@ interface SelectorResult {
 }
 
 export class ClanPage extends BasePage {
-
   private buttons = {
     createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
     clanName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
-    invitePeople: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.invite_people')),
+    invitePeople: this.page.locator(
+      generateE2eSelector('clan_page.header.modal_panel.invite_people')
+    ),
     createChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
-  }
+  };
 
   // private readonly createClanButtonSelectors = [
   //   'div[onclick*="openCreateClanModal"]',
