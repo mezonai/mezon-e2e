@@ -29,10 +29,22 @@ jobs:
             mezon/yarn.lock
             mezon-e2e/yarn.lock
 
-      - name: Install node-gyp
+      - name: Install system dependencies
         run: |
           npm install -g node-gyp
           node-gyp install 20.19.4
+          sudo apt-get update
+          sudo apt-get install -y \
+            libx11-dev \
+            libxext-dev \
+            libxrandr-dev \
+            libxss1 \
+            libgconf-2-4 \
+            libxtst6 \
+            libxss1 \
+            libgtk-3-dev \
+            libasound2-dev \
+            prebuild-install
 
       - name: Install mezon dependencies
         working-directory: ./mezon
@@ -42,7 +54,12 @@ jobs:
           echo "Node version: $nv"
           yarn config set nodedir ~/.cache/node-gyp/"${nv:1}"
           echo "Node directory: ${nv:1}"
-          yarn
+
+          # Try to install with frozen lockfile first, fallback to regular install
+          if ! yarn install --frozen-lockfile; then
+            echo "⚠️  Frozen lockfile install failed, trying regular install..."
+            yarn install
+          fi
 
       - name: Start mezon dev server
         working-directory: ./mezon
@@ -104,7 +121,7 @@ jobs:
 
       - name: Install mezon-e2e dependencies
         working-directory: ./mezon-e2e
-        run: yarn
+        run: yarn install --frozen-lockfile
 
       - name: Install Playwright browsers
         working-directory: ./mezon-e2e
