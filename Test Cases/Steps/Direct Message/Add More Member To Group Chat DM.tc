@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Add More Member To Group Chat DM</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>db3e22a2-709a-4455-be0a-055aaa048ed0</testCaseGuid>
-</TestCaseEntity>

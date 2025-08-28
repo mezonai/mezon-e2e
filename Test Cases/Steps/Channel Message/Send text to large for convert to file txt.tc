@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Send text to large for convert to file txt</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>4430a7cc-5d9b-4ab8-85c0-cd7ce790646c</testCaseGuid>
-</TestCaseEntity>

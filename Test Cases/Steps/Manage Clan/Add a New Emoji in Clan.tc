@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Add a New Emoji in Clan</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>fc7def6b-9e6a-48ec-993b-ab95516e433d</testCaseGuid>
-</TestCaseEntity>

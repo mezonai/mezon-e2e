@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description>Edit message in clan</description>
-   <name>Send message with hashtag</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>1bece991-82b4-43b6-82b0-f0a09bd704d0</testCaseGuid>
-</TestCaseEntity>

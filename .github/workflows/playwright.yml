@@ -1,0 +1,164 @@
+name: Verify Automation Test Results
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify-automation-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout mezon-e2e repository
+        uses: actions/checkout@v4
+        with:
+          path: mezon-e2e
+          
+      - name: Checkout mezon repository
+        uses: actions/checkout@v4
+        with:
+          repository: kientrinh-dev/mezon.git
+          ref: develop
+          path: mezon
+          
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: |
+            mezon/yarn.lock
+            mezon-e2e/yarn.lock
+
+      - name: Install mezon dependencies
+        working-directory: ./mezon
+        run: |
+          echo "Installing mezon dependencies..."
+          export nv=$(node -v)
+          echo "Node version: $nv"
+          yarn config set nodedir ~/.cache/node-gyp/"${nv:1}"
+          echo "Node directory: ${nv:1}"
+          yarn install --frozen-lockfile
+
+      - name: Start mezon dev server
+        working-directory: ./mezon
+        run: |
+          echo "🚀 Starting mezon dev server on port 4200..."
+          echo "📋 Current directory: $(pwd)"
+          echo "📁 Directory contents:"
+          ls -la
+          echo "🔍 Checking if nx command exists:"
+          which nx || npx nx --version
+          echo "📦 Node and npm versions:"
+          node --version
+          npm --version
+          yarn --version
+          echo "🌐 Checking if port 4200 is available:"
+          netstat -tuln | grep ":4200" || echo "Port 4200 is available"
+          
+          echo "🏃 Starting server..."
+          nohup npx nx run chat:serve --host=127.0.0.1 --port=4200 > mezon-dev.log 2>&1 &
+          SERVER_PID=$!
+          echo $SERVER_PID > mezon-dev.pid
+          echo "📋 Server PID: $SERVER_PID"
+          
+          echo "⏱️ Waiting 10 seconds for initial startup..."
+          sleep 10
+          
+          echo "📜 Initial server log output:"
+          head -50 mezon-dev.log || echo "No log file yet"
+          
+          echo "🔍 Checking if process is still running:"
+          if ps -p $SERVER_PID > /dev/null; then
+            echo "✅ Server process is running (PID: $SERVER_PID)"
+          else
+            echo "❌ Server process died! Full log:"
+            cat mezon-dev.log || echo "No log file found"
+            exit 1
+          fi
+          
+      - name: Wait for mezon server to be ready
+        run: |
+          echo "⏳ Waiting for mezon server to be ready on port 4200..."
+          
+          # Check if PID file exists
+          if [ ! -f ./mezon/mezon-dev.pid ]; then
+            echo "❌ PID file not found!"
+            exit 1
+          fi
+          
+          SERVER_PID=$(cat ./mezon/mezon-dev.pid)
+          echo "📋 Server PID from file: $SERVER_PID"
+          
+          # Check if process is running
+          if ! ps -p $SERVER_PID > /dev/null; then
+            echo "❌ Server process is not running! Checking logs..."
+            echo "📜 Full server log:"
+            cat ./mezon/mezon-dev.log || echo "No log file found"
+            exit 1
+          fi
+
+      - name: Install mezon-e2e dependencies
+        working-directory: ./mezon-e2e
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        working-directory: ./mezon-e2e
+        run: npx playwright install chromium
+
+      - name: Create environment file
+        working-directory: ./mezon-e2e
+        run: |
+          cat > .env << EOF
+          BASE_URL=http://127.0.0.1:4200/
+          API_URL=http://127.0.0.1:4200/api
+          SKIP_LOGIN=true
+          CI=true
+          EOF
+
+      - name: Run automation tests
+        id: run-tests
+        working-directory: ./mezon-e2e
+        run: |
+          echo "🧪 Starting automation tests..."
+          echo "📊 Environment file content:"
+          cat .env
+          echo ""
+          echo "🚀 Running tests with yarn test..."
+          
+          # Run tests and capture exit code
+          set +e  # Don't exit on error
+          xvfb-run yarn test
+          TEST_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+          
+          echo "📊 Test exit code: $TEST_EXIT_CODE"
+          
+          if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ All tests passed"
+            echo "test-result=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Some tests failed (exit code: $TEST_EXIT_CODE)"
+            echo "test-result=failed" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "🔄 Continuing pipeline for cleanup and reporting..."
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: mezon-e2e/playwright-report/
+          retention-days: 7
+          
+      - name: Check test results and fail pipeline if needed
+        if: always()
+        run: |
+          if [ "${{ steps.run-tests.outputs.test-result }}" == "failed" ]; then
+            echo "❌ Pipeline failed due to test failures"
+            echo "📊 Test results have been uploaded for analysis"
+            exit 1
+          else
+            echo "✅ Pipeline completed successfully"
+          fi
