@@ -12,7 +12,7 @@ test.describe('Create Clan', () => {
   });
 
   test('Verify that I can create a Clan', async ({ page }) => {
-    const clanName = `Test Clan ${Date.now()}`;
+    const clanName = `New Clan ${Date.now()}`;
     const clanPage = new ClanPageV2(page);
     const createClanClicked = await clanPage.clickCreateClanButton();
 

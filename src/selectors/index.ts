@@ -95,6 +95,23 @@ export const DATA_E2E_IDENTIFIER = {
 					confirm: '',
 					cancel: ''
 				}
+			},
+			create_channel: {
+				type: {
+					text: '',
+					voice: '',
+					stream: ''
+				},
+				input: {
+					channel_name: ''
+				},
+				toggle: {
+					is_private: ''
+				},
+				button: {
+					confirm: '',
+					cancel: ''
+				}
 			}
 		},
 		settings: {
@@ -107,6 +124,16 @@ export const DATA_E2E_IDENTIFIER = {
 					confirm: '',
 					cancel: ''
 				}
+			}
+		},
+		channel_list: {
+			item: {
+				icon: {
+					hashtag: '',
+					voice: '',
+					stream: ''
+				},
+				name: '',
 			}
 		}
 	},
