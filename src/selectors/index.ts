@@ -43,6 +43,20 @@ export const DATA_E2E_IDENTIFIER = {
       },
     },
   },
+  chat: {
+    channel_message: {
+      thread_name_input: {
+        thread_box: '',
+      },
+    },
+    mention: {
+      input: {
+        mention_thread: '',
+        mention_topic: '',
+        mention_clan: '',
+      },
+    },
+  },
 };
 
 type DotNestedKeys<T> = T extends object
