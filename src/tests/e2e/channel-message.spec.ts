@@ -225,8 +225,6 @@ test.describe('Channel Message Functionality', () => {
 
     messageHelpers = new MessageTestHelpers(page);
 
-    
-
     const messageToForward = `Message to forward to general ${Date.now()}`;
     await messageHelpers.sendTextMessage(messageToForward);
 
@@ -241,8 +239,6 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
-
-    
 
     const messageToPinText = `Message to pin ${Date.now()}`;
     await messageHelpers.sendTextMessage(messageToPinText);
@@ -291,8 +287,6 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
-
-    
 
     const messageToPin = `Test jump message ${Date.now()}`;
     await messageHelpers.sendTextMessage(messageToPin);
@@ -383,7 +377,6 @@ test.describe('Channel Message Functionality', () => {
 
     const candidateNames = ['nguyen.nguyen'];
     await messageHelpers.mentionUserAndSend('@ng', candidateNames);
-
   });
 
   test('React to a message with 3 different emojis', async ({ page, context }) => {
@@ -457,7 +450,6 @@ test.describe('Channel Message Functionality', () => {
   test('Reply to a message and send', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    
 
     const original = `Reply base ${Date.now()}`;
     await messageHelpers.sendTextMessage(original);
@@ -475,7 +467,6 @@ test.describe('Channel Message Functionality', () => {
   test('Search emoji in picker and apply reaction', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    
 
     const msg = `Emoji search test ${Date.now()}`;
     await messageHelpers.sendTextMessage(msg);
@@ -495,7 +486,6 @@ test.describe('Channel Message Functionality', () => {
   test('Create topic discussion and send emoji message', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    
 
     const originalMsg = `Topic starter ${Date.now()}`;
     await messageHelpers.sendTextMessage(originalMsg);
@@ -518,8 +508,6 @@ test.describe('Channel Message Functionality', () => {
   test('Send message from short profile in clan channel', async ({ page, context }) => {
     messageHelpers = new MessageTestHelpers(page);
 
-    
-
     await messageHelpers.clickMembersButton();
     await messageHelpers.clickMemberInList('nguyen.nguyen');
 
@@ -531,8 +519,6 @@ test.describe('Channel Message Functionality', () => {
 
   test('Send Message With Markdown', async ({ page, context }) => {
     messageHelpers = new MessageTestHelpers(page);
-
-    
 
     const markdownMessage = `\`\`\`Test markdown message with code block ${Date.now()}\`\`\``;
     await messageHelpers.sendTextMessage(markdownMessage);
@@ -617,7 +603,6 @@ test.describe('Channel Message Functionality', () => {
     const buzzMessage = `Buzz message test ${Date.now()}`;
 
     await messageHelpers.sendBuzzMessage(buzzMessage);
-
 
     await page.waitForTimeout(2000);
   });

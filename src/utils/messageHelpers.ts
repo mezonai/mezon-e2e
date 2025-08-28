@@ -193,10 +193,7 @@ export class MessageTestHelpers {
     const snippet = originalMessageText.slice(0, 20);
     if (snippet && text.includes(snippet)) return true;
 
-    const combined = await this.page
-      .locator('div, span, p')
-      .filter({ hasText: snippet })
-      .count();
+    const combined = await this.page.locator('div, span, p').filter({ hasText: snippet }).count();
     return combined > 0 || true;
   }
 
@@ -230,12 +227,12 @@ export class MessageTestHelpers {
   }
 
   async findMessageInput(): Promise<Locator> {
-    const messageInput = this.page.locator(
-      generateE2eSelector('chat.mention.input.mention_clan')
-    );
-    
+    const messageInput = this.page.locator(generateE2eSelector('chat.mention.input.mention_clan'));
+
     if (!(await messageInput.isVisible({ timeout: 5000 }))) {
-      throw new Error('Could not find message input element with data-e2e="chat-mention-input-mention_clan"');
+      throw new Error(
+        'Could not find message input element with data-e2e="chat-mention-input-mention_clan"'
+      );
     }
 
     return messageInput;
@@ -809,9 +806,11 @@ export class MessageTestHelpers {
     const threadInput = isThread
       ? this.page.locator(generateE2eSelector('chat.mention.input.mention_thread'))
       : this.page.locator(generateE2eSelector('chat.mention.input.mention_topic'));
-    
+
     if (!(await threadInput.isVisible({ timeout: 5000 }))) {
-      throw new Error('Could not find thread input area with data-e2e="chat-mention-input-mention_topic"');
+      throw new Error(
+        'Could not find thread input area with data-e2e="chat-mention-input-mention_topic"'
+      );
     }
 
     await threadInput.scrollIntoViewIfNeeded();
@@ -1290,9 +1289,7 @@ export class MessageTestHelpers {
   }
 
   async verifyExpectedChannelsInList(): Promise<boolean> {
-    const expectedChannels = [
-      'general',
-    ];
+    const expectedChannels = ['general'];
 
     const foundChannelNames = new Set<string>();
 
@@ -1401,16 +1398,17 @@ export class MessageTestHelpers {
     await input.click();
     await input.fill(baseMessage);
     await input.type(' #');
-    
+
     await this.page.waitForTimeout(1500);
     if (await this.verifyHashtagChannelList()) {
       if (targetHashtagName) {
-        await this.pickHashtagByName(targetHashtagName) || await this.pickFirstHashtagFromList();
+        (await this.pickHashtagByName(targetHashtagName)) ||
+          (await this.pickFirstHashtagFromList());
       } else {
         await this.pickFirstHashtagFromList();
       }
     }
-    
+
     // Send message
     await this.page.keyboard.press('Enter');
   }
@@ -1782,9 +1780,7 @@ export class MessageTestHelpers {
     if (hasHashtagWithHash || hasHashtagWithoutHash) return true;
 
     const bodyText = (await this.page.textContent('body')) || '';
-    return (
-      bodyText.includes(`#${expectedHashtag}`) || bodyText.includes(expectedHashtag)
-    );
+    return bodyText.includes(`#${expectedHashtag}`) || bodyText.includes(expectedHashtag);
   }
 
   async verifyLastMessageHasLink(expectedLink: string): Promise<boolean> {
@@ -1949,7 +1945,6 @@ export class MessageTestHelpers {
     await this.sendTextMessage(baseMessage);
 
     await this.page.waitForTimeout(2000);
-
   }
 
   async findAddReactionButton(messageElement: Locator): Promise<Locator | null> {
