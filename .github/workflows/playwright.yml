@@ -12,14 +12,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: mezon-e2e
-          
+
       - name: Checkout mezon repository
         uses: actions/checkout@v4
         with:
           repository: kientrinh-dev/mezon.git
           ref: develop
           path: mezon
-          
+
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -37,7 +37,7 @@ jobs:
           echo "Node version: $nv"
           yarn config set nodedir ~/.cache/node-gyp/"${nv:1}"
           echo "Node directory: ${nv:1}"
-          yarn install --frozen-lockfile
+          yarn
 
       - name: Start mezon dev server
         working-directory: ./mezon
@@ -54,19 +54,19 @@ jobs:
           yarn --version
           echo "🌐 Checking if port 4200 is available:"
           netstat -tuln | grep ":4200" || echo "Port 4200 is available"
-          
+
           echo "🏃 Starting server..."
           nohup npx nx run chat:serve --host=127.0.0.1 --port=4200 > mezon-dev.log 2>&1 &
           SERVER_PID=$!
           echo $SERVER_PID > mezon-dev.pid
           echo "📋 Server PID: $SERVER_PID"
-          
+
           echo "⏱️ Waiting 10 seconds for initial startup..."
           sleep 10
-          
+
           echo "📜 Initial server log output:"
           head -50 mezon-dev.log || echo "No log file yet"
-          
+
           echo "🔍 Checking if process is still running:"
           if ps -p $SERVER_PID > /dev/null; then
             echo "✅ Server process is running (PID: $SERVER_PID)"
@@ -75,20 +75,20 @@ jobs:
             cat mezon-dev.log || echo "No log file found"
             exit 1
           fi
-          
+
       - name: Wait for mezon server to be ready
         run: |
           echo "⏳ Waiting for mezon server to be ready on port 4200..."
-          
+
           # Check if PID file exists
           if [ ! -f ./mezon/mezon-dev.pid ]; then
             echo "❌ PID file not found!"
             exit 1
           fi
-          
+
           SERVER_PID=$(cat ./mezon/mezon-dev.pid)
           echo "📋 Server PID from file: $SERVER_PID"
-          
+
           # Check if process is running
           if ! ps -p $SERVER_PID > /dev/null; then
             echo "❌ Server process is not running! Checking logs..."
@@ -99,7 +99,7 @@ jobs:
 
       - name: Install mezon-e2e dependencies
         working-directory: ./mezon-e2e
-        run: yarn install --frozen-lockfile
+        run: yarn
 
       - name: Install Playwright browsers
         working-directory: ./mezon-e2e
@@ -124,15 +124,15 @@ jobs:
           cat .env
           echo ""
           echo "🚀 Running tests with yarn test..."
-          
+
           # Run tests and capture exit code
           set +e  # Don't exit on error
           xvfb-run yarn test
           TEST_EXIT_CODE=$?
           set -e  # Re-enable exit on error
-          
+
           echo "📊 Test exit code: $TEST_EXIT_CODE"
-          
+
           if [ $TEST_EXIT_CODE -eq 0 ]; then
             echo "✅ All tests passed"
             echo "test-result=success" >> $GITHUB_OUTPUT
@@ -140,7 +140,7 @@ jobs:
             echo "❌ Some tests failed (exit code: $TEST_EXIT_CODE)"
             echo "test-result=failed" >> $GITHUB_OUTPUT
           fi
-          
+
           echo "🔄 Continuing pipeline for cleanup and reporting..."
         continue-on-error: true
 
@@ -151,7 +151,7 @@ jobs:
           name: playwright-report
           path: mezon-e2e/playwright-report/
           retention-days: 7
-          
+
       - name: Check test results and fail pipeline if needed
         if: always()
         run: |
