@@ -175,6 +175,9 @@ export const DATA_E2E_IDENTIFIER = {
 			}
 		},
 		channel_message: {
+      thread_name_input: {
+       thread_box: '',      
+      },
 			header: {
 				left_container: '',
 				right_container: '',
@@ -206,7 +209,11 @@ export const DATA_E2E_IDENTIFIER = {
 			}
 		},
 		mention: {
-			input: '',
+			input: {
+        mention_thread: '',
+        mention_topic: '',
+        mention_clan: '',
+      },
 			selected_file: '',
 			voice: '',
 			gif: '',
@@ -222,6 +229,17 @@ export const DATA_E2E_IDENTIFIER = {
 				download_app: '',
 				create_channel: ''
 			}
+		}
+	},
+	common: {
+		friend_list: {
+			username: ''
+		},
+		item_pin_message: {
+			username: ''
+		},
+		delete_pin_message: {
+			username: ''
 		}
 	}
 };

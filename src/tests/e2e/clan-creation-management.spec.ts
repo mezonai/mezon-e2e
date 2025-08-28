@@ -1,10 +1,8 @@
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { expect, test } from '@playwright/test';
 import { CategoryPage } from '../../pages/CategoryPage';
-import { de } from '@faker-js/faker/.';
 
 test.describe('Create Clan', () => {
-
   test.beforeEach(async ({ page }) => {
     const clanPage = new ClanPageV2(page);
     await clanPage.navigate('/chat/direct/friends');
@@ -52,13 +50,12 @@ test.describe('Create Category', () => {
     const clanPage = new ClanPageV2(page);
 
     const deletedClan = await clanPage.deleteClan(clanName);
-    if(deletedClan) {
+    if (deletedClan) {
       console.log(`Successfully deleted clan: ${clanName}`);
     } else {
       console.log(`Failed to delete clan: ${clanName}`);
     }
   });
-
 
   test('Verify that I can create a private category', async ({ page }) => {
     const categoryPrivateName = `category-private-${new Date().getTime()}`;
