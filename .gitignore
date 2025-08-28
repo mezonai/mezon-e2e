@@ -9,8 +9,8 @@ test-results/
 test-archive/
 playwright-report/
 .features-gen
-ortoni-reports/
 allure-results/
+allure-report/
 reports/
 screenshots/
 videos/
@@ -69,3 +69,6 @@ results.json
 
 #Ignore vscode AI rules
 .github/copilot-instructions.md
+
+# Playwright
+/blob-report/

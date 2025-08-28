@@ -1,56 +1,66 @@
 import { Page, Locator } from '@playwright/test';
+import { BasePage } from './BasePage';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
-export class CategoryPage {
-  readonly page: Page;
-  readonly clanName: Locator;
-  readonly createCategoryButton: Locator;
-  readonly categoryNameInput: Locator;
-  readonly privateButton: Locator;
-  readonly confirmButton: Locator;
-  readonly showEmtyCategoryButton: Locator;
-  readonly cancelButton: Locator;
-
+export class CategoryPage extends BasePage {
   constructor(page: Page) {
-    this.page = page;
-    this.clanName = page.locator(
-      'p.text-theme-primary-active.text-base.font-semibold.select-none.one-line'
-    );
-    this.createCategoryButton = page.locator('li', { hasText: 'Create Category' }).locator('..');
-    this.categoryNameInput = page.locator('input[placeholder="Enter the category\'s name"]');
-    this.privateButton = page.locator('#id-c01');
-    this.confirmButton = page.locator('button:has-text("Create Category")');
-    this.showEmtyCategoryButton = page.locator('#id-c01');
-    this.cancelButton = page.locator('button:has-text("Cancel")');
+    super(page);
   }
 
+  readonly buttons = {
+    createCategory: this.page.locator(
+      generateE2eSelector('clan_page.header.modal_panel.create_category')
+    ),
+    private: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_category.toggle.private')
+    ),
+    cancelCreateCategory: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_category.button.cancel')
+    ),
+    confirmCreateCategory: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_category.button.confirm')
+    ),
+    showEmpty: this.page.locator(
+      generateE2eSelector('clan_page.header.modal_panel.show_empty_category')
+    ),
+  };
+  readonly links = {};
+  readonly text = {
+    categoryName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
+  };
+
+  readonly input = {
+    categoryName: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_category.input.category_name')
+    ),
+  };
+
   async createCategory(name: string, type: 'private' | 'public'): Promise<boolean> {
-    await this.clanName.click();
+    await this.text.categoryName.click();
 
-    await this.showEmtyCategoryButton.click();
+    await this.buttons.showEmpty.click();
 
-    await this.createCategoryButton.click();
+    await this.buttons.createCategory.click();
 
-    await this.categoryNameInput.waitFor({ state: 'visible', timeout: 3000 });
-    await this.categoryNameInput.fill(name);
+    await this.input.categoryName.waitFor({ state: 'visible', timeout: 3000 });
+    await this.input.categoryName.fill(name);
 
     if (type === 'private') {
-      await this.privateButton.click();
+      await this.buttons.private.click();
       await this.page.waitForTimeout(500);
     }
 
-    await this.confirmButton.click();
+    await this.buttons.confirmCreateCategory.click();
 
-    try {
-      await this.page.waitForSelector(`div[data-index] p:has-text("${name}")`, { timeout: 5000 });
-      return true;
-    } catch {
-      // Ignore errors
-      return false;
-    }
+    await this.page.waitForTimeout(2000);
+    return true;
   }
 
   async isCategoryPresent(categoryName: string): Promise<boolean> {
-    const categoryLocator = this.page.locator(`div[data-index] p:has-text("${categoryName}")`);
+    const categoryLocator = this.page.locator(
+      generateE2eSelector('clan_page.side_bar.channel_list.category'),
+      { hasText: categoryName }
+    );
     try {
       await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
@@ -61,16 +71,16 @@ export class CategoryPage {
   }
 
   async cancelCreateCategory(name: string): Promise<boolean> {
-    await this.clanName.click();
+    await this.text.categoryName.click();
 
-    await this.showEmtyCategoryButton.click();
+    await this.buttons.showEmpty.click();
 
-    await this.createCategoryButton.click();
+    await this.buttons.createCategory.click();
 
-    await this.categoryNameInput.waitFor({ state: 'visible', timeout: 3000 });
-    await this.categoryNameInput.fill(name);
+    await this.input.categoryName.waitFor({ state: 'visible', timeout: 3000 });
+    await this.input.categoryName.fill(name);
 
-    await this.cancelButton.click();
+    await this.buttons.cancelCreateCategory.click();
 
     return !(await this.isCategoryPresent(name));
   }

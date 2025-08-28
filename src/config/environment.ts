@@ -34,12 +34,30 @@ export interface EnvironmentConfig {
   workers: number;
 }
 
+const persistentConfig = {
+  loadingStatus: '"loaded"',
+  session:
+    '{"1958389436492288000":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIxMTQ0NzZmNy04NzAwLTQ3ZDgtYjIwNS1jMTE2N2RkYTY4OTgiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1NjI3MzUzOX0.cY9_-hCXXt6W0J7QcEM5etCCK0WZFsJuoD2JOnt0Kh8","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIxMTQ0NzZmNy04NzAwLTQ3ZDgtYjIwNS1jMTE2N2RkYTY4OTgiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1Njg3NzczOX0._1m-40kAakBeEIXSWDOpvqaxSj2TuoU9sxPX48iy3Go","created_at":1756272939,"is_remember":false,"refresh_expires_at":1756877739,"expires_at":1756273539,"username":"tdkien.99.vn","user_id":1958389436492288000}}',
+  isLogin: 'true',
+  isRegistering: '"not loaded"',
+  loadingStatusEmail: '"not loaded"',
+  redirectUrl: 'null',
+  activeAccount: '"1958389436492288000"',
+  _persist: '{"version":-1,"rehydrated":true}',
+};
+export const GLOBAL_CONFIG = {
+  LOCAL_BASE_URL: process.env.BASE_URL,
+  DEV_BASE_URL: process.env.DEV_BASE_URL,
+  API_URL: process.env.API_URL,
+  SKIP_LOGIN: process.env.SKIP_LOGIN === 'true',
+} as const;
+
 /**
  * Website configurations for different test targets
  */
 export const WEBSITE_CONFIGS = {
   MEZON: {
-    baseURL: 'https://dev-mezon.nccsoft.vn',
+    baseURL: process.env.BASE_URL,
     name: 'Mezon Development',
   },
 } as const;
@@ -56,6 +74,42 @@ export const SESSION_CONFIGS = {
 } as const;
 
 /**
+ * Get session config based on environment
+ */
+export const getSessionConfig = () => {
+  // TODO: remove this after local is fixed
+  const isLocal = process.env.NODE_ENV === 'development';
+  return {
+    host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
+    port: process.env.MEZON_SESSION_PORT || '7305',
+    // ssl: isLocal ? false : (process.env.MEZON_SESSION_SSL !== 'false' || true),
+    ssl: true,
+  };
+};
+
+/**
+ * Local development configuration
+ */
+export const LOCAL_CONFIG = {
+  isLocal: process.env.NODE_ENV === 'development',
+  skipLogin: process.env.SKIP_LOGIN === 'true' || process.env.NODE_ENV === 'development',
+} as const;
+
+/**
+ * Authentication data for local development
+ */
+export const LOCAL_AUTH_DATA = {
+  persist: {
+    key: 'persist:auth',
+    value: persistentConfig,
+  },
+  mezonSession: {
+    key: 'mezon_session',
+    value: JSON.stringify(getSessionConfig()),
+  },
+} as const;
+
+/**
  * Get environment configuration based on NODE_ENV
  */
 function getEnvironmentConfig(): EnvironmentConfig {
@@ -65,7 +119,7 @@ function getEnvironmentConfig(): EnvironmentConfig {
     WEBSITE_CONFIGS[website as keyof typeof WEBSITE_CONFIGS] || WEBSITE_CONFIGS.MEZON;
 
   const baseConfig: EnvironmentConfig = {
-    baseURL: process.env.BASE_URL || websiteConfig.baseURL,
+    baseURL: (process.env.BASE_URL || websiteConfig.baseURL) as string,
     timeout: {
       default: parseInt(process.env.DEFAULT_TIMEOUT || '30000'),
       navigation: parseInt(process.env.NAVIGATION_TIMEOUT || '30000'),
@@ -96,7 +150,7 @@ function getEnvironmentConfig(): EnvironmentConfig {
     case 'production':
       return {
         ...baseConfig,
-        baseURL: process.env.BASE_URL || websiteConfig.baseURL,
+        baseURL: (process.env.BASE_URL || websiteConfig.baseURL) as string,
         browser: {
           ...baseConfig.browser,
           headless: true,
@@ -109,7 +163,7 @@ function getEnvironmentConfig(): EnvironmentConfig {
     case 'staging':
       return {
         ...baseConfig,
-        baseURL: process.env.BASE_URL || websiteConfig.baseURL,
+        baseURL: (process.env.BASE_URL || websiteConfig.baseURL) as string,
         retries: 2,
         workers: 2,
       };
@@ -168,7 +222,14 @@ export const isDebugMode = () => process.env.DEBUG === 'true';
 export const getBrowserConfig = () => ({
   headless: ENV_CONFIG.browser.headless,
   slowMo: ENV_CONFIG.browser.slowMo,
-  args: isCI() ? ['--disable-dev-shm-usage', '--no-sandbox'] : [],
+  args: isCI()
+    ? ['--disable-dev-shm-usage', '--no-sandbox']
+    : [
+        '--disable-clipboard-read-write',
+        '--disable-permissions-api',
+        '--disable-features=ClipboardReadWrite',
+        '--disable-clipboard-sanitization',
+      ],
 });
 
 /**
@@ -201,4 +262,8 @@ export const LOG_LEVELS = {
 export const getLogLevel = (): number => {
   const level = process.env.LOG_LEVEL?.toUpperCase() || 'INFO';
   return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
+};
+
+export const ROUTES = {
+  DIRECT_FRIENDS: 'chat/direct/friends',
 };

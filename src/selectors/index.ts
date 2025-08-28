@@ -16,40 +16,39 @@ export const DATA_E2E_IDENTIFIER = {
       link: {
         home: '',
         feature: '',
-        developers: ''
+        developers: '',
       },
       button: {
         login: '',
-        menu: ''
+        menu: '',
       },
       container: {
-        navigation: ''
-      }
+        navigation: '',
+      },
     },
-    'main-page': {
+    main_page: {
       container: '',
       heading: {
-        title: ''
-      }
+        title: '',
+      },
     },
     layout: {
       title: {
-        features: ''
-      }
+        features: '',
+      },
     },
     footer: {
       text: {
-        copyright: ''
-      }
-    }
+        copyright: '',
+      },
+    },
   },
-
 };
 
 type DotNestedKeys<T> = T extends object
   ? {
-    [K in Extract<keyof T, string>]: T[K] extends object ? K | `${K}.${DotNestedKeys<T[K]>}` : K;
-  }[Extract<keyof T, string>]
+      [K in Extract<keyof T, string>]: T[K] extends object ? K | `${K}.${DotNestedKeys<T[K]>}` : K;
+    }[Extract<keyof T, string>]
   : never;
 
 export type E2eKeyType = DotNestedKeys<typeof DATA_E2E_IDENTIFIER>;

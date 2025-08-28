@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { TextChannelPage } from '../../pages/TextChannelPage';
 import { HomePage } from '../../pages/HomePage';
+import { ENV_CONFIG } from '../../config/environment';
 
 test.describe('Create Text Channels', () => {
   test.beforeEach(async ({ page }) => {
@@ -95,7 +96,7 @@ test.describe('Create Text Channels', () => {
     const voiceChannelPage = new TextChannelPage(page);
 
     await page.goto(
-      'https://dev-mezon.nccsoft.vn/chat/clans/1840654642682269696/channels/1840654642703241216'
+      `${ENV_CONFIG.baseURL}chat/clans/1840654642682269696/channels/1840654642703241216`
     );
 
     await test.step(`Attempt to create voice channel named "${textChannelCancel}" and cancel`, async () => {
