@@ -72,9 +72,7 @@ export class MessgaePage {
     this.firstUserAddDM = this.page
       .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
       .first();
-    this.firstUserNameAddDM = this.page
-      .locator(generateE2eSelector('common.friend_list.username'))
-      .first();
+    this.firstUserNameAddDM = this.page.locator(generateE2eSelector('common.friend_list.username')).first();
     this.userNameInDM = page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
     this.secondClan = this.page.locator('div[title]').nth(1);
     this.messages = this.page.locator(generateE2eSelector('chat.mention.input'));
