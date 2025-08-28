@@ -72,7 +72,9 @@ export class MessgaePage {
     this.firstUserAddDM = this.page
       .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
       .first();
-    this.firstUserNameAddDM = this.page.locator(generateE2eSelector('common.friend_list.username')).first();
+    this.firstUserNameAddDM = this.page
+      .locator(generateE2eSelector('common.friend_list.username'))
+      .first();
     this.userNameInDM = page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
     this.secondClan = this.page.locator('div[title]').nth(1);
     this.messages = this.page.locator(generateE2eSelector('chat.mention.input'));
@@ -98,7 +100,8 @@ export class MessgaePage {
     await this.firstUserAddDM.waitFor({ state: 'visible' });
     await this.firstUserAddDM.click();
 
-    this.firstUserNameText = (await this.firstUserNameAddDM.textContent())?.trim().split(/\s+/)[0] ?? '';
+    this.firstUserNameText =
+      (await this.firstUserNameAddDM.textContent())?.trim().split(/\s+/)[0] ?? '';
   }
 
   async isDMCreated(prevUsersCount: number): Promise<boolean> {
