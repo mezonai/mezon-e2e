@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Search Emoji By Keyword</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>b6fa2716-e3f6-44b6-8fca-d9d2f058ff8b</testCaseGuid>
-</TestCaseEntity>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Select a Clan</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>f6a149fc-398c-4be6-b037-0c9e4aa9fc4d</testCaseGuid>
-</TestCaseEntity>

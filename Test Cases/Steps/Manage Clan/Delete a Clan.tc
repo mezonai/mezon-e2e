@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Delete a Clan</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>45d12398-0602-4184-b2ea-bacd89808eb9</testCaseGuid>
-</TestCaseEntity>

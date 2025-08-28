@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Send message with link</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>8a513c5e-72d5-45f0-ba68-e71b62c5e8d9</testCaseGuid>
-</TestCaseEntity>

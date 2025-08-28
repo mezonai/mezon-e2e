@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description>Edit message in clan</description>
-   <name>Edit Message</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>37ba15c7-c250-40f8-9594-2ee1936040cc</testCaseGuid>
-</TestCaseEntity>

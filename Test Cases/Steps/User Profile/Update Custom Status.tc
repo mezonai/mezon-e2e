@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Update Custom Status</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>f3e2da6d-ecf0-44c0-814d-5bc7639b46f4</testCaseGuid>
-</TestCaseEntity>

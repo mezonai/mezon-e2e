@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Remove Avatar Profile</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>290dda48-4ef4-497f-ae50-9fa48ceac11d</testCaseGuid>
-</TestCaseEntity>

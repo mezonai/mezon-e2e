@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Create and Delete Canvas</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>87d646b2-4fa9-4d4d-bd9e-19df75f7358b</testCaseGuid>
-</TestCaseEntity>

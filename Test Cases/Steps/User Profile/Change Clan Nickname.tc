@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestCaseEntity>
-   <description></description>
-   <name>Change Clan Nickname</name>
-   <tag></tag>
-   <comment></comment>
-   <recordOption>OTHER</recordOption>
-   <testCaseGuid>4176dda3-98ce-4f46-8804-00e3c8e0e7d2</testCaseGuid>
-</TestCaseEntity>
