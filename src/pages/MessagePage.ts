@@ -117,6 +117,17 @@ export class MessgaePage {
     return true;
   }
 
+  async selectConversation(): Promise<void> {
+    await this.user.click();
+  }
+
+  async isConversationSelected(): Promise<boolean> {
+    const firstDMName = await this.firsrDMUserName.innerText();
+    const firstUserNameInDMText = (await this.userNameInDM.first().innerText()).trim();
+
+    return firstUserNameInDMText === firstDMName;
+  }
+
   async createGroup(): Promise<void> {
     await this.user.click();
     this.firstUserNameText = (await this.userNameInDM.textContent())?.trim() ?? '';
@@ -224,17 +235,6 @@ export class MessgaePage {
     const currentGroupCount = await this.helpers.countGroups();
 
     return currentGroupCount === prevGroupCount - 1;
-  }
-
-  async selectConversation(): Promise<void> {
-    await this.user.click();
-  }
-
-  async isConversationSelected(): Promise<boolean> {
-    const firstDMName = await this.firsrDMUserName.innerText();
-    const firstUserNameInDMText = (await this.userNameInDM.textContent())?.trim() ?? '';
-
-    return firstUserNameInDMText === firstDMName;
   }
 
   async sendMessage(message: string): Promise<void> {
