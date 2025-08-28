@@ -14,7 +14,6 @@ export class MessgaePage {
   readonly addToGroupButton: Locator;
   readonly sumMember: Locator;
   readonly memberCount: Locator;
-  //readonly firstDM: Locator;
   readonly firsrDMUserName: Locator;
   readonly closeFirstDMButton: Locator;
   readonly firstUserAddDM: Locator;
@@ -73,9 +72,7 @@ export class MessgaePage {
     this.firstUserAddDM = this.page
       .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
       .first();
-    this.firstUserNameAddDM = this.firstUserAddDM
-      .locator(generateE2eSelector('chat.direct_message.chat_item.username'))
-      .first();
+    this.firstUserNameAddDM = this.page.locator(generateE2eSelector('common.friend_list.username')).first();
     this.userNameInDM = page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
     this.secondClan = this.page.locator('div[title]').nth(1);
     this.messages = this.page.locator(generateE2eSelector('chat.mention.input'));
@@ -100,19 +97,20 @@ export class MessgaePage {
   async createDM(): Promise<void> {
     await this.firstUserAddDM.waitFor({ state: 'visible' });
     await this.firstUserAddDM.click();
-    this.firstUserNameText = (await this.firstUserNameAddDM.textContent())?.trim() ?? '';
+
+    this.firstUserNameText = (await this.firstUserNameAddDM.textContent())?.trim().split(/\s+/)[0] ?? '';
   }
 
   async isDMCreated(prevUsersCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(3000);
 
     const currentUsersCount = await this.helpers.countUsers();
     if (currentUsersCount !== prevUsersCount + 1) {
       return false;
     }
 
-    const firstUserNameInDMText = (await this.userNameInDM.textContent())?.trim() ?? '';
-    if (!this.firstUserNameText.toLowerCase().includes(firstUserNameInDMText.toLowerCase())) {
+    const allUserNamesInDM = await this.userNameInDM.allInnerTexts();
+    if (!allUserNamesInDM.includes(this.firstUserNameText)) {
       return false;
     }
 
