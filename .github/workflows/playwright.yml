@@ -29,6 +29,11 @@ jobs:
             mezon/yarn.lock
             mezon-e2e/yarn.lock
 
+      - name: Install node-gyp
+        run: |
+          npm install -g node-gyp
+          node-gyp install 20.19.4
+
       - name: Install mezon dependencies
         working-directory: ./mezon
         run: |
