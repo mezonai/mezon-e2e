@@ -96,6 +96,18 @@ export const DATA_E2E_IDENTIFIER = {
 					cancel: ''
 				}
 			}
+		},
+		settings: {
+			sidebar: {
+				delete: ''
+			},
+			modal: {
+				delete_clan: {
+					input: '',
+					confirm: '',
+					cancel: ''
+				}
+			}
 		}
 	},
 	chat: {

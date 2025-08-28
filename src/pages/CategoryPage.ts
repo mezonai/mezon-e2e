@@ -14,12 +14,13 @@ export class CategoryPage extends BasePage {
     cancelCreateCategory: this.page.locator(generateE2eSelector('clan_page.modal.create_category.button.cancel')),
     confirmCreateCategory: this.page.locator(generateE2eSelector('clan_page.modal.create_category.button.confirm')),
     showEmpty: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.show_empty_category')),
+    clanSettings: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.clan_settings')),
   };
   readonly links = {
 
   };
   readonly text = {
-    categoryName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
+    clanName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
   }
 
   readonly input = {
@@ -28,7 +29,7 @@ export class CategoryPage extends BasePage {
 
 
   async createCategory(name: string, type: 'private' | 'public'): Promise<boolean> {
-    await this.text.categoryName.click();
+    await this.text.clanName.click();
 
     await this.buttons.showEmpty.click();
 
@@ -60,7 +61,7 @@ export class CategoryPage extends BasePage {
   }
 
   async cancelCreateCategory(name: string): Promise<boolean> {
-    await this.text.categoryName.click();
+    await this.text.clanName.click();
 
     await this.buttons.showEmpty.click();
 

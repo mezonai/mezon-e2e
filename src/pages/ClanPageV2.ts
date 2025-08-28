@@ -1,6 +1,8 @@
+import { CategorySettingPage } from './CategorySettingPage';
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { CategoryPage } from './CategoryPage';
 
 export class ClanPageV2 extends BasePage {
   constructor(page: Page) {
@@ -55,5 +57,24 @@ export class ClanPageV2 extends BasePage {
     }
 
     return false;
+  }
+
+  async deleteClan(clanName: string): Promise<boolean> {
+    try {
+      const categoryPage = new CategoryPage(this.page);
+      const categorySettingPage = new CategorySettingPage(this.page);
+
+      await categoryPage.text.clanName.click();
+      await categoryPage.buttons.clanSettings.click();
+      await this.page.waitForTimeout(2000);
+      await categorySettingPage.buttons.deleteSidebar.click();
+      await categorySettingPage.input.delete.fill(clanName);
+      await categorySettingPage.buttons.confirmDelete.click();
+      await this.page.waitForTimeout(2000);
+      return true;
+    } catch (error) {
+      console.error(`Error creating clan: ${error}`);
+      return false;
+    }
   }
 }
