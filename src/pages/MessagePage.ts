@@ -72,7 +72,9 @@ export class MessgaePage {
     this.firstUserAddDM = this.page
       .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
       .first();
-    this.firstUserNameAddDM = this.page.locator(generateE2eSelector('common.friend_list.username')).first();
+    this.firstUserNameAddDM = this.page
+      .locator(generateE2eSelector('common.friend_list.username'))
+      .first();
     this.userNameInDM = page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
     this.secondClan = this.page.locator('div[title]').nth(1);
     this.messages = this.page.locator(generateE2eSelector('chat.mention.input'));
@@ -115,6 +117,17 @@ export class MessgaePage {
     }
 
     return true;
+  }
+
+  async selectConversation(): Promise<void> {
+    await this.user.click();
+  }
+
+  async isConversationSelected(): Promise<boolean> {
+    const firstDMName = await this.firsrDMUserName.innerText();
+    const firstUserNameInDMText = (await this.userNameInDM.first().innerText()).trim();
+
+    return firstUserNameInDMText === firstDMName;
   }
 
   async createGroup(): Promise<void> {
@@ -224,17 +237,6 @@ export class MessgaePage {
     const currentGroupCount = await this.helpers.countGroups();
 
     return currentGroupCount === prevGroupCount - 1;
-  }
-
-  async selectConversation(): Promise<void> {
-    await this.user.click();
-  }
-
-  async isConversationSelected(): Promise<boolean> {
-    const firstDMName = await this.firsrDMUserName.innerText();
-    const firstUserNameInDMText = (await this.userNameInDM.textContent())?.trim() ?? '';
-
-    return firstUserNameInDMText === firstDMName;
   }
 
   async sendMessage(message: string): Promise<void> {
