@@ -14,11 +14,21 @@ export class ProfilesPage {
     this.page = page;
     this.settingsButton = page.locator('[data-e2e="user_setting-profile-button_setting"]').first();
     this.profileTab = page.locator('[data-e2e="user_setting-profile-tab_profile"]').first();
-    this.clanProfilesTab = page.locator('[data-e2e="user_setting-profile-clan_profile-button"]').first();
-    this.nicknameInput = page.locator('[data-e2e="user_setting-profile-clan_profile-input_nickname"]').first();
-    this.changeAvatarBtn = page.locator('[data-e2e="user_setting-profile-clan_profile-button_change_avatar"]').first();
-    this.removeAvatarBtn = page.locator('[data-e2e="user_setting-profile-clan_profile-button_remove_avatar"]').first();
-    this.saveChangesBtn = page.locator('[data-e2e="user_setting-profile-clan_profile-button_save_changes"]').first();
+    this.clanProfilesTab = page
+      .locator('[data-e2e="user_setting-profile-clan_profile-button"]')
+      .first();
+    this.nicknameInput = page
+      .locator('[data-e2e="user_setting-profile-clan_profile-input_nickname"]')
+      .first();
+    this.changeAvatarBtn = page
+      .locator('[data-e2e="user_setting-profile-clan_profile-button_change_avatar"]')
+      .first();
+    this.removeAvatarBtn = page
+      .locator('[data-e2e="user_setting-profile-clan_profile-button_remove_avatar"]')
+      .first();
+    this.saveChangesBtn = page
+      .locator('[data-e2e="user_setting-profile-clan_profile-button_save_changes"]')
+      .first();
   }
 
   async openSettingsFlow(): Promise<void> {
@@ -43,7 +53,9 @@ export class ProfilesPage {
     await this.nicknameInput.fill('');
     await this.nicknameInput.type(target, { delay: 50 });
     try {
-      await expect.poll(async () => await this.nicknameInput.inputValue(), { timeout: 4000 }).toBe(target);
+      await expect
+        .poll(async () => await this.nicknameInput.inputValue(), { timeout: 4000 })
+        .toBe(target);
     } catch {
       await this.nicknameInput.evaluate((el: HTMLInputElement, value: string) => {
         el.value = value;
@@ -69,5 +81,3 @@ export class ProfilesPage {
     await this.saveChangesBtn.click();
   }
 }
-
-

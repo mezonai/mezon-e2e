@@ -25,7 +25,9 @@ test.describe('User Profile - Clan Profiles', () => {
     await profileTab.scrollIntoViewIfNeeded();
     await profileTab.click();
 
-    const clanProfileTab = page.locator('[data-e2e="user_setting-profile-clan_profile-button"]').first();
+    const clanProfileTab = page
+      .locator('[data-e2e="user_setting-profile-clan_profile-button"]')
+      .first();
     await clanProfileTab.waitFor({ state: 'visible', timeout: 15000 });
     await clanProfileTab.scrollIntoViewIfNeeded();
     await clanProfileTab.click();
