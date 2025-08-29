@@ -53,9 +53,10 @@ export class MessgaePage {
     this.createGroupButton = page.locator(
       generateE2eSelector('chat.direct_message.create_group.button')
     );
-    this.userNameItem = this.userItem.locator(
+    this.userNameItem = this.page.locator(
       generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
-    );
+      
+    ).first();
     this.addToGroupButton = page.locator(
       generateE2eSelector('chat.direct_message.create_group.button')
     );
@@ -88,9 +89,9 @@ export class MessgaePage {
     this.memberListInGroup = page.locator(
       generateE2eSelector('chat.direct_message.member_list.member_count')
     );
-    this.editGroupButton = page.locator('button[title="Edit Group"]');
-    this.groupNameInput = page.locator('input[placeholder="Enter group name"]');
-    this.saveGroupNameButton = page.locator('button:has-text("Save")');
+    this.editGroupButton = page.locator(generateE2eSelector('chat.direct_message.edit_group.button'));
+    this.groupNameInput = page.locator(generateE2eSelector('chat.direct_message.edit_group.input'));
+    this.saveGroupNameButton = page.locator(generateE2eSelector('chat.direct_message.edit_group.save_button'));
     this.leaveGroupButtonInPopup = page.locator(
       generateE2eSelector('chat.direct_message.menu.leave_group.button')
     );
@@ -164,24 +165,28 @@ export class MessgaePage {
     await this.addUserButton.click();
     await this.page.waitForTimeout(5000);
     await this.userItem.click();
-    this.userNameItemText = (await this.userNameItem.textContent()) ?? '';
-    await this.addToGroupButton.click();
+    this.userNameItemText = (await this.userNameItem.first().textContent()) ?? '';
+    await this.addToGroupButton.first().click();
     await this.page.waitForTimeout(1000);
   }
 
   async getMemberCount(): Promise<number> {
+    await this.helpers.group.first().waitFor({ state: 'visible' });
     await this.helpers.group.click();
     await this.sumMember.click();
-
+    await this.memberCount.waitFor({ state: 'visible' });
     const memberItems = this.memberCount;
-    const count = await memberItems.count();
+    const text = (await memberItems.textContent())?.trim() ?? '';
+    const count = parseInt(text.split('-')[1]?.trim() ?? '0', 10);
 
     return count;
   }
 
   async isMemberAdded(previousCount: number): Promise<boolean> {
     const memberItems = this.memberCount;
-    const newCount = await memberItems.count();
+    const text = (await memberItems.textContent())?.trim() ?? '';
+    const newCount = parseInt(text.split('-')[1]?.trim() ?? '0', 10);
+   
     if (newCount !== previousCount + 1) {
       return false;
     }
@@ -259,7 +264,6 @@ export class MessgaePage {
 
   async updateNameGroupChatDM(groupName: string): Promise<void> {
     this.groupNameText = groupName;
-
     await this.helpers.group.click();
     await this.editGroupButton.click();
     await this.groupNameInput.click();
