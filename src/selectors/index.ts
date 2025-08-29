@@ -122,6 +122,11 @@ export const DATA_E2E_IDENTIFIER = {
       create_group: {
         button: '',
       },
+      edit_group: {
+				button: '',
+				input: '',
+				save_button: '', 
+			},
       leave_group: {
         button: '',
       },
