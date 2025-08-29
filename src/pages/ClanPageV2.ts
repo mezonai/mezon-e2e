@@ -3,7 +3,6 @@ import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { CategoryPage } from './CategoryPage';
-import { channel } from 'diagnostics_channel';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 
 export class ClanPageV2 extends BasePage {

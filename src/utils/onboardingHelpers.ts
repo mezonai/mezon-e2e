@@ -1,42 +1,9 @@
 import { type Page } from '@playwright/test';
-
+import type { OnboardingTaskType } from '@/types/onboarding.types';
 export class OnboardingHelpers {
-  constructor(private page: Page) {}
-
-  async navigateToApp(): Promise<void> {
-    const currentUrl = this.page.url();
-    if (currentUrl.includes('dev-mezon.nccsoft.vn') && !currentUrl.includes('/chat')) {
-      const openMezonSelectors = [
-        'button:has-text("Open Mezon")',
-        'a:has-text("Open Mezon")',
-        '[data-testid="open-mezon"]',
-        '.open-mezon-btn',
-        'button[class*="open"]',
-        'a[href*="/chat"]',
-      ];
-
-      let buttonFound = false;
-      for (const selector of openMezonSelectors) {
-        try {
-          const button = this.page.locator(selector).first();
-          if (await button.isVisible({ timeout: 3000 })) {
-            await button.click();
-            buttonFound = true;
-            break;
-          }
-        } catch {
-          // Ignore errors
-          continue;
-        }
-      }
-
-      if (!buttonFound) {
-        await this.page.goto('/chat');
-      }
-
-      await this.page.waitForLoadState('networkidle');
-      await this.page.waitForTimeout(3000);
-    }
+  readonly page: Page;
+  constructor(page: Page) {
+    this.page = page;
   }
 
   async createTestClan(clanName: string): Promise<{ clicked: boolean; created: boolean }> {
@@ -72,7 +39,7 @@ export class OnboardingHelpers {
   }
 
   async waitForTaskCompletion(
-    taskType: 'sendFirstMessage' | 'invitePeople' | 'createChannel',
+    taskType: OnboardingTaskType,
     timeoutMs = 10000
   ): Promise<boolean> {
     const { OnboardingPage } = await import('../pages/OnboardingPage');
