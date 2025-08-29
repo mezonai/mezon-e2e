@@ -11,10 +11,7 @@ export class DirectMessageHelper {
   constructor(private page: Page) {
     this.textarea = page.locator(generateE2eSelector('chat.mention.input.direct_message'));
     this.memberList = page.locator(generateE2eSelector('chat.direct_message.chat_list'));
-    this.groupList = page
-      .locator(generateE2eSelector('chat.direct_message.chat_list'))
-      .filter({ has: page.locator('p:has-text("Members")') })
-      .locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+    this.groupList = page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
     this.group = this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({ has: this.page.locator('p', { hasText: 'Members' }) })

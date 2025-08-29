@@ -135,11 +135,11 @@ export class MessgaePage {
 
   async createGroup(): Promise<void> {
     await this.user.click();
-    this.firstUserNameText = (await this.userNameInDM.textContent())?.trim() ?? '';
+    this.firstUserNameText = (await this.userNameInDM.first().textContent())?.trim() ?? '';
     await this.addUserButton.click();
     await this.userItem.waitFor({ state: 'visible', timeout: 50000 });
     await this.userItem.click();
-    await this.createGroupButton.click();
+    await this.createGroupButton.first().click();
   }
 
   async isGroupCreated(prevGroupCount: number): Promise<boolean> {
