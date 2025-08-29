@@ -8,19 +8,29 @@ export class CategoryPage extends BasePage {
   }
 
   readonly buttons = {
-    createCategory: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.create_category')),
-    private: this.page.locator(generateE2eSelector('clan_page.modal.create_category.toggle.private')),
-    cancelCreateCategory: this.page.locator(generateE2eSelector('clan_page.modal.create_category.button.cancel')),
-    confirmCreateCategory: this.page.locator(generateE2eSelector('clan_page.modal.create_category.button.confirm')),
-    showEmpty: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.show_empty_category')),
-    clanSettings: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.clan_settings')),
+    createCategory: this.page.locator(
+      generateE2eSelector('clan_page.header.modal_panel.create_category')
+    ),
+    private: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_category.toggle.private')
+    ),
+    cancelCreateCategory: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_category.button.cancel')
+    ),
+    confirmCreateCategory: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_category.button.confirm')
+    ),
+    showEmpty: this.page.locator(
+      generateE2eSelector('clan_page.header.modal_panel.show_empty_category')
+    ),
+    clanSettings: this.page.locator(
+      generateE2eSelector('clan_page.header.modal_panel.clan_settings')
+    ),
   };
-  readonly links = {
-
-  };
+  readonly links = {};
   readonly text = {
     clanName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
-  }
+  };
 
   readonly input = {
     categoryName: this.page.locator(

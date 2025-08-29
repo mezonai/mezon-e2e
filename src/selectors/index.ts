@@ -176,72 +176,72 @@ export const DATA_E2E_IDENTIFIER = {
 		},
 		channel_message: {
       thread_name_input: {
-       thread_box: '',      
+        thread_box: '',
       },
-			header: {
-				left_container: '',
-				right_container: '',
-				text: {
-					channel_name: ''
-				},
-				button: {
-					file: '',
-					mute: '',
-					inbox: '',
-					pin: '',
-					canvas: '',
-					thread: '',
-					chat: ''
-				}
-			},
-			actions: {
-				add_reaction: '',
-				give_a_coffee: '',
-				edit_message: '',
-				pin_message: '',
-				reply: '',
-				copy_text: '',
-				add_to_inbox: '',
-				mark_unread: '',
-				topic_discussion: '',
-				forward_message: '',
-				delete_message: ''
-			}
-		},
-		mention: {
-			input: {
+      header: {
+        left_container: '',
+        right_container: '',
+        text: {
+          channel_name: '',
+        },
+        button: {
+          file: '',
+          mute: '',
+          inbox: '',
+          pin: '',
+          canvas: '',
+          thread: '',
+          chat: '',
+        },
+      },
+      actions: {
+        add_reaction: '',
+        give_a_coffee: '',
+        edit_message: '',
+        pin_message: '',
+        reply: '',
+        copy_text: '',
+        add_to_inbox: '',
+        mark_unread: '',
+        topic_discussion: '',
+        forward_message: '',
+        delete_message: '',
+      },
+    },
+    mention: {
+      input: {
         mention_thread: '',
         mention_topic: '',
         mention_clan: '',
       },
-			selected_file: '',
-			voice: '',
-			gif: '',
-			emoji: '',
-			sticker: ''
-		}
-	},
-	onboarding: {
-		chat: {
-			container: {
-				invite_member: '',
-				send_first_message: '',
-				download_app: '',
-				create_channel: ''
-			}
-		}
-	},
-	common: {
-		friend_list: {
-			username: ''
-		},
-		item_pin_message: {
-			username: ''
-		},
-		delete_pin_message: {
-			username: ''
-		}
-	}
+      selected_file: '',
+      voice: '',
+      gif: '',
+      emoji: '',
+      sticker: '',
+    },
+  },
+  onboarding: {
+    chat: {
+      container: {
+        invite_member: '',
+        send_first_message: '',
+        download_app: '',
+        create_channel: '',
+      },
+    },
+  },
+  common: {
+    friend_list: {
+      username: '',
+    },
+    item_pin_message: {
+      username: '',
+    },
+    delete_pin_message: {
+      username: '',
+    },
+  },
 };
 
 type DotNestedKeys<T> = T extends object

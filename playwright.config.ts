@@ -74,33 +74,7 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
-      testDir: './src/tests',
-      use: {
-        ...devices['Desktop Chrome'],
-        ...getBrowserConfig(),
-        storageState: 'playwright/.auth/user.json',
-      },
-      dependencies: ['setup'],
-    },
-    {
-      name: 'firefox',
-      testDir: './src/tests',
-      use: {
-        ...devices['Desktop Chrome'],
-        ...getBrowserConfig(),
-        storageState: 'playwright/.auth/user.json',
-      },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-      timeout: 60 * 1000, // 1 minute for setup
-    },
-   {
-      name: 'chromium-no-bdd',
+      name: 'Chrome',
       testDir: './src/tests',
       testIgnore: [/dual-users-.*\.spec\.ts/],
       use: {
@@ -111,6 +85,11 @@ export default defineConfig({
       dependencies: ['setup'],
     },
     {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+      timeout: 60 * 1000, // 1 minute for setup
+    },
+    {
       name: 'chromium-dual-user',
       testDir: './src/tests',
       testMatch: /dual-users-.*\.spec\.ts/,
@@ -119,7 +98,16 @@ export default defineConfig({
         storageState: undefined,
       },
     },
-
+    {
+      name: 'firefox',
+      testDir: './src/tests',
+      use: {
+        ...devices['Desktop Firefox'],
+        ...getBrowserConfig(),
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
     // BDD Tests - Login flow (NO AUTH)
     // {
     //   name: 'chromium-bdd-login',
