@@ -9,7 +9,7 @@ export class DirectMessageHelper {
   readonly group: Locator;
 
   constructor(private page: Page) {
-    this.textarea = page.locator(generateE2eSelector('chat.mention.input'));
+    this.textarea = page.locator(generateE2eSelector('chat.mention.input.direct_message'));
     this.memberList = page.locator(generateE2eSelector('chat.direct_message.chat_list'));
     this.groupList = page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
@@ -23,6 +23,7 @@ export class DirectMessageHelper {
   }
 
   async countGroups(): Promise<number> {
+    await this.memberList.first().waitFor({ state: 'visible' });
     let groupCount = 0;
     const count = await this.memberList.count();
 
@@ -40,6 +41,7 @@ export class DirectMessageHelper {
   }
 
   async countUsers(): Promise<number> {
+    await this.memberList.first().waitFor({ state: 'visible' });
     let userCount = 0;
     const count = await this.memberList.count();
 

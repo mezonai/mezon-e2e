@@ -71,13 +71,13 @@ export class MessgaePage {
     );
     this.firstUserAddDM = this.page
       .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
-      .first();
+      .nth(1);
     this.firstUserNameAddDM = this.page
       .locator(generateE2eSelector('common.friend_list.username'))
-      .first();
+      .nth(1);
     this.userNameInDM = page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
     this.secondClan = this.page.locator('div[title]').nth(1);
-    this.messages = this.page.locator(generateE2eSelector('chat.mention.input'));
+    this.messages = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
     this.leaveGroupButton = this.helpers.group.locator(
       generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
     );
@@ -98,6 +98,7 @@ export class MessgaePage {
 
   async createDM(): Promise<void> {
     await this.firstUserAddDM.waitFor({ state: 'visible' });
+    await this.page.waitForTimeout(3000);
     await this.firstUserAddDM.click();
 
     this.firstUserNameText =
@@ -121,6 +122,7 @@ export class MessgaePage {
   }
 
   async selectConversation(): Promise<void> {
+    await this.user.first().waitFor({ state: 'visible' });
     await this.user.click();
   }
 
@@ -251,10 +253,8 @@ export class MessgaePage {
   async isMessageSend(): Promise<boolean> {
     const lastMessage = this.messages.last();
     const text = await lastMessage.innerText();
-    console.log('Last message text:', text);
-    console.log('Expected message:', this.message);
 
-    return text.trim() === this.message;
+    return text.includes(this.message);
   }
 
   async updateNameGroupChatDM(groupName: string): Promise<void> {

@@ -4,7 +4,7 @@ import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 
-test.describe('Onboarding Guide Task Completion', () => {
+test.describe('Direct Message', () => {
   test.beforeEach(async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.navigate();

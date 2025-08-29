@@ -186,6 +186,7 @@ export const DATA_E2E_IDENTIFIER = {
         mention_thread: '',
         mention_topic: '',
         mention_clan: '',
+        direct_message: '',
       },
       selected_file: '',
       voice: '',
