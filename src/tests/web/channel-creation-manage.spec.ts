@@ -1,4 +1,4 @@
-import { ChannelType, ClanPageV2 } from "@/pages/ClanPageV2";
+import { ChannelStatus, ChannelType, ClanPageV2 } from "@/pages/ClanPageV2";
 import test, { expect } from "@playwright/test";
 import { randomUUID } from "crypto";
 
@@ -24,18 +24,27 @@ test.describe('Create New Channels', () => {
         }
     });
 
-    test('Verify that I can create a new text channel', async ({ page }) => {
+    test('Verify that I can create a new private text channel', async ({ page }) => {
         const ran = Math.floor(Math.random() * 999) + 1;
         const channelName = `text-channel-${ran}`;
         const clanPage = new ClanPageV2(page);
-        await clanPage.createNewChannel(ChannelType.TEXT, channelName);
+        await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
+        const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+        expect(isNewChannelPresent).toBe(true);
+    });
+
+    test('Verify that I can create a new public text channel', async ({ page }) => {
+        const ran = Math.floor(Math.random() * 999) + 1;
+        const channelName = `text-channel-${ran}`;
+        const clanPage = new ClanPageV2(page);
+        await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
         const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
         expect(isNewChannelPresent).toBe(true);
     });
 
     test('Verify that I can create a new voice channel', async ({ page }) => {
         const ran = Math.floor(Math.random() * 999) + 1;
-        const channelName = `text-channel-${ran}`;
+        const channelName = `voice-channel-${ran}`;
         const clanPage = new ClanPageV2(page);
         await clanPage.createNewChannel(ChannelType.VOICE, channelName);
         const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);

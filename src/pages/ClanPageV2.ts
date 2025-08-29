@@ -11,6 +11,11 @@ export enum ChannelType {
   STREAM = 'STREAM',
 }
 
+export enum ChannelStatus {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
+}
+
 export class ClanPageV2 extends BasePage {
   constructor(page: Page) {
     super(page);
@@ -111,7 +116,7 @@ export class ClanPageV2 extends BasePage {
     }
   }
 
-  async createNewChannel(typeChannel: ChannelType, channelName: string): Promise<boolean> {
+  async createNewChannel(typeChannel: ChannelType, channelName: string, status?: ChannelStatus): Promise<boolean> {
     try {
       await this.buttons.createChannel.click();
       await this.page.waitForTimeout(2000);
@@ -127,8 +132,11 @@ export class ClanPageV2 extends BasePage {
           break;
       }
       this.createChannelModal.input.channelName.fill(channelName);
-      this.createChannelModal.toggle.isPrivate.click();
+      if (status === ChannelStatus.PRIVATE && typeChannel === ChannelType.TEXT) {
+        await this.createChannelModal.toggle.isPrivate.click();
+      }
       this.createChannelModal.button.confirm.click();
+      
       await this.page.waitForTimeout(2000);
       return true;
     } catch (error) {
