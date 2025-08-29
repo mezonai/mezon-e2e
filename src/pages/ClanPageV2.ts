@@ -3,7 +3,6 @@ import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { CategoryPage } from './CategoryPage';
-import { channel } from 'diagnostics_channel';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 
 export class ClanPageV2 extends BasePage {
@@ -30,16 +29,24 @@ export class ClanPageV2 extends BasePage {
       stream: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type.stream')),
     },
     input: {
-      channelName: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.input.channel_name')),
+      channelName: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_channel.input.channel_name')
+      ),
     },
     toggle: {
-      isPrivate: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.toggle.is_private')),
+      isPrivate: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_channel.toggle.is_private')
+      ),
     },
     button: {
-      confirm: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.button.confirm')),
-      cancel: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.button.cancel')),
-    }
-  }
+      confirm: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_channel.button.confirm')
+      ),
+      cancel: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_channel.button.cancel')
+      ),
+    },
+  };
 
   private input = {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
@@ -52,7 +59,7 @@ export class ClanPageV2 extends BasePage {
     channelItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.item.name')),
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
-    }
+    },
   };
 
   async createNewClan(clanName: string): Promise<boolean> {
@@ -106,7 +113,11 @@ export class ClanPageV2 extends BasePage {
     }
   }
 
-  async createNewChannel(typeChannel: ChannelType, channelName: string, status?: ChannelStatus): Promise<boolean> {
+  async createNewChannel(
+    typeChannel: ChannelType,
+    channelName: string,
+    status?: ChannelStatus
+  ): Promise<boolean> {
     try {
       await this.buttons.createChannel.click();
       await this.page.waitForTimeout(2000);
@@ -143,5 +154,4 @@ export class ClanPageV2 extends BasePage {
 
     return channelLocator.isVisible();
   }
-
 }
