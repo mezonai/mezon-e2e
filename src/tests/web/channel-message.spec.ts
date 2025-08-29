@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
-import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
+import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
+import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL;
 const DIRECT_CHAT_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/direct/message/1955879210568388608/3`;
@@ -217,7 +217,7 @@ test.describe('Channel Message Functionality', () => {
       await messageHelpers.forwardMessage(targetMessage, 'andynguyn19');
     }
 
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(4000);
   });
 
   test('Forward message to general channel', async ({ page, context }) => {

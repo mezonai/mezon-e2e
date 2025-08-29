@@ -1,6 +1,7 @@
 import { GLOBAL_CONFIG, ROUTES } from '@/config/environment';
 import { MessgaePage } from '@/pages/MessagePage';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
+import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 
@@ -9,7 +10,7 @@ test.describe('Direct Message', () => {
     const homePage = new HomePage(page);
     await homePage.navigate();
 
-    await page.goto(`${GLOBAL_CONFIG.LOCAL_BASE_URL}${ROUTES.DIRECT_FRIENDS}`);
+    await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
   });
 
   const now = new Date();

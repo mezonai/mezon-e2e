@@ -1,10 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { HomePage } from '../../pages/HomePage';
-import { OnboardingHelpers } from '../../utils/onboardingHelpers';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { OnboardingPage } from '@/pages/OnboardingPage';
-import { ChannelType, ChannelStatus } from '@/types/clan-page.types';
+import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { OnboardingTask } from '@/types/onboarding.types';
+import { expect, test } from '@playwright/test';
+import { HomePage } from '../../pages/HomePage';
+import { OnboardingHelpers } from '../../utils/onboardingHelpers';
 
 test.describe('Onboarding Guide Task Completion', () => {
   let testClanName: string;
@@ -99,7 +99,7 @@ test.describe('Onboarding Guide Task Completion', () => {
         await onboardingPage.openOnboardingGuide();
       }
 
-      await page.screenshot({ path: 'debug-channel-task-initial.png', fullPage: true });
+      await page.screenshot({ path: 'screenshots/debug-channel-task-initial.png', fullPage: true });
     });
 
     await test.step('Perform create channel workflow', async () => {
@@ -111,9 +111,15 @@ test.describe('Onboarding Guide Task Completion', () => {
       );
 
       if (channelCreated) {
-        await page.screenshot({ path: 'debug-after-channel-creation.png', fullPage: true });
+        await page.screenshot({
+          path: 'screenshots/debug-after-channel-creation.png',
+          fullPage: true,
+        });
       } else {
-        await page.screenshot({ path: 'debug-channel-creation-failed.png', fullPage: true });
+        await page.screenshot({
+          path: 'screenshots/debug-channel-creation-failed.png',
+          fullPage: true,
+        });
       }
     });
 

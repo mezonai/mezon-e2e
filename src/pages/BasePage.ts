@@ -1,4 +1,5 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import joinUrlPaths from '@/utils/joinUrlPaths';
+import { type Locator, type Page, expect } from '@playwright/test';
 
 export abstract class BasePage {
   public readonly page: Page;
@@ -10,7 +11,7 @@ export abstract class BasePage {
   }
 
   async navigate(path: string = ''): Promise<void> {
-    const url = path ? `${this.baseURL}${path}` : this.baseURL;
+    const url = joinUrlPaths(this.baseURL, path);
     await this.page.goto(url);
     await this.waitForPageLoad();
   }

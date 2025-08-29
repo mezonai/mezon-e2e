@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
-import { HomePage } from '../../pages/HomePage';
+import { expect, test } from '@playwright/test';
 import { ClanSettingsPage } from '../../pages/ClanSettingsPage';
+import { HomePage } from '../../pages/HomePage';
 
 test.describe('Clan Sticker Modal ESC Key Behavior', () => {
   test.beforeEach(async ({ page }) => {
@@ -42,7 +42,7 @@ test.describe('Clan Sticker Modal ESC Key Behavior', () => {
         console.log(`📊 Current page has ${currentModalCount} visible modals`);
       }
 
-      await page.screenshot({ path: 'debug-pre-esc-test-state.png', fullPage: true });
+      await page.screenshot({ path: 'screenshots/debug-pre-esc-test-state.png', fullPage: true });
     });
 
     await test.step('Test ESC key behavior - should close modal one by one', async () => {
@@ -113,7 +113,10 @@ test.describe('Clan Sticker Modal ESC Key Behavior', () => {
         }
         issues.push('Modal stacking bug');
 
-        await page.screenshot({ path: 'bug-report-esc-closes-all-modals.png', fullPage: true });
+        await page.screenshot({
+          path: 'screenshots/bug-report-esc-closes-all-modals.png',
+          fullPage: true,
+        });
       } else if (
         escResult.initialModalCount > 0 &&
         escResult.finalModalCount < escResult.initialModalCount
@@ -171,7 +174,7 @@ test.describe('Clan Sticker Modal ESC Key Behavior', () => {
           '\n💥 TEST FAILURE: Bottom chat input visible after ESC - "out ra ngoài" detected!'
         );
 
-        await page.screenshot({ path: 'esc-test-final-result.png', fullPage: true });
+        await page.screenshot({ path: 'screenshots/esc-test-final-result.png', fullPage: true });
 
         expect(
           escResult.mentionInputTest.finalInputVisible,
@@ -180,7 +183,7 @@ test.describe('Clan Sticker Modal ESC Key Behavior', () => {
       } else {
         console.log('\n✅ TEST SUCCESS: No bottom input visible - ESC behavior is correct');
 
-        await page.screenshot({ path: 'esc-test-final-result.png', fullPage: true });
+        await page.screenshot({ path: 'screenshots/esc-test-final-result.png', fullPage: true });
       }
     });
   });

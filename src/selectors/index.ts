@@ -204,7 +204,9 @@ export const DATA_E2E_IDENTIFIER = {
         forward_message: '',
         delete_message: '',
       },
-      thread_name_input: '',
+      thread_name_input: {
+        thread_box: '',
+      },
     },
     mention: {
       input: '',

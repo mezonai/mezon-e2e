@@ -1,4 +1,4 @@
-import { Given, When, Then } from '../../fixtures/page.fixture';
+import { Given, Then, When } from '../../fixtures/page.fixture';
 
 Given('I am authenticated with valid session', async ({ page }) => {
   try {
@@ -74,7 +74,7 @@ When('I wait for the chat interface to load completely', async ({ page }) => {
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(10000);
 
-  await page.screenshot({ path: 'debug-chat-interface-loaded.png', fullPage: true });
+  await page.screenshot({ path: 'screenshots/debug-chat-interface-loaded.png', fullPage: true });
 });
 
 Then('the "Find or start a conversation" input should be present', async ({ page }) => {
@@ -154,7 +154,7 @@ Then('the "Find or start a conversation" input should be present', async ({ page
       }
     }
 
-    await page.screenshot({ path: 'debug-input-not-found.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/debug-input-not-found.png', fullPage: true });
   }
 
   if (foundInput) {
