@@ -4,17 +4,7 @@ import { BasePage } from './BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { CategoryPage } from './CategoryPage';
 import { channel } from 'diagnostics_channel';
-
-export enum ChannelType {
-  TEXT = 'TEXT',
-  VOICE = 'VOICE',
-  STREAM = 'STREAM',
-}
-
-export enum ChannelStatus {
-  PUBLIC = 'PUBLIC',
-  PRIVATE = 'PRIVATE',
-}
+import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 
 export class ClanPageV2 extends BasePage {
   constructor(page: Page) {
@@ -136,7 +126,7 @@ export class ClanPageV2 extends BasePage {
         await this.createChannelModal.toggle.isPrivate.click();
       }
       this.createChannelModal.button.confirm.click();
-      
+
       await this.page.waitForTimeout(2000);
       return true;
     } catch (error) {

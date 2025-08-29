@@ -1,4 +1,5 @@
-import { ChannelStatus, ChannelType, ClanPageV2 } from "@/pages/ClanPageV2";
+import { ClanPageV2 } from "@/pages/ClanPageV2";
+import { ChannelStatus, ChannelType } from "@/types/clan-page.types";
 import test, { expect } from "@playwright/test";
 import { randomUUID } from "crypto";
 
@@ -52,7 +53,7 @@ test.describe('Create New Channels', () => {
     });
 
     test('Verify that I can create a new stream channel', async ({ page }) => {
-       const ran = Math.floor(Math.random() * 999) + 1;
+        const ran = Math.floor(Math.random() * 999) + 1;
         const channelName = `text-channel-${ran}`;
         const clanPage = new ClanPageV2(page);
         await clanPage.createNewChannel(ChannelType.STREAM, channelName);
