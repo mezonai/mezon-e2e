@@ -5,5 +5,3 @@ export enum OnboardingTask {
 }
 
 export type OnboardingTaskType = OnboardingTask;
-
-

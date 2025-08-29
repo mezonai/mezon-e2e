@@ -38,10 +38,7 @@ export class OnboardingHelpers {
     return { sent, verified, message };
   }
 
-  async waitForTaskCompletion(
-    taskType: OnboardingTaskType,
-    timeoutMs = 10000
-  ): Promise<boolean> {
+  async waitForTaskCompletion(taskType: OnboardingTaskType, timeoutMs = 10000): Promise<boolean> {
     const { OnboardingPage } = await import('../pages/OnboardingPage');
     const onboardingPage = new OnboardingPage(this.page);
 

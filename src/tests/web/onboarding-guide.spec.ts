@@ -13,11 +13,11 @@ test.describe('Onboarding Guide Task Completion', () => {
   test.beforeAll(async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
-    
+
     try {
       const homePage = new HomePage(page);
       await homePage.navigate();
-      
+
       const clanPage = new ClanPageV2(page);
       await clanPage.navigate('/chat/direct/friends');
       const createClanClicked = await clanPage.clickCreateClanButton();
@@ -27,7 +27,6 @@ test.describe('Onboarding Guide Task Completion', () => {
         await page.waitForTimeout(5000);
         clanUrl = page.url();
       }
-      
     } catch (error) {
       console.error('Error creating clan:', error);
     } finally {
@@ -39,7 +38,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     if (testClanName && clanUrl) {
       const context = await browser.newContext();
       const page = await context.newPage();
-      
+
       try {
         await page.goto(clanUrl);
         await page.waitForTimeout(3000);
@@ -76,7 +75,9 @@ test.describe('Onboarding Guide Task Completion', () => {
     });
 
     await test.step('Verify "Send first message" task is marked as done', async () => {
-      const isTaskMarkedDone = await helpers.waitForTaskCompletion(OnboardingTask.SEND_FIRST_MESSAGE);
+      const isTaskMarkedDone = await helpers.waitForTaskCompletion(
+        OnboardingTask.SEND_FIRST_MESSAGE
+      );
       expect(
         isTaskMarkedDone,
         'The "Send first message" task should be marked as done (green tick) after user sends first message'
@@ -103,7 +104,11 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     await test.step('Perform create channel workflow', async () => {
       const testChannelName = `test-channel-${Date.now()}`;
-      const channelCreated = await clanPage.createNewChannel(ChannelType.TEXT, testChannelName, ChannelStatus.PUBLIC);
+      const channelCreated = await clanPage.createNewChannel(
+        ChannelType.TEXT,
+        testChannelName,
+        ChannelStatus.PUBLIC
+      );
 
       if (channelCreated) {
         await page.screenshot({ path: 'debug-after-channel-creation.png', fullPage: true });
