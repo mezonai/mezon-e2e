@@ -96,6 +96,23 @@ export const DATA_E2E_IDENTIFIER = {
           cancel: '',
         },
       },
+      create_channel: {
+        type: {
+          text: '',
+          voice: '',
+          stream: '',
+        },
+        input: {
+          channel_name: '',
+        },
+        toggle: {
+          is_private: '',
+        },
+        button: {
+          confirm: '',
+          cancel: '',
+        },
+      },
     },
     settings: {
       sidebar: {
@@ -107,6 +124,16 @@ export const DATA_E2E_IDENTIFIER = {
           confirm: '',
           cancel: '',
         },
+      },
+    },
+    channel_list: {
+      item: {
+        icon: {
+          hashtag: '',
+          voice: '',
+          stream: '',
+        },
+        name: '',
       },
     },
   },
@@ -148,9 +175,6 @@ export const DATA_E2E_IDENTIFIER = {
       },
     },
     channel_message: {
-      thread_name_input: {
-        thread_box: '',
-      },
       header: {
         left_container: '',
         right_container: '',
@@ -180,20 +204,17 @@ export const DATA_E2E_IDENTIFIER = {
         forward_message: '',
         delete_message: '',
       },
+      thread_name_input: '',
     },
     mention: {
-      input: {
-        mention_thread: '',
-        mention_topic: '',
-        mention_clan: '',
-        direct_message: '',
-      },
+      input: '',
       selected_file: '',
       voice: '',
       gif: '',
       emoji: '',
       sticker: '',
     },
+    suggest_item: '',
   },
   onboarding: {
     chat: {
@@ -203,6 +224,38 @@ export const DATA_E2E_IDENTIFIER = {
         download_app: '',
         create_channel: '',
       },
+    },
+  },
+  user_setting: {
+    account: {
+      exit_setting: '',
+      edit_profile: '',
+      edit_display_name: '',
+      edit_username: '',
+      set_password: '',
+    },
+    profile: {
+      button_setting: '',
+      tab_profile: '',
+      user_profile: {
+        button: '',
+      },
+      clan_profile: {
+        image_editor: {
+          modal: '',
+          button_reset: '',
+          button_cancel: '',
+          button_apply: '',
+        },
+        button: '',
+        select: '',
+        input_nickname: '',
+        button_remove_avatar: '',
+        button_change_avatar: '',
+        button_reset: '',
+        button_save_changes: '',
+      },
+      avatar_image: '',
     },
   },
   common: {
