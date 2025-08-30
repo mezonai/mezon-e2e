@@ -1,3 +1,5 @@
+import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
@@ -16,6 +18,15 @@ interface NavigationHelpers {
 
 test.describe('Channel Message Functionality', () => {
   let messageHelpers: MessageTestHelpers;
+
+  test.beforeAll(async () => {
+    await TestSetups.chatTest({
+      suite: AllureConfig.Suites.CHAT_PLATFORM,
+      subSuite: AllureConfig.SubSuites.MESSAGE_SYSTEM,
+      story: AllureConfig.Stories.TEXT_MESSAGING,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+  });
 
   const createNavigationHelpers = (page: any): NavigationHelpers => ({
     async navigateToHomePage(): Promise<void> {
@@ -60,29 +71,88 @@ test.describe('Channel Message Functionality', () => {
     },
   });
 
-  test.beforeEach(async ({ page, context }) => {
+  test.beforeEach(async ({ page, context }, testInfo) => {
+    await AllureReporter.initializeTest(page, testInfo, {
+      suite: AllureConfig.Suites.CHAT_PLATFORM,
+      subSuite: AllureConfig.SubSuites.MESSAGE_SYSTEM,
+      story: AllureConfig.Stories.TEXT_MESSAGING,
+      severity: AllureConfig.Severity.CRITICAL,
+      testType: AllureConfig.TestTypes.E2E,
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
     const navigationHelpers = createNavigationHelpers(page);
 
-    await navigationHelpers.navigateToHomePage();
-    await navigationHelpers.navigateToDirectChat();
-    await navigationHelpers.navigateToClanChannel();
+    await AllureReporter.step('Setup test environment', async () => {
+      await navigationHelpers.navigateToHomePage();
+      await navigationHelpers.navigateToDirectChat();
+      await navigationHelpers.navigateToClanChannel();
+    });
   });
 
   test('Click into an image in the message and copy from detail', async ({ page }) => {
-    const initialImageCount = await messageHelpers.countImages();
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that users can click into an image in a message and copy it from the detail view.
+      
+      **Test Steps:**
+      1. Find an image in a message
+      2. Click into the image to open detail view
+      3. Copy the image from detail view
+      4. Close modal and paste the image
+      5. Send the pasted image
+      
+      **Expected Result:** Image should be successfully copied and pasted as a new message.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['image-handling', 'copy-paste', 'media'],
+    });
+
+    const initialImageCount = await AllureReporter.step('Count initial images', async () => {
+      return await messageHelpers.countImages();
+    });
+
     if (initialImageCount === 0) {
+      await AllureReporter.attachScreenshot(page, 'No Images Available for Test');
       return;
     }
-    const targetImage = await messageHelpers.findImage();
-    const { imageToRightClick } = await messageHelpers.clickImageAndHandleModal(targetImage);
-    await messageHelpers.copyImage(imageToRightClick);
-    await messageHelpers.closeModal();
-    await messageHelpers.pasteAndSendImage();
 
-    await expect(page.locator('img[src*="blob:"]').last()).toBeVisible();
+    const targetImage = await AllureReporter.step('Find target image', async () => {
+      return await messageHelpers.findImage();
+    });
+
+    const { imageToRightClick } = await AllureReporter.step(
+      'Click image and handle modal',
+      async () => {
+        return await messageHelpers.clickImageAndHandleModal(targetImage);
+      }
+    );
+
+    await AllureReporter.step('Copy image from detail view', async () => {
+      await messageHelpers.copyImage(imageToRightClick);
+    });
+
+    await AllureReporter.step('Close modal', async () => {
+      await messageHelpers.closeModal();
+    });
+
+    await AllureReporter.step('Paste and send image', async () => {
+      await messageHelpers.pasteAndSendImage();
+    });
+
+    await AllureReporter.step('Verify pasted image is visible', async () => {
+      await expect(page.locator('img[src*="blob:"]').last()).toBeVisible();
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Image Copy Test Completed');
   });
 
   test('Copy image from context menu outside the message', async ({ page }) => {
