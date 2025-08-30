@@ -1,9 +1,9 @@
-import { CategorySettingPage } from './CategorySettingPage';
+import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { CategoryPage } from './CategoryPage';
-import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
+import { CategorySettingPage } from './CategorySettingPage';
 
 export class ClanPageV2 extends BasePage {
   constructor(page: Page) {

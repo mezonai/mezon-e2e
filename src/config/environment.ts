@@ -46,7 +46,7 @@ const persistentConfig = {
   _persist: '{"version":-1,"rehydrated":true}',
 };
 export const GLOBAL_CONFIG = {
-  LOCAL_BASE_URL: process.env.BASE_URL,
+  LOCAL_BASE_URL: process.env.BASE_URL || '',
   DEV_BASE_URL: process.env.DEV_BASE_URL,
   API_URL: process.env.API_URL,
   SKIP_LOGIN: process.env.SKIP_LOGIN === 'true',

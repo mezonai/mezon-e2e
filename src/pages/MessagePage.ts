@@ -1,7 +1,6 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { Locator, Page } from '@playwright/test';
 
 export class MessgaePage {
   private helpers: DirectMessageHelper;
@@ -18,7 +17,7 @@ export class MessgaePage {
   readonly closeFirstDMButton: Locator;
   readonly firstUserAddDM: Locator;
   readonly firstUserNameAddDM: Locator;
-  readonly userNameInDM: Locator;
+  readonly userNamesInDM: Locator;
   readonly secondClan: Locator;
   readonly messages: Locator;
   readonly leaveGroupButton: Locator;
@@ -44,20 +43,18 @@ export class MessgaePage {
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
       .first();
-    this.addUserButton = page.locator(
-      generateE2eSelector('chat.direct_message.create_group.button')
-    );
+    this.addUserButton = page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
     this.userItem = page
       .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
       .first();
     this.createGroupButton = page.locator(
-      generateE2eSelector('chat.direct_message.create_group.button')
+      generateE2eSelector('chat.direct_message.button.create_group')
     );
     this.userNameItem = this.userItem.locator(
       generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
     );
     this.addToGroupButton = page.locator(
-      generateE2eSelector('chat.direct_message.create_group.button')
+      generateE2eSelector('chat.direct_message.button.add_user')
     );
     this.sumMember = page.locator(generateE2eSelector('chat.direct_message.member_list.button'));
     this.memberCount = page.locator(
@@ -75,7 +72,9 @@ export class MessgaePage {
     this.firstUserNameAddDM = this.page
       .locator(generateE2eSelector('common.friend_list.username'))
       .nth(1);
-    this.userNameInDM = page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
+    this.userNamesInDM = page.locator(
+      generateE2eSelector('chat.direct_message.chat_item.username')
+    );
     this.secondClan = this.page.locator('div[title]').nth(1);
     this.messages = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
     this.leaveGroupButton = this.helpers.group.locator(
@@ -113,7 +112,7 @@ export class MessgaePage {
       return false;
     }
 
-    const allUserNamesInDM = await this.userNameInDM.allInnerTexts();
+    const allUserNamesInDM = await this.userNamesInDM.allInnerTexts();
     if (!allUserNamesInDM.includes(this.firstUserNameText)) {
       return false;
     }
@@ -128,14 +127,14 @@ export class MessgaePage {
 
   async isConversationSelected(): Promise<boolean> {
     const firstDMName = await this.firsrDMUserName.innerText();
-    const firstUserNameInDMText = (await this.userNameInDM.first().innerText()).trim();
+    const firstUserNameInDMText = (await this.userNamesInDM.first().innerText()).trim();
 
     return firstUserNameInDMText === firstDMName;
   }
 
   async createGroup(): Promise<void> {
     await this.user.click();
-    this.firstUserNameText = (await this.userNameInDM.textContent())?.trim() ?? '';
+    this.firstUserNameText = (await this.userNamesInDM.first().innerText())?.trim() ?? '';
     await this.addUserButton.click();
     await this.userItem.waitFor({ state: 'visible', timeout: 50000 });
     await this.userItem.click();
@@ -150,7 +149,7 @@ export class MessgaePage {
       return false;
     }
 
-    const groupNames = await this.helpers.groupList.allTextContents();
+    const groupNames = await this.helpers.groupList.first().innerText();
     const newGroupName = groupNames[groupNames.length - 1].trim();
     if (!newGroupName.startsWith(this.firstUserNameText)) {
       return false;

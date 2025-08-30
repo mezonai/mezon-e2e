@@ -17,8 +17,8 @@ export const AllureConfig = {
     PERFORMANCE: 'performance',
   } as const,
 
-  // Epic definitions
-  Epics: {
+  // Suite definitions
+  Suites: {
     CHAT_PLATFORM: 'Chat Platform',
     USER_MANAGEMENT: 'User Management',
     CLAN_MANAGEMENT: 'Clan Management',
@@ -27,26 +27,26 @@ export const AllureConfig = {
     PERFORMANCE: 'Performance',
   } as const,
 
-  // Feature definitions
-  Features: {
-    // Chat Platform Features
+  // SubSuite definitions
+  SubSuites: {
+    // Chat Platform SubSuites
     DIRECT_MESSAGING: 'Direct Messaging',
     GROUP_CHAT: 'Group Chat',
     CHAT_INTERFACE: 'Chat Interface',
     MESSAGE_SYSTEM: 'Message System',
 
-    // User Management Features
+    // User Management SubSuites
     AUTHENTICATION: 'Authentication',
     USER_PROFILE: 'User Profile',
     ROLE_MANAGEMENT: 'Role Management',
 
-    // Clan Management Features
+    // Clan Management SubSuites
     CLAN_CREATION: 'Clan Creation',
     CLAN_SETTINGS: 'Clan Settings',
     CATEGORY_MANAGEMENT: 'Category Management',
     CHANNEL_MANAGEMENT: 'Channel Management',
 
-    // Platform Features
+    // Platform SubSuites
     BROWSER_SUPPORT: 'Browser Support',
     RESPONSIVE_DESIGN: 'Responsive Design',
     NAVIGATION: 'Navigation',
@@ -114,15 +114,15 @@ export const TestSetups = {
    * Setup for authentication-related tests
    */
   async authenticationTest(options: {
-    epic?: string;
-    feature?: string;
+    suite?: string;
+    subSuite?: string;
     story?: string;
     severity?: 'blocker' | 'critical' | 'normal' | 'minor' | 'trivial';
     userType?: string;
   }) {
     await AllureReporter.addLabels({
-      epic: options.epic || AllureConfig.Epics.USER_MANAGEMENT,
-      feature: options.feature || AllureConfig.Features.AUTHENTICATION,
+      suite: options.suite || AllureConfig.Suites.USER_MANAGEMENT,
+      subSuite: options.subSuite || AllureConfig.SubSuites.AUTHENTICATION,
       story: options.story || AllureConfig.Stories.USER_LOGIN,
     });
 
@@ -137,16 +137,16 @@ export const TestSetups = {
    * Setup for chat functionality tests
    */
   async chatTest(options: {
-    epic?: string;
-    feature?: string;
+    suite?: string;
+    subSuite?: string;
     story?: string;
     severity?: 'blocker' | 'critical' | 'normal' | 'minor' | 'trivial';
     messageType?: string;
     userCount?: number;
   }) {
     await AllureReporter.addLabels({
-      epic: options.epic || AllureConfig.Epics.CHAT_PLATFORM,
-      feature: options.feature || AllureConfig.Features.CHAT_INTERFACE,
+      suite: options.suite || AllureConfig.Suites.CHAT_PLATFORM,
+      subSuite: options.subSuite || AllureConfig.SubSuites.CHAT_INTERFACE,
       story: options.story || AllureConfig.Stories.TEXT_MESSAGING,
     });
 
@@ -169,15 +169,15 @@ export const TestSetups = {
    * Setup for clan management tests
    */
   async clanTest(options: {
-    epic?: string;
-    feature?: string;
+    suite?: string;
+    subSuite?: string;
     story?: string;
     severity?: 'blocker' | 'critical' | 'normal' | 'minor' | 'trivial';
     operation?: string;
   }) {
     await AllureReporter.addLabels({
-      epic: options.epic || AllureConfig.Epics.CLAN_MANAGEMENT,
-      feature: options.feature || AllureConfig.Features.CLAN_CREATION,
+      suite: options.suite || AllureConfig.Suites.CLAN_MANAGEMENT,
+      subSuite: options.subSuite || AllureConfig.SubSuites.CLAN_CREATION,
       story: options.story || AllureConfig.Stories.CLAN_SETUP,
     });
 
@@ -202,8 +202,8 @@ export const TestSetups = {
     severity?: 'blocker' | 'critical' | 'normal' | 'minor' | 'trivial';
   }) {
     await AllureReporter.addLabels({
-      epic: AllureConfig.Epics.PLATFORM_COMPATIBILITY,
-      feature: AllureConfig.Features.BROWSER_SUPPORT,
+      suite: AllureConfig.Suites.PLATFORM_COMPATIBILITY,
+      subSuite: AllureConfig.SubSuites.BROWSER_SUPPORT,
       story: AllureConfig.Stories.CROSS_BROWSER_COMPATIBILITY,
     });
 
@@ -228,13 +228,14 @@ export const TestSetups = {
    * Setup for performance tests
    */
   async performanceTest(options: {
-    feature?: string;
+    suite?: string;
+    subSuite?: string;
     scenario?: string;
     expectedThreshold?: number;
   }) {
     await AllureReporter.addLabels({
-      epic: AllureConfig.Epics.PERFORMANCE,
-      feature: options.feature || 'Performance Testing',
+      suite: options.suite || AllureConfig.Suites.PERFORMANCE,
+      subSuite: options.subSuite || 'Performance Testing',
       story: 'Performance Validation',
     });
 

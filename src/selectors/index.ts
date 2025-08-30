@@ -146,8 +146,9 @@ export const DATA_E2E_IDENTIFIER = {
         text_area: '',
         namegroup: '',
       },
-      create_group: {
-        button: '',
+      button: {
+        add_user: '',
+        create_group: '',
       },
       leave_group: {
         button: '',
@@ -204,7 +205,9 @@ export const DATA_E2E_IDENTIFIER = {
         forward_message: '',
         delete_message: '',
       },
-      thread_name_input: '',
+      thread_name_input: {
+        thread_box: '',
+      },
     },
     mention: {
       input: '',

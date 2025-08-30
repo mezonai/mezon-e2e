@@ -1,5 +1,5 @@
-import * as allure from 'allure-js-commons';
 import { Page, TestInfo } from '@playwright/test';
+import * as allure from 'allure-js-commons';
 
 export class AllureReporter {
   /**
@@ -201,8 +201,8 @@ export class AllureReporter {
     page: Page,
     testInfo: TestInfo,
     options?: {
-      epic?: string;
-      feature?: string;
+      suite?: string;
+      subSuite?: string;
       story?: string;
       severity?: 'blocker' | 'critical' | 'normal' | 'minor' | 'trivial';
       testType?: string;
@@ -221,10 +221,9 @@ export class AllureReporter {
 
     // Add project-specific labels
     await this.addLabels({
-      suite: testInfo.project.name,
+      suite: options?.suite || testInfo.project.name,
+      subSuite: options?.subSuite,
       owner: 'Mezon QA Team',
-      epic: options?.epic,
-      feature: options?.feature,
       story: options?.story,
     });
 

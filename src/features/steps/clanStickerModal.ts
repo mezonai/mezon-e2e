@@ -1,4 +1,4 @@
-import { Given, When, Then, expect } from '../../fixtures/page.fixture';
+import { Given, Then, When, expect } from '../../fixtures/page.fixture';
 
 Given('I am on the clan settings page', async ({ page }) => {
   await page.goto('/');
@@ -44,7 +44,7 @@ Given('I navigate to the clan sticker settings', async ({ page }) => {
       await clanElements.first().click();
       console.log('✅ Clicked clan menu using text search');
     } else {
-      await page.screenshot({ path: 'debug-clan-menu-not-found.png', fullPage: true });
+      await page.screenshot({ path: 'screenshots/debug-clan-menu-not-found.png', fullPage: true });
       throw new Error('Cannot find Clan menu in the interface');
     }
   }
@@ -82,7 +82,7 @@ Given('I navigate to the clan sticker settings', async ({ page }) => {
       await settingsElements.first().click();
       console.log('✅ Clicked settings using text search');
     } else {
-      await page.screenshot({ path: 'debug-settings-not-found.png', fullPage: true });
+      await page.screenshot({ path: 'screenshots/debug-settings-not-found.png', fullPage: true });
       throw new Error('Cannot find Settings option in clan menu');
     }
   }

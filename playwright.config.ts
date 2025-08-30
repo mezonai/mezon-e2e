@@ -1,7 +1,7 @@
 import type { GitHubActionOptions } from '@estruyf/github-actions-reporter';
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
-import { getBrowserConfig } from './src/config/environment';
+import { getBrowserConfig, GLOBAL_CONFIG } from './src/config/environment';
 dotenv.config();
 
 const workers = parseInt(process.env.WORKERS || '1', 10) || 1;
