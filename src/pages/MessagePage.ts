@@ -108,11 +108,9 @@ export class MessgaePage {
 
   async createDM(): Promise<void> {
     await this.firstUserAddDM.waitFor({ state: 'visible' });
-    // Lấy tên user trước khi click để tránh việc danh sách đóng khiến không đọc được tên
     const rawName = (await this.firstUserNameAddDM.innerText()) ?? '';
     this.firstUserNameText = rawName.trim().split(/\s+/)[0] ?? '';
     await this.firstUserAddDM.click();
-    // Chờ danh sách DM hiển thị để đảm bảo hội thoại đã được mở/tạo
     await this.userNameInDM.first().waitFor({ state: 'visible' });
   }
 
@@ -120,7 +118,6 @@ export class MessgaePage {
     await this.page.waitForTimeout(1000);
 
     const currentUsersCount = await this.helpers.countUsers();
-    // Có thể mở lại DM đã tồn tại (không tăng count), hoặc tạo DM mới (+1)
     if (!(currentUsersCount === prevUsersCount || currentUsersCount === prevUsersCount + 1)) {
       return false;
     }
@@ -135,9 +132,7 @@ export class MessgaePage {
 
   async selectConversation(): Promise<void> {
     await this.user.first().waitFor({ state: 'visible' });
-    // Click trực tiếp vào username của DM đầu tiên để đảm bảo chọn hội thoại
     await this.firsrDMUserName.first().click();
-    // Chờ hộp soạn tin xuất hiện như một dấu hiệu hội thoại đã được chọn
     await this.helpers.textarea.waitFor({ state: 'visible' });
   }
 
@@ -145,7 +140,6 @@ export class MessgaePage {
     const firstDMName = (await this.firsrDMUserName.first().innerText()).trim();
     const firstUserNameInDMText = (await this.userNameInDM.first().innerText()).trim();
 
-    // Chấp nhận trường hợp có thêm phần hiển thị phụ (ví dụ status), so sánh bao hàm
     if (!firstUserNameInDMText || !firstDMName) return false;
     return (
       firstUserNameInDMText.includes(firstDMName) || firstDMName.includes(firstUserNameInDMText)
@@ -153,7 +147,6 @@ export class MessgaePage {
   }
 
   async createGroup(): Promise<void> {
-    // Mở modal chọn bạn
     await this.buttonPlusGroupOrDM.click();
 
     const friendItems = this.page.locator(
@@ -180,7 +173,6 @@ export class MessgaePage {
 
     await this.userNameInDM.first().waitFor({ state: 'visible', timeout: 30000 });
 
-    // Xác định group vừa tạo dựa trên 2 tên đã chọn và lưu locator/label để tái sử dụng
     const items = this.userNameInDM;
     const count = await items.count();
     for (let i = 0; i < count; i++) {
@@ -192,7 +184,6 @@ export class MessgaePage {
         break;
       }
     }
-    // Lưu deep-link URL của group hiện tại
     this.createdGroupUrl = this.page.url();
   }
 
@@ -277,19 +268,7 @@ export class MessgaePage {
   }
 
   async leaveGroupByLeaveGroupBtn(): Promise<void> {
-    // await this.helpers.group.hover();
-    // await this.helpers.group.click({ button: 'right' });
-    // await this.helpers.group.dispatchEvent('contextmenu');
-
-    // bắn sự kiện chuột phải lên group
     await this.helpers.group.dispatchEvent('contextmenu');
-
-    // chờ menu "Leave Group" hiện ra
-    // const leaveGroupBtn = this.page.locator('text=Leave Group');
-    // await leaveGroupBtn.waitFor({ state: 'visible' });
-
-    // click vào "Leave Group"
-    //await leaveGroupBtn.click();
   }
 
   async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
