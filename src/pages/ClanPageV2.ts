@@ -20,7 +20,9 @@ export class ClanPageV2 extends BasePage {
     createClanConfirm: this.page.locator(
       generateE2eSelector('clan_page.modal.create_clan.button.confirm')
     ),
-    createChannelChat: this.page.locator(generateE2eSelector('onboarding.chat.container.create_channel')),
+    createChannelChat: this.page.locator(
+      generateE2eSelector('onboarding.chat.container.create_channel')
+    ),
   };
 
   public createChannelModal = {

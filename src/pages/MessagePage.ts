@@ -46,8 +46,12 @@ export class MessgaePage {
   constructor(page: Page) {
     this.page = page;
     this.helpers = new DirectMessageHelper(page);
-    this.addUserHeaderChat = page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
-    this.buttonPlusGroupOrDM = page.locator(generateE2eSelector('chat.direct_message.create_group.button_plus'));
+    this.addUserHeaderChat = page.locator(
+      generateE2eSelector('chat.direct_message.button.add_user')
+    );
+    this.buttonPlusGroupOrDM = page.locator(
+      generateE2eSelector('chat.direct_message.create_group.button_plus')
+    );
     this.user = this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
@@ -135,7 +139,6 @@ export class MessgaePage {
     await this.firsrDMUserName.first().click();
     // Chờ hộp soạn tin xuất hiện như một dấu hiệu hội thoại đã được chọn
     await this.helpers.textarea.waitFor({ state: 'visible' });
-    
   }
 
   async isConversationSelected(): Promise<boolean> {
@@ -164,9 +167,11 @@ export class MessgaePage {
     const picks = Math.min(2, total);
     for (let i = 0; i < picks; i++) {
       const item = friendItems.nth(i);
-      const name = (await item
-        .locator(generateE2eSelector('chat.direct_message.friend_list.username_friend_item'))
-        .innerText()).trim();
+      const name = (
+        await item
+          .locator(generateE2eSelector('chat.direct_message.friend_list.username_friend_item'))
+          .innerText()
+      ).trim();
       this.selectedMemberNames.push(name);
       await item.click();
     }
@@ -200,7 +205,6 @@ export class MessgaePage {
     return hasBoth;
   }
 
-
   async addMoreMemberToGroup(): Promise<void> {
     await this.addUserHeaderChat.click();
 
@@ -210,10 +214,13 @@ export class MessgaePage {
     await friendItems.first().waitFor({ state: 'visible', timeout: 30000 });
     await friendItems.first().click();
 
-    this.userNameItemText = (await this.page
-      .locator(generateE2eSelector('chat.direct_message.friend_list.username_friend_item'))
-      .first()
-      .innerText())?.trim() ?? '';
+    this.userNameItemText =
+      (
+        await this.page
+          .locator(generateE2eSelector('chat.direct_message.friend_list.username_friend_item'))
+          .first()
+          .innerText()
+      )?.trim() ?? '';
 
     await this.addToGroupButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.addToGroupButton.click();

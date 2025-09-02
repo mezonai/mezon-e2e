@@ -934,7 +934,9 @@ export class MessageTestHelpers {
     }
 
     if (!targetElement) {
-      throw new Error(`Could not find forward target: ${defaultTarget} or any fallback channel in forward modal`);
+      throw new Error(
+        `Could not find forward target: ${defaultTarget} or any fallback channel in forward modal`
+      );
     }
 
     await targetElement.click();

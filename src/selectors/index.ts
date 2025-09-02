@@ -147,9 +147,9 @@ export const DATA_E2E_IDENTIFIER = {
         namegroup: '',
       },
       button: {
-				add_user: '',
-				create_group: ''
-			},
+        add_user: '',
+        create_group: '',
+      },
       create_group: {
         button: '',
       },

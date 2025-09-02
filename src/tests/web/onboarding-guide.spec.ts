@@ -32,7 +32,6 @@ test.describe('Onboarding Guide Task Completion', () => {
           ChannelStatus.PUBLIC,
           true
         );
-
       }
     } catch (error) {
       console.error('Error creating clan:', error);
