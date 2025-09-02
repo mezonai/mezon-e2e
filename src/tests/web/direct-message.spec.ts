@@ -43,12 +43,10 @@ test.describe.serial('Direct Message', () => {
     await test.step('Verify the conversation is selected', async () => {
       const conversationSelected = await messagePage.isConversationSelected();
       if (!conversationSelected) {
-        test
-          .info()
-          .annotations.push({
-            type: 'note',
-            description: 'Conversation not clearly selected; treating as pass.',
-          });
+        test.info().annotations.push({
+          type: 'note',
+          description: 'Conversation not clearly selected; treating as pass.',
+        });
         return;
       }
       expect(conversationSelected).toBeTruthy();
