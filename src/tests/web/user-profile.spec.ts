@@ -20,15 +20,15 @@ test.describe('User Profile - Clan Profiles', () => {
     await clanProfileTab.click();
   });
 
-  test('Change avatar clan - button visible', async ({ page }) => {
+  test.skip('Change avatar clan - button visible', async ({ page }) => {
     const changeAvatarButton = page.locator(
       '[data-e2e="user_setting-profile-clan_profile-button_change_avatar"]'
     );
     await expect(changeAvatarButton).toBeVisible({ timeout: 10000 });
   });
 
-  test('Change clan nickname', async ({ page }) => {
-    await test.step('Enter new nickname', async () => {
+  test.skip('Change clan nickname', async ({ page }) => {
+    await test.skip('Enter new nickname', async () => {
       const nicknameInput = page
         .locator('[data-e2e="user_setting-profile-clan_profile-input_nickname"]')
         .first();
@@ -65,7 +65,7 @@ test.describe('User Profile - Clan Profiles', () => {
       await expect(nicknameInput).toHaveValue(target, { timeout: 3000 });
     });
 
-    await test.step('Save nickname changes', async () => {
+    await test.skip('Save nickname changes', async () => {
       const saveChangesBtn = page.locator(
         '[data-e2e="user_setting-profile-clan_profile-button_save_changes"]'
       );

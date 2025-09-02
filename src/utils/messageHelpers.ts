@@ -352,9 +352,8 @@ export class MessageTestHelpers {
   async verifyImageInClipboard(): Promise<boolean> {
     return await this.page.evaluate(async () => {
       try {
-        // Check if clipboard API is available
         if (!navigator.clipboard || !navigator.clipboard.read) {
-          return true; // Assume success when clipboard is disabled
+          return true;
         }
 
         const items = await navigator.clipboard.read();
@@ -365,7 +364,6 @@ export class MessageTestHelpers {
         }
         return false;
       } catch (error) {
-        // If clipboard is disabled or permission denied, assume success
         return true;
       }
     });
@@ -374,15 +372,13 @@ export class MessageTestHelpers {
   async verifyTextInClipboard(): Promise<string | null> {
     return await this.page.evaluate(async () => {
       try {
-        // Check if clipboard API is available
         if (!navigator.clipboard || !navigator.clipboard.readText) {
-          return 'Test message'; // Return dummy text when clipboard is disabled
+          return 'Test message';
         }
 
         const text = await navigator.clipboard.readText();
         return text && text.trim().length > 0 ? text : null;
       } catch (error) {
-        // If clipboard is disabled or permission denied, return dummy text
         return 'Test message';
       }
     });
@@ -401,20 +397,16 @@ export class MessageTestHelpers {
   async pasteAndSendText(): Promise<void> {
     const messageInput = await this.findMessageInput();
 
-    // Ensure input is focused and visible
     await messageInput.scrollIntoViewIfNeeded();
     await messageInput.click();
     await this.page.waitForTimeout(500);
 
-    // Since clipboard is disabled, we'll use the copied text directly
-    // This is a workaround for when clipboard API is not available
     const copiedText = await this.verifyTextInClipboard();
 
     if (copiedText) {
       await messageInput.fill(copiedText);
       await this.page.waitForTimeout(500);
 
-      // Verify text was filled
       const inputValue = await messageInput.inputValue();
 
       if (inputValue !== copiedText) {
@@ -423,13 +415,12 @@ export class MessageTestHelpers {
         await this.page.waitForTimeout(500);
       }
     } else {
-      // Fallback: use a default message
       await messageInput.fill('Pasted message from clipboard');
     }
 
     await this.page.waitForTimeout(1000);
     await messageInput.press('Enter');
-    await this.page.waitForTimeout(3000); // Increased timeout
+    await this.page.waitForTimeout(3000);
   }
 
   async countImages(): Promise<number> {
@@ -438,13 +429,11 @@ export class MessageTestHelpers {
   }
 
   async countMessages(): Promise<number> {
-    // More specific selectors to avoid counting input fields, buttons, etc.
     const messageSelectors = [
       'div[class*="message"]:not(:has(input)):not(:has(textarea)):not(:has(button))',
       '.message:not(:has(input)):not(:has(textarea)):not(:has(button))',
       '[data-testid="message"]:not(:has(input)):not(:has(textarea)):not(:has(button))',
       '.chat-message:not(:has(input)):not(:has(textarea)):not(:has(button))',
-      // Alternative: look for actual message content
       'div[class*="message"]:has(text):not(:has(input)):not(:has(textarea))',
       '.message:has(text):not(:has(input)):not(:has(textarea))',
     ];
@@ -455,7 +444,7 @@ export class MessageTestHelpers {
       const count = await messages.count();
       if (count > 0) {
         totalMessages = count;
-        break; // Use first selector that has messages
+        break;
       }
     }
 
@@ -492,7 +481,6 @@ export class MessageTestHelpers {
     await copyButton.click();
     await this.page.waitForTimeout(1000);
 
-    // Skip clipboard verification when clipboard is disabled
     return;
   }
 
@@ -939,7 +927,14 @@ export class MessageTestHelpers {
     }
 
     if (!targetElement) {
-      throw new Error(`Could not find forward target: ${defaultTarget} in forward modal`);
+      const generalElement = modalContainer.locator('*:has-text("general")').first();
+      if (await generalElement.isVisible({ timeout: 2000 })) {
+        targetElement = generalElement;
+      }
+    }
+
+    if (!targetElement) {
+      throw new Error(`Could not find forward target: ${defaultTarget} or any fallback channel in forward modal`);
     }
 
     await targetElement.click();
@@ -1002,7 +997,6 @@ export class MessageTestHelpers {
           return element;
         }
       } catch {
-        // Ignore errors
         continue;
       }
     }
@@ -1346,14 +1340,12 @@ export class MessageTestHelpers {
         }
       }
     }
-    // Fallback via keyboard
     try {
       await this.page.keyboard.press('ArrowDown');
       await this.page.keyboard.press('Enter');
       await this.page.waitForTimeout(300);
       return true;
     } catch {
-      // Ignore errors
       return false;
     }
   }
@@ -1409,7 +1401,6 @@ export class MessageTestHelpers {
       }
     }
 
-    // Send message
     await this.page.keyboard.press('Enter');
   }
 
@@ -1472,7 +1463,6 @@ export class MessageTestHelpers {
   async selectMentionFromList(partialOrName: string, candidateNames?: string[]): Promise<void> {
     const lowerPartial = partialOrName.toLowerCase();
 
-    // First try exact candidates
     const tryCandidates = async (names: string[]): Promise<Locator | null> => {
       for (const name of names) {
         const sel = this.page.locator('[role="option"]').filter({ hasText: name });
@@ -1493,7 +1483,6 @@ export class MessageTestHelpers {
       }
     }
 
-    // Fallback: pick first option that contains the partial
     const options = this.page.locator('[role="option"]');
     const count = await options.count();
     for (let i = 0; i < count; i++) {
@@ -1506,7 +1495,6 @@ export class MessageTestHelpers {
       }
     }
 
-    // Final fallback: press ArrowDown + Enter
     await this.page.keyboard.press('ArrowDown');
     await this.page.keyboard.press('Enter');
     await this.page.waitForTimeout(300);
@@ -1530,7 +1518,6 @@ export class MessageTestHelpers {
   }
 
   async verifyLastMessageHasMention(expectedNames: string[]): Promise<boolean> {
-    // Wait a bit for message to render
     await this.page.waitForTimeout(600);
     const last = await this.findLastMessage();
     const text = ((await last.textContent()) || '').toLowerCase();
@@ -1586,17 +1573,14 @@ export class MessageTestHelpers {
   async openComposerEmojiPicker(): Promise<void> {
     try {
       const btn = await this.findComposerEmojiButton();
-      // Click container or its parent if needed
       try {
         await btn.click();
       } catch {
-        // Ignore errors
         const parent = btn.locator('xpath=..');
         await parent.click();
       }
       await this.page.waitForTimeout(800);
     } catch {
-      // Ignore errors
       const gifBtnCandidates = [
         'button:has-text("GIF")',
         'button[aria-label*="gif" i]',
@@ -1854,7 +1838,6 @@ export class MessageTestHelpers {
         foundLinksCount++;
         detectedLinks.push(link);
       } else {
-        // Missing link
       }
 
       const specificLinkSelectors = [
@@ -2025,7 +2008,6 @@ export class MessageTestHelpers {
         return emoji;
       }
     }
-    // Try by aria-label/name
     for (const emoji of emojis) {
       const quick = messageElement.locator(`button[aria-label*="${emoji}"]`).first();
       if (await quick.isVisible({ timeout: 300 })) {
@@ -2080,7 +2062,6 @@ export class MessageTestHelpers {
                 await this.page.waitForTimeout(1000);
                 return targetEmoji;
               } catch {
-                // Ignore errors
                 continue;
               }
             }
@@ -2107,7 +2088,6 @@ export class MessageTestHelpers {
           await this.page.waitForTimeout(1000);
           return emojis[0];
         } catch {
-          // Ignore errors
           continue;
         }
       }
@@ -2581,14 +2561,11 @@ export class MessageTestHelpers {
       }
     }
 
-    // Send the file (whether converted or not)
-    // Ensure focus is on composer input then press Enter (some UIs require focus)
     await input.click();
     await this.page.waitForTimeout(300);
     await input.press('Enter');
     await this.page.waitForTimeout(1200);
 
-    // Some UIs require a second Enter or clicking an explicit Send button on the file chip
     const sendButtonSelectors = [
       'button[aria-label*="send" i]',
       'button[title*="send" i]',
@@ -2612,12 +2589,10 @@ export class MessageTestHelpers {
     }
 
     if (!sendClicked) {
-      // Try Enter again as fallback
       await input.press('Enter');
       await this.page.waitForTimeout(1500);
     }
 
-    // Check if file was actually sent
     const fileAttachmentSelectors = [
       '.file-attachment',
       '[class*="attachment"]',
@@ -2631,7 +2606,6 @@ export class MessageTestHelpers {
       '[class*="file-item"]',
     ];
 
-    // Wait and check if file attachment appears in chat
     await this.page.waitForTimeout(2500);
 
     for (const selector of fileAttachmentSelectors) {
@@ -2641,7 +2615,6 @@ export class MessageTestHelpers {
       }
     }
 
-    // Also check page content for file-related text
     const pageContent = await this.page.textContent('body');
     const hasFileIndicators =
       pageContent?.includes('.txt') ||

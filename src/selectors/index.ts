@@ -146,6 +146,10 @@ export const DATA_E2E_IDENTIFIER = {
         text_area: '',
         namegroup: '',
       },
+      button: {
+				add_user: '',
+				create_group: ''
+			},
       create_group: {
         button: '',
       },

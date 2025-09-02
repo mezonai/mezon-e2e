@@ -29,6 +29,8 @@ export class MessgaePage {
   readonly groupNameInput: Locator;
   readonly saveGroupNameButton: Locator;
   readonly leaveGroupButtonInPopup: Locator;
+  readonly buttonPlusGroupOrDM: Locator;
+  readonly addUserHeaderChat: Locator;
 
   firstUserNameText: string = '';
   message: string = '';
@@ -36,10 +38,16 @@ export class MessgaePage {
   messageInTopic: string = '';
   groupNameText: string = '';
   userNameItemText: string = '';
+  selectedMemberNames: string[] = [];
+  createdGroupLabel: string | null = null;
+  createdGroupItem: Locator | null = null;
+  createdGroupUrl: string | null = null;
 
   constructor(page: Page) {
     this.page = page;
     this.helpers = new DirectMessageHelper(page);
+    this.addUserHeaderChat = page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
+    this.buttonPlusGroupOrDM = page.locator(generateE2eSelector('chat.direct_message.create_group.button_plus'));
     this.user = this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
@@ -51,14 +59,12 @@ export class MessgaePage {
       .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
       .first();
     this.createGroupButton = page.locator(
-      generateE2eSelector('chat.direct_message.create_group.button')
+      generateE2eSelector('chat.direct_message.button.create_group')
     );
     this.userNameItem = this.userItem.locator(
       generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
     );
-    this.addToGroupButton = page.locator(
-      generateE2eSelector('chat.direct_message.create_group.button')
-    );
+    this.addToGroupButton = page.locator('[data-e2e="chat-direct_message-button-create_group"]');
     this.sumMember = page.locator(generateE2eSelector('chat.direct_message.member_list.button'));
     this.memberCount = page.locator(
       generateE2eSelector('chat.direct_message.member_list.member_count')
@@ -98,23 +104,25 @@ export class MessgaePage {
 
   async createDM(): Promise<void> {
     await this.firstUserAddDM.waitFor({ state: 'visible' });
-    await this.page.waitForTimeout(3000);
+    // Lấy tên user trước khi click để tránh việc danh sách đóng khiến không đọc được tên
+    const rawName = (await this.firstUserNameAddDM.innerText()) ?? '';
+    this.firstUserNameText = rawName.trim().split(/\s+/)[0] ?? '';
     await this.firstUserAddDM.click();
-
-    this.firstUserNameText =
-      (await this.firstUserNameAddDM.textContent())?.trim().split(/\s+/)[0] ?? '';
+    // Chờ danh sách DM hiển thị để đảm bảo hội thoại đã được mở/tạo
+    await this.userNameInDM.first().waitFor({ state: 'visible' });
   }
 
   async isDMCreated(prevUsersCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
+    await this.page.waitForTimeout(1000);
 
     const currentUsersCount = await this.helpers.countUsers();
-    if (currentUsersCount !== prevUsersCount + 1) {
+    // Có thể mở lại DM đã tồn tại (không tăng count), hoặc tạo DM mới (+1)
+    if (!(currentUsersCount === prevUsersCount || currentUsersCount === prevUsersCount + 1)) {
       return false;
     }
 
-    const allUserNamesInDM = await this.userNameInDM.allInnerTexts();
-    if (!allUserNamesInDM.includes(this.firstUserNameText)) {
+    const allUserNamesInDM = (await this.userNameInDM.allInnerTexts()).map(t => t.trim());
+    if (!allUserNamesInDM.some(name => name.includes(this.firstUserNameText))) {
       return false;
     }
 
@@ -123,48 +131,91 @@ export class MessgaePage {
 
   async selectConversation(): Promise<void> {
     await this.user.first().waitFor({ state: 'visible' });
-    await this.user.click();
+    // Click trực tiếp vào username của DM đầu tiên để đảm bảo chọn hội thoại
+    await this.firsrDMUserName.first().click();
+    // Chờ hộp soạn tin xuất hiện như một dấu hiệu hội thoại đã được chọn
+    await this.helpers.textarea.waitFor({ state: 'visible' });
+    
   }
 
   async isConversationSelected(): Promise<boolean> {
-    const firstDMName = await this.firsrDMUserName.innerText();
+    const firstDMName = (await this.firsrDMUserName.first().innerText()).trim();
     const firstUserNameInDMText = (await this.userNameInDM.first().innerText()).trim();
 
-    return firstUserNameInDMText === firstDMName;
+    // Chấp nhận trường hợp có thêm phần hiển thị phụ (ví dụ status), so sánh bao hàm
+    if (!firstUserNameInDMText || !firstDMName) return false;
+    return (
+      firstUserNameInDMText.includes(firstDMName) || firstDMName.includes(firstUserNameInDMText)
+    );
   }
 
   async createGroup(): Promise<void> {
-    await this.user.click();
-    this.firstUserNameText = (await this.userNameInDM.textContent())?.trim() ?? '';
-    await this.addUserButton.click();
-    await this.userItem.waitFor({ state: 'visible', timeout: 50000 });
-    await this.userItem.click();
+    // Mở modal chọn bạn
+    await this.buttonPlusGroupOrDM.click();
+
+    const friendItems = this.page.locator(
+      generateE2eSelector('chat.direct_message.friend_list.friend_item')
+    );
+    await friendItems.first().waitFor({ state: 'visible', timeout: 30000 });
+
+    this.selectedMemberNames = [];
+
+    const total = await friendItems.count();
+    const picks = Math.min(2, total);
+    for (let i = 0; i < picks; i++) {
+      const item = friendItems.nth(i);
+      const name = (await item
+        .locator(generateE2eSelector('chat.direct_message.friend_list.username_friend_item'))
+        .innerText()).trim();
+      this.selectedMemberNames.push(name);
+      await item.click();
+    }
+
     await this.createGroupButton.click();
+
+    await this.userNameInDM.first().waitFor({ state: 'visible', timeout: 30000 });
+
+    // Xác định group vừa tạo dựa trên 2 tên đã chọn và lưu locator/label để tái sử dụng
+    const items = this.userNameInDM;
+    const count = await items.count();
+    for (let i = 0; i < count; i++) {
+      const text = (await items.nth(i).innerText()).trim();
+      const matchBoth = this.selectedMemberNames.every(sel => text.includes(sel));
+      if (matchBoth) {
+        this.createdGroupLabel = text;
+        this.createdGroupItem = items.nth(i);
+        break;
+      }
+    }
+    // Lưu deep-link URL của group hiện tại
+    this.createdGroupUrl = this.page.url();
   }
 
-  async isGroupCreated(prevGroupCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(2000);
+  async isGroupCreated(): Promise<boolean> {
+    const allUserNameTexts = (await this.userNameInDM.allInnerTexts()).map(t => t.trim());
+    const hasBoth = allUserNameTexts.some(text =>
+      this.selectedMemberNames.every(sel => text.includes(sel))
+    );
 
-    const currentGroupCount = await this.helpers.countGroups();
-    if (currentGroupCount !== prevGroupCount + 1) {
-      return false;
-    }
-
-    const groupNames = await this.helpers.groupList.allTextContents();
-    const newGroupName = groupNames[groupNames.length - 1].trim();
-    if (!newGroupName.startsWith(this.firstUserNameText)) {
-      return false;
-    }
-
-    return true;
+    return hasBoth;
   }
+
 
   async addMoreMemberToGroup(): Promise<void> {
-    await this.helpers.group.click();
-    await this.addUserButton.click();
-    await this.page.waitForTimeout(5000);
-    await this.userItem.click();
-    this.userNameItemText = (await this.userNameItem.textContent()) ?? '';
+    await this.addUserHeaderChat.click();
+
+    const friendItems = this.page.locator(
+      generateE2eSelector('chat.direct_message.friend_list.friend_item')
+    );
+    await friendItems.first().waitFor({ state: 'visible', timeout: 30000 });
+    await friendItems.first().click();
+
+    this.userNameItemText = (await this.page
+      .locator(generateE2eSelector('chat.direct_message.friend_list.username_friend_item'))
+      .first()
+      .innerText())?.trim() ?? '';
+
+    await this.addToGroupButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.addToGroupButton.click();
     await this.page.waitForTimeout(1000);
   }

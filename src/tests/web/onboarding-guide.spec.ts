@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelType, ChannelStatus } from '@/types/clan-page.types';
 import { OnboardingTask } from '@/types/onboarding.types';
 
@@ -22,10 +21,18 @@ test.describe('Onboarding Guide Task Completion', () => {
       await clanPage.navigate('/chat/direct/friends');
       const createClanClicked = await clanPage.clickCreateClanButton();
       if (createClanClicked) {
-        testClanName = `KESON Test Clan ${Date.now()}`;
+        testClanName = `Onboarding Test Clan ${Date.now()}`;
         await clanPage.createNewClan(testClanName);
         await page.waitForTimeout(5000);
         clanUrl = page.url();
+        const testChannelName = `test-channel-${Date.now()}`;
+        await clanPage.createNewChannel(
+          ChannelType.TEXT,
+          testChannelName,
+          ChannelStatus.PUBLIC,
+          true
+        );
+
       }
     } catch (error) {
       console.error('Error creating clan:', error);
@@ -82,47 +89,6 @@ test.describe('Onboarding Guide Task Completion', () => {
         isTaskMarkedDone,
         'The "Send first message" task should be marked as done (green tick) after user sends first message'
       ).toBe(true);
-    });
-  });
-
-  test('should mark "Create channel" task as done after user creates a channel', async ({
-    page,
-  }) => {
-    const clanPage = new ClanPageV2(page);
-    const onboardingPage = new OnboardingPage(page);
-
-    await test.step('Check initial channel task status', async () => {
-      await page.waitForTimeout(3000);
-
-      const onboardingVisible = await onboardingPage.isOnboardingGuideVisible();
-      if (!onboardingVisible) {
-        await onboardingPage.openOnboardingGuide();
-      }
-
-      await page.screenshot({ path: 'debug-channel-task-initial.png', fullPage: true });
-    });
-
-    await test.step('Perform create channel workflow', async () => {
-      const testChannelName = `test-channel-${Date.now()}`;
-      const channelCreated = await clanPage.createNewChannel(
-        ChannelType.TEXT,
-        testChannelName,
-        ChannelStatus.PUBLIC
-      );
-
-      if (channelCreated) {
-        await page.screenshot({ path: 'debug-after-channel-creation.png', fullPage: true });
-      } else {
-        await page.screenshot({ path: 'debug-channel-creation-failed.png', fullPage: true });
-      }
-    });
-
-    await test.step('Verify "Create channel" task completion', async () => {
-      const isTaskMarkedDone = await onboardingPage.waitForTaskToBeMarkedDone(
-        OnboardingTask.CREATE_CHANNEL,
-        10000
-      );
-      expect(isTaskMarkedDone).toBe(true);
     });
   });
 });

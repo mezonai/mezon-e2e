@@ -20,6 +20,7 @@ export class ClanPageV2 extends BasePage {
     createClanConfirm: this.page.locator(
       generateE2eSelector('clan_page.modal.create_clan.button.confirm')
     ),
+    createChannelChat: this.page.locator(generateE2eSelector('onboarding.chat.container.create_channel')),
   };
 
   public createChannelModal = {
@@ -116,10 +117,12 @@ export class ClanPageV2 extends BasePage {
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
-    status?: ChannelStatus
+    status?: ChannelStatus,
+    isChannel?: boolean
   ): Promise<boolean> {
     try {
-      await this.buttons.createChannel.click();
+      const createButton = isChannel ? this.buttons.createChannelChat : this.buttons.createChannel;
+      await createButton.click();
       await this.page.waitForTimeout(2000);
       switch (typeChannel) {
         case ChannelType.TEXT:
