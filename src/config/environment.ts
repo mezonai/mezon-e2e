@@ -37,7 +37,7 @@ export interface EnvironmentConfig {
 const persistentConfig = {
   loadingStatus: '"loaded"',
   session:
-    '{"1958389436492288000":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIxMTQ0NzZmNy04NzAwLTQ3ZDgtYjIwNS1jMTE2N2RkYTY4OTgiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1NjI3MzUzOX0.cY9_-hCXXt6W0J7QcEM5etCCK0WZFsJuoD2JOnt0Kh8","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIxMTQ0NzZmNy04NzAwLTQ3ZDgtYjIwNS1jMTE2N2RkYTY4OTgiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1Njg3NzczOX0._1m-40kAakBeEIXSWDOpvqaxSj2TuoU9sxPX48iy3Go","created_at":1756272939,"is_remember":false,"refresh_expires_at":1756877739,"expires_at":1756273539,"username":"tdkien.99.vn","user_id":1958389436492288000}}',
+    '{"1958389436492288000":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJmMTU1NDU2ZC03MDRjLTRlYjUtOWM2MS0zODczOGFhODE0MTYiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1Njk2Njg5MH0.5m7o0S9d-eRou2hUVYszA-8SlGRWZ_etDHXiqPqcFFE","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJmMTU1NDU2ZC03MDRjLTRlYjUtOWM2MS0zODczOGFhODE0MTYiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1NzQ4NTI5MH0.JUGfgLhnCdfD3rduFGCumpO0WUhmGZ9921IIJvMt4kE","created_at":1756880490,"is_remember":false,"refresh_expires_at":1757485290,"expires_at":1756966890,"username":"tdkien.99.vn","user_id":1958389436492288000}}',
   isLogin: 'true',
   isRegistering: '"not loaded"',
   loadingStatusEmail: '"not loaded"',
