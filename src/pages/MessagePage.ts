@@ -70,7 +70,7 @@ export class MessgaePage {
       .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
       .nth(1);
     this.firstUserNameAddDM = this.page
-      .locator(generateE2eSelector('common.friend_list.username'))
+      .locator(generateE2eSelector('base_profile.display_name'))
       .nth(1);
     this.userNamesInDM = page.locator(
       generateE2eSelector('chat.direct_message.chat_item.username')
