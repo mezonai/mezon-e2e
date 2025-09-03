@@ -2,6 +2,7 @@ import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { type Page, expect } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../config/environment';
 import { BasePage } from './BasePage';
+import { HOME_PAGE_PATHS } from '@/selectors';
 
 export class HomePage extends BasePage {
   constructor(page: Page) {
@@ -16,9 +17,9 @@ export class HomePage extends BasePage {
     menu: this.page.locator(generateE2eSelector('homepage.header.button.menu')),
   };
   private links = {
-    home: this.page.locator(generateE2eSelector('homepage.header.link.home')),
-    features: this.page.locator(generateE2eSelector('homepage.header.link.features')),
-    developers: this.page.locator(generateE2eSelector('homepage.header.link.developers')),
+    home: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${HOME_PAGE_PATHS.home}`),
+    features: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${HOME_PAGE_PATHS.features}`),
+    developers: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${HOME_PAGE_PATHS.developers}`),
   };
   private text = {
     copyright: this.page.locator(generateE2eSelector('homepage.footer.text.copyright')),
@@ -27,6 +28,9 @@ export class HomePage extends BasePage {
   };
 
   async navigate(): Promise<void> {
+    if (!WEBSITE_CONFIGS.MEZON.baseURL) {
+      throw new Error('Base URL is not defined');
+    }
     const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL;
     await this.page.goto(baseUrl);
     await this.page.waitForLoadState('networkidle');

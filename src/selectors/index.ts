@@ -11,14 +11,26 @@
  * */
 
 export const DATA_E2E_IDENTIFIER = {
+  base_profile: {
+    display_name: ''
+  },
+  mention: {
+    input: '',
+    selected_file: '',
+    voice: '',
+    gif: '',
+    emoji: '',
+    sticker: '',
+  },
+  discussion: {
+    box: {
+      thread: '',
+      topic: ''
+    }
+  },
   homepage: {
     header: {
-      link: {
-        home: '',
-        features: '',
-        developers: '',
-        overview: '',
-      },
+      link: '',
       button: {
         login: '',
         menu: '',
@@ -209,14 +221,6 @@ export const DATA_E2E_IDENTIFIER = {
         thread_box: '',
       },
     },
-    mention: {
-      input: '',
-      selected_file: '',
-      voice: '',
-      gif: '',
-      emoji: '',
-      sticker: '',
-    },
     suggest_item: '',
   },
   onboarding: {
@@ -268,16 +272,19 @@ export const DATA_E2E_IDENTIFIER = {
     item_pin_message: {
       username: '',
     },
-    delete_pin_message: {
-      username: '',
-    },
   },
+};
+
+export const HOME_PAGE_PATHS = {
+  home: '[href="#home"]',
+  features: '[href="#feature"]',
+  developers: '[href="developers/applications"]',
 };
 
 type DotNestedKeys<T> = T extends object
   ? {
-      [K in Extract<keyof T, string>]: T[K] extends object ? K | `${K}.${DotNestedKeys<T[K]>}` : K;
-    }[Extract<keyof T, string>]
+    [K in Extract<keyof T, string>]: T[K] extends object ? K | `${K}.${DotNestedKeys<T[K]>}` : K;
+  }[Extract<keyof T, string>]
   : never;
 
 export type E2eKeyType = DotNestedKeys<typeof DATA_E2E_IDENTIFIER>;
