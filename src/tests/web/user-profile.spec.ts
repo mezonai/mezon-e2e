@@ -2,6 +2,7 @@ import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
+import { ProfilePage } from '@/pages/ProfilePage';
 
 const CLAN_CHAT_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1786228934740807680/channels/1786228934753390593`;
 
@@ -37,26 +38,23 @@ test.describe('User Profile - Clan Profiles', () => {
       await page.locator('[data-e2e="user_setting-profile-button_setting"]').click();
     });
 
-    await AllureReporter.step('Navigate to profile tab', async () => {
-      const profileTab = page.locator('[data-e2e="user_setting-profile-tab_profile"]');
-      await profileTab.waitFor({ state: 'visible', timeout: 10000 });
-      await profileTab.click();
-    });
-
-    await AllureReporter.step('Navigate to clan profile tab', async () => {
-      const clanProfileTab = page.locator('[data-e2e="user_setting-profile-clan_profile-button"]');
-      await clanProfileTab.waitFor({ state: 'visible', timeout: 10000 });
-      await clanProfileTab.click();
-    });
-
     await AllureReporter.addParameter('clanChatUrl', CLAN_CHAT_URL);
   });
 
   test('Change avatar clan - button visible', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
       severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to clan profile tab', async () => {
+      await profilePage.openClanProfileTab();
     });
 
     await AllureReporter.addDescription(`
@@ -86,10 +84,19 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test('Change clan nickname', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
       severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to clan profile tab', async () => {
+      await profilePage.openClanProfileTab();
     });
 
     await AllureReporter.addDescription(`
@@ -172,11 +179,20 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.attachScreenshot(page, 'Clan Nickname Changed Successfully');
   });
 
-  test.skip('Remove avatar clan', async () => {
+  test.skip('Remove avatar clan', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
       severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to clan profile tab', async () => {
+      await profilePage.openClanProfileTab();
     });
 
     await AllureReporter.addDescription(`
@@ -198,5 +214,55 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     // Implementation pending
+  });
+
+  test('Edit user profile - button visible', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.step('Navigate to account tab', async () => {
+      await profilePage.openAccountTab();
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the "Edit User Profile" button is visible in the clan profile section.
+      
+      **Test Steps:**
+      1. Navigate to clan profile settings
+      2. Navigate to account tab
+      2. Click the Edit User Profile button
+      3. Verify the button is visible and accessible
+      
+      **Expected Result:** The "Edit User Profile" button should be visible and accessible to the user.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['user-profile', 'avatar-change', 'ui-visibility', 'clan-profile'],
+    });
+
+    await AllureReporter.step('Click the Edit User Profile button', async () => {
+      const editUserprofileButton = page.locator(
+        '[data-e2e="user_setting-account-edit_profile"]'
+      );
+      await expect(editUserprofileButton).toBeVisible({ timeout: 10000 });
+      await editUserprofileButton.click();
+    });
+
+    await AllureReporter.step('Verify the edit user profile button was clicked successfully', async () => {
+      const userProfileTab = page.locator(
+        '[data-e2e="user_setting-profile-user_profile-button"]'
+      );
+      const clanProfileTab = page.locator(
+        '[data-e2e="user_setting-profile-clan_profile-button"]'
+      );
+      await expect(userProfileTab).toBeVisible({ timeout: 10000 });
+      await expect(clanProfileTab).toBeVisible({ timeout: 10000 });
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Edit User Profile Button Visible');
   });
 });
