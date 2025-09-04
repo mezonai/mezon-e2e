@@ -9,7 +9,7 @@ export class DirectMessageHelper {
   readonly group: Locator;
 
   constructor(private page: Page) {
-    this.textarea = page.locator(generateE2eSelector('chat.mention.input.direct_message'));
+    this.textarea = page.locator(generateE2eSelector('mention.input'));
     this.memberList = page.locator(generateE2eSelector('chat.direct_message.chat_list'));
     this.groupList = page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
