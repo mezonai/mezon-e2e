@@ -27,6 +27,10 @@ test.describe('Direct Message', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63370',
+    });
+
     const homePage = new HomePage(page);
 
     await AllureReporter.step('Navigate to home page', async () => {
@@ -45,6 +49,10 @@ test.describe('Direct Message', () => {
   const nameGroupChat = `name-groupchat-${dateTimeString}`;
 
   test('Create direct message ', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -88,6 +96,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Select a conversation', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     const messagePage = new MessgaePage(page);
 
     await test.step(`Select a conversation`, async () => {
@@ -102,6 +114,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Send a message', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63505',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -140,6 +156,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Create group chat ', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
     const messagePage = new MessgaePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevGroupCount = await helpers.countGroups();
@@ -156,6 +176,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Add more member to group chat', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
     const messagePage = new MessgaePage(page);
     const getMemberCount = await messagePage.getMemberCount();
 
@@ -171,6 +195,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Update name for group chat DM', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
     const messagePage = new MessgaePage(page);
 
     await test.step(`Update name for group chat DM`, async () => {
@@ -185,6 +213,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Close direct message', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     const messagePage = new MessgaePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevUsersCount = await helpers.countUsers();
@@ -201,6 +233,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Leave group', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
     const messagePage = new MessgaePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevGroupCount = await helpers.countGroups();
