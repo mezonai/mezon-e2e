@@ -1,0 +1,197 @@
+name: Run Report Mezon Automation Tests
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: report-automation-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  report-automation:
+    runs-on: mezon-e2e
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Install Yarn
+        run: |
+          echo "📦 Checking Yarn installation..."
+          if ! command -v yarn &> /dev/null; then
+            echo "⚠️ Yarn not found, installing globally..."
+            npm install -g yarn
+          else
+            echo "✅ Yarn is already installed: $(yarn --version)"
+          fi
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Create environment file
+        run: |
+          cat > .env << EOF
+          BASE_URL=https://dev-mezon.nccsoft.vn
+          SKIP_LOGIN=true
+          WORKERS=1
+          EOF
+
+      - name: Verify dev environment is accessible
+        run: |
+          echo "🌐 Testing connection to dev-mezon.nccsoft.vn..."
+          curl -s --head https://dev-mezon.nccsoft.vn > /dev/null || {
+            echo "❌ Cannot reach https://dev-mezon.nccsoft.vn"
+            exit 1
+          }
+          echo "✅ Dev environment is accessible!"
+
+      - name: Prepare Allure history
+        run: |
+          echo "🔧 Preparing Allure history and directories..."
+
+          # Ensure allure-results directory exists locally
+          mkdir -p allure-results
+
+          # Check if global allure directory exists, create if not
+          if [ ! -d "/home/nccsoft/allure" ]; then
+            echo "📁 Creating global allure directory..."
+            sudo mkdir -p /home/nccsoft/allure/allure-results
+            sudo mkdir -p /home/nccsoft/allure/allure-report
+            sudo chown -R www-data:www-data /home/nccsoft/allure
+            sudo chmod -R 755 /home/nccsoft/allure
+            echo "✅ Global allure directory created"
+          fi
+
+          # Copy previous allure-results from global allure directory to preserve history
+          if [ -d "/home/nccsoft/allure/allure-results" ] && [ "$(ls -A /home/nccsoft/allure/allure-results 2>/dev/null)" ]; then
+            echo "📂 Copying previous allure-results for history preservation..."
+            cp -r /home/nccsoft/allure/allure-results/* ./allure-results/ 2>/dev/null || echo "No previous results to copy"
+          else
+            echo "📝 No previous allure-results found, starting fresh"
+          fi
+
+          # Copy previous history from global allure-report to allure-results (as per Allure docs)
+          if [ -d "/home/nccsoft/allure/allure-report/history" ] && [ "$(ls -A /home/nccsoft/allure/allure-report/history 2>/dev/null)" ]; then
+            echo "📜 Preserving test history..."
+            cp -r /home/nccsoft/allure/allure-report/history ./allure-results/ 2>/dev/null || echo "Failed to copy history"
+            echo "✅ History preserved"
+          else
+            echo "📝 No previous test history found, starting fresh"
+          fi
+
+      - name: Run automation tests
+        run: npm run test
+        continue-on-error: true
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          echo "📊 Generating Allure report..."
+          npm run allure:generate || {
+            echo "⚠️ Allure generation failed, trying with clean generation..."
+            npx allure generate allure-results --clean -o allure-report --single-file
+          }
+
+      - name: Update global Allure directory
+        if: always()
+        run: |
+          echo "🔄 Updating global Allure directory..."
+
+          # Ensure global allure directory exists
+          if [ ! -d "/home/nccsoft/allure" ]; then
+            echo "📁 Creating global allure directory..."
+            sudo mkdir -p /home/nccsoft/allure
+            sudo chown www-data:www-data /home/nccsoft/allure
+            sudo chmod 755 /home/nccsoft/allure
+          fi
+
+          # Backup current global allure if it exists and has content
+          if [ -d "/home/nccsoft/allure/allure-report" ] && [ "$(ls -A /home/nccsoft/allure/allure-report 2>/dev/null)" ]; then
+            echo "💾 Backing up current allure report..."
+            sudo rm -rf /home/nccsoft/allure/allure-report.backup 2>/dev/null || true
+            sudo cp -r /home/nccsoft/allure/allure-report /home/nccsoft/allure/allure-report.backup 2>/dev/null || echo "Backup failed, continuing..."
+          else
+            echo "📝 No existing allure report to backup"
+          fi
+
+          # Replace global allure-results with new ones
+          if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
+            echo "📁 Updating allure-results..."
+            sudo rm -rf /home/nccsoft/allure/allure-results 2>/dev/null || true
+            sudo cp -r allure-results /home/nccsoft/allure/
+            sudo chown -R www-data:www-data /home/nccsoft/allure/allure-results
+            sudo chmod -R 755 /home/nccsoft/allure/allure-results
+            echo "✅ Allure results updated"
+          else
+            echo "⚠️ No allure-results to update"
+          fi
+
+          # Replace global allure-report with new ones
+          if [ -d "allure-report" ] && [ "$(ls -A allure-report 2>/dev/null)" ]; then
+            echo "📊 Updating allure-report..."
+            sudo rm -rf /home/nccsoft/allure/allure-report 2>/dev/null || true
+            sudo cp -r allure-report /home/nccsoft/allure/
+            sudo chown -R www-data:www-data /home/nccsoft/allure/allure-report
+            sudo chmod -R 755 /home/nccsoft/allure/allure-report
+            echo "✅ Allure report updated"
+          else
+            echo "⚠️ No allure-report to update"
+            # Create empty report directory if none exists
+            if [ ! -d "/home/nccsoft/allure/allure-report" ]; then
+              echo "📁 Creating empty allure-report directory..."
+              sudo mkdir -p /home/nccsoft/allure/allure-report
+              sudo chown www-data:www-data /home/nccsoft/allure/allure-report
+              sudo chmod 755 /home/nccsoft/allure/allure-report
+            fi
+          fi
+
+          echo "✅ Global Allure directory updated successfully!"
+
+      - name: Restart nginx to ensure proper serving
+        if: always()
+        run: |
+          sudo systemctl reload nginx || sudo systemctl restart nginx
+          echo "🔄 Nginx reloaded to serve new Allure report"
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+          retention-days: 7
+
+      - name: Cleanup old backups
+        if: always()
+        run: |
+          echo "🧹 Cleaning up old Allure report backup..."
+
+          # Ensure allure directory exists before cleanup
+          if [ -d "/home/nccsoft/allure" ]; then
+            cd /home/nccsoft/allure/
+            
+            # Check if backup exists
+            if [ -d "allure-report.backup" ]; then
+              echo "📊 Found existing backup folder"
+              echo "✅ Single backup maintained (allure-report.backup)"
+            else
+              echo "📝 No backup folder found"
+            fi
+          else
+            echo "📝 No allure directory found, skipping cleanup"
+          fi
+
+          echo "✅ Cleanup completed"

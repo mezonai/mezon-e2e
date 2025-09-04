@@ -77,12 +77,9 @@ export const SESSION_CONFIGS = {
  * Get session config based on environment
  */
 export const getSessionConfig = () => {
-  // TODO: remove this after local is fixed
-  const isLocal = process.env.NODE_ENV === 'development';
   return {
     host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
     port: process.env.MEZON_SESSION_PORT || '7305',
-    // ssl: isLocal ? false : (process.env.MEZON_SESSION_SSL !== 'false' || true),
     ssl: true,
   };
 };
@@ -225,11 +222,11 @@ export const getBrowserConfig = () => ({
   args: isCI()
     ? ['--disable-dev-shm-usage', '--no-sandbox']
     : [
-      '--disable-clipboard-read-write',
-      '--disable-permissions-api',
-      '--disable-features=ClipboardReadWrite',
-      '--disable-clipboard-sanitization',
-    ],
+        '--disable-clipboard-read-write',
+        '--disable-permissions-api',
+        '--disable-features=ClipboardReadWrite',
+        '--disable-clipboard-sanitization',
+      ],
 });
 
 /**
@@ -263,5 +260,3 @@ export const getLogLevel = (): number => {
   const level = process.env.LOG_LEVEL?.toUpperCase() || 'INFO';
   return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
 };
-
-

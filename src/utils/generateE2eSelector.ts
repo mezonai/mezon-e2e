@@ -11,5 +11,3 @@ export const generateE2eSelector = (key: E2eKeyType, identifier?: string) => {
 export function generateHrefSelector(href: string): string {
   return `[href="${href}"]`;
 }
-
-
