@@ -27,7 +27,7 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.addWorkItemLinks({
-      tms: '63571',
+      parrent_issue: '63571',
     });
 
     await AllureReporter.step('Navigate to clan chat page', async () => {

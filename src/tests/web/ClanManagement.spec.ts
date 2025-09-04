@@ -15,7 +15,7 @@ test.describe('Create Clan', () => {
     });
 
     await AllureReporter.addWorkItemLinks({
-      tms: '63510',
+      parrent_issue: '63510',
     });
 
     await TestSetups.clanTest({

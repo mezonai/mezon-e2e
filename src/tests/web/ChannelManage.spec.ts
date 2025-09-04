@@ -18,7 +18,7 @@ test.describe('Create New Channels', () => {
     });
 
     await AllureReporter.addWorkItemLinks({
-      tms: '63366',
+      parrent_issue: '63366',
     });
 
     await TestSetups.clanTest({

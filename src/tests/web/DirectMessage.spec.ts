@@ -28,7 +28,7 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.addWorkItemLinks({
-      tms: '63370',
+      parrent_issue: '63370',
     });
 
     const homePage = new HomePage(page);
