@@ -6,7 +6,7 @@ import { DualUserSetup } from '../../utils/dualUserSetup';
 const CLAN_CHANNEL_URL =
   'https://dev-mezon.nccsoft.vn/chat/clans/1786228934740807680/channels/1786228934753390593';
 
-test.describe('Dual Users Chat in Clan', () => {
+test.describe('Dual Users Chat in Clan @dual ', () => {
   test.beforeAll(async () => {
     await TestSetups.chatTest({
       suite: AllureConfig.Suites.CHAT_PLATFORM,
@@ -15,20 +15,12 @@ test.describe('Dual Users Chat in Clan', () => {
       severity: AllureConfig.Severity.CRITICAL,
       userCount: 2,
     });
-
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
   });
 
   test('Dual users chat in clan - edit message test', async ({ browser }, testInfo) => {
     // Initialize Allure reporting - using a mock page for initialization since this is a multi-page test
     const mockContext = await browser.newContext();
     const mockPage = await mockContext.newPage();
-
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
 
     await AllureReporter.initializeTest(mockPage, testInfo, {
       suite: AllureConfig.Suites.CHAT_PLATFORM,

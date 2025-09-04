@@ -163,6 +163,7 @@ export const DATA_E2E_IDENTIFIER = {
       button: {
         add_user: '',
         create_group: '',
+        button_plus: '',
       },
       leave_group: {
         button: '',

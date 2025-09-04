@@ -89,10 +89,6 @@ test.describe('Onboarding Guide Task Completion', () => {
   test('should mark "Send first message" task as done after user sends first message', async ({
     page,
   }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -146,10 +142,6 @@ test.describe('Onboarding Guide Task Completion', () => {
   test('should mark "Create channel" task as done after user creates a channel', async ({
     page,
   }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
