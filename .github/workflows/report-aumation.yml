@@ -22,20 +22,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'yarn'
-
-      - name: Install Yarn
-        run: |
-          echo "📦 Checking Yarn installation..."
-          if ! command -v yarn &> /dev/null; then
-            echo "⚠️ Yarn not found, installing globally..."
-            npm install -g yarn
-          else
-            echo "✅ Yarn is already installed: $(yarn --version)"
-          fi
+          cache: 'npm'
 
       - name: Install dependencies
-        run: yarn
+        run: npm i
 
       - name: Install Playwright browsers
         run: npx playwright install chromium
