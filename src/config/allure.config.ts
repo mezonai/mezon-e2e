@@ -292,4 +292,36 @@ export const TestDataGenerators = {
   },
 };
 
+export const ALLURE_LINK_TEMPLATES = {
+  github_issue: {
+    nameTemplate: "Github Issue #%s",
+    urlTemplate: "https://github.com/mezonai/mezon/issues/%s",
+  },
+  
+  issue: {
+    nameTemplate: "CHILD OPS TMS #%s",
+    urlTemplate: "https://ops.nccsoft.vn/DefaultCollection/mezon/_workitems/edit/%s",
+  },
+  
+  child_ops_tms: {
+    nameTemplate: "CHILD OPS TMS #%s",
+    urlTemplate: "https://ops.nccsoft.vn/DefaultCollection/mezon/_workitems/edit/%s",
+  },
+  
+  tms: {
+    nameTemplate: "TMS #%s",
+    urlTemplate: "https://ops.nccsoft.vn/DefaultCollection/mezon/_boards/board/t/Mezon-Automation%20team/Backlog%20items/?workitem=%s",
+  },
+} as const;
+
+export type AllureLinkType = keyof typeof ALLURE_LINK_TEMPLATES;
+
+export function getLinkTemplate(type: AllureLinkType) {
+  return ALLURE_LINK_TEMPLATES[type];
+}
+
+export function getAvailableLinkTypes(): AllureLinkType[] {
+  return Object.keys(ALLURE_LINK_TEMPLATES) as AllureLinkType[];
+}
+
 export default AllureConfig;

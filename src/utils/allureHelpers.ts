@@ -100,10 +100,27 @@ export class AllureReporter {
     }
   }
 
+  static async addWorkItemLinks(links: {
+    github_issue?: string;
+    child_ops_tms?: string;
+    tms?: string;
+  }) {
+    if (links.github_issue) {
+      await allure.issue(links.github_issue);
+    }
+    if (links.child_ops_tms) {
+      await allure.issue(links.child_ops_tms);
+    }
+    if (links.tms) {  
+      await allure.tms(links.tms);
+    }
+  }
+
   /**
    * Add test labels for better categorization
    */
   static async addLabels(labels: {
+    parentSuite?: string;
     epic?: string;
     feature?: string;
     story?: string;
@@ -112,6 +129,9 @@ export class AllureReporter {
     owner?: string;
     tag?: string[];
   }) {
+    if (labels.parentSuite) {
+      await allure.parentSuite(labels.parentSuite);
+    }
     if (labels.epic) {
       await allure.epic(labels.epic);
     }
@@ -219,13 +239,19 @@ export class AllureReporter {
       worker: testInfo.workerIndex.toString(),
     });
 
-    // Add project-specific labels
+    // Add project/test-specific labels
     await this.addLabels({
-      suite: options?.suite || testInfo.project.name,
-      subSuite: options?.subSuite,
+      parentSuite: testInfo.project.name,
+      suite: undefined,
+      subSuite: undefined,
       owner: 'Mezon QA Team',
       story: options?.story,
     });
+
+    if (options?.suite) {
+      await allure.label('package', '');
+      await allure.label('testClass', options.suite);
+    }
 
     // Add test parameters
     if (options?.testType || options?.userType || options?.severity) {
