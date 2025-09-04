@@ -49,10 +49,6 @@ test.describe('Direct Message', () => {
   const nameGroupChat = `name-groupchat-${dateTimeString}`;
 
   test('Create direct message ', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -168,7 +164,6 @@ test.describe('Direct Message', () => {
       await messagePage.addMoreMemberToGroup();
       await page.waitForTimeout(5000);
     });
-
   });
 
   test('Update name for group chat DM', async ({ page }) => {
@@ -190,10 +185,6 @@ test.describe('Direct Message', () => {
   });
 
   test('Close direct message', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     const messagePage = new MessgaePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevUsersCount = await helpers.countUsers();

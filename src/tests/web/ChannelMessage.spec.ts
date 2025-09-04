@@ -153,10 +153,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Copy image from context menu outside the message', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     const initialImageCount = await messageHelpers.countImages();
     if (initialImageCount === 0) {
       return;
@@ -575,10 +571,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Reply to a message and send', async ({ page, context }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
@@ -720,10 +712,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send message with hashtag', async ({ page, context }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     messageHelpers = new MessageTestHelpers(page);
 
     await page.goto(CLAN_CHANNEL_URL);
@@ -740,10 +728,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send message with multiple links', async ({ page, context }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 

@@ -146,10 +146,6 @@ test.describe('Create Category', () => {
   });
 
   test('Verify that I can create a private category', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -193,10 +189,6 @@ test.describe('Create Category', () => {
   });
 
   test('Verify that I can create a public category', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '',
-    });
-
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
