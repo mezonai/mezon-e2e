@@ -87,10 +87,7 @@ export class AllureReporter {
     }
   }
 
-  static async addWorkItemLinks(links: {
-    github_issue?: string;
-    tms?: string;
-  }) {
+  static async addWorkItemLinks(links: { github_issue?: string; tms?: string }) {
     if (links.github_issue) {
       await allure.issue(links.github_issue);
     }
