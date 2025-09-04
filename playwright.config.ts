@@ -1,5 +1,6 @@
 import type { GitHubActionOptions } from '@estruyf/github-actions-reporter';
 import { defineConfig, devices } from '@playwright/test';
+import { ALLURE_LINK_TEMPLATES } from './src/config/allure.config';
 import dotenv from 'dotenv';
 import { getBrowserConfig, GLOBAL_CONFIG } from './src/config/environment';
 dotenv.config();
@@ -28,7 +29,8 @@ export default defineConfig({
       {
         detail: true,
         outputFolder: 'allure-results',
-        suiteTitle: true,
+        suiteTitle: false,
+        links: ALLURE_LINK_TEMPLATES,
         environmentInfo: {
           framework: 'Playwright',
           language: 'TypeScript',

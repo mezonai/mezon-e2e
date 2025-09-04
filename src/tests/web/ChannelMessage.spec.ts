@@ -19,15 +19,6 @@ interface NavigationHelpers {
 test.describe('Channel Message Functionality', () => {
   let messageHelpers: MessageTestHelpers;
 
-  test.beforeAll(async () => {
-    await TestSetups.chatTest({
-      suite: AllureConfig.Suites.CHAT_PLATFORM,
-      subSuite: AllureConfig.SubSuites.MESSAGE_SYSTEM,
-      story: AllureConfig.Stories.TEXT_MESSAGING,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
-  });
-
   const createNavigationHelpers = (page: any): NavigationHelpers => ({
     async navigateToHomePage(): Promise<void> {
       await page.goto(MEZON_BASE_URL);
@@ -73,8 +64,6 @@ test.describe('Channel Message Functionality', () => {
 
   test.beforeEach(async ({ page, context }, testInfo) => {
     await AllureReporter.initializeTest(page, testInfo, {
-      suite: AllureConfig.Suites.CHAT_PLATFORM,
-      subSuite: AllureConfig.SubSuites.MESSAGE_SYSTEM,
       story: AllureConfig.Stories.TEXT_MESSAGING,
       severity: AllureConfig.Severity.CRITICAL,
       testType: AllureConfig.TestTypes.E2E,
@@ -167,6 +156,9 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Copy message text and send it', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+    });
     const testMessage = `Test message ${Date.now()}`;
     await messageHelpers.sendTextMessage(testMessage);
 
