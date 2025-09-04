@@ -122,7 +122,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ./mezon-e2e
-        run: npx playwright install chromium
+        run: npx playwright install
 
       - name: Create environment file
         working-directory: ./mezon-e2e
