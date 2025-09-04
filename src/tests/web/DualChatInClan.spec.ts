@@ -15,12 +15,20 @@ test.describe('Dual Users Chat in Clan', () => {
       severity: AllureConfig.Severity.CRITICAL,
       userCount: 2,
     });
+
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
   });
 
   test('Dual users chat in clan - edit message test', async ({ browser }, testInfo) => {
     // Initialize Allure reporting - using a mock page for initialization since this is a multi-page test
     const mockContext = await browser.newContext();
     const mockPage = await mockContext.newPage();
+
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
 
     await AllureReporter.initializeTest(mockPage, testInfo, {
       suite: AllureConfig.Suites.CHAT_PLATFORM,
