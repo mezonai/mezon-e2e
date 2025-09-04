@@ -225,11 +225,11 @@ export const getBrowserConfig = () => ({
   args: isCI()
     ? ['--disable-dev-shm-usage', '--no-sandbox']
     : [
-        '--disable-clipboard-read-write',
-        '--disable-permissions-api',
-        '--disable-features=ClipboardReadWrite',
-        '--disable-clipboard-sanitization',
-      ],
+      '--disable-clipboard-read-write',
+      '--disable-permissions-api',
+      '--disable-features=ClipboardReadWrite',
+      '--disable-clipboard-sanitization',
+    ],
 });
 
 /**
@@ -264,6 +264,4 @@ export const getLogLevel = (): number => {
   return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
 };
 
-export const ROUTES = {
-  DIRECT_FRIENDS: 'chat/direct/friends',
-};
+
