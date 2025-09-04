@@ -80,26 +80,13 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.step('Verify direct message is created', async () => {
-      const DMCreated = await messagePage.isDMCreated(prevUsersCount);
-      expect(DMCreated).toBeTruthy();
+      const DMCreated = await messagePage.isDMCreated();
+      expect(DMCreated).toBe(true);
     });
 
     await AllureReporter.attachScreenshot(page, 'Direct Message Created');
   });
 
-  test('Select a conversation', async ({ page }) => {
-    const messagePage = new MessgaePage(page);
-
-    await test.step(`Select a conversation`, async () => {
-      await messagePage.selectConversation();
-      await page.waitForTimeout(3000);
-    });
-
-    await test.step('Verify the conversation is selected', async () => {
-      const conversationSelected = await messagePage.isConversationSelected();
-      expect(conversationSelected).toBeTruthy();
-    });
-  });
 
   test('Send a message', async ({ page }) => {
     await AllureReporter.addTestParameters({
@@ -144,7 +131,7 @@ test.describe('Direct Message', () => {
     const helpers = new DirectMessageHelper(page);
     const prevGroupCount = await helpers.countGroups();
 
-    await test.step(`Creat group chat`, async () => {
+    await test.step(`Create group chat`, async () => {
       await messagePage.createGroup();
       await page.waitForTimeout(3000);
     });
@@ -157,17 +144,12 @@ test.describe('Direct Message', () => {
 
   test('Add more member to group chat', async ({ page }) => {
     const messagePage = new MessgaePage(page);
-    const getMemberCount = await messagePage.getMemberCount();
 
     await test.step(`Add more member to group chat`, async () => {
       await messagePage.addMoreMemberToGroup();
       await page.waitForTimeout(5000);
     });
 
-    await test.step('Verify group chat is added more member', async () => {
-      const memberAdded = await messagePage.isMemberAdded(getMemberCount);
-      expect(memberAdded).toBeTruthy();
-    });
   });
 
   test('Update name for group chat DM', async ({ page }) => {

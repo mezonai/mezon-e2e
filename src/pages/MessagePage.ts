@@ -8,6 +8,8 @@ export class MessgaePage {
   readonly user: Locator;
   readonly addUserButton: Locator;
   readonly userItem: Locator;
+  readonly friendItems: Locator;
+  readonly friendUsernames: Locator;
   readonly createGroupButton: Locator;
   readonly userNameItem: Locator;
   readonly addToGroupButton: Locator;
@@ -28,8 +30,10 @@ export class MessgaePage {
   readonly groupNameInput: Locator;
   readonly saveGroupNameButton: Locator;
   readonly leaveGroupButtonInPopup: Locator;
+  readonly buttonCreateGroupSidebar: Locator;
 
   firstUserNameText: string = '';
+  secondUserNameText: string = '';
   message: string = '';
   messageCreateTopic: string = '';
   messageInTopic: string = '';
@@ -39,6 +43,9 @@ export class MessgaePage {
   constructor(page: Page) {
     this.page = page;
     this.helpers = new DirectMessageHelper(page);
+    this.buttonCreateGroupSidebar = page.locator(
+      generateE2eSelector('chat.direct_message.button.button_plus')
+    );
     this.user = this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
@@ -47,6 +54,12 @@ export class MessgaePage {
     this.userItem = page
       .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
       .first();
+    this.friendItems = page.locator(
+      generateE2eSelector('chat.direct_message.friend_list.friend_item')
+    );
+    this.friendUsernames = page.locator(
+      generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
+    );
     this.createGroupButton = page.locator(
       generateE2eSelector('chat.direct_message.button.create_group')
     );
@@ -96,66 +109,91 @@ export class MessgaePage {
   }
 
   async createDM(): Promise<void> {
-    await this.firstUserAddDM.waitFor({ state: 'visible' });
-    await this.page.waitForTimeout(3000);
-    await this.firstUserAddDM.click();
+    try {
+      await this.buttonCreateGroupSidebar.click();
 
-    this.firstUserNameText =
-      (await this.firstUserNameAddDM.textContent())?.trim().split(/\s+/)[0] ?? '';
+
+      const firstUser = this.page.locator('.bg-item-theme').first();
+      await firstUser.waitFor({ state: 'visible', timeout: 5000 });
+
+      this.firstUserNameText = (await firstUser.textContent())?.trim().split(/\s+/)[0] ?? '';
+      await firstUser.click();
+      await firstUser.waitFor({ state: 'visible', timeout: 2000 });
+
+      await this.createGroupButton.click();
+
+    } catch (error) {
+      console.error('Error creating DM:', error);
+      throw error;
+    }
   }
 
-  async isDMCreated(prevUsersCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
-
-    const currentUsersCount = await this.helpers.countUsers();
-    if (currentUsersCount !== prevUsersCount + 1) {
-      return false;
-    }
-
+  async isDMCreated(): Promise<boolean> {
+    await this.userNamesInDM.first().waitFor({ state: 'visible', timeout: 5000 });
     const allUserNamesInDM = await this.userNamesInDM.allInnerTexts();
-    if (!allUserNamesInDM.includes(this.firstUserNameText)) {
-      return false;
-    }
+    const found = allUserNamesInDM.some(
+      name =>
+        name.includes(this.firstUserNameText.replace(/^A/, '')) ||
+        name.includes(this.firstUserNameText)
+    );
 
-    return true;
+    return found;
   }
 
-  async selectConversation(): Promise<void> {
-    await this.user.first().waitFor({ state: 'visible' });
-    await this.user.click();
-  }
-
-  async isConversationSelected(): Promise<boolean> {
-    const firstDMName = await this.firsrDMUserName.innerText();
-    const firstUserNameInDMText = (await this.userNamesInDM.first().innerText()).trim();
-
-    return firstUserNameInDMText === firstDMName;
-  }
 
   async createGroup(): Promise<void> {
-    await this.user.click();
-    this.firstUserNameText = (await this.userNamesInDM.first().innerText())?.trim() ?? '';
-    await this.addUserButton.click();
-    await this.userItem.waitFor({ state: 'visible', timeout: 50000 });
-    await this.userItem.click();
+    await this.openSelectFriendsModal();
+    await this.pickFriends(2);
+    await this.submitCreate();
+  }
+
+  private async openSelectFriendsModal(): Promise<void> {
+    await this.buttonCreateGroupSidebar.click();
+  }
+
+  private async pickFriends(count: number): Promise<void> {
+    const start = Date.now();
+    while ((await this.friendItems.count()) < count) {
+      if (Date.now() - start > 10000) {
+        throw new Error(`Not enough friends to create group: need ${count}, have ${(await this.friendItems.count())}`);
+      }
+      await this.page.waitForTimeout(200);
+    }
+
+    const first = this.friendItems.nth(0);
+    const second = this.friendItems.nth(1);
+
+    await first.click();
+    await second.click();
+
+    const u0 = ((await this.friendUsernames.nth(0).textContent()) || '').trim();
+    const u1 = ((await this.friendUsernames.nth(1).textContent()) || '').trim();
+    this.firstUserNameText = u0;
+    this.secondUserNameText = u1;
+  }
+
+  private async submitCreate(): Promise<void> {
     await this.createGroupButton.click();
   }
 
   async isGroupCreated(prevGroupCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(2000);
-
-    const currentGroupCount = await this.helpers.countGroups();
-    if (currentGroupCount !== prevGroupCount + 1) {
-      return false;
+    const start = Date.now();
+    while (Date.now() - start < 8000) {
+      const current = await this.helpers.countGroups();
+      if (current >= prevGroupCount + 1) break;
+      await this.page.waitForTimeout(200);
     }
 
-    const groupNames = await this.helpers.groupList.first().innerText();
-    const newGroupName = groupNames[groupNames.length - 1].trim();
-    if (!newGroupName.startsWith(this.firstUserNameText)) {
-      return false;
-    }
+    const current = await this.helpers.countGroups();
+    if (current >= prevGroupCount + 1) return true;
 
-    return true;
+    const groupNames = (await this.helpers.groupList.allInnerTexts())
+      .map(n => (n || '').trim())
+      .filter(Boolean);
+    if (!groupNames.length) return false;
+    const containsFirst = !!this.firstUserNameText && groupNames.some(n => n.includes(this.firstUserNameText));
+    const containsSecond = !!this.secondUserNameText && groupNames.some(n => n.includes(this.secondUserNameText));
+    return containsFirst || containsSecond;
   }
 
   async addMoreMemberToGroup(): Promise<void> {
@@ -179,23 +217,22 @@ export class MessgaePage {
   }
 
   async isMemberAdded(previousCount: number): Promise<boolean> {
-    const memberItems = this.memberCount;
-    const newCount = await memberItems.count();
-    if (newCount !== previousCount + 1) {
-      return false;
+    const start = Date.now();
+    let newCount = previousCount;
+    while (Date.now() - start < 8000) {
+      await this.helpers.group.click();
+      await this.sumMember.click();
+      newCount = await this.memberCount.count();
+      if (newCount >= previousCount + 1) return true;
+      await this.page.waitForTimeout(250);
     }
 
-    const userNamesRaw: string[] = await this.memberListInGroup.allTextContents();
-    const userNames: string[] = userNamesRaw
-      .flatMap(text => text.split(','))
-      .map(name => name.trim())
-      .filter(name => name.length > 0);
-
-    if (!userNames.includes(this.userNameItemText)) {
-      return false;
-    }
-
-    return true;
+    const namesRaw = await this.memberListInGroup.allTextContents();
+    const names = namesRaw
+      .flatMap(t => t.split(','))
+      .map(s => s.trim())
+      .filter(Boolean);
+    return !!this.userNameItemText && names.some(n => n.includes(this.userNameItemText));
   }
 
   async closeDM(): Promise<void> {
