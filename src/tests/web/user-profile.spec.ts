@@ -2,6 +2,7 @@ import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 const CLAN_CHAT_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1786228934740807680/channels/1786228934753390593`;
 
@@ -160,7 +161,7 @@ test.describe('User Profile - Clan Profiles', () => {
 
     await AllureReporter.step('Save nickname changes', async () => {
       const saveChangesBtn = page.locator(
-        '[data-e2e="user_setting-profile-clan_profile-button_save_changes"]'
+        `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`, { hasText: 'Save Changes' }
       );
       await saveChangesBtn.scrollIntoViewIfNeeded();
       await expect(saveChangesBtn).toBeVisible({ timeout: 10000 });

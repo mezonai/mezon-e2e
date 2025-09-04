@@ -11,6 +11,9 @@
  * */
 
 export const DATA_E2E_IDENTIFIER = {
+  button: {
+    base: ''
+  },
   base_profile: {
     display_name: ''
   },
@@ -109,11 +112,7 @@ export const DATA_E2E_IDENTIFIER = {
         },
       },
       create_channel: {
-        type: {
-          text: '',
-          voice: '',
-          stream: '',
-        },
+        type: '',
         input: {
           channel_name: '',
         },
