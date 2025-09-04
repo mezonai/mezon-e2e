@@ -17,6 +17,10 @@ test.describe('Create New Channels', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63366',
+    });
+
     await TestSetups.clanTest({
       subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
       operation: 'Channel Creation',
@@ -58,6 +62,10 @@ test.describe('Create New Channels', () => {
   });
 
   test('Verify that I can create a new private text channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63374',
+    });
+
     // Test metadata
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
@@ -101,6 +109,10 @@ test.describe('Create New Channels', () => {
   });
 
   test('Verify that I can create a new public text channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63374',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -143,6 +155,10 @@ test.describe('Create New Channels', () => {
   });
 
   test('Verify that I can create a new voice channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63374',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -184,6 +200,10 @@ test.describe('Create New Channels', () => {
   });
 
   test('Verify that I can create a new stream channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63374',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
