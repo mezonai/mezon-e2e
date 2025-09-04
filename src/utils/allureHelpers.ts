@@ -2,9 +2,6 @@ import { Page, TestInfo } from '@playwright/test';
 import * as allure from 'allure-js-commons';
 
 export class AllureReporter {
-  /**
-   * Add test parameters with proper options for history tracking
-   */
   static async addParameter(
     name: string,
     value: string | number | boolean,
@@ -16,9 +13,6 @@ export class AllureReporter {
     await allure.parameter(name, String(value), options);
   }
 
-  /**
-   * Add environment-specific parameters that should be hidden from comparison
-   */
   static async addEnvironmentParameters(params: {
     browser?: string;
     viewport?: string;
@@ -46,13 +40,9 @@ export class AllureReporter {
       await this.addParameter('worker', params.worker, { mode: 'hidden' });
     }
 
-    // Add timestamp for unique identification but exclude from history comparison
     await this.addParameter('execution_time', new Date().toISOString(), { excluded: true });
   }
 
-  /**
-   * Add test-specific parameters that should be included in history comparison
-   */
   static async addTestParameters(params: {
     testType?: string;
     userType?: string;
@@ -77,9 +67,6 @@ export class AllureReporter {
     }
   }
 
-  /**
-   * Add links to external systems
-   */
   static async addLinks(links: {
     jira?: string;
     testRail?: string;
@@ -102,23 +89,16 @@ export class AllureReporter {
 
   static async addWorkItemLinks(links: {
     github_issue?: string;
-    child_ops_tms?: string;
     tms?: string;
   }) {
     if (links.github_issue) {
       await allure.issue(links.github_issue);
-    }
-    if (links.child_ops_tms) {
-      await allure.issue(links.child_ops_tms);
     }
     if (links.tms) {
       await allure.tms(links.tms);
     }
   }
 
-  /**
-   * Add test labels for better categorization
-   */
   static async addLabels(labels: {
     parentSuite?: string;
     epic?: string;
@@ -157,45 +137,27 @@ export class AllureReporter {
     }
   }
 
-  /**
-   * Add test description with markdown support
-   */
   static async addDescription(description: string) {
     await allure.description(description);
   }
 
-  /**
-   * Add test step with automatic timing
-   */
   static async step<T>(name: string, body: () => Promise<T>): Promise<T> {
     return await allure.step(name, body);
   }
 
-  /**
-   * Attach screenshot with proper naming
-   */
   static async attachScreenshot(page: Page, name?: string) {
     const screenshot = await page.screenshot({ fullPage: true });
     await allure.attachment(name || 'Screenshot', screenshot, 'image/png');
   }
 
-  /**
-   * Attach video recording
-   */
   static async attachVideo(videoPath: string, name?: string) {
     await allure.attachmentPath(name || 'Video Recording', videoPath, 'video/webm');
   }
 
-  /**
-   * Attach trace file
-   */
   static async attachTrace(tracePath: string, name?: string) {
     await allure.attachmentPath(name || 'Trace', tracePath, 'application/zip');
   }
 
-  /**
-   * Generate unique test ID based on test info
-   */
   static generateTestId(testInfo: {
     title: string;
     file: string;
@@ -214,9 +176,6 @@ export class AllureReporter {
     return fullId;
   }
 
-  /**
-   * Initialize test with common Allure metadata
-   */
   static async initializeTest(
     page: Page,
     testInfo: TestInfo,
@@ -229,7 +188,6 @@ export class AllureReporter {
       userType?: string;
     }
   ) {
-    // Add common environment parameters
     await this.addEnvironmentParameters({
       browser: testInfo.project.name,
       viewport: `${page.viewportSize()?.width}x${page.viewportSize()?.height}`,
@@ -239,7 +197,6 @@ export class AllureReporter {
       worker: testInfo.workerIndex.toString(),
     });
 
-    // Add project/test-specific labels
     await this.addLabels({
       parentSuite: testInfo.project.name,
       suite: undefined,
@@ -253,7 +210,6 @@ export class AllureReporter {
       await allure.label('testClass', options.suite);
     }
 
-    // Add test parameters
     if (options?.testType || options?.userType || options?.severity) {
       await this.addTestParameters({
         testType: options.testType,
@@ -262,7 +218,6 @@ export class AllureReporter {
       });
     }
 
-    // Generate and set unique test case ID
     const testId = this.generateTestId({
       title: testInfo.title,
       file: testInfo.file,

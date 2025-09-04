@@ -157,7 +157,6 @@ test.describe('Channel Message Functionality', () => {
 
   test('Copy message text and send it', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      child_ops_tms: '63390',
       tms: '63368',
     });
     const testMessage = `Test message ${Date.now()}`;

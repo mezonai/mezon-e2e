@@ -298,16 +298,6 @@ export const ALLURE_LINK_TEMPLATES = {
     urlTemplate: 'https://github.com/mezonai/mezon/issues/%s',
   },
 
-  issue: {
-    nameTemplate: 'CHILD OPS TMS #%s',
-    urlTemplate: 'https://ops.nccsoft.vn/DefaultCollection/mezon/_workitems/edit/%s',
-  },
-
-  child_ops_tms: {
-    nameTemplate: 'CHILD OPS TMS #%s',
-    urlTemplate: 'https://ops.nccsoft.vn/DefaultCollection/mezon/_workitems/edit/%s',
-  },
-
   tms: {
     nameTemplate: 'TMS #%s',
     urlTemplate:
