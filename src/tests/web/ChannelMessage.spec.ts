@@ -69,6 +69,10 @@ test.describe('Channel Message Functionality', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
@@ -82,6 +86,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Click into an image in the message and copy from detail', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63389',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -157,8 +165,9 @@ test.describe('Channel Message Functionality', () => {
 
   test('Copy message text and send it', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63368',
+      tms: '63390',
     });
+
     const testMessage = `Test message ${Date.now()}`;
     await messageHelpers.sendTextMessage(testMessage);
 
@@ -176,6 +185,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Create topic discussion thread from message', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63391',
+    });
+
     messageHelpers = new MessageTestHelpers(page);
 
     const initialMessageCount = await messageHelpers.countMessages();
@@ -195,6 +208,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Create thread from message and send reply', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63392',
+    });
+
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(THREAD_CLAN_URL);
     await page.waitForLoadState('networkidle');
@@ -217,6 +234,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Delete message', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63393',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
@@ -235,6 +256,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Edit message', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63394',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
@@ -263,6 +288,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Forward message - select target and send', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63395',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
@@ -283,6 +312,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Forward message to general channel', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63395',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
@@ -298,6 +331,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Pin message and verify in pinned modal', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63396',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
@@ -346,6 +383,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Jump to pinned message and verify in main chat', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63397',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
@@ -383,6 +424,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Test hashtag channel functionality', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63398',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(CLAN_CHANNEL_URL);
@@ -407,6 +452,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Mention user list appears with @', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63399',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(CLAN_CHANNEL_URL);
@@ -431,6 +480,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Mention specific user and send message', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63399',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(CLAN_CHANNEL_URL);
@@ -442,6 +495,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('React to a message with 3 different emojis', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63400',
+    });
+
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(CLAN_CHANNEL_URL);
     await page.waitForLoadState('networkidle');
@@ -476,6 +533,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('React to a message with multiple emojis', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63400',
+    });
+
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(CLAN_CHANNEL_URL);
     await page.waitForLoadState('networkidle');
@@ -527,6 +588,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Search emoji in picker and apply reaction', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63401',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
@@ -546,6 +611,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Create topic discussion and send emoji message', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63391',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
@@ -568,6 +637,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send message from short profile in clan channel', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63403',
+    });
+
     messageHelpers = new MessageTestHelpers(page);
 
     await messageHelpers.clickMembersButton();
@@ -580,6 +653,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send Message With Markdown', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63404',
+    });
+
     messageHelpers = new MessageTestHelpers(page);
 
     const markdownMessage = `\`\`\`Test markdown message with code block ${Date.now()}\`\`\``;
@@ -592,6 +669,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send Message with Emoji', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63405',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
@@ -611,6 +692,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send text too large for convert to file txt', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63406',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
@@ -655,6 +740,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Send message with buzz (Ctrl+G)', async ({ page, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63407',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
