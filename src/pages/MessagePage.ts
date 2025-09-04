@@ -112,7 +112,6 @@ export class MessgaePage {
     try {
       await this.buttonCreateGroupSidebar.click();
 
-
       const firstUser = this.page.locator('.bg-item-theme').first();
       await firstUser.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -121,7 +120,6 @@ export class MessgaePage {
       await firstUser.waitFor({ state: 'visible', timeout: 2000 });
 
       await this.createGroupButton.click();
-
     } catch (error) {
       console.error('Error creating DM:', error);
       throw error;
@@ -140,7 +138,6 @@ export class MessgaePage {
     return found;
   }
 
-
   async createGroup(): Promise<void> {
     await this.openSelectFriendsModal();
     await this.pickFriends(2);
@@ -155,7 +152,9 @@ export class MessgaePage {
     const start = Date.now();
     while ((await this.friendItems.count()) < count) {
       if (Date.now() - start > 10000) {
-        throw new Error(`Not enough friends to create group: need ${count}, have ${(await this.friendItems.count())}`);
+        throw new Error(
+          `Not enough friends to create group: need ${count}, have ${await this.friendItems.count()}`
+        );
       }
       await this.page.waitForTimeout(200);
     }
@@ -191,8 +190,10 @@ export class MessgaePage {
       .map(n => (n || '').trim())
       .filter(Boolean);
     if (!groupNames.length) return false;
-    const containsFirst = !!this.firstUserNameText && groupNames.some(n => n.includes(this.firstUserNameText));
-    const containsSecond = !!this.secondUserNameText && groupNames.some(n => n.includes(this.secondUserNameText));
+    const containsFirst =
+      !!this.firstUserNameText && groupNames.some(n => n.includes(this.firstUserNameText));
+    const containsSecond =
+      !!this.secondUserNameText && groupNames.some(n => n.includes(this.secondUserNameText));
     return containsFirst || containsSecond;
   }
 

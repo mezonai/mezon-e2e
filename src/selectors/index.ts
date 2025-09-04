@@ -12,13 +12,13 @@
 
 export const DATA_E2E_IDENTIFIER = {
   avatar: {
-    image: ''
+    image: '',
   },
   button: {
-    base: ''
+    base: '',
   },
   base_profile: {
-    display_name: ''
+    display_name: '',
   },
   mention: {
     input: '',
@@ -31,8 +31,8 @@ export const DATA_E2E_IDENTIFIER = {
   discussion: {
     box: {
       thread: '',
-      topic: ''
-    }
+      topic: '',
+    },
   },
   homepage: {
     header: {
@@ -228,8 +228,8 @@ export const DATA_E2E_IDENTIFIER = {
   },
   onboarding: {
     chat: {
-      guide_sections: ''
-    }
+      guide_sections: '',
+    },
   },
   user_setting: {
     account: {
@@ -276,8 +276,8 @@ export const ROUTES = {
 
 type DotNestedKeys<T> = T extends object
   ? {
-    [K in Extract<keyof T, string>]: T[K] extends object ? K | `${K}.${DotNestedKeys<T[K]>}` : K;
-  }[Extract<keyof T, string>]
+      [K in Extract<keyof T, string>]: T[K] extends object ? K | `${K}.${DotNestedKeys<T[K]>}` : K;
+    }[Extract<keyof T, string>]
   : never;
 
 export type E2eKeyType = DotNestedKeys<typeof DATA_E2E_IDENTIFIER>;
