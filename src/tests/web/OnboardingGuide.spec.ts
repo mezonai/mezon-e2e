@@ -72,6 +72,10 @@ test.describe('Onboarding Guide Task Completion', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63452',
+    });
+
     if (clanUrl) {
       await AllureReporter.step('Navigate to test clan', async () => {
         await page.goto(clanUrl);
@@ -85,6 +89,10 @@ test.describe('Onboarding Guide Task Completion', () => {
   test('should mark "Send first message" task as done after user sends first message', async ({
     page,
   }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -138,6 +146,10 @@ test.describe('Onboarding Guide Task Completion', () => {
   test('should mark "Create channel" task as done after user creates a channel', async ({
     page,
   }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
