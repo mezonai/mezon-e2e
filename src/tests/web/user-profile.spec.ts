@@ -26,6 +26,10 @@ test.describe('User Profile - Clan Profiles', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63571',
+    });
+
     await AllureReporter.step('Navigate to clan chat page', async () => {
       await page.goto(CLAN_CHAT_URL);
       await page.waitForLoadState('networkidle');
@@ -43,6 +47,10 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test('Change avatar clan - button visible', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
@@ -83,6 +91,10 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test('Change clan nickname', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
@@ -175,6 +187,10 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test.skip('Remove avatar clan', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
@@ -212,6 +228,10 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test('Edit user profile - button visible', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
