@@ -240,6 +240,7 @@ export const DATA_E2E_IDENTIFIER = {
       edit_display_name: '',
       edit_username: '',
       set_password: '',
+      tab_account: '',
     },
     profile: {
       button_setting: '',
