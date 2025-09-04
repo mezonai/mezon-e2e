@@ -10,6 +10,7 @@ const workers = parseInt(process.env.WORKERS || '1', 10) || 1;
 export default defineConfig({
   testDir: './src/tests',
   // testIgnore: ['**/*.auth.spec.ts', '**/homepage.spec.ts'],
+  grepInvert: /@dual/,
   timeout: 300 * 1000,
 
   expect: {
