@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: yarn
 
+      - name: Install Playwright browsers
+        run: npx playwright install-deps
+
       - name: Create environment file
         run: |
           cat > .env << EOF
