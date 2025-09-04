@@ -2,7 +2,7 @@ import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { ProfilePage } from '@/pages/ProfilePage';
 
 const CLAN_CHAT_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1786228934740807680/channels/1786228934753390593`;
 
@@ -17,6 +17,7 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
+    const profilePage = new ProfilePage(page);
     await AllureReporter.initializeTest(page, testInfo, {
       suite: AllureConfig.Suites.USER_MANAGEMENT,
       subSuite: AllureConfig.SubSuites.USER_PROFILE,
@@ -31,33 +32,30 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Open user settings profile', async () => {
-      await page.waitForSelector('[data-e2e="user_setting-profile-button_setting"]', {
+      await profilePage.buttons.userSettingProfileButton.waitFor({
         state: 'visible',
-        timeout: 10000,
+        timeout: 1000,
       });
-      await page.locator('[data-e2e="user_setting-profile-button_setting"]').click();
-    });
-
-    await AllureReporter.step('Navigate to profile tab', async () => {
-      const profileTab = page.locator('[data-e2e="user_setting-profile-tab_profile"]');
-      await profileTab.waitFor({ state: 'visible', timeout: 10000 });
-      await profileTab.click();
-    });
-
-    await AllureReporter.step('Navigate to clan profile tab', async () => {
-      const clanProfileTab = page.locator('[data-e2e="user_setting-profile-clan_profile-button"]');
-      await clanProfileTab.waitFor({ state: 'visible', timeout: 10000 });
-      await clanProfileTab.click();
+      await profilePage.buttons.userSettingProfileButton.click();
     });
 
     await AllureReporter.addParameter('clanChatUrl', CLAN_CHAT_URL);
   });
 
   test('Change avatar clan - button visible', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
       severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to clan profile tab', async () => {
+      await profilePage.openClanProfileTab();
     });
 
     await AllureReporter.addDescription(`
@@ -76,10 +74,8 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Verify change avatar button is visible', async () => {
-      const changeAvatarButton = page.locator(
-        '[data-e2e="user_setting-profile-clan_profile-button_change_avatar"]'
-      );
-      await expect(changeAvatarButton).toBeVisible({ timeout: 10000 });
+      const changeAvatarButton = profilePage.buttons.changeAvatarButton;
+      await expect(changeAvatarButton).toBeVisible({ timeout: 1000 });
       await AllureReporter.addParameter('changeAvatarButtonVisible', 'Yes');
     });
 
@@ -87,10 +83,19 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test('Change clan nickname', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
       severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to clan profile tab', async () => {
+      await profilePage.openClanProfileTab();
     });
 
     await AllureReporter.addDescription(`
@@ -114,10 +119,8 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.addParameter('platform', process.platform);
 
     await AllureReporter.step('Enter new nickname', async () => {
-      const nicknameInput = page
-        .locator('[data-e2e="user_setting-profile-clan_profile-input_nickname"]')
-        .first();
-      await expect(nicknameInput).toBeVisible({ timeout: 10000 });
+      const nicknameInput = profilePage.inputs.nicknameInput;
+      await expect(nicknameInput).toBeVisible({ timeout: 1000 });
       await nicknameInput.click();
 
       const isMac = process.platform === 'darwin';
@@ -160,12 +163,10 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Save nickname changes', async () => {
-      const saveChangesBtn = page.locator(
-        `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`, { hasText: 'Save Changes' }
-      );
+      const saveChangesBtn = profilePage.buttons.saveChangesButton;
       await saveChangesBtn.scrollIntoViewIfNeeded();
-      await expect(saveChangesBtn).toBeVisible({ timeout: 10000 });
-      await expect(saveChangesBtn).toBeEnabled({ timeout: 10000 });
+      await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
+      await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
       await saveChangesBtn.click();
       await AllureReporter.addParameter('saveButtonClicked', 'Yes');
     });
@@ -173,11 +174,20 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.attachScreenshot(page, 'Clan Nickname Changed Successfully');
   });
 
-  test.skip('Remove avatar clan', async () => {
+  test.skip('Remove avatar clan', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
       severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to clan profile tab', async () => {
+      await profilePage.openClanProfileTab();
     });
 
     await AllureReporter.addDescription(`
@@ -199,5 +209,52 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     // Implementation pending
+  });
+
+  test('Edit user profile - button visible', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.step('Navigate to account tab', async () => {
+      await profilePage.openAccountTab();
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the "Edit User Profile, Edit Display Name and Edit Username" button is visible in the clan profile section.
+      
+      **Test Steps:**
+      1. Navigate to clan profile settings
+      2. Navigate to account tab
+      2. Click the Edit User Profile button, Edit Display Name button and Edit Username button
+      3. Verify the all button is visible and accessible
+      
+      **Expected Result:** The "Edit User Profile, Edit Display Name and Edit Username" button should be visible and accessible to the user.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['user-profile', 'avatar-change', 'ui-visibility', 'clan-profile'],
+    });
+
+    const buttons = [
+      profilePage.buttons.editUserprofileButton,
+      profilePage.buttons.editDisplayNameButton,
+      profilePage.buttons.editUserNameButton,
+    ];
+
+    for (const button of buttons) {
+      await AllureReporter.step(`Click button: ${await button.textContent()}`, async () => {
+        await expect(button).toBeVisible({ timeout: 1000 });
+        await button.click();
+        await profilePage.expectProfileTabsVisible();
+      });
+
+      await profilePage.openAccountTab();
+    }
+
+    await AllureReporter.attachScreenshot(page, 'Edit User Profile, Edit Display Name and Edit Username Button Visible');
   });
 });
