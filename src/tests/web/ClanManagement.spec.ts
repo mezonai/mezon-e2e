@@ -14,6 +14,10 @@ test.describe('Create Clan', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63510',
+    });
+
     await TestSetups.clanTest({
       subSuite: AllureConfig.SubSuites.CLAN_CREATION,
       operation: 'Clan Creation',
@@ -27,6 +31,10 @@ test.describe('Create Clan', () => {
   });
 
   test('Verify that I can create a Clan', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63511',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -95,6 +103,10 @@ test.describe('Create Category', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63510',
+    });
+
     await TestSetups.clanTest({
       subSuite: AllureConfig.SubSuites.CATEGORY_MANAGEMENT,
       operation: 'Category Creation',
@@ -134,6 +146,10 @@ test.describe('Create Category', () => {
   });
 
   test('Verify that I can create a private category', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -177,6 +193,10 @@ test.describe('Create Category', () => {
   });
 
   test('Verify that I can create a public category', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
