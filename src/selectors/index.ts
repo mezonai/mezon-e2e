@@ -227,13 +227,8 @@ export const DATA_E2E_IDENTIFIER = {
   },
   onboarding: {
     chat: {
-      container: {
-        invite_member: '',
-        send_first_message: '',
-        download_app: '',
-        create_channel: '',
-      },
-    },
+      guide_sections: ''
+    }
   },
   user_setting: {
     account: {
