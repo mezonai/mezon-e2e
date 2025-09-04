@@ -1,8 +1,8 @@
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { ROUTES } from '@/selectors';
+import { generateE2eSelector, generateHrefSelector } from '@/utils/generateE2eSelector';
 import { type Page, expect } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../config/environment';
 import { BasePage } from './BasePage';
-import { HOME_PAGE_PATHS } from '@/selectors';
 
 export class HomePage extends BasePage {
   constructor(page: Page) {
@@ -17,9 +17,9 @@ export class HomePage extends BasePage {
     menu: this.page.locator(generateE2eSelector('homepage.header.button.menu')),
   };
   private links = {
-    home: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${HOME_PAGE_PATHS.home}`),
-    features: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${HOME_PAGE_PATHS.features}`),
-    developers: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${HOME_PAGE_PATHS.developers}`),
+    home: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${generateHrefSelector(ROUTES.HOME)}`),
+    features: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${generateHrefSelector(ROUTES.FEATURES)}`),
+    developers: this.page.locator(`${generateE2eSelector('homepage.header.link')} ${generateHrefSelector(ROUTES.DEVELOPERS)}`),
   };
   private text = {
     copyright: this.page.locator(generateE2eSelector('homepage.footer.text.copyright')),

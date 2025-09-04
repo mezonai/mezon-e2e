@@ -1,11 +1,12 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
-import { GLOBAL_CONFIG, ROUTES } from '@/config/environment';
+import { GLOBAL_CONFIG } from '@/config/environment';
 import { MessgaePage } from '@/pages/MessagePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
+import { ROUTES } from '@/selectors';
 
 test.describe('Direct Message', () => {
   test.beforeAll(async () => {

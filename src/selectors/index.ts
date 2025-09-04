@@ -275,10 +275,11 @@ export const DATA_E2E_IDENTIFIER = {
   },
 };
 
-export const HOME_PAGE_PATHS = {
-  home: '[href="#home"]',
-  features: '[href="#feature"]',
-  developers: '[href="developers/applications"]',
+export const ROUTES = {
+  DIRECT_FRIENDS: 'chat/direct/friends',
+  HOME: '#home',
+  FEATURES: '#feature',
+  DEVELOPERS: 'developers/applications',
 };
 
 type DotNestedKeys<T> = T extends object
