@@ -111,7 +111,7 @@ export class ClanPageV2 extends BasePage {
       await this.page.waitForTimeout(2000);
       return true;
     } catch (error) {
-      console.error(`Error creating clan: ${error}`);
+      console.error(`Error deleting clan: ${error}`);
       return false;
     }
   }

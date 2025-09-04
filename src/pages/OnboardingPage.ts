@@ -17,9 +17,9 @@ export class OnboardingPage extends BasePage {
   ];
 
   private readonly taskContainerSelectorByType: Record<OnboardingTaskType, string> = {
-    sendFirstMessage: generateE2eSelector('onboarding.chat.container.send_first_message'),
-    invitePeople: generateE2eSelector('onboarding.chat.container.invite_member'),
-    createChannel: generateE2eSelector('onboarding.chat.container.create_channel'),
+    sendFirstMessage: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Send your first message")`,
+    invitePeople: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Invite your friends")`,
+    createChannel: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Create your channel")`,
   };
 
   private readonly taskDoneIndicators = [
