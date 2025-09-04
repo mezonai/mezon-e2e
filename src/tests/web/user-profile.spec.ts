@@ -119,7 +119,7 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.addParameter('platform', process.platform);
 
     await AllureReporter.step('Enter new nickname', async () => {
-      const nicknameInput = profilePage.inputs.nicknameInput; 
+      const nicknameInput = profilePage.inputs.nicknameInput;
       await expect(nicknameInput).toBeVisible({ timeout: 1000 });
       await nicknameInput.click();
 

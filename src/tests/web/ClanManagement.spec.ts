@@ -100,7 +100,7 @@ test.describe('Create Category', () => {
       operation: 'Category Creation',
     });
 
-    clanName = `Hest Clan ${Date.now()}`;
+    clanName = `New Clan ${Date.now()}`;
     const clanPage = new ClanPageV2(page);
 
     await AllureReporter.step('Navigate to direct friends page', async () => {
