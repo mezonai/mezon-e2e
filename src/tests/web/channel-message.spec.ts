@@ -19,7 +19,6 @@ interface NavigationHelpers {
 test.describe('Channel Message Functionality', () => {
   let messageHelpers: MessageTestHelpers;
 
-
   const createNavigationHelpers = (page: any): NavigationHelpers => ({
     async navigateToHomePage(): Promise<void> {
       await page.goto(MEZON_BASE_URL);
@@ -159,7 +158,7 @@ test.describe('Channel Message Functionality', () => {
   test('Copy message text and send it', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       child_ops_tms: '63390',
-      tms: '63368'
+      tms: '63368',
     });
     const testMessage = `Test message ${Date.now()}`;
     await messageHelpers.sendTextMessage(testMessage);

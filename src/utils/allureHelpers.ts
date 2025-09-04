@@ -111,7 +111,7 @@ export class AllureReporter {
     if (links.child_ops_tms) {
       await allure.issue(links.child_ops_tms);
     }
-    if (links.tms) {  
+    if (links.tms) {
       await allure.tms(links.tms);
     }
   }
