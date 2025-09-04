@@ -69,6 +69,10 @@ test.describe('Channel Message Functionality', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+    });
+
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(page);
@@ -156,9 +160,6 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test('Copy message text and send it', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63368',
-    });
     const testMessage = `Test message ${Date.now()}`;
     await messageHelpers.sendTextMessage(testMessage);
 
