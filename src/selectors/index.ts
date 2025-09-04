@@ -11,6 +11,9 @@
  * */
 
 export const DATA_E2E_IDENTIFIER = {
+  avatar: {
+    image: ''
+  },
   button: {
     base: ''
   },
@@ -248,12 +251,6 @@ export const DATA_E2E_IDENTIFIER = {
         button: '',
       },
       clan_profile: {
-        image_editor: {
-          modal: '',
-          button_reset: '',
-          button_cancel: '',
-          button_apply: '',
-        },
         button: '',
         select: '',
         input_nickname: '',
@@ -262,7 +259,6 @@ export const DATA_E2E_IDENTIFIER = {
         button_reset: '',
         button_save_changes: '',
       },
-      avatar_image: '',
     },
   },
   common: {
