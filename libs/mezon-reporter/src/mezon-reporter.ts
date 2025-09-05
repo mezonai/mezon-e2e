@@ -32,10 +32,10 @@ class MezonReporter implements Reporter {
         this.testStats.total = suite.allTests().length;
         
         // Send simple start notification
-        await this.notifier.send('🚀 Playwright test suite started', {
-            totalTests: this.testStats.total,
-            environment: process.env.NODE_ENV || 'development'
-        });
+        // await this.notifier.send('🚀 Playwright test suite started', {
+        //     totalTests: this.testStats.total,
+        //     environment: process.env.NODE_ENV || 'development'
+        // });
         
         console.log(`[Mezon] Test suite started with ${this.testStats.total} tests`);
     }
