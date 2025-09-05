@@ -34,7 +34,7 @@
     "src/**/*",
     "*.config.ts",
     "*.setup.ts"
-  ],
+, "lib"  ],
   "exclude": [
     "node_modules",
     "dist",

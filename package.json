@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.0.0",
+    "@mezon/playwright-reporter": "file:libs/mezon-reporter",
     "dotenv": "^16.4.5"
   }
 }

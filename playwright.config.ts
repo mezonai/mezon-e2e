@@ -25,6 +25,7 @@ export default defineConfig({
     ['list'],
     ['html', { open: 'never' }],
     ['json', { outputFile: 'results.json' }],
+    ['@mezon/playwright-reporter'],
     [
       'allure-playwright',
       {
