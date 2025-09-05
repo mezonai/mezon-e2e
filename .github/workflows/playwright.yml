@@ -2,10 +2,17 @@ name: Verify Automation Test Results
 
 on:
   workflow_dispatch:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+    types: [closed]
 
 jobs:
   verify-automation-tests:
     runs-on: ubuntu-latest
+    # Only run on push to develop or when PR is merged to develop
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
 
     steps:
       - name: Checkout mezon-e2e repository
@@ -115,7 +122,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ./mezon-e2e
-        run: npx playwright install chromium
+        run: npx playwright install
 
       - name: Create environment file
         working-directory: ./mezon-e2e

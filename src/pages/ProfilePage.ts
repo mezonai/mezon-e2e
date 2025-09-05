@@ -7,23 +7,42 @@ export class ProfilePage extends BasePage {
   }
 
   readonly buttons = {
-    editUserprofileButton: this.page.locator(generateE2eSelector('user_setting.account.edit_profile')),
-    editDisplayNameButton: this.page.locator(generateE2eSelector('user_setting.account.edit_display_name')),
-    editUserNameButton: this.page.locator(generateE2eSelector('user_setting.account.edit_username')),
-    saveChangesButton: this.page.locator(`${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`, { hasText: 'Save Changes' }),
-    changeAvatarButton: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')),
-    userSettingProfileButton: this.page.locator(generateE2eSelector('user_setting.profile.button_setting')),
+    editUserprofileButton: this.page.locator(
+      generateE2eSelector('user_setting.account.edit_profile')
+    ),
+    editDisplayNameButton: this.page.locator(
+      generateE2eSelector('user_setting.account.edit_display_name')
+    ),
+    editUserNameButton: this.page.locator(
+      generateE2eSelector('user_setting.account.edit_username')
+    ),
+    saveChangesButton: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
+      { hasText: 'Save Changes' }
+    ),
+    changeAvatarButton: this.page.locator(
+      generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')
+    ),
+    userSettingProfileButton: this.page.locator(
+      generateE2eSelector('user_setting.profile.button_setting')
+    ),
   };
 
   readonly tabs = {
     profileTab: this.page.locator(generateE2eSelector('user_setting.profile.tab_profile')),
-    userProfileTab: this.page.locator(generateE2eSelector('user_setting.profile.user_profile.button')),
-    clanProfileTab: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.button')),
+    userProfileTab: this.page.locator(
+      generateE2eSelector('user_setting.profile.user_profile.button')
+    ),
+    clanProfileTab: this.page.locator(
+      generateE2eSelector('user_setting.profile.clan_profile.button')
+    ),
     accountTab: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
   };
 
   readonly inputs = {
-    nicknameInput: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.input_nickname')),
+    nicknameInput: this.page.locator(
+      generateE2eSelector('user_setting.profile.clan_profile.input_nickname')
+    ),
   };
 
   async openProfileTab() {

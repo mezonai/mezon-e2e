@@ -137,7 +137,7 @@ export class MessageTestHelpers {
       if (messageTextAfterEdit.includes(newText)) {
         return;
       }
-    } catch (error) { }
+    } catch (error) {}
 
     try {
       const saveButton = this.page
@@ -152,7 +152,7 @@ export class MessageTestHelpers {
           return;
         }
       }
-    } catch (error) { }
+    } catch (error) {}
 
     try {
       await editInput.press('Escape');
@@ -177,7 +177,7 @@ export class MessageTestHelpers {
           return;
         }
       }
-    } catch (error) { }
+    } catch (error) {}
 
     throw new Error(`Edit failed: message does not contain "${newText}" after all attempts`);
   }
@@ -804,8 +804,12 @@ export class MessageTestHelpers {
 
   async sendMessageInThread(message: string, isThread?: boolean): Promise<void> {
     const threadInput = isThread
-      ? this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`)
-      : this.page.locator(`${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`);
+      ? this.page.locator(
+          `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`
+        )
+      : this.page.locator(
+          `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
+        );
 
     if (!(await threadInput.isVisible({ timeout: 5000 }))) {
       throw new Error(
@@ -1342,7 +1346,7 @@ export class MessageTestHelpers {
             await opt.click();
             await this.page.waitForTimeout(300);
             return true;
-          } catch { }
+          } catch {}
         }
       }
     }
@@ -1382,7 +1386,7 @@ export class MessageTestHelpers {
             await it.click();
             await this.page.waitForTimeout(1000);
             return true;
-          } catch { }
+          } catch {}
         }
       }
     }
@@ -1672,7 +1676,7 @@ export class MessageTestHelpers {
           .first();
         try {
           if (await cand.isVisible({ timeout: 1000 })) return cand;
-        } catch { }
+        } catch {}
       }
     }
     throw new Error('Could not find emoji search input');
@@ -1880,7 +1884,7 @@ export class MessageTestHelpers {
     await input.click();
     try {
       await input.waitFor({ state: 'visible', timeout: 1000 });
-    } catch { }
+    } catch {}
     await this.page.keyboard.press('Control+g');
     const buzzTextAreaSelectors = [
       'textarea[class*="w-[calc(100%_-_70px)]"]',
@@ -1903,7 +1907,7 @@ export class MessageTestHelpers {
         await textArea.fill(message);
         textAreaFound = true;
         break;
-      } catch { }
+      } catch {}
     }
 
     if (!textAreaFound) {
@@ -1925,7 +1929,7 @@ export class MessageTestHelpers {
         await sendButton.waitFor({ state: 'visible', timeout: 4000 });
         await sendButton.click();
         break;
-      } catch { }
+      } catch {}
     }
     await this.page.waitForLoadState('networkidle');
   }
@@ -2279,7 +2283,7 @@ export class MessageTestHelpers {
           await addReactionInMenu.click({ force: true });
           await this.page.waitForTimeout(800);
           return;
-        } catch { }
+        } catch {}
       }
       await this.page.waitForTimeout(400);
       await messageElement.hover();
@@ -2354,7 +2358,7 @@ export class MessageTestHelpers {
             }
           }
         }
-      } catch { }
+      } catch {}
     }
 
     await messageElement.click({ button: 'right' });
@@ -2385,7 +2389,7 @@ export class MessageTestHelpers {
           if (picked) {
             return picked;
           }
-        } catch { }
+        } catch {}
       }
     }
 
@@ -2607,7 +2611,7 @@ export class MessageTestHelpers {
           sendClicked = true;
           await this.page.waitForTimeout(1000);
           break;
-        } catch { }
+        } catch {}
       }
     }
 

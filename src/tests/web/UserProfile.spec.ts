@@ -259,6 +259,9 @@ test.describe('User Profile - Clan Profiles', () => {
       await profilePage.openAccountTab();
     }
 
-    await AllureReporter.attachScreenshot(page, 'Edit User Profile, Edit Display Name and Edit Username Button Visible');
+    await AllureReporter.attachScreenshot(
+      page,
+      'Edit User Profile, Edit Display Name and Edit Username Button Visible'
+    );
   });
 });

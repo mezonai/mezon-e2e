@@ -18,18 +18,26 @@ export class ClanPageV2 extends BasePage {
     ),
     createChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
     createClanCancel: this.page.locator(
-      `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`, { hasText: 'Cancel' }
+      `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
+      { hasText: 'Cancel' }
     ),
     createClanConfirm: this.page.locator(
-      `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`, { hasText: 'Create' }
+      `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
+      { hasText: 'Create' }
     ),
   };
 
   public createChannelModal = {
     type: {
-      text: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), { hasText: 'Text' }),
-      voice: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), { hasText: 'Voice' }),
-      stream: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), { hasText: 'Stream' }),
+      text: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), {
+        hasText: 'Text',
+      }),
+      voice: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), {
+        hasText: 'Voice',
+      }),
+      stream: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), {
+        hasText: 'Stream',
+      }),
     },
     input: {
       channelName: this.page.locator(
