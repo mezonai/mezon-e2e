@@ -82,8 +82,12 @@ export class MessageTestHelpers {
     await editBtn.click();
     await this.page.waitForTimeout(1000);
 
-    const mentionInput = this.page.locator(`${generateE2eSelector('chat.direct_message.message.item')} ${generateE2eSelector('mention.input')}`).first();
-    
+    const mentionInput = this.page
+      .locator(
+        `${generateE2eSelector('chat.direct_message.message.item')} ${generateE2eSelector('mention.input')}`
+      )
+      .first();
+
     if (!(await mentionInput.isVisible({ timeout: 3000 }))) {
       throw new Error('Could not find mention-input after clicking edit');
     }
@@ -418,15 +422,15 @@ export class MessageTestHelpers {
   async sendTextMessage(message: string): Promise<void> {
     const messageInput = await this.findMessageInput();
     await messageInput.click();
-    
+
     // Wait for input to be ready for typing
     await messageInput.waitFor({ state: 'attached' });
     await messageInput.fill(message);
-    
+
     // Wait for message to be typed before sending
     await messageInput.waitFor({ state: 'attached' });
     await messageInput.press('Enter');
-    
+
     // Wait for message to be sent
     await this.page.waitForLoadState('networkidle');
   }
