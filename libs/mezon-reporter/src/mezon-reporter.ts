@@ -12,20 +12,32 @@ class MezonReporter implements Reporter {
         skipped: 0,
         total: 0
     };
+    private failedTests: Array<{
+        title: string;
+        file: string;
+        error: string;
+        duration: number;
+    }> = [];
+    private testSuites: Set<string> = new Set();
+    private testFiles: Set<string> = new Set();
 
     constructor() {
+        console.log('[Mezon] MezonReporter constructor called');
         this.notifier = new MezonNotifier();
     }
 
     async onBegin(config: FullConfig, suite: Suite): Promise<void> {
+        console.log('[Mezon] onBegin called - Test suite starting');
         this.startTime = new Date();
         this.testStats.total = suite.allTests().length;
-
+        
+        // Send simple start notification
         await this.notifier.send('🚀 Playwright test suite started', {
             totalTests: this.testStats.total,
-            environment: process.env.NODE_ENV || 'development',
-            workers: config.workers
+            environment: process.env.NODE_ENV || 'development'
         });
+        
+        console.log(`[Mezon] Test suite started with ${this.testStats.total} tests`);
     }
 
     async onTestBegin(test: TestCase): Promise<void> {
@@ -33,6 +45,15 @@ class MezonReporter implements Reporter {
     }
 
     async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
+        // Collect test suite and file information
+        if (test.location?.file) {
+            this.testFiles.add(test.location.file);
+        }
+        
+        // Get test suite name from the parent suite
+        const suiteName = test.parent?.title || 'Unknown Suite';
+        this.testSuites.add(suiteName);
+
         // Update statistics
         switch (result.status) {
             case 'passed':
@@ -40,6 +61,13 @@ class MezonReporter implements Reporter {
                 break;
             case 'failed':
                 this.testStats.failed++;
+                // Store failed test details for final report
+                this.failedTests.push({
+                    title: test.title,
+                    file: test.location?.file || 'Unknown file',
+                    error: result.errors.length > 0 ? (result.errors[0].message || 'Unknown error') : 'Unknown error',
+                    duration: result.duration
+                });
                 break;
             case 'skipped':
                 this.testStats.skipped++;
@@ -51,32 +79,40 @@ class MezonReporter implements Reporter {
 
         console.log(`[Mezon] Finished test: ${test.title} - ${statusText}`);
 
-        // Send notification for failed tests or important milestones
-        if (result.status === 'failed' || this.shouldNotifyProgress()) {
-            await this.notifier.send(`${statusEmoji} ${statusText}: ${test.title}`, {
-                file: test.location?.file,
-                duration: result.duration,
-                status: result.status,
-                error: result.errors.length > 0 ? result.errors[0].message : undefined,
-                progress: `${this.testStats.passed + this.testStats.failed + this.testStats.skipped}/${this.testStats.total}`
-            });
-        }
+        // No individual test notifications - only final report
     }
 
     async onEnd(result: FullResult): Promise<void> {
-        const duration = Date.now() - this.startTime.getTime();
+        console.log('[Mezon] onEnd called - Test suite finished');
+        const endTime = new Date();
+        const duration = endTime.getTime() - this.startTime.getTime();
         const success = result.status === 'passed';
         const emoji = success ? '🎉' : '💥';
+        
+        const statusMessage = success ? 'Test Suite Completed Successfully' : 'Test Suite Completed with Issues';
 
-        await this.notifier.send(`${emoji} Playwright test suite finished`, {
+        // Prepare comprehensive final report data
+        const reportData = {
             status: result.status,
             totalTests: this.testStats.total,
             passed: this.testStats.passed,
             failed: this.testStats.failed,
             skipped: this.testStats.skipped,
-            duration: duration,
-            successRate: this.testStats.total > 0 ? Math.round((this.testStats.passed / this.testStats.total) * 100) : 0
-        });
+            totalDuration: duration,
+            successRate: this.testStats.total > 0 ? Math.round((this.testStats.passed / this.testStats.total) * 100) : 0,
+            startTime: this.startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            environment: process.env.NODE_ENV || 'development',
+            projectName: 'Mezon E2E Automation',
+            failedTests: this.failedTests,
+            // Test Suite Information
+            testSuites: Array.from(this.testSuites),
+            testFiles: Array.from(this.testFiles).map(file => file.split('/').pop() || file),
+            browserName: 'Multi-browser',
+            workers: process.env.WORKERS || '1'
+        };
+
+        await this.notifier.send(`${emoji} ${statusMessage}`, reportData);
 
         console.log(`[Mezon] Test run completed: ${result.status}`);
         console.log(`[Mezon] Results: ${this.testStats.passed} passed, ${this.testStats.failed} failed, ${this.testStats.skipped} skipped`);
