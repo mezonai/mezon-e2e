@@ -1,11 +1,15 @@
 import { Page } from '@playwright/test';
 import { MessageTestHelpers } from './messageHelpers';
+import { joinUrlPaths } from './joinUrlPaths';
+import { WEBSITE_CONFIGS } from '../config/environment';
 
 export class DualUserTestHelpers {
   constructor(private page: Page) {}
 
   async openLandingAndClickLogin() {
-    await this.page.goto('https://dev-mezon.nccsoft.vn/');
+    const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL || 'https://dev-mezon.nccsoft.vn';
+    const homeUrl = joinUrlPaths(baseUrl, '/');
+    await this.page.goto(homeUrl);
     await this.page.waitForLoadState('domcontentloaded');
 
     const selectors = [

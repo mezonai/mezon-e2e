@@ -1,4 +1,6 @@
 import { Given, Then, When } from '../../fixtures/page.fixture';
+import { joinUrlPaths } from '../../utils/joinUrlPaths';
+import { WEBSITE_CONFIGS } from '../../config/environment';
 
 Given('I am authenticated with valid session', async ({ page }) => {
   try {
@@ -27,7 +29,9 @@ Given('I am authenticated with valid session', async ({ page }) => {
 });
 
 Given('I navigate to the chat page after authentication', async ({ page }) => {
-  await page.goto('/');
+  const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL || '';
+  const homeUrl = joinUrlPaths(baseUrl, '/');
+  await page.goto(homeUrl);
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000);
 
@@ -42,7 +46,9 @@ Given('I navigate to the chat page after authentication', async ({ page }) => {
     // Ignore errors
     console.log('⚠️ Cannot check localStorage at this point');
   }
-  await page.goto('/chat/direct/friends');
+
+  const directFriendsUrl = joinUrlPaths(baseUrl, '/chat/direct/friends');
+  await page.goto(directFriendsUrl);
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(3000);
 

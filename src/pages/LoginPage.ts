@@ -2,6 +2,7 @@ import { type Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { type MezonTestUser } from '../data/static/TestUsers';
 import { WEBSITE_CONFIGS } from '../config/environment';
+import { joinUrlPaths } from '../utils/joinUrlPaths';
 
 export class LoginPage extends BasePage {
   private selectors = {
@@ -40,7 +41,9 @@ export class LoginPage extends BasePage {
   }
 
   async navigateToLoginPage(): Promise<void> {
-    await this.page.goto(`${this.baseURL}/login`);
+    const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL || '';
+    const loginUrl = joinUrlPaths(baseUrl, '/login');
+    await this.page.goto(loginUrl);
     await this.waitForPageLoad();
   }
 

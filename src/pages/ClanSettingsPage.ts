@@ -1,5 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { joinUrlPaths } from '../utils/joinUrlPaths';
+import { WEBSITE_CONFIGS } from '../config/environment';
 
 export class ClanSettingsPage extends BasePage {
   private readonly clanMenuSelectors = [
@@ -704,7 +706,9 @@ export class ClanSettingsPage extends BasePage {
 
       if (!buttonFound) {
         // Fallback: try direct navigation
-        await this.page.goto('/chat');
+        const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL || '';
+        const chatUrl = joinUrlPaths(baseUrl, '/chat');
+        await this.page.goto(chatUrl);
       }
 
       // Wait for navigation to complete
@@ -718,7 +722,9 @@ export class ClanSettingsPage extends BasePage {
    */
   async navigateToClanPage(): Promise<void> {
     const currentUrl = this.page.url();
-    const targetClanUrl = '/chat/clans/1786228934740807680/channels/1786228934753390593';
+    const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL || '';
+    const targetClanPath = '/chat/clans/1786228934740807680/channels/1786228934753390593';
+    const targetClanUrl = joinUrlPaths(baseUrl, targetClanPath);
 
     // Check if already in the target clan page
     if (currentUrl.includes('/chat/clans/1786228934740807680')) {
