@@ -1,12 +1,6 @@
 import dotenv from 'dotenv';
-
-// Load environment variables
 dotenv.config();
 
-/**
- * Environment Configuration
- * Centralized configuration for different environments
- */
 export interface EnvironmentConfig {
   baseURL: string;
   timeout: {
@@ -52,9 +46,6 @@ export const GLOBAL_CONFIG = {
   SKIP_LOGIN: process.env.SKIP_LOGIN === 'true',
 } as const;
 
-/**
- * Website configurations for different test targets
- */
 export const WEBSITE_CONFIGS = {
   MEZON: {
     baseURL: process.env.BASE_URL,
@@ -62,9 +53,6 @@ export const WEBSITE_CONFIGS = {
   },
 } as const;
 
-/**
- * Session configurations for localStorage
- */
 export const SESSION_CONFIGS = {
   MEZON_SESSION: {
     host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
@@ -73,9 +61,6 @@ export const SESSION_CONFIGS = {
   },
 } as const;
 
-/**
- * Get session config based on environment
- */
 export const getSessionConfig = () => {
   return {
     host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
@@ -84,17 +69,11 @@ export const getSessionConfig = () => {
   };
 };
 
-/**
- * Local development configuration
- */
 export const LOCAL_CONFIG = {
   isLocal: process.env.NODE_ENV === 'development',
   skipLogin: process.env.SKIP_LOGIN === 'true' || process.env.NODE_ENV === 'development',
 } as const;
 
-/**
- * Authentication data for local development
- */
 export const LOCAL_AUTH_DATA = {
   persist: {
     key: 'persist:auth',
@@ -106,9 +85,6 @@ export const LOCAL_AUTH_DATA = {
   },
 } as const;
 
-/**
- * Get environment configuration based on NODE_ENV
- */
 function getEnvironmentConfig(): EnvironmentConfig {
   const env = process.env.NODE_ENV || 'development';
   const website = process.env.WEBSITE || 'MEZON';
@@ -201,21 +177,11 @@ function getEnvironmentConfig(): EnvironmentConfig {
   }
 }
 
-// Export the current environment configuration
 export const ENV_CONFIG = getEnvironmentConfig();
 
-/**
- * Utility functions for environment checks
- */
 export const isProduction = () => process.env.NODE_ENV === 'production';
-export const isStaging = () => process.env.NODE_ENV === 'staging';
-export const isDevelopment = () => process.env.NODE_ENV === 'development';
 export const isCI = () => !!process.env.CI;
-export const isDebugMode = () => process.env.DEBUG === 'true';
 
-/**
- * Browser configuration helper
- */
 export const getBrowserConfig = () => ({
   headless: ENV_CONFIG.browser.headless,
   slowMo: ENV_CONFIG.browser.slowMo,
@@ -229,9 +195,6 @@ export const getBrowserConfig = () => ({
       ],
 });
 
-/**
- * Test configuration helper
- */
 export const getTestConfig = () => ({
   timeout: ENV_CONFIG.timeout.default,
   retries: ENV_CONFIG.retries,
@@ -246,9 +209,6 @@ export const getTestConfig = () => ({
   },
 });
 
-/**
- * Logging configuration
- */
 export const LOG_LEVELS = {
   ERROR: 0,
   WARN: 1,
