@@ -189,6 +189,22 @@ export const DATA_E2E_IDENTIFIER = {
           button: '',
         },
       },
+      header: {
+        buttons: '',
+      },
+      friend_request_form: {
+        input: '',
+      },
+      friend_status_list: {
+        header: {
+          title: '',
+        },
+        list: {
+          item: {
+            username: '',
+          },
+        },
+      },
     },
     channel_message: {
       header: {

@@ -31,6 +31,13 @@ export class MessgaePage {
   readonly saveGroupNameButton: Locator;
   readonly leaveGroupButtonInPopup: Locator;
   readonly buttonCreateGroupSidebar: Locator;
+  readonly pendingFriendStatusButton: Locator;
+  readonly addFriendButton: Locator;
+  readonly friendRequestFormInput: Locator;
+  readonly friendRequestFormSubmitButton: Locator;
+  readonly friendStatusListTitle: Locator;
+  readonly friendStatusListItem: Locator;
+  readonly friendStatusListUsername: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -105,6 +112,30 @@ export class MessgaePage {
     this.saveGroupNameButton = page.locator('button:has-text("Save")');
     this.leaveGroupButtonInPopup = page.locator(
       generateE2eSelector('chat.direct_message.menu.leave_group.button')
+    );
+    this.addFriendButton = page.locator(
+      `${generateE2eSelector('chat.direct_message.header')} ${generateE2eSelector('button.base')}`,
+      { hasText: 'Add Friend' }
+    );
+    this.pendingFriendStatusButton = page.locator(
+      generateE2eSelector('chat.direct_message.header.buttons'),
+      { hasText: 'Pending' }
+    );
+    this.friendRequestFormInput = page.locator(
+      generateE2eSelector('chat.direct_message.friend_request_form.input')
+    );
+    this.friendRequestFormSubmitButton = page.locator(
+      `${generateE2eSelector('chat.direct_message.friend_request_form')} ${generateE2eSelector('button.base')}`,
+      { hasText: 'Send Friend Request' }
+    );
+    this.friendStatusListTitle = page.locator(
+      generateE2eSelector('chat.direct_message.friend_status_list.header.title')
+    );
+    this.friendStatusListItem = page.locator(
+      generateE2eSelector('chat.direct_message.friend_status_list.list.item.username')
+    );
+    this.friendStatusListUsername = page.locator(
+      generateE2eSelector('chat.direct_message.friend_status_list.list.item.username')
     );
   }
 
@@ -308,5 +339,20 @@ export class MessgaePage {
   async isGroupNameDMUpdated(): Promise<boolean> {
     const groupName = (await this.helpers.groupName.innerText()).trim();
     return groupName === this.groupNameText;
+  }
+
+  async addFriendByUsername(username: string): Promise<void> {
+    await this.addFriendButton.click();
+    await this.friendRequestFormInput.fill(username);
+    await this.friendRequestFormSubmitButton.click();
+  }
+
+  async isFriendRequestSent(username: string): Promise<boolean> {
+    await this.pendingFriendStatusButton.click();
+    if ((await this.friendStatusListTitle.innerText()).includes('PENDING')) {
+      const friendStatusList = await this.friendStatusListUsername.allInnerTexts();
+      return friendStatusList.some(status => status.includes(username));
+    }
+    return false;
   }
 }
