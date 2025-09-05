@@ -16,9 +16,12 @@ export class ProfilePage extends BasePage {
     editUserNameButton: this.page.locator(
       generateE2eSelector('user_setting.account.edit_username')
     ),
-    saveChangesButton: this.page.locator(
+    saveChangesClanProfileButton: this.page.locator(
       `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Save Changes' }
+    ),
+    saveChangesUserProfileButton: this.page.locator(
+      generateE2eSelector('user_setting.profile.user_profile.button.save_changes')
     ),
     changeAvatarButton: this.page.locator(
       generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')
@@ -43,6 +46,9 @@ export class ProfilePage extends BasePage {
     nicknameInput: this.page.locator(
       generateE2eSelector('user_setting.profile.clan_profile.input_nickname')
     ),
+    displayNameInput: this.page.locator(
+      generateE2eSelector('user_setting.profile.user_profile.input.display_name')
+    ),
   };
 
   async openProfileTab() {
@@ -63,5 +69,14 @@ export class ProfilePage extends BasePage {
   async expectProfileTabsVisible() {
     await expect(this.tabs.userProfileTab).toBeVisible({ timeout: 1000 });
     await expect(this.tabs.clanProfileTab).toBeVisible({ timeout: 1000 });
+  }
+
+  async openUserProfileTab() {
+    await this.tabs.userProfileTab.waitFor({ state: 'visible', timeout: 1000 });
+    await this.tabs.userProfileTab.click();
+  }
+
+  async verifyDisplayNameUpdated(displayName: string) {
+    await expect(this.inputs.displayNameInput).toHaveValue(displayName, { timeout: 2000 });
   }
 }
