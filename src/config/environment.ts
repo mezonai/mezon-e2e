@@ -1,12 +1,6 @@
 import dotenv from 'dotenv';
-
-// Load environment variables
 dotenv.config();
 
-/**
- * Environment Configuration
- * Centralized configuration for different environments
- */
 export interface EnvironmentConfig {
   baseURL: string;
   timeout: {
@@ -52,9 +46,6 @@ export const GLOBAL_CONFIG = {
   SKIP_LOGIN: process.env.SKIP_LOGIN === 'true',
 } as const;
 
-/**
- * Website configurations for different test targets
- */
 export const WEBSITE_CONFIGS = {
   MEZON: {
     baseURL: process.env.BASE_URL,
@@ -62,9 +53,6 @@ export const WEBSITE_CONFIGS = {
   },
 } as const;
 
-/**
- * Session configurations for localStorage
- */
 export const SESSION_CONFIGS = {
   MEZON_SESSION: {
     host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
@@ -73,31 +61,19 @@ export const SESSION_CONFIGS = {
   },
 } as const;
 
-/**
- * Get session config based on environment
- */
 export const getSessionConfig = () => {
-  // TODO: remove this after local is fixed
-  const isLocal = process.env.NODE_ENV === 'development';
   return {
     host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
     port: process.env.MEZON_SESSION_PORT || '7305',
-    // ssl: isLocal ? false : (process.env.MEZON_SESSION_SSL !== 'false' || true),
     ssl: true,
   };
 };
 
-/**
- * Local development configuration
- */
 export const LOCAL_CONFIG = {
   isLocal: process.env.NODE_ENV === 'development',
   skipLogin: process.env.SKIP_LOGIN === 'true' || process.env.NODE_ENV === 'development',
 } as const;
 
-/**
- * Authentication data for local development
- */
 export const LOCAL_AUTH_DATA = {
   persist: {
     key: 'persist:auth',
@@ -109,9 +85,6 @@ export const LOCAL_AUTH_DATA = {
   },
 } as const;
 
-/**
- * Get environment configuration based on NODE_ENV
- */
 function getEnvironmentConfig(): EnvironmentConfig {
   const env = process.env.NODE_ENV || 'development';
   const website = process.env.WEBSITE || 'MEZON';
@@ -204,37 +177,24 @@ function getEnvironmentConfig(): EnvironmentConfig {
   }
 }
 
-// Export the current environment configuration
 export const ENV_CONFIG = getEnvironmentConfig();
 
-/**
- * Utility functions for environment checks
- */
 export const isProduction = () => process.env.NODE_ENV === 'production';
-export const isStaging = () => process.env.NODE_ENV === 'staging';
-export const isDevelopment = () => process.env.NODE_ENV === 'development';
 export const isCI = () => !!process.env.CI;
-export const isDebugMode = () => process.env.DEBUG === 'true';
 
-/**
- * Browser configuration helper
- */
 export const getBrowserConfig = () => ({
   headless: ENV_CONFIG.browser.headless,
   slowMo: ENV_CONFIG.browser.slowMo,
   args: isCI()
     ? ['--disable-dev-shm-usage', '--no-sandbox']
     : [
-      '--disable-clipboard-read-write',
-      '--disable-permissions-api',
-      '--disable-features=ClipboardReadWrite',
-      '--disable-clipboard-sanitization',
-    ],
+        '--disable-clipboard-read-write',
+        '--disable-permissions-api',
+        '--disable-features=ClipboardReadWrite',
+        '--disable-clipboard-sanitization',
+      ],
 });
 
-/**
- * Test configuration helper
- */
 export const getTestConfig = () => ({
   timeout: ENV_CONFIG.timeout.default,
   retries: ENV_CONFIG.retries,
@@ -249,9 +209,6 @@ export const getTestConfig = () => ({
   },
 });
 
-/**
- * Logging configuration
- */
 export const LOG_LEVELS = {
   ERROR: 0,
   WARN: 1,
@@ -263,5 +220,3 @@ export const getLogLevel = (): number => {
   const level = process.env.LOG_LEVEL?.toUpperCase() || 'INFO';
   return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
 };
-
-

@@ -44,9 +44,6 @@ export function getEnvironment(name: EnvironmentName): Environment {
   return environments[name];
 }
 
-export function isProduction(): boolean {
-  return getCurrentEnvironment().name === 'prod';
-}
 
 export function getTestTimeout(): number {
   const env = getCurrentEnvironment();

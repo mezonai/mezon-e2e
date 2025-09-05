@@ -8,9 +8,9 @@ export class CategoryPage extends BasePage {
   }
 
   readonly buttons = {
-    createCategory: this.page.locator(
-      generateE2eSelector('clan_page.header.modal_panel.item'), { hasText: 'Create Category' }
-    ),
+    createCategory: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Create Category',
+    }),
     private: this.page.locator(
       generateE2eSelector('clan_page.modal.create_category.toggle.private')
     ),
@@ -20,12 +20,12 @@ export class CategoryPage extends BasePage {
     confirmCreateCategory: this.page.locator(
       generateE2eSelector('clan_page.modal.create_category.button.confirm')
     ),
-    showEmpty: this.page.locator(
-      generateE2eSelector('clan_page.header.modal_panel.item'), { hasText: 'Show Empty Categories' }
-    ),
-    clanSettings: this.page.locator(
-      generateE2eSelector('clan_page.header.modal_panel.item'), { hasText: 'Clan Settings' }
-    ),
+    showEmpty: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Show Empty Categories',
+    }),
+    clanSettings: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Clan Settings',
+    }),
   };
   readonly links = {};
   readonly text = {

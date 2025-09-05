@@ -59,7 +59,6 @@ export class ClanSettingsPage extends BasePage {
     const currentUrl = this.page.url();
 
     if (!currentUrl.includes('/chat/clans/')) {
-
       const clanNavigationSelectors = [
         '[href*="/chat/clans/"]',
         'a:has-text("CLAN TEST LOCAL")',
@@ -126,7 +125,6 @@ export class ClanSettingsPage extends BasePage {
     }
 
     if (!clanDropdownFound) {
-
       const clanTextElements = this.page.getByText(/CLAN.*TEST.*LOCAL/i);
       const textCount = await clanTextElements.count();
 
@@ -277,7 +275,7 @@ export class ClanSettingsPage extends BasePage {
             visibleModals++;
           }
         }
-      } catch { }
+      } catch {}
     }
 
     return visibleModals;
@@ -306,11 +304,10 @@ export class ClanSettingsPage extends BasePage {
         if (style && style.includes('z-index')) {
           const isVisible = await element.isVisible();
           if (isVisible) {
-
             return { isDisplayed: true, selector: `Element with z-index at position ${i}` };
           }
         }
-      } catch { }
+      } catch {}
     }
 
     return { isDisplayed: false };
@@ -367,12 +364,6 @@ export class ClanSettingsPage extends BasePage {
           const viewportSize = this.page.viewportSize();
           const isInBottomHalf =
             boundingBox && viewportSize && boundingBox.y > viewportSize.height * 0.5;
-
-
-
-
-
-
 
           return true;
         }
@@ -442,7 +433,6 @@ export class ClanSettingsPage extends BasePage {
    * Take screenshot and analyze all input elements on page
    */
   async debugAllInputs(): Promise<void> {
-
     await this.takeScreenshot('debug-all-inputs');
 
     // Get all input and textarea elements
@@ -465,7 +455,6 @@ export class ClanSettingsPage extends BasePage {
         }
       } catch {
         // Ignore errors
-
       }
     }
   }
@@ -493,7 +482,6 @@ export class ClanSettingsPage extends BasePage {
       inputTriggered: boolean;
     }>;
   }> {
-
     // Take initial screenshot and capture initial state
     await this.takeScreenshot('esc-test-initial-state');
 
@@ -503,7 +491,6 @@ export class ClanSettingsPage extends BasePage {
     const initialModalCount = await this.getVisibleModalCount();
     const initialInputVisible = await this.isMentionInputVisible();
     const initialInputDetails = await this.getMentionInputDetails();
-
 
     const escPressResults: Array<{
       pressNumber: number;
@@ -517,13 +504,9 @@ export class ClanSettingsPage extends BasePage {
 
     // Even if no modals detected, still test ESC key to see if it triggers mention input
     if (initialModalCount === 0) {
-
       // Test ESC key press even without visible modals
       const inputBeforeESC = await this.isMentionInputVisible();
       const inputDetailsBeforeESC = await this.getMentionInputDetails();
-
-
-
 
       await this.pressEscKey();
       await this.page.waitForTimeout(2000); // Wait longer for potential input to appear
@@ -547,20 +530,7 @@ export class ClanSettingsPage extends BasePage {
       // Test should FAIL if any of these conditions are true:
       const inputTriggered = newInputAppeared || inputBecameFocused || inputVisibilityChanged;
 
-
-
-
-
-
-
-
-
-
       if (inputStateChanged) {
-
-
-
-
         // Specific change analysis
         if (inputDetailsBeforeESC.focused !== inputDetailsAfterESC.focused) {
           console.log(
@@ -591,7 +561,6 @@ export class ClanSettingsPage extends BasePage {
       const escTriggeredInput = inputTriggered; // Use the enhanced logic
       const testResult: 'PASS' | 'FAIL' = escTriggeredInput ? 'FAIL' : 'PASS';
 
-
       console.log(
         `   Reason: ${escTriggeredInput ? 'ESC triggered mention input (FAIL)' : 'ESC did not trigger mention input (PASS)'}`
       );
@@ -619,8 +588,6 @@ export class ClanSettingsPage extends BasePage {
     while (currentModalCount > 0 && escPressCount < maxEscPresses) {
       escPressCount++;
 
-
-
       // Capture input state before ESC
       const inputBeforeESC = await this.isMentionInputVisible();
 
@@ -636,12 +603,6 @@ export class ClanSettingsPage extends BasePage {
       const inputAfterESC = await this.isMentionInputVisible();
       const closedCount = currentModalCount - modalCountAfterESC;
       const inputTriggered = !inputBeforeESC && inputAfterESC;
-
-
-
-
-
-
 
       if (inputTriggered) {
       }
@@ -659,22 +620,18 @@ export class ClanSettingsPage extends BasePage {
 
       // Analyze the behavior
       if (closedCount === 0) {
-
         break;
       } else if (closedCount === 1) {
-
       } else if (closedCount > 1) {
         console.log(
           `❌ BUG DETECTED: ESC press #${escPressCount} closed ${closedCount} modals at once!`
         );
-
 
         closedAllAtOnce = true;
       }
 
       // Special case: first ESC closed ALL modals when there were multiple
       if (escPressCount === 1 && initialModalCount > 1 && modalCountAfterESC === 0) {
-
         closedAllAtOnce = true;
         break;
       }
@@ -685,7 +642,6 @@ export class ClanSettingsPage extends BasePage {
     // Final analysis
     const finalModalCount = await this.getVisibleModalCount();
     await this.takeScreenshot('esc-test-final-state');
-
 
     // Print detailed results
     escPressResults.forEach(result => {
@@ -699,7 +655,6 @@ export class ClanSettingsPage extends BasePage {
     const escTriggeredInput = !initialInputVisible && finalInputVisible;
     const anyInputTriggered = escPressResults.some(result => result.inputTriggered);
     const testResult: 'PASS' | 'FAIL' = escTriggeredInput || anyInputTriggered ? 'FAIL' : 'PASS';
-
 
     return {
       initialModalCount,
@@ -723,7 +678,6 @@ export class ClanSettingsPage extends BasePage {
 
     // Check if we're on the landing page
     if (currentUrl.includes('dev-mezon.nccsoft.vn') && !currentUrl.includes('/chat')) {
-
       const openMezonSelectors = [
         'button:has-text("Open Mezon")',
         'a:has-text("Open Mezon")',
@@ -738,7 +692,6 @@ export class ClanSettingsPage extends BasePage {
         try {
           const button = this.page.locator(selector).first();
           if (await button.isVisible({ timeout: 3000 })) {
-
             await button.click();
             buttonFound = true;
             break;
@@ -757,8 +710,6 @@ export class ClanSettingsPage extends BasePage {
       // Wait for navigation to complete
       await this.page.waitForLoadState('networkidle');
       await this.page.waitForTimeout(3000);
-
-
     }
   }
 
@@ -774,14 +725,12 @@ export class ClanSettingsPage extends BasePage {
       return;
     }
 
-
     try {
       await this.page.goto(targetClanUrl);
       await this.page.waitForLoadState('networkidle');
       await this.page.waitForTimeout(3000);
 
       const newUrl = this.page.url();
-
 
       // Verify we're in the correct clan
       if (newUrl.includes('/chat/clans/1786228934740807680')) {
@@ -790,7 +739,6 @@ export class ClanSettingsPage extends BasePage {
       }
     } catch {
       // Ignore errors
-
 
       // Fallback: try to find clan link in current page
       const clanLinkSelectors = [
@@ -803,7 +751,6 @@ export class ClanSettingsPage extends BasePage {
         try {
           const link = this.page.locator(selector).first();
           if (await link.isVisible({ timeout: 2000 })) {
-
             await link.click();
             await this.page.waitForLoadState('networkidle');
             await this.page.waitForTimeout(2000);

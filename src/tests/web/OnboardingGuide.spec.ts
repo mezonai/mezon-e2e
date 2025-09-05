@@ -72,6 +72,10 @@ test.describe('Onboarding Guide Task Completion', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      tms: '63452',
+    });
+
     if (clanUrl) {
       await AllureReporter.step('Navigate to test clan', async () => {
         await page.goto(clanUrl);

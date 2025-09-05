@@ -8,6 +8,12 @@ export class MessageTestHelpers {
     this.page = page;
   }
 
+  private getMessageItemLocator(textContains?: string): Locator {
+    const selector = generateE2eSelector('chat.direct_message.message.item');
+    const base = this.page.locator(selector);
+    return textContains ? base.filter({ hasText: textContains }) : base;
+  }
+
   async findReplyOption(): Promise<Locator> {
     const replySelectors = [
       'text="Reply"',
@@ -54,132 +60,40 @@ export class MessageTestHelpers {
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
-    await this.page.waitForTimeout(800);
 
     const replyBtn = await this.findReplyOption();
     await replyBtn.click();
-    await this.page.waitForTimeout(800);
 
     const input = await this.findMessageInput();
     await input.click();
+    await input.waitFor({ state: 'attached' });
     await input.fill(replyText);
-    await this.page.waitForTimeout(300);
+    await input.waitFor({ state: 'attached' });
     await input.press('Enter');
-    await this.page.waitForTimeout(1500);
+    await this.page.waitForLoadState('networkidle');
   }
 
   async editMessage(messageElement: Locator, newText: string): Promise<void> {
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
-    await this.page.waitForTimeout(1000);
 
     const editBtn = await this.findEditOption();
     await editBtn.click();
     await this.page.waitForTimeout(1000);
 
-    const editInputSelectors = [
-      'div[contenteditable="true"]:not(.mentions_input):not(.mentions_control)',
-      'input[type="text"]:not([readonly])',
-      'textarea:not([readonly]):not(#editorReactMentionChannel)',
-      '.edit-input',
-      '.message-edit-input',
-      '[data-testid="message-edit-input"]',
-      'div[contenteditable="true"]:focus',
-      'input:focus',
-      'textarea:focus',
-    ];
-
-    let editInput = null;
-    for (const selector of editInputSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 2000 })) {
-        const isComposer = await element.evaluate(el => {
-          const parent = el.closest(
-            '.mentions, .mentions_control, .mentions_input, textarea#editorReactMentionChannel'
-          );
-          return parent !== null;
-        });
-
-        if (!isComposer) {
-          editInput = element;
-          break;
-        }
-      }
+    const mentionInput = this.page.locator(`${generateE2eSelector('chat.direct_message.message.item')} ${generateE2eSelector('mention.input')}`).first();
+    
+    if (!(await mentionInput.isVisible({ timeout: 3000 }))) {
+      throw new Error('Could not find mention-input after clicking edit');
     }
 
-    if (!editInput) {
-      throw new Error('Could not find edit input after clicking Edit Message');
-    }
-
-    await editInput.click();
-    await editInput.focus();
+    await mentionInput.click();
+    await mentionInput.focus();
+    await mentionInput.fill(newText);
+    await mentionInput.press('Enter');
+    await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(2000);
-
-    let currentContent = (await editInput.textContent()) || '';
-    if (!currentContent.includes('@kien.trinh')) {
-      await editInput.fill('@kien.trinh test');
-      await this.page.waitForTimeout(1000);
-      currentContent = (await editInput.textContent()) || '';
-    }
-
-    await editInput.type(` ${newText}`);
-    await this.page.waitForTimeout(1000);
-
-    const finalContent = (await editInput.textContent()) || '';
-
-    try {
-      await editInput.press('Enter');
-      await this.page.waitForTimeout(2000);
-
-      const messageTextAfterEdit = (await messageElement.textContent()) || '';
-
-      if (messageTextAfterEdit.includes(newText)) {
-        return;
-      }
-    } catch (error) { }
-
-    try {
-      const saveButton = this.page
-        .locator('button:has-text("Save"), .save-btn, [data-testid="save-edit"]')
-        .first();
-      if (await saveButton.isVisible({ timeout: 2000 })) {
-        await saveButton.click();
-        await this.page.waitForTimeout(2000);
-
-        const messageTextAfterSave = (await messageElement.textContent()) || '';
-        if (messageTextAfterSave.includes(newText)) {
-          return;
-        }
-      }
-    } catch (error) { }
-
-    try {
-      await editInput.press('Escape');
-      await this.page.waitForTimeout(1000);
-
-      await messageElement.click({ button: 'right' });
-      await this.page.waitForTimeout(1000);
-      const editBtn = await this.findEditOption();
-      await editBtn.click();
-      await this.page.waitForTimeout(1000);
-
-      const newEditInput = this.page
-        .locator('div[contenteditable="true"]:focus, input:focus, textarea:focus')
-        .first();
-      if (await newEditInput.isVisible({ timeout: 2000 })) {
-        await newEditInput.fill(`@kien.trinh test ${newText}`);
-        await newEditInput.press('Enter');
-        await this.page.waitForTimeout(2000);
-
-        const finalMessageText = (await messageElement.textContent()) || '';
-        if (finalMessageText.includes(newText)) {
-          return;
-        }
-      }
-    } catch (error) { }
-
-    throw new Error(`Edit failed: message does not contain "${newText}" after all attempts`);
   }
 
   async verifyLastMessageIsReplyTo(
@@ -504,11 +418,26 @@ export class MessageTestHelpers {
   async sendTextMessage(message: string): Promise<void> {
     const messageInput = await this.findMessageInput();
     await messageInput.click();
-    await this.page.waitForTimeout(500);
+    
+    // Wait for input to be ready for typing
+    await messageInput.waitFor({ state: 'attached' });
     await messageInput.fill(message);
-    await this.page.waitForTimeout(500);
+    
+    // Wait for message to be typed before sending
+    await messageInput.waitFor({ state: 'attached' });
     await messageInput.press('Enter');
-    await this.page.waitForTimeout(2000);
+    
+    // Wait for message to be sent
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  async sendTextMessageAndGetItem(message: string) {
+    await this.sendTextMessage(message);
+
+    const locator = this.getMessageItemLocator(message).last();
+
+    await locator.waitFor({ state: 'visible', timeout: 8000 });
+    return locator;
   }
 
   async findLastMessage(): Promise<Locator> {
@@ -804,22 +733,25 @@ export class MessageTestHelpers {
 
   async sendMessageInThread(message: string, isThread?: boolean): Promise<void> {
     const threadInput = isThread
-      ? this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`)
-      : this.page.locator(`${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`);
+      ? this.page.locator(
+          `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`
+        )
+      : this.page.locator(
+          `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
+        );
 
     if (!(await threadInput.isVisible({ timeout: 5000 }))) {
       throw new Error(
         'Could not find thread input area with data-e2e="chat-mention-input-mention_topic"'
       );
     }
-
     await threadInput.scrollIntoViewIfNeeded();
     await threadInput.click();
-    await this.page.waitForTimeout(500);
+    await threadInput.waitFor({ state: 'attached' });
     await threadInput.fill(message);
-    await this.page.waitForTimeout(500);
+    await threadInput.waitFor({ state: 'attached' });
     await threadInput.press('Enter');
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForLoadState('networkidle', { timeout: 5000 });
   }
 
   async findForwardMessageOption(): Promise<Locator> {
@@ -1342,7 +1274,7 @@ export class MessageTestHelpers {
             await opt.click();
             await this.page.waitForTimeout(300);
             return true;
-          } catch { }
+          } catch {}
         }
       }
     }
@@ -1382,7 +1314,7 @@ export class MessageTestHelpers {
             await it.click();
             await this.page.waitForTimeout(1000);
             return true;
-          } catch { }
+          } catch {}
         }
       }
     }
@@ -1672,7 +1604,7 @@ export class MessageTestHelpers {
           .first();
         try {
           if (await cand.isVisible({ timeout: 1000 })) return cand;
-        } catch { }
+        } catch {}
       }
     }
     throw new Error('Could not find emoji search input');
@@ -1880,7 +1812,7 @@ export class MessageTestHelpers {
     await input.click();
     try {
       await input.waitFor({ state: 'visible', timeout: 1000 });
-    } catch { }
+    } catch {}
     await this.page.keyboard.press('Control+g');
     const buzzTextAreaSelectors = [
       'textarea[class*="w-[calc(100%_-_70px)]"]',
@@ -1903,7 +1835,7 @@ export class MessageTestHelpers {
         await textArea.fill(message);
         textAreaFound = true;
         break;
-      } catch { }
+      } catch {}
     }
 
     if (!textAreaFound) {
@@ -1925,7 +1857,7 @@ export class MessageTestHelpers {
         await sendButton.waitFor({ state: 'visible', timeout: 4000 });
         await sendButton.click();
         break;
-      } catch { }
+      } catch {}
     }
     await this.page.waitForLoadState('networkidle');
   }
@@ -2279,7 +2211,7 @@ export class MessageTestHelpers {
           await addReactionInMenu.click({ force: true });
           await this.page.waitForTimeout(800);
           return;
-        } catch { }
+        } catch {}
       }
       await this.page.waitForTimeout(400);
       await messageElement.hover();
@@ -2354,7 +2286,7 @@ export class MessageTestHelpers {
             }
           }
         }
-      } catch { }
+      } catch {}
     }
 
     await messageElement.click({ button: 'right' });
@@ -2385,7 +2317,7 @@ export class MessageTestHelpers {
           if (picked) {
             return picked;
           }
-        } catch { }
+        } catch {}
       }
     }
 
@@ -2607,7 +2539,7 @@ export class MessageTestHelpers {
           sendClicked = true;
           await this.page.waitForTimeout(1000);
           break;
-        } catch { }
+        } catch {}
       }
     }
 
@@ -2650,6 +2582,26 @@ export class MessageTestHelpers {
       conversionDetected;
 
     return hasFileIndicators;
+  }
+
+  async isMessageVisible(messageText: string): Promise<boolean> {
+    const locator = this.getMessageItemLocator(messageText);
+    return await locator.isVisible({ timeout: 1000 });
+  }
+
+  async waitForMessageToDisappear(messageText: string, timeoutMs: number = 8000): Promise<boolean> {
+    const locator = this.getMessageItemLocator(messageText);
+
+    try {
+      await locator.waitFor({ state: 'detached', timeout: timeoutMs });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async findMessageItemByText(messageText: string) {
+    return this.getMessageItemLocator(messageText).last();
   }
 }
 

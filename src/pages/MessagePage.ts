@@ -112,7 +112,6 @@ export class MessgaePage {
     try {
       await this.buttonCreateGroupSidebar.click();
 
-
       const firstUser = this.page.locator('.bg-item-theme').first();
       await firstUser.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -121,7 +120,6 @@ export class MessgaePage {
       await firstUser.waitFor({ state: 'visible', timeout: 2000 });
 
       await this.createGroupButton.click();
-
     } catch (error) {
       console.error('Error creating DM:', error);
       throw error;
@@ -139,7 +137,6 @@ export class MessgaePage {
 
     return found;
   }
-
 
   async createGroup(): Promise<void> {
     await this.openSelectFriendsModal();

@@ -26,6 +26,10 @@ test.describe('User Profile - Clan Profiles', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63571',
+    });
+
     await AllureReporter.step('Navigate to clan chat page', async () => {
       await page.goto(CLAN_CHAT_URL);
       await page.waitForLoadState('networkidle');
@@ -255,6 +259,9 @@ test.describe('User Profile - Clan Profiles', () => {
       await profilePage.openAccountTab();
     }
 
-    await AllureReporter.attachScreenshot(page, 'Edit User Profile, Edit Display Name and Edit Username Button Visible');
+    await AllureReporter.attachScreenshot(
+      page,
+      'Edit User Profile, Edit Display Name and Edit Username Button Visible'
+    );
   });
 });

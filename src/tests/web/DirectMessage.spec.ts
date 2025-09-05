@@ -27,6 +27,10 @@ test.describe('Direct Message', () => {
       testType: AllureConfig.TestTypes.E2E,
     });
 
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63370',
+    });
+
     const homePage = new HomePage(page);
 
     await AllureReporter.step('Navigate to home page', async () => {
@@ -87,8 +91,11 @@ test.describe('Direct Message', () => {
     await AllureReporter.attachScreenshot(page, 'Direct Message Created');
   });
 
-
   test('Send a message', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63505',
+    });
+
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -127,6 +134,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Create group chat ', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
     const messagePage = new MessgaePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevGroupCount = await helpers.countGroups();
@@ -143,16 +154,23 @@ test.describe('Direct Message', () => {
   });
 
   test('Add more member to group chat', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
     const messagePage = new MessgaePage(page);
 
     await test.step(`Add more member to group chat`, async () => {
       await messagePage.addMoreMemberToGroup();
       await page.waitForTimeout(5000);
     });
-
   });
 
   test('Update name for group chat DM', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
     const messagePage = new MessgaePage(page);
 
     await test.step(`Update name for group chat DM`, async () => {
@@ -183,6 +201,10 @@ test.describe('Direct Message', () => {
   });
 
   test('Leave group', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
     const messagePage = new MessgaePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevGroupCount = await helpers.countGroups();
