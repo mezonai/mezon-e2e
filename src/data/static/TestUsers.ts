@@ -3,11 +3,10 @@
  * Contains predefined test users for consistent testing
  */
 
-import { fileURLToPath } from 'url';
 import path from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Use a more compatible approach without import.meta
+const __dirname = process.cwd();
 
 export interface TestUser {
   name: string;
@@ -220,9 +219,9 @@ export interface MezonTestUser {
 }
 
 // Auth file paths
-export const authUserFile = path.join(__dirname, '../.auth/user.json');
-export const authAdminFile = path.join(__dirname, '../.auth/admin.json');
-export const authModeratorFile = path.join(__dirname, '../.auth/moderator.json');
+export const authUserFile = path.join(__dirname, 'src/data/.auth/user.json');
+export const authAdminFile = path.join(__dirname, 'src/data/.auth/admin.json');
+export const authModeratorFile = path.join(__dirname, 'src/data/.auth/moderator.json');
 
 /**
  * Mezon test users with multi-role support
