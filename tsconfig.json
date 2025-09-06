@@ -28,17 +28,8 @@
     },
     "types": ["node", "@playwright/test"],
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "."
   },
-  "include": [
-    "src/**/*",
-    "*.config.ts",
-    "*.setup.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "test-results",
-    "playwright-report"
-  ]
+  "include": ["src/**/*", "*.config.ts", "*.setup.ts", "libs/**/*"],
+  "exclude": ["node_modules", "dist", "test-results", "playwright-report"]
 }

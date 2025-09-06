@@ -2,11 +2,8 @@ name: Verify Automation Test Results
 
 on:
   workflow_dispatch:
-  push:
-    branches: [develop]
   pull_request:
     branches: [develop]
-    types: [closed]
 
 jobs:
   verify-automation-tests:

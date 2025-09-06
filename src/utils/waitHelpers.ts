@@ -1,4 +1,4 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator, type Page } from '@playwright/test';
 
 /**
  * Wait Helper Utilities
@@ -165,9 +165,9 @@ export async function waitForElementCount(
   timeout: number = 10000
 ): Promise<void> {
   await page.waitForFunction(
-    ({ sel, count }) => {
-      const elements = document.querySelectorAll(sel);
-      return elements.length === count;
+    ({ selector, expectedCount }) => {
+      const elements = document.querySelectorAll(selector);
+      return elements.length === expectedCount;
     },
     { selector, expectedCount },
     { timeout }
@@ -240,7 +240,7 @@ export async function retryWithBackoff<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
-    } catch {
+    } catch (error) {
       // Ignore errors
       lastError = error as Error;
 
