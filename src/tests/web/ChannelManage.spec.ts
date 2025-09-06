@@ -2,6 +2,7 @@ import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import generateRandomString from '@/utils/randomString';
 import test, { expect } from '@playwright/test';
 
 test.describe('Create New Channels', () => {
@@ -26,7 +27,7 @@ test.describe('Create New Channels', () => {
     //   operation: 'Channel Creation',
     // });
 
-    clanName = `New Clan ${new Date().getTime()}`;
+    clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
     const clanPage = new ClanPageV2(page);
 
     await AllureReporter.step('Navigate to direct friends page', async () => {
