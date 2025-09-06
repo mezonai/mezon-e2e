@@ -21,6 +21,7 @@
     "install:browsers": "npx playwright install",
     "lint": "eslint src/ --ext .ts,.tsx",
     "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
+    "ts-check": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json}\"",
     "clean": "rm -rf test-results/ playwright-report/ coverage/ allure-results/ allure-report/",
