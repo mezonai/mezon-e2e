@@ -152,7 +152,9 @@ export class MessgaePage {
     const start = Date.now();
     while ((await this.friendItems.count()) < count) {
       if (Date.now() - start > 10000) {
-        throw new Error(`Not enough friends to create group: need ${count}, have ${(await this.friendItems.count())}`);
+        throw new Error(
+          `Not enough friends to create group: need ${count}, have ${await this.friendItems.count()}`
+        );
       }
       await this.page.waitForTimeout(200);
     }
@@ -188,8 +190,10 @@ export class MessgaePage {
       .map(n => (n || '').trim())
       .filter(Boolean);
     if (!groupNames.length) return false;
-    const containsFirst = !!this.firstUserNameText && groupNames.some(n => n.includes(this.firstUserNameText));
-    const containsSecond = !!this.secondUserNameText && groupNames.some(n => n.includes(this.secondUserNameText));
+    const containsFirst =
+      !!this.firstUserNameText && groupNames.some(n => n.includes(this.firstUserNameText));
+    const containsSecond =
+      !!this.secondUserNameText && groupNames.some(n => n.includes(this.secondUserNameText));
     return containsFirst || containsSecond;
   }
 

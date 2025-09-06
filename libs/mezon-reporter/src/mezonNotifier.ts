@@ -1,220 +1,328 @@
 export interface NotificationPayload {
-    totalTests?: number;
-    file?: string;
-    duration?: number;
-    status?: string;
-    timestamp?: string;
-    environment?: string;
-    project?: string;
-    workers?: number | string;
-    timeout?: number;
-    retries?: number;
-    error?: string;
-    progress?: string;
-    passed?: number;
-    failed?: number;
-    skipped?: number;
-    successRate?: number;
-    projectName?: string;
-    testTitle?: string;
-    testFile?: string;
-    browserName?: string;
-    startTime?: string;
-    endTime?: string;
-    totalDuration?: number;
-    testSuites?: string[];
-    testFiles?: string[];
-    failedTests?: Array<{
-        title: string;
-        file: string;
-        error: string;
-        duration: number;
-    }>;
+  totalTests?: number;
+  file?: string;
+  duration?: number;
+  status?: string;
+  timestamp?: string;
+  environment?: string;
+  project?: string;
+  workers?: number | string;
+  timeout?: number;
+  retries?: number;
+  error?: string;
+  progress?: string;
+  passed?: number;
+  failed?: number;
+  skipped?: number;
+  successRate?: number;
+  projectName?: string;
+  testTitle?: string;
+  testFile?: string;
+  browserName?: string;
+  startTime?: string;
+  endTime?: string;
+  totalDuration?: number;
+  testSuites?: string[];
+  testFiles?: string[];
+  failedTests?: Array<{
+    title: string;
+    file: string;
+    error: string;
+    duration: number;
+  }>;
+  // GitHub/CI related fields
+  prUrl?: string;
+  actionUrl?: string;
+  commitSha?: string;
+  branch?: string;
+  actor?: string;
 }
 
 export class MezonNotifier {
-    private webhookUrl?: string;
-    private isEnabled: boolean;
-    private mentionUserId?: string;
+  private webhookUrl?: string;
+  private isEnabled: boolean;
+  private mentionUserId?: string;
 
-    constructor() {
-        // Try multiple sources for configuration
-        this.webhookUrl = process.env.MEZON_WEBHOOK_URL || 
-                          'https://webhook.mezon.ai/webhooks/1963795411474845696/MTc1NzA0MDQzNjIzMTIxMDQyMToxOTYzNzk1NDExNDQxMjkxMjY0OjE5NjM3OTU0MTE0NzQ4NDU2OTY6MTk2Mzc5NTkxNDk1NDkwMzU1Mg.WN2z14gmUwOIwm2leyp_c1WcD8E4aDz3ikMwUowCAa4';
-        
-        // Enable by default if webhook is available, unless explicitly disabled
-        this.isEnabled = process.env.MEZON_NOTIFICATIONS !== 'false' && !!this.webhookUrl;
-        this.mentionUserId = process.env.MEZON_MENTION_USER_ID || '1840655335266717696';
-        
-        // Debug logging
-        console.log('[Mezon] Reporter initialized');
-        console.log('[Mezon] Webhook URL configured:', !!this.webhookUrl);
-        console.log('[Mezon] Notifications enabled:', this.isEnabled);
-        console.log('[Mezon] Running in:', process.env.NODE_ENV || 'unknown environment');
-        if (!this.webhookUrl) {
-            console.log('[Mezon] To enable notifications, set MEZON_WEBHOOK_URL environment variable');
-        }
+  constructor() {
+    this.webhookUrl =
+      process.env.MEZON_WEBHOOK_URL ||
+      'https://webhook.mezon.ai/webhooks/1959843615589011456/MTc1NzA1NzkzNDY1OTcyMDIzNjoxNzc5NDg0NTA0Mzc3NzkwNDY0OjE5NTk4NDM2MTU1ODkwMTE0NTY6MTk2Mzg2OTQzMzkwNjU5Nzg4OA.PvCwfUrrY00hKbtB6XsYnr8zVomZqeHrLecTSIB5Jdo';
+
+    this.isEnabled = process.env.MEZON_NOTIFICATIONS !== 'false' && !!this.webhookUrl;
+    this.mentionUserId = process.env.MEZON_MENTION_USER_ID || '1840655335266717696';
+
+    console.log('[Mezon] Reporter initialized');
+    console.log('[Mezon] Webhook URL configured:', !!this.webhookUrl);
+    console.log('[Mezon] Notifications enabled:', this.isEnabled);
+    console.log('[Mezon] Running in:', process.env.NODE_ENV || 'unknown environment');
+    if (!this.webhookUrl) {
+      console.log('[Mezon] To enable notifications, set MEZON_WEBHOOK_URL environment variable');
+    }
+  }
+
+  async send(message: string, payload?: NotificationPayload): Promise<void> {
+    console.log('[Mezon] Attempting to send notification:', message);
+
+    if (!this.isEnabled) {
+      console.log(`[Mezon] Notifications disabled. Message: ${message}`);
+      if (payload) {
+        console.log('[Mezon] Payload:', JSON.stringify(payload, null, 2));
+      }
+      return;
     }
 
-    async send(message: string, payload?: NotificationPayload): Promise<void> {
-        console.log('[Mezon] Attempting to send notification:', message);
-        
-        if (!this.isEnabled) {
-            console.log(`[Mezon] Notifications disabled. Message: ${message}`);
-            if (payload) {
-                console.log('[Mezon] Payload:', JSON.stringify(payload, null, 2));
-            }
-            return;
-        }
+    try {
+      const githubInfo = this.getGitHubInfo();
+      const enrichedPayload = {
+        ...payload,
+        ...githubInfo,
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        project: 'Mezon E2E Tests',
+      };
 
-        try {
-            const enrichedPayload = {
-                ...payload,
-                timestamp: new Date().toISOString(),
-                environment: process.env.NODE_ENV || 'development',
-                project: 'Mezon E2E Tests',
-            };
+      // Check if this is a simple start message or if all tests passed (simple success message)
+      const isStartMessage = message.includes('started') || message.includes('🚀');
+      const isAllTestsPassed =
+        message.includes('Successfully') &&
+        enrichedPayload.failed === 0 &&
+        enrichedPayload.passed &&
+        enrichedPayload.passed > 0;
 
-            // Check if this is a simple start message or if all tests passed (simple success message)
-            const isStartMessage = message.includes('started') || message.includes('🚀');
-            const isAllTestsPassed = message.includes('Successfully') && 
-                                   enrichedPayload.failed === 0 && 
-                                   enrichedPayload.passed && enrichedPayload.passed > 0;
-            
-            const isSimpleMessage = isStartMessage || isAllTestsPassed;
-            const messageToSend = isSimpleMessage ? 
-                this.formatSimpleMessage(message, enrichedPayload) : 
-                this.formatDetailedMessage(message, enrichedPayload);
-                
-            const body = this.createMezonWebhookPayload(messageToSend);
+      const isSimpleMessage = isStartMessage || isAllTestsPassed;
+      const messageToSend = isSimpleMessage
+        ? this.formatSimpleMessage(message, enrichedPayload)
+        : this.formatDetailedMessage(message, enrichedPayload);
 
-            console.log(`[Mezon] Sending ${isSimpleMessage ? 'simple' : 'detailed'} notification...`);
+      const body = this.createMezonWebhookPayload(messageToSend);
 
-            const response = await fetch(this.webhookUrl!, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body),
-            });
+      console.log(`[Mezon] Sending ${isSimpleMessage ? 'simple' : 'detailed'} notification...`);
 
-            if (!response.ok) {
-                console.warn(`[Mezon] Failed to send notification: ${response.status} ${response.statusText}`);
-            } else {
-                console.log(`[Mezon] Notification sent successfully`);
-            }
-        } catch (error) {
-            console.warn('[Mezon] Error sending notification:', error);
-        }
+      const response = await fetch(this.webhookUrl!, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        console.warn(
+          `[Mezon] Failed to send notification: ${response.status} ${response.statusText}`
+        );
+      } else {
+        console.log(`[Mezon] Notification sent successfully`);
+      }
+    } catch (error) {
+      console.warn('[Mezon] Error sending notification:', error);
+    }
+  }
+
+  private formatSimpleMessage(message: string, payload: NotificationPayload): string {
+    const timestamp = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    // For start messages
+    if (message.includes('started') || message.includes('🚀')) {
+      let simpleMessage = `${message}\n`;
+      simpleMessage += `⏰ ${timestamp} (GMT+7)\n`;
+
+      if (payload.totalTests !== undefined) {
+        simpleMessage += `📊 Total Tests: ${payload.totalTests}\n`;
+      }
+
+      simpleMessage += `🌍 Environment: ${payload.environment || 'development'}\n`;
+
+      // Add GitHub info for start messages
+      if (payload.branch) {
+        simpleMessage += `🌿 Branch: ${payload.branch}\n`;
+      }
+      if (payload.actor) {
+        simpleMessage += `👤 Actor: ${payload.actor}\n`;
+      }
+      if (payload.commitSha) {
+        simpleMessage += `📝 Commit: ${payload.commitSha}\n`;
+      }
+
+      return simpleMessage;
     }
 
-    private formatSimpleMessage(message: string, payload: NotificationPayload): string {
-        const timestamp = new Date().toLocaleString('en-US', {
-            timeZone: 'Asia/Ho_Chi_Minh',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
+    // For success messages (all tests passed)
+    if (message.includes('Successfully')) {
+      const passed = payload.passed || 0;
+      const total = payload.totalTests || passed;
+      const duration = payload.totalDuration ? this.formatDuration(payload.totalDuration) : 'N/A';
 
-        // For start messages
-        if (message.includes('started') || message.includes('🚀')) {
-            let simpleMessage = `${message}\n`;
-            simpleMessage += `⏰ ${timestamp} (GMT+7)\n`;
-            
-            if (payload.totalTests !== undefined) {
-                simpleMessage += `📊 Total Tests: ${payload.totalTests}\n`;
-            }
-            
-            simpleMessage += `🌍 Environment: ${payload.environment || 'development'}\n`;
-            return simpleMessage;
-        }
-        
-        // For success messages (all tests passed)
-        if (message.includes('Successfully')) {
-            const passed = payload.passed || 0;
-            const total = payload.totalTests || passed;
-            const duration = payload.totalDuration ? this.formatDuration(payload.totalDuration) : 'N/A';
-            
-            return `✅ All tests passed! ${passed}/${total} tests completed successfully in ${duration} ⏰ ${timestamp} (GMT+7)`;
-        }
+      let successMessage = `✅ All tests passed! ${passed}/${total} tests completed successfully in ${duration} ⏰ ${timestamp} (GMT+7)`;
 
-        // Fallback for other simple messages
-        return `${message} ⏰ ${timestamp} (GMT+7)`;
+      // Add links for success messages
+      const links = this.formatGitHubLinks(payload);
+      if (links) {
+        successMessage += `\n\n${links}`;
+      }
+
+      return successMessage;
     }
 
-    private formatDetailedMessage(message: string, payload: NotificationPayload): string {
+    return `${message} ⏰ ${timestamp} (GMT+7)`;
+  }
 
-        let detailedMessage = ``;
+  private formatDetailedMessage(message: string, payload: NotificationPayload): string {
+    let detailedMessage = `${message}\n\n`;
 
+    if (payload.error) {
+      detailedMessage += `❌ **ERROR DETAILS**\n`;
+      detailedMessage += `🔍 Error: ${this.truncateText(payload.error, 300)}\n\n`;
+    }
 
-        // Error Information
-        if (payload.error) {
-            detailedMessage += `❌ **ERROR DETAILS**\n`;
-            detailedMessage += `🔍 Error: ${this.truncateText(payload.error, 300)}\n\n`;
+    if (payload.failedTests && payload.failedTests.length > 0) {
+      detailedMessage += `🚨 **FAILED TESTS DETAILS**\n`;
+      payload.failedTests.forEach((failedTest, index) => {
+        detailedMessage += `\n${index + 1}. **${failedTest.title}**\n`;
+        detailedMessage += `   📁 File: ${this.getFileName(failedTest.file)}\n`;
+        detailedMessage += `   ⏱️ Duration: ${this.formatDuration(failedTest.duration)}\n`;
+        detailedMessage += `   ❌ Error: ${this.truncateText(failedTest.error, 200)}\n`;
+      });
+      detailedMessage += `\n`;
+    }
+
+    // Add GitHub links for detailed messages
+    const links = this.formatGitHubLinks(payload);
+    if (links) {
+      detailedMessage += `\n${links}`;
+    }
+
+    return detailedMessage;
+  }
+
+  private createMezonWebhookPayload(message: string): any {
+    const payload: any = {
+      type: 'hook',
+      message: {
+        t: message,
+      },
+    };
+
+    // Add mention if configured
+    if (this.mentionUserId) {
+      const mentionText = `\n\n@mezon.bot`;
+      const fullMessage = `${message}${mentionText}`;
+
+      payload.message.t = fullMessage;
+      payload.message.mentions = [
+        {
+          user_id: this.mentionUserId,
+          s: fullMessage.length - mentionText.length + 2, // +2 for \n\n
+          e: fullMessage.length,
+        },
+      ];
+    }
+
+    return payload;
+  }
+
+  private formatDuration(duration: number): string {
+    const seconds = Math.floor(duration / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds % 60}s`;
+    } else {
+      return `${(duration / 1000).toFixed(2)}s`;
+    }
+  }
+
+  private getFileName(filePath: string): string {
+    return filePath.split('/').pop() || filePath;
+  }
+
+  private formatGitHubLinks(payload: NotificationPayload): string {
+    const links: string[] = [];
+
+    if (payload.prUrl) {
+      links.push(`🔗 [View Pull Request](${payload.prUrl})`);
+    }
+
+    if (payload.actionUrl) {
+      links.push(`⚡ [GitHub Action Run](${payload.actionUrl})`);
+    }
+
+    return links.length > 0 ? links.join('\n') : '';
+  }
+
+  private truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  }
+
+  private getGitHubInfo(): Partial<NotificationPayload> {
+    const githubInfo: Partial<NotificationPayload> = {};
+
+    // Extract GitHub environment variables
+    const repoFullName = process.env.GITHUB_REPOSITORY; // e.g., "owner/repo"
+    const runId = process.env.GITHUB_RUN_ID;
+    const serverUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
+    const sha = process.env.GITHUB_SHA;
+    const ref = process.env.GITHUB_REF;
+    const actor = process.env.GITHUB_ACTOR;
+    const eventName = process.env.GITHUB_EVENT_NAME;
+
+    // Set basic info
+    if (sha) githubInfo.commitSha = sha.substring(0, 7); // Short SHA
+    if (actor) githubInfo.actor = actor;
+
+    // Extract branch name from ref
+    if (ref) {
+      if (ref.startsWith('refs/heads/')) {
+        githubInfo.branch = ref.replace('refs/heads/', '');
+      } else if (ref.startsWith('refs/pull/')) {
+        // For PR events, extract PR number
+        const prNumber = ref.match(/refs\/pull\/(\d+)\/merge/)?.[1];
+        if (prNumber) {
+          githubInfo.branch = `PR #${prNumber}`;
         }
+      }
+    }
 
-        // Failed Tests Details
-        if (payload.failedTests && payload.failedTests.length > 0) {
-            detailedMessage += `🚨 **FAILED TESTS DETAILS**\n`;
-            payload.failedTests.forEach((failedTest, index) => {
-                detailedMessage += `\n${index + 1}. **${failedTest.title}**\n`;
-                detailedMessage += `   📁 File: ${this.getFileName(failedTest.file)}\n`;
-                detailedMessage += `   ⏱️ Duration: ${this.formatDuration(failedTest.duration)}\n`;
-                detailedMessage += `   ❌ Error: ${this.truncateText(failedTest.error, 200)}\n`;
-            });
-            detailedMessage += `\n`;
+    // Build GitHub Action run URL
+    if (repoFullName && runId) {
+      githubInfo.actionUrl = `${serverUrl}/${repoFullName}/actions/runs/${runId}`;
+    }
+
+    // Build PR URL for pull request events
+    if (eventName === 'pull_request' && repoFullName) {
+      const prNumber =
+        process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1] ||
+        process.env.GITHUB_HEAD_REF;
+      if (prNumber) {
+        githubInfo.prUrl = `${serverUrl}/${repoFullName}/pull/${prNumber}`;
+      }
+    }
+
+    // Alternative: try to get PR URL from event payload
+    if (!githubInfo.prUrl && process.env.GITHUB_EVENT_PATH) {
+      try {
+        const fs = require('fs');
+        const eventPayload = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+        if (eventPayload.pull_request?.html_url) {
+          githubInfo.prUrl = eventPayload.pull_request.html_url;
         }
-
-        return detailedMessage;
+      } catch (error) {
+        // Ignore errors reading event payload
+        console.log('[Mezon] Could not read GitHub event payload');
+      }
     }
 
-    private createMezonWebhookPayload(message: string): any {
-        const payload: any = {
-            type: 'hook',
-            message: {
-                t: message,
-            }
-        };
-
-        // Add mention if configured
-        if (this.mentionUserId) {
-            const mentionText = `\n\n@mezon.bot`;
-            const fullMessage = `${message}${mentionText}`;
-            
-            payload.message.t = fullMessage;
-            payload.message.mentions = [{
-                user_id: this.mentionUserId,
-                s: fullMessage.length - mentionText.length + 2, // +2 for \n\n
-                e: fullMessage.length
-            }];
-        }
-
-        return payload;
-    }
-
-    private formatDuration(duration: number): string {
-        const seconds = Math.floor(duration / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-
-        if (hours > 0) {
-            return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
-        } else if (minutes > 0) {
-            return `${minutes}m ${seconds % 60}s`;
-        } else {
-            return `${(duration / 1000).toFixed(2)}s`;
-        }
-    }
-
-    private getFileName(filePath: string): string {
-        return filePath.split('/').pop() || filePath;
-    }
-
-    private truncateText(text: string, maxLength: number): string {
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength) + '...';
-    }
+    return githubInfo;
+  }
 }
