@@ -1,7 +1,7 @@
 import type { GitHubActionOptions } from '@estruyf/github-actions-reporter';
 import { defineConfig, devices } from '@playwright/test';
-import { ALLURE_LINK_TEMPLATES } from './src/config/allure.config';
 import dotenv from 'dotenv';
+import { ALLURE_LINK_TEMPLATES } from './src/config/allure.config';
 import { getBrowserConfig, GLOBAL_CONFIG } from './src/config/environment';
 dotenv.config();
 
@@ -25,7 +25,7 @@ export default defineConfig({
     ['list'],
     ['html', { open: 'never' }],
     ['json', { outputFile: 'results.json' }],
-    ['@mezon/playwright-reporter'],
+    ['./libs/mezon-reporter/mezon-reporter.ts'],
     [
       'allure-playwright',
       {

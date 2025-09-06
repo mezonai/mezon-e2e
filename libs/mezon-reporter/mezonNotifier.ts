@@ -49,7 +49,7 @@ export class MezonNotifier {
       'https://webhook.mezon.ai/webhooks/1959843615589011456/MTc1NzA1NzkzNDY1OTcyMDIzNjoxNzc5NDg0NTA0Mzc3NzkwNDY0OjE5NTk4NDM2MTU1ODkwMTE0NTY6MTk2Mzg2OTQzMzkwNjU5Nzg4OA.PvCwfUrrY00hKbtB6XsYnr8zVomZqeHrLecTSIB5Jdo';
 
     this.isEnabled = process.env.MEZON_NOTIFICATIONS !== 'false' && !!this.webhookUrl;
-    this.mentionUserId = process.env.MEZON_MENTION_USER_ID || '1840655335266717696';
+    // this.mentionUserId = process.env.MEZON_MENTION_USER_ID || '1840655335266717696';
 
     console.log('[Mezon] Reporter initialized');
     console.log('[Mezon] Webhook URL configured:', !!this.webhookUrl);

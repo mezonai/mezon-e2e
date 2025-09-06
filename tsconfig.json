@@ -30,15 +30,6 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": [
-    "src/**/*",
-    "*.config.ts",
-    "*.setup.ts"
-, "lib"  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "test-results",
-    "playwright-report"
-  ]
+  "include": ["src/**/*", "*.config.ts", "*.setup.ts", "libs/**/*"],
+  "exclude": ["node_modules", "dist", "test-results", "playwright-report"]
 }
