@@ -1,7 +1,11 @@
 import { Given, When, Then } from '../../fixtures/page.fixture';
+import { joinUrlPaths } from '../../utils/joinUrlPaths';
+import { WEBSITE_CONFIGS } from '../../config/environment';
 
 Given('I navigate to login page', async ({ page }) => {
-  await page.goto('/login');
+  const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL || '';
+  const loginUrl = joinUrlPaths(baseUrl, '/login');
+  await page.goto(loginUrl);
 });
 
 When('I fill in credentials', async () => {

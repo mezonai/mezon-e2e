@@ -1,4 +1,6 @@
 import { expect, Given, When, Then } from '../../fixtures/page.fixture';
+import { joinUrlPaths } from '../../utils/joinUrlPaths';
+import { WEBSITE_CONFIGS } from '../../config/environment';
 
 Given('I am on {string}', async ({ PageObjects }, pageName: string) => {
   if (pageName === 'LoginPage') {
@@ -9,7 +11,9 @@ Given('I am on {string}', async ({ PageObjects }, pageName: string) => {
 });
 
 Given('I navigate to {string}', async ({ page }, url: string) => {
-  await page.goto(url);
+  const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL || '';
+  const targetUrl = joinUrlPaths(baseUrl, url);
+  await page.goto(targetUrl);
 });
 
 When('I enter email {string}', async ({ PageObjects }, email: string) => {

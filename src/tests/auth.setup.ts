@@ -1,8 +1,8 @@
 import { test as setup } from '@playwright/test';
+import fs from 'fs';
 import { LOCAL_AUTH_DATA, LOCAL_CONFIG, WEBSITE_CONFIGS } from '../config/environment';
 import { MEZON_TEST_USERS } from '../data/static/TestUsers';
 import { LoginPage } from '../pages/LoginPage';
-
 const authFile = 'playwright/.auth/user.json';
 
 setup('prepare mezon auth state', async ({ page }) => {
@@ -22,10 +22,11 @@ setup('prepare mezon auth state', async ({ page }) => {
       await clickOpenMezonButton(page);
       await page.context().storageState({ path: authFile });
       return;
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error during skipLogin process:', error);
+    }
   }
 
-  const fs = await import('fs');
   if (fs.existsSync(authFile)) {
     const stats = fs.statSync(authFile);
     const ageInMinutes = (Date.now() - stats.mtime.getTime()) / (1000 * 60);
@@ -93,7 +94,11 @@ async function clickOpenMezonButton(page: any) {
           await page.waitForLoadState('networkidle');
           return;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('Error clicking Open Mezon button:', e);
+      }
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error('Error during clickOpenMezonButton process:', error);
+  }
 }

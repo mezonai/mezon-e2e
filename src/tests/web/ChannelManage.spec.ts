@@ -1,4 +1,4 @@
-import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -9,22 +9,22 @@ test.describe('Create New Channels', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     // Initialize Allure reporting for this test suite
-    await AllureReporter.initializeTest(page, testInfo, {
-      suite: AllureConfig.Suites.CLAN_MANAGEMENT,
-      subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
-      story: AllureConfig.Stories.CHANNEL_ORGANIZATION,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
+    //   story: AllureConfig.Stories.CHANNEL_ORGANIZATION,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
 
-    await TestSetups.clanTest({
-      subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
-      operation: 'Channel Creation',
-    });
+    // await TestSetups.clanTest({
+    //   subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
+    //   operation: 'Channel Creation',
+    // });
 
     clanName = `New Clan ${new Date().getTime()}`;
     const clanPage = new ClanPageV2(page);
