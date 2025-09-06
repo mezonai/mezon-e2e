@@ -1,4 +1,4 @@
-import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
@@ -13,12 +13,12 @@ test.describe('Onboarding Guide Task Completion', () => {
   let clanUrl: string;
 
   test.beforeAll(async ({ browser }) => {
-    await TestSetups.clanTest({
-      suite: AllureConfig.Suites.USER_MANAGEMENT,
-      subSuite: AllureConfig.SubSuites.USER_PROFILE,
-      story: AllureConfig.Stories.PROFILE_SETUP,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
+    // await TestSetups.clanTest({
+    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
+    //   story: AllureConfig.Stories.PROFILE_SETUP,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    // });
 
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -64,13 +64,13 @@ test.describe('Onboarding Guide Task Completion', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await AllureReporter.initializeTest(page, testInfo, {
-      suite: AllureConfig.Suites.USER_MANAGEMENT,
-      subSuite: AllureConfig.SubSuites.USER_PROFILE,
-      story: AllureConfig.Stories.PROFILE_SETUP,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
+    //   story: AllureConfig.Stories.PROFILE_SETUP,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       tms: '63452',

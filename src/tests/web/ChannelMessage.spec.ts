@@ -3,11 +3,18 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
+import { joinUrlPaths } from '../../utils/joinUrlPaths';
 
-const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL;
-const DIRECT_CHAT_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/direct/message/1955879210568388608/3`;
-const CLAN_CHANNEL_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1786228934740807680/channels/1786228934753390593`;
-const THREAD_CLAN_URL = `${WEBSITE_CONFIGS.MEZON.baseURL}chat/clans/1960192934003347456/channels/1960192934070456320`;
+const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
+const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/1955879210568388608/3');
+const CLAN_CHANNEL_URL = joinUrlPaths(
+  MEZON_BASE_URL,
+  'chat/clans/1786228934740807680/channels/1786228934753390593'
+);
+const THREAD_CLAN_URL = joinUrlPaths(
+  MEZON_BASE_URL,
+  'chat/clans/1960192934003347456/channels/1960192934070456320'
+);
 
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
@@ -26,7 +33,8 @@ test.describe('Channel Message Functionality', () => {
     },
 
     async navigateToDirectChat(): Promise<void> {
-      await page.goto(`${MEZON_BASE_URL}chat/direct/friends`);
+      const directFriendsUrl = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/friends');
+      await page.goto(directFriendsUrl);
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(3000);
     },

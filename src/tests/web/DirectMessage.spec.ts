@@ -1,12 +1,12 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { GLOBAL_CONFIG } from '@/config/environment';
 import { MessgaePage } from '@/pages/MessagePage';
+import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
-import { ROUTES } from '@/selectors';
 
 test.describe('Direct Message', () => {
   test.beforeAll(async () => {
@@ -19,13 +19,13 @@ test.describe('Direct Message', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await AllureReporter.initializeTest(page, testInfo, {
-      suite: AllureConfig.Suites.CHAT_PLATFORM,
-      subSuite: AllureConfig.SubSuites.DIRECT_MESSAGING,
-      story: AllureConfig.Stories.TEXT_MESSAGING,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.CHAT_PLATFORM,
+    //   subSuite: AllureConfig.SubSuites.DIRECT_MESSAGING,
+    //   story: AllureConfig.Stories.TEXT_MESSAGING,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',
@@ -33,9 +33,9 @@ test.describe('Direct Message', () => {
 
     const homePage = new HomePage(page);
 
-    await AllureReporter.step('Navigate to home page', async () => {
-      await homePage.navigate();
-    });
+    // await AllureReporter.step('Navigate to home page', async () => {
+    //   await homePage.navigate();
+    // });
 
     await AllureReporter.step('Navigate to direct friends page', async () => {
       await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
@@ -211,7 +211,7 @@ test.describe('Direct Message', () => {
 
     await test.step(`Leave group chat`, async () => {
       await messagePage.leaveGroupByXBtn();
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(4000);
     });
 
     await test.step('Verify group chat is left', async () => {
