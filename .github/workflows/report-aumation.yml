@@ -76,7 +76,7 @@ jobs:
           fi
 
       - name: Run automation tests
-        run: npm run test
+        run: xvfb-run npm run test
         continue-on-error: true
 
       - name: Generate Allure report
