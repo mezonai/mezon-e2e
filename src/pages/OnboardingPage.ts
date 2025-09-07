@@ -17,18 +17,12 @@ export class OnboardingPage extends BasePage {
   ];
 
   private readonly taskContainerSelectorByType: Record<OnboardingTaskType, string> = {
-    sendFirstMessage: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Send your first message")`,
-    invitePeople: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Invite your friends")`,
-    createChannel: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Create your channel")`,
+    sendFirstMessage: `${generateE2eSelector('onboarding.chat.guide_sections')}:has-text("Send your first message")`,
+    invitePeople: `${generateE2eSelector('onboarding.chat.guide_sections')}:has-text("Invite your friends")`,
+    createChannel: `${generateE2eSelector('onboarding.chat.guide_sections')}:has-text("Create your channel")`,
+    tickGreen: generateE2eSelector('onboarding.chat.tick'),
   };
 
-  private readonly taskDoneIndicators = [
-    'div.rounded-full.bg-green-600',
-    'div.flex.items-center.justify-center.rounded-full.aspect-square.h-8.bg-green-600',
-    '.bg-green-600.rounded-full',
-    '.bg-green-600',
-    'div.bg-green-600',
-  ];
 
   constructor(page: Page, baseURL?: string) {
     super(page, baseURL);
@@ -72,19 +66,21 @@ export class OnboardingPage extends BasePage {
   ): Promise<{ found: boolean; isDone: boolean; selector?: string }> {
     const containerSelector = this.taskContainerSelectorByType[taskType];
     const container = this.page.locator(containerSelector).first();
-
     try {
-      const visible = await container.isVisible({ timeout: 3000 });
+      const visible = await container.isVisible({ timeout: 2000 });
       if (!visible) return { found: false, isDone: false };
-      for (const doneSelector of this.taskDoneIndicators) {
+      const greenCheckmark = container.locator(generateE2eSelector('onboarding.chat.tick')).first();
+      if (await greenCheckmark.isVisible({ timeout: 500 })) {
+        return { found: true, isDone: true, selector: containerSelector };
+      }
+      for (const doneSelector of this.taskContainerSelectorByType.tickGreen) {
         try {
           const doneIndicator = container.locator(doneSelector).first();
-          if (await doneIndicator.isVisible({ timeout: 800 })) {
+          if (await doneIndicator.isVisible({ timeout: 300 })) {
             return { found: true, isDone: true, selector: containerSelector };
           }
-        } catch {
-          // ignore
-          continue;
+        } catch (error) {
+          console.error(`Error checking task status: ${error}`);
         }
       }
 
@@ -96,7 +92,7 @@ export class OnboardingPage extends BasePage {
 
   async waitForTaskToBeMarkedDone(
     taskType: OnboardingTaskType,
-    timeoutMs: number = 5000
+    timeoutMs: number = 10000
   ): Promise<boolean> {
     const startTime = Date.now();
 
@@ -107,7 +103,7 @@ export class OnboardingPage extends BasePage {
         return true;
       }
 
-      await this.page.waitForTimeout(500);
+      await this.page.waitForTimeout(1000);
     }
 
     return false;

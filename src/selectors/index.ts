@@ -223,12 +223,22 @@ export const DATA_E2E_IDENTIFIER = {
       thread_name_input: {
         thread_box: '',
       },
+      mention: {
+        input: '',
+        selected_file: '',
+        voice: '',
+        gif: '',
+        emoji: '',
+        sticker: '',
+        icon_reaction: ''
+      },
     },
     suggest_item: '',
   },
   onboarding: {
     chat: {
       guide_sections: '',
+      tick: '',
     },
   },
   user_setting: {

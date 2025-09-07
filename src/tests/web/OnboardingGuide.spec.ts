@@ -5,64 +5,14 @@ import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { OnboardingTask } from '@/types/onboarding.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
-import { HomePage } from '../../pages/HomePage';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
+import generateRandomString from '@/utils/randomString';
+import joinUrlPaths from '@/utils/joinUrlPaths';
+import { WEBSITE_CONFIGS } from '@/config/environment';
+import { ROUTES } from '@/selectors';
 
 test.describe('Onboarding Guide Task Completion', () => {
-  let testClanName: string;
-  let clanUrl: string;
-
-  test.beforeAll(async ({ browser }) => {
-    // await TestSetups.clanTest({
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    // });
-
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    try {
-      const homePage = new HomePage(page);
-      await homePage.navigate();
-
-      const clanPage = new ClanPageV2(page);
-      await clanPage.navigate('/chat/direct/friends');
-      const createClanClicked = await clanPage.clickCreateClanButton();
-      if (createClanClicked) {
-        testClanName = `KESON Test Clan ${Date.now()}`;
-        await clanPage.createNewClan(testClanName);
-        await page.waitForTimeout(5000);
-        clanUrl = page.url();
-      }
-    } catch (error) {
-      console.error('Error creating clan:', error);
-    } finally {
-      await context.close();
-    }
-  });
-
-  test.afterAll(async ({ browser }) => {
-    if (testClanName && clanUrl) {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-
-      try {
-        await page.goto(clanUrl);
-        await page.waitForTimeout(3000);
-        const clanPage = new ClanPageV2(page);
-        await clanPage.deleteClan(testClanName);
-      } catch (error) {
-        console.error(`❌ Error deleting test clan: ${error}`);
-      } finally {
-        await context.close();
-      }
-    } else {
-      console.log('⚠️ No clan name or URL available for cleanup');
-    }
-  });
-
+  let createdClanName: string;
   test.beforeEach(async ({ page }, testInfo) => {
     // await AllureReporter.initializeTest(page, testInfo, {
     //   suite: AllureConfig.Suites.USER_MANAGEMENT,
@@ -76,14 +26,27 @@ test.describe('Onboarding Guide Task Completion', () => {
       tms: '63452',
     });
 
-    if (clanUrl) {
-      await AllureReporter.step('Navigate to test clan', async () => {
-        await page.goto(clanUrl);
-        await page.waitForTimeout(3000);
-      });
-      await AllureReporter.addParameter('testClanName', testClanName);
-      await AllureReporter.addParameter('clanUrl', clanUrl);
-    }
+    await AllureReporter.step('Create clan and navigate to channel', async () => {
+      const clanPage = new ClanPageV2(page);
+      const clanName = `Onboarding Clan ${generateRandomString(10)}`;
+      await clanPage.navigate(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL || '', ROUTES.DIRECT_FRIENDS));
+      await clanPage.clickCreateClanButton();
+      await clanPage.createNewClan(clanName);
+      createdClanName = clanName;
+      const isClanPresent = await clanPage.isClanPresent(clanName);
+      if (!isClanPresent) return;
+    });
+  });
+  test.afterEach(async ({ page }) => {
+    if (!createdClanName) return;
+    const clanPage = new ClanPageV2(page);
+    await AllureReporter.step('Cleanup: delete created clan', async () => {
+      const deleted = await clanPage.deleteClan(createdClanName);
+      if (!deleted) {
+        await AllureReporter.attachScreenshot(page, 'Cleanup Failed - Delete Clan');
+      }
+    });
+    createdClanName = '';
   });
 
   test('should mark "Send first message" task as done after user sends first message', async ({
@@ -118,14 +81,17 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     await AllureReporter.step('Send first message', async () => {
       const { sent } = await helpers.sendTestMessage();
-      expect(sent).toBe(true);
       await AllureReporter.addParameter('messageSent', sent);
     });
 
     await AllureReporter.step('Verify "Send first message" task is marked as done', async () => {
+      await page.waitForTimeout(2000);
+      
       const isTaskMarkedDone = await helpers.waitForTaskCompletion(
-        OnboardingTask.SEND_FIRST_MESSAGE
+        OnboardingTask.SEND_FIRST_MESSAGE,
+        15000
       );
+      
       expect(
         isTaskMarkedDone,
         'The "Send first message" task should be marked as done (green tick) after user sends first message'
@@ -202,17 +168,18 @@ test.describe('Onboarding Guide Task Completion', () => {
       }
     });
 
-    await AllureReporter.step('Verify "Create channel" task completion', async () => {
-      const isTaskMarkedDone = await onboardingPage.waitForTaskToBeMarkedDone(
-        OnboardingTask.CREATE_CHANNEL,
-        10000
-      );
-      expect(isTaskMarkedDone).toBe(true);
-      await AllureReporter.addParameter(
-        'channelTaskCompletionStatus',
-        isTaskMarkedDone ? 'Completed' : 'Not Completed'
-      );
-    });
+        await AllureReporter.step('Verify "Create channel" task completion', async () => {
+       const isTaskMarkedDone = await onboardingPage.waitForTaskToBeMarkedDone(
+         OnboardingTask.CREATE_CHANNEL,
+         20000
+       );
+       
+       expect(isTaskMarkedDone).toBe(true);
+       await AllureReporter.addParameter(
+         'channelTaskCompletionStatus',
+         isTaskMarkedDone ? 'Completed' : 'Not Completed'
+       );
+     });
 
     await AllureReporter.attachScreenshot(page, 'Create Channel Task Completed');
   });

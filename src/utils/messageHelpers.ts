@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
 
 export class MessageTestHelpers {
@@ -65,7 +65,7 @@ export class MessageTestHelpers {
     await replyBtn.click();
 
     const input = await this.findMessageInput();
-    await input.click();
+    await input.click({ force: true });
     await input.waitFor({ state: 'attached' });
     await input.fill(replyText);
     await input.waitFor({ state: 'attached' });
@@ -1884,7 +1884,6 @@ export class MessageTestHelpers {
   }
 
   async findAddReactionButton(messageElement: Locator): Promise<Locator | null> {
-    await messageElement.hover();
     await this.page.waitForTimeout(1500);
 
     const reactionButtonSelectors = [
@@ -2082,6 +2081,24 @@ export class MessageTestHelpers {
     return false;
   }
 
+  async verifyReactionByE2eHighlight(textContains?: string): Promise<boolean> {
+    const itemSelector = generateE2eSelector('chat.direct_message.message.item');
+    let item = this.page.locator(itemSelector);
+    if (textContains) item = item.filter({ hasText: textContains });
+    const target = item.first();
+    
+    try {
+      await target.scrollIntoViewIfNeeded();
+      await expect(target).toBeVisible({ timeout: 5000 });
+      const highlightElements = target.locator(generateE2eSelector('chat.channel_message.mention.icon_reaction'));
+      const count = await highlightElements.count();
+      
+      return count > 0;
+    } catch {
+      return false;
+    }
+  }
+
   async findReactionChipNearMessage(messageElement: Locator): Promise<Locator | null> {
     const candidates = [
       'button:has(img):has-text("1")',
@@ -2128,6 +2145,11 @@ export class MessageTestHelpers {
     messageElement: Locator,
     preferredEmojis: string[] = ['🙂', '💯', '👍', '😊', '😂']
   ): Promise<string | null> {
+    await messageElement.scrollIntoViewIfNeeded();
+    await expect(messageElement).toBeVisible();
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(500);
+    
     await messageElement.hover();
     await this.page.waitForTimeout(1500);
 
@@ -2147,8 +2169,9 @@ export class MessageTestHelpers {
       }
     }
 
-    await messageElement.click({ button: 'right' });
-    await this.page.waitForTimeout(1000);
+    try {
+      await messageElement.click({ button: 'right', force: true });
+      await this.page.waitForTimeout(1000);
 
     const contextReactionSelectors = [
       'text="Add Reaction"',
@@ -2159,17 +2182,21 @@ export class MessageTestHelpers {
       'div:has-text("Add Reaction")',
     ];
 
-    for (const selector of contextReactionSelectors) {
-      const contextReaction = this.page.locator(selector).first();
-      if (await contextReaction.isVisible({ timeout: 1000 })) {
-        await contextReaction.click();
-        await this.page.waitForTimeout(1500);
+      for (const selector of contextReactionSelectors) {
+        const contextReaction = this.page.locator(selector).first();
+        if (await contextReaction.isVisible({ timeout: 1000 })) {
+          await contextReaction.click();
+          await this.page.waitForTimeout(1500);
 
-        const picked = await this.selectEmojiFromPicker(preferredEmojis);
-        if (picked) {
-          return picked;
+          const picked = await this.selectEmojiFromPicker(preferredEmojis);
+          if (picked) {
+            return picked;
+          }
+          break;
         }
       }
+    } catch (error) {
+      console.log('Context menu failed, trying alternative approach');
     }
 
     return null;
@@ -2251,10 +2278,10 @@ export class MessageTestHelpers {
     await messageElement.hover();
     await this.page.waitForTimeout(1500);
 
-    const quick = await this.tryClickQuickReaction(messageElement, ['😀', '😊', '🙂']);
-    if (quick) {
-      return quick;
-    }
+    // const quick = await this.tryClickQuickReaction(messageElement, ['😀', '😊', '🙂']);
+    // if (quick) {
+    //   return quick;
+    // }
 
     const addBtn = await this.findAddReactionButton(messageElement);
     if (addBtn) {
@@ -2329,18 +2356,26 @@ export class MessageTestHelpers {
   }
 
   async clickMembersButton(): Promise<void> {
+    // Close any open modals first
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(500);
+    
     const selectors = [
       'button[title="Members"]',
       'button[title*="Members"]',
       'button:has-text("Members")',
       'div:has-text("Members")',
       '*:has-text("Members"):visible',
+      '[data-e2e*="members"]',
+      '[data-e2e*="member"]',
+      'button[aria-label*="member" i]',
+      'button[aria-label*="user" i]',
     ];
 
     for (const selector of selectors) {
       const button = this.page.locator(selector).first();
-      if (await button.isVisible({ timeout: 3000 })) {
-        await button.click();
+      if (await button.isVisible({ timeout: 2000 })) {
+        await button.click({ force: true });
         await this.page.waitForTimeout(2000);
         return;
       }
