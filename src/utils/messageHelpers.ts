@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
 
 export class MessageTestHelpers {
@@ -534,6 +534,43 @@ export class MessageTestHelpers {
     }
 
     throw new Error('Could not find Topic Discussion option in context menu');
+  }
+
+  async getMessagesFromTopicDrawer(): Promise<{ username: string; content: string }[]> {
+    const topicXpath = '//*[@id="main-layout"]/div[2]/div/div[5]/div/div[2]';
+    const topicDrawer = this.page.locator(topicXpath);
+
+    const isDrawerVisible = await topicDrawer.isVisible();
+    if (!isDrawerVisible) {
+      console.warn(`Topic drawer with selector "${topicXpath}" not found or not visible.`);
+      return [];
+    }
+
+    const messageLocators = await topicDrawer
+      .locator(generateE2eSelector('chat.direct_message.message.item'))
+      .all();
+
+    const messages = [];
+    for (const itemLocator of messageLocators) {
+      try {
+        const usernameLocator = itemLocator.locator('.username');
+        const messageContentLocator = itemLocator.locator('.w-full.text-theme-message');
+        const username = (await usernameLocator.isVisible())
+          ? (await usernameLocator.textContent())?.trim() || ''
+          : '';
+        const content = (await messageContentLocator.isVisible())
+          ? (await messageContentLocator.textContent())?.trim() || ''
+          : '';
+        messages.push({
+          username,
+          content,
+        });
+      } catch (error) {
+        console.error('Error processing message item:', error);
+      }
+    }
+
+    return messages;
   }
 
   async openTopicDiscussion(messageElement: Locator): Promise<void> {
