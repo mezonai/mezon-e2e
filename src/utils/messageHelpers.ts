@@ -2086,13 +2086,15 @@ export class MessageTestHelpers {
     let item = this.page.locator(itemSelector);
     if (textContains) item = item.filter({ hasText: textContains });
     const target = item.first();
-    
+
     try {
       await target.scrollIntoViewIfNeeded();
       await expect(target).toBeVisible({ timeout: 5000 });
-      const highlightElements = target.locator(generateE2eSelector('chat.channel_message.mention.icon_reaction'));
+      const highlightElements = target.locator(
+        generateE2eSelector('chat.mention.icon_reaction')
+      );
       const count = await highlightElements.count();
-      
+
       return count > 0;
     } catch {
       return false;
@@ -2149,7 +2151,7 @@ export class MessageTestHelpers {
     await expect(messageElement).toBeVisible();
     await this.page.keyboard.press('Escape');
     await this.page.waitForTimeout(500);
-    
+
     await messageElement.hover();
     await this.page.waitForTimeout(1500);
 
@@ -2173,14 +2175,14 @@ export class MessageTestHelpers {
       await messageElement.click({ button: 'right', force: true });
       await this.page.waitForTimeout(1000);
 
-    const contextReactionSelectors = [
-      'text="Add Reaction"',
-      'text="React"',
-      '[role="menuitem"]:has-text("Reaction")',
-      '[role="menuitem"]:has-text("React")',
-      'button:has-text("Reaction")',
-      'div:has-text("Add Reaction")',
-    ];
+      const contextReactionSelectors = [
+        'text="Add Reaction"',
+        'text="React"',
+        '[role="menuitem"]:has-text("Reaction")',
+        '[role="menuitem"]:has-text("React")',
+        'button:has-text("Reaction")',
+        'div:has-text("Add Reaction")',
+      ];
 
       for (const selector of contextReactionSelectors) {
         const contextReaction = this.page.locator(selector).first();
@@ -2359,7 +2361,7 @@ export class MessageTestHelpers {
     // Close any open modals first
     await this.page.keyboard.press('Escape');
     await this.page.waitForTimeout(500);
-    
+
     const selectors = [
       'button[title="Members"]',
       'button[title*="Members"]',
