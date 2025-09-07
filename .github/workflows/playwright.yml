@@ -4,13 +4,10 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [develop]
-
+    types: [opened, synchronize, reopened]
 jobs:
   verify-automation-tests:
     runs-on: ubuntu-latest
-    # Only run on push to develop or when PR is merged to develop
-    if: github.ref == 'refs/heads/develop' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-
     steps:
       - name: Checkout mezon-e2e repository
         uses: actions/checkout@v4

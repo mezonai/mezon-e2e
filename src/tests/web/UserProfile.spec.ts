@@ -1,8 +1,8 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
-import { ProfilePage } from '@/pages/ProfilePage';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
 
 const CLAN_CHAT_URL = joinUrlPaths(
@@ -22,13 +22,13 @@ test.describe('User Profile - Clan Profiles', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     const profilePage = new ProfilePage(page);
-    await AllureReporter.initializeTest(page, testInfo, {
-      suite: AllureConfig.Suites.USER_MANAGEMENT,
-      subSuite: AllureConfig.SubSuites.USER_PROFILE,
-      story: AllureConfig.Stories.PROFILE_SETUP,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
+    //   story: AllureConfig.Stories.PROFILE_SETUP,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63571',
@@ -171,7 +171,7 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Save nickname changes', async () => {
-      const saveChangesBtn = profilePage.buttons.saveChangesButton;
+      const saveChangesBtn = profilePage.buttons.saveChangesClanProfileButton;
       await saveChangesBtn.scrollIntoViewIfNeeded();
       await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
       await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
@@ -267,5 +267,101 @@ test.describe('User Profile - Clan Profiles', () => {
       page,
       'Edit User Profile, Edit Display Name and Edit Username Button Visible'
     );
+  });
+
+  test('Change display name profile', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully change their display name profile.
+      
+      **Test Steps:**
+      1. Locate the display name input field
+      2. Clear existing display name and enter new one
+      3. Save the changes
+      4. Verify the display name has been updated
+      
+      **Expected Result:** The clan display name should be successfully updated and saved.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
+    });
+
+    const target = `acc.automationtest-${Date.now()}`;
+    await AllureReporter.addParameter('newDisplayname', target);
+    await AllureReporter.addParameter('platform', process.platform);
+
+    await AllureReporter.step('Enter new display name', async () => {
+      const displayNameInput = profilePage.inputs.displayNameInput;
+      await expect(displayNameInput).toBeVisible({ timeout: 1000 });
+      await displayNameInput.click();
+
+      const isMac = process.platform === 'darwin';
+      await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
+
+      let ok = false;
+      for (let i = 0; i < 3; i++) {
+        await displayNameInput.press(isMac ? 'Meta+A' : 'Control+A');
+        await displayNameInput.press('Backspace');
+        await page.waitForTimeout(50);
+        await displayNameInput.type(target, { delay: 40 });
+        await page.waitForTimeout(150);
+        const v = await displayNameInput.inputValue();
+        if (v === target) {
+          ok = true;
+          break;
+        }
+      }
+
+      if (!ok) {
+        await displayNameInput.evaluate((el: HTMLInputElement, value: string) => {
+          el.value = value;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }, target);
+      }
+
+      await displayNameInput.evaluate((el: HTMLInputElement) => {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.blur();
+      });
+
+      await page.waitForTimeout(800);
+      await expect(displayNameInput).toHaveValue(target, { timeout: 3000 });
+      await AllureReporter.addParameter(
+        'dispalyNameInputSuccess',
+        ok ? 'Direct input' : 'Programmatic input'
+      );
+    });
+
+    await AllureReporter.step('Save display name', async () => {
+      const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
+      await saveChangesBtn.scrollIntoViewIfNeeded();
+      await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
+      await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
+      await saveChangesBtn.click();
+      await AllureReporter.addParameter('saveButtonClicked', 'Yes');
+    });
+
+    await AllureReporter.step('Verify display name has been changed successfully', async () => {
+      await profilePage.verifyDisplayNameUpdated(target);
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Display Name Changed Successfully');
   });
 });

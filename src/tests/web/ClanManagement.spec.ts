@@ -1,27 +1,28 @@
-import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AllureReporter } from '@/utils/allureHelpers';
+import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 import { CategoryPage } from '../../pages/CategoryPage';
 
 test.describe('Create Clan', () => {
   test.beforeEach(async ({ page }, testInfo) => {
-    await AllureReporter.initializeTest(page, testInfo, {
-      suite: AllureConfig.Suites.CLAN_MANAGEMENT,
-      subSuite: AllureConfig.SubSuites.CLAN_CREATION,
-      story: AllureConfig.Stories.CLAN_SETUP,
-      severity: AllureConfig.Severity.BLOCKER,
-      testType: AllureConfig.TestTypes.E2E,
-    });
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.CLAN_CREATION,
+    //   story: AllureConfig.Stories.CLAN_SETUP,
+    //   severity: AllureConfig.Severity.BLOCKER,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
     });
 
-    await TestSetups.clanTest({
-      subSuite: AllureConfig.SubSuites.CLAN_CREATION,
-      operation: 'Clan Creation',
-    });
+    // await TestSetups.clanTest({
+    //   subSuite: AllureConfig.SubSuites.CLAN_CREATION,
+    //   operation: 'Clan Creation',
+    // });
 
     const clanPage = new ClanPageV2(page);
     await AllureReporter.step('Navigate to direct friends page', async () => {
@@ -57,7 +58,7 @@ test.describe('Create Clan', () => {
       tag: ['clan-creation', 'core-functionality'],
     });
 
-    const clanName = `New Clan ${Date.now()}`;
+    const clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
     const clanPage = new ClanPageV2(page);
 
     await AllureReporter.addParameter('clanName', clanName);
@@ -95,24 +96,24 @@ test.describe('Create Category', () => {
   let clanName: string;
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await AllureReporter.initializeTest(page, testInfo, {
-      suite: AllureConfig.Suites.CLAN_MANAGEMENT,
-      subSuite: AllureConfig.SubSuites.CATEGORY_MANAGEMENT,
-      story: AllureConfig.Stories.CHANNEL_ORGANIZATION,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.CATEGORY_MANAGEMENT,
+    //   story: AllureConfig.Stories.CHANNEL_ORGANIZATION,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       tms: '63510',
     });
 
-    await TestSetups.clanTest({
-      subSuite: AllureConfig.SubSuites.CATEGORY_MANAGEMENT,
-      operation: 'Category Creation',
-    });
+    // await TestSetups.clanTest({
+    //   subSuite: AllureConfig.SubSuites.CATEGORY_MANAGEMENT,
+    //   operation: 'Category Creation',
+    // });
 
-    clanName = `New Clan ${Date.now()}`;
+    clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
     const clanPage = new ClanPageV2(page);
 
     await AllureReporter.step('Navigate to direct friends page', async () => {
