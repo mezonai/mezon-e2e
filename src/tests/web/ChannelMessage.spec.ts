@@ -2,8 +2,8 @@ import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
-import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
+import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/1955879210568388608/3');
@@ -585,12 +585,9 @@ test.describe('Channel Message Functionality', () => {
     await messageHelpers.sendMessageInThread(emojiMsg);
     await page.waitForTimeout(1200);
 
-    const allPageText = await page.textContent('body');
-    const hasEmoji =
-      allPageText?.includes('😀') || allPageText?.includes('🎉') || allPageText?.includes('👍');
-    expect(hasEmoji).toBeTruthy();
+    const topicMessages = await messageHelpers.getMessagesFromTopicDrawer();
+    expect(emojiMsg).toEqual(topicMessages[topicMessages.length - 1].content);
   });
-
   test('Send message from short profile in clan channel', async ({ page, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63403',
