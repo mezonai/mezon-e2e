@@ -95,6 +95,21 @@ export class ClanPageV2 extends BasePage {
     return clanLocator.isVisible();
   }
 
+  async isOnboardingClanPresent(): Promise<boolean> {
+    const onboardingClanLocator = this.page.locator(
+      generateE2eSelector('onboarding.chat.guide_sections')
+    );
+
+    const count = await onboardingClanLocator.count();
+
+    for (let i = 0; i < count; i++) {
+      const visible = await onboardingClanLocator.nth(i).isVisible();
+      if (!visible) return false;
+    }
+
+    return true;
+  }
+
   async clickCreateClanButton(): Promise<boolean> {
     if (this.buttons.createClan) {
       await this.buttons.createClan.click();
