@@ -9,22 +9,18 @@ const workers = parseInt(process.env.WORKERS || '1', 10) || 1;
 
 export default defineConfig({
   testDir: './src/tests',
-  // testIgnore: ['**/*.auth.spec.ts', '**/homepage.spec.ts'],
   grepInvert: /@dual/,
   timeout: 300 * 1000,
-
   expect: {
     timeout: 10 * 1000,
   },
-
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  fullyParallel: true,
+  fullyParallel: false,
   workers,
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
-    ['json', { outputFile: 'results.json' }],
     ['./libs/mezon-reporter/mezon-reporter.ts'],
     [
       'allure-playwright',
@@ -58,12 +54,7 @@ export default defineConfig({
       },
     ],
   ],
-
-  // Global setup and teardown - disabled to let auth.setup.ts handle auth
-  // globalSetup: './src/config/global.setup.ts',
-  // globalTeardown: './src/config/global.teardown.ts',
   outputDir: 'test-results/',
-
   use: {
     baseURL: process.env.BASE_URL as string,
     trace: process.env.CI ? 'retain-on-failure' : 'on',
@@ -74,8 +65,6 @@ export default defineConfig({
     actionTimeout: 10 * 1000,
     navigationTimeout: 30 * 1000,
   },
-
-  /* Configure projects for major browsers */
   projects: [
     {
       name: 'Chrome',
@@ -91,7 +80,7 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
-      timeout: 60 * 1000, // 1 minute for setup
+      timeout: 60 * 1000,
     },
     {
       name: 'chromium-dual-user',
