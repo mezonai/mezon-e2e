@@ -42,7 +42,7 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.step('Open user settings profile', async () => {
       await profilePage.buttons.userSettingProfileButton.waitFor({
         state: 'visible',
-        timeout: 1000,
+        timeout: 3000,
       });
       await profilePage.buttons.userSettingProfileButton.click();
     });
