@@ -95,7 +95,7 @@ const persistentAuthConfigs = {
     redirectUrl: 'null',
     activeAccount: '"1964953606733959200"',
     _persist: '{"version":-1,"rehydrated":true}',
-  }
+  },
 };
 
 // Backward compatibility - keeping original persistentConfig
@@ -287,11 +287,11 @@ export const getBrowserConfig = () => ({
   args: isCI()
     ? ['--disable-dev-shm-usage', '--no-sandbox']
     : [
-      '--disable-clipboard-read-write',
-      '--disable-permissions-api',
-      '--disable-features=ClipboardReadWrite',
-      '--disable-clipboard-sanitization',
-    ],
+        '--disable-clipboard-read-write',
+        '--disable-permissions-api',
+        '--disable-features=ClipboardReadWrite',
+        '--disable-clipboard-sanitization',
+      ],
 });
 
 export const getTestConfig = () => ({

@@ -28,8 +28,7 @@ test.describe('Channel Message Functionality', () => {
   let messageHelpers: MessageTestHelpers;
   let clanSetupHelper: ClanSetupHelper;
   let testClanName: string;
-  let testChannelName: string;
-  let testClanChannelUrl: string;
+  let testClanUrl: string;
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -37,8 +36,7 @@ test.describe('Channel Message Functionality', () => {
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
 
     testClanName = setupResult.clanName;
-    testChannelName = setupResult.channelName!;
-    testClanChannelUrl = setupResult.clanChannelUrl!;
+    testClanUrl = setupResult.clanUrl;
   });
 
   test.afterAll(async ({ browser }) => {
@@ -85,9 +83,8 @@ test.describe('Channel Message Functionality', () => {
     },
 
     async navigateToClanChannel(): Promise<void> {
-      // Use the dynamically created clan channel URL, fallback to default if not available
-      const urlToUse = testClanChannelUrl;
-      await page.goto(urlToUse);
+      // Use the dynamically created clan URL
+      await page.goto(testClanUrl);
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(3000);
     },
@@ -414,7 +411,7 @@ test.describe('Channel Message Functionality', () => {
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -442,7 +439,7 @@ test.describe('Channel Message Functionality', () => {
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -470,7 +467,7 @@ test.describe('Channel Message Functionality', () => {
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -484,7 +481,7 @@ test.describe('Channel Message Functionality', () => {
     });
 
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -522,7 +519,7 @@ test.describe('Channel Message Functionality', () => {
     });
 
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -653,7 +650,7 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -676,7 +673,7 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -691,7 +688,7 @@ test.describe('Channel Message Functionality', () => {
   test('Send message with hashtag', async ({ page, context }) => {
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -708,7 +705,7 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
     await messageHelpers.sendMessageWithMultipleLinks(LINK_TEST_URLS);
@@ -724,7 +721,7 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(testClanChannelUrl);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 

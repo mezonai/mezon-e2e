@@ -12,8 +12,8 @@ export class AuthHelper {
    */
   static async setAuthForAccount(page: Page, accountKey: AccountKey) {
     const authData = getLocalAuthData(accountKey);
-    
-    await page.addInitScript((authData) => {
+
+    await page.addInitScript(authData => {
       localStorage.setItem(authData.persist.key, JSON.stringify(authData.persist.value));
       localStorage.setItem(authData.mezonSession.key, authData.mezonSession.value);
     }, authData);

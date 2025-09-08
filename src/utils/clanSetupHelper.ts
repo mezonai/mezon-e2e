@@ -1,25 +1,18 @@
 import { Browser, Page } from '@playwright/test';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AuthHelper } from '@/utils/authHelper';
-import { ChannelType, ChannelStatus } from '@/types/clan-page.types';
 import { WEBSITE_CONFIGS } from '@/config/environment';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 
 export interface ClanSetupConfig {
   clanNamePrefix?: string;
-  channelNamePrefix?: string;
-  createChannel?: boolean;
-  channelType?: ChannelType;
-  channelStatus?: ChannelStatus;
   suiteName?: string;
 }
 
 export interface ClanSetupResult {
   clanName: string;
-  channelName?: string;
   clanUrl: string;
-  clanChannelUrl?: string;
   cleanup: () => Promise<void>;
 }
 
@@ -32,23 +25,15 @@ export class ClanSetupHelper {
   }
 
   /**
-   * Sets up a test clan with optional channel creation
+   * Sets up a test clan
    * @param config Configuration options for clan setup
    * @returns Promise<ClanSetupResult> Setup result with clan details and cleanup function
    */
   async setupTestClan(config: ClanSetupConfig = {}): Promise<ClanSetupResult> {
-    const {
-      clanNamePrefix = 'TestClan',
-      channelNamePrefix = 'test-channel',
-      createChannel = false,
-      channelType = ChannelType.TEXT,
-      channelStatus = ChannelStatus.PUBLIC,
-      suiteName = 'Test Suite',
-    } = config;
+    const { clanNamePrefix = 'TestClan', suiteName = 'Test Suite' } = config;
 
     const timestamp = Date.now();
     const clanName = `${clanNamePrefix}_${timestamp}`;
-    const channelName = createChannel ? `${channelNamePrefix}-${timestamp}` : undefined;
 
     const context = await this.browser.newContext();
     const page = await context.newPage();
@@ -85,31 +70,9 @@ export class ClanSetupHelper {
 
       // Get the clan URL
       const clanUrl = page.url();
-      let clanChannelUrl = clanUrl;
-
-      // Create channel if requested
-      if (createChannel && channelName) {
-        await clanPage.createNewChannel(channelType, channelName, channelStatus);
-        await page.waitForTimeout(3000);
-
-        // Verify channel creation
-        const channelExists = await clanPage.isNewChannelPresent(channelName);
-        if (!channelExists) {
-          throw new Error(`Failed to create channel: ${channelName}`);
-        }
-
-        // Update channel URL
-        clanChannelUrl = page.url();
-      }
 
       console.log(`✅ Created test clan: ${clanName}`);
-      if (channelName) {
-        console.log(`✅ Created test channel: ${channelName}`);
-      }
       console.log(`🔗 Clan URL: ${clanUrl}`);
-      if (createChannel) {
-        console.log(`🔗 Channel URL: ${clanChannelUrl}`);
-      }
 
       // Create cleanup function
       const cleanup = async () => {
@@ -123,29 +86,13 @@ export class ClanSetupHelper {
 
       return {
         clanName,
-        channelName,
         clanUrl,
-        clanChannelUrl: createChannel ? clanChannelUrl : undefined,
         cleanup,
       };
     } catch (error) {
       await context.close();
       throw new Error(`Failed to setup test clan: ${error}`);
     }
-  }
-
-  /**
-   * Sets up a test clan with a default text channel
-   * @param config Configuration options for clan setup
-   * @returns Promise<ClanSetupResult> Setup result with clan and channel details
-   */
-  async setupTestClanWithChannel(
-    config: Omit<ClanSetupConfig, 'createChannel'> = {}
-  ): Promise<ClanSetupResult> {
-    return this.setupTestClan({
-      ...config,
-      createChannel: true,
-    });
   }
 
   /**
@@ -215,10 +162,6 @@ export class ClanSetupHelper {
   static createConfig(overrides: Partial<ClanSetupConfig> = {}): ClanSetupConfig {
     return {
       clanNamePrefix: 'TestClan',
-      channelNamePrefix: 'test-channel',
-      createChannel: false,
-      channelType: ChannelType.TEXT,
-      channelStatus: ChannelStatus.PUBLIC,
       suiteName: 'Test Suite',
       ...overrides,
     };
@@ -230,8 +173,6 @@ export class ClanSetupHelper {
   static readonly configs = {
     messageTests: ClanSetupHelper.createConfig({
       clanNamePrefix: 'MessageTestClan',
-      channelNamePrefix: 'message-channel',
-      createChannel: false,
       suiteName: 'Channel Message',
     }),
 
@@ -242,21 +183,17 @@ export class ClanSetupHelper {
 
     channelManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ChannelMgmtTest',
-      channelNamePrefix: 'mgmt-channel',
-      createChannel: false,
       suiteName: 'Channel Management',
     }),
 
     onboarding: ClanSetupHelper.createConfig({
       clanNamePrefix: 'OnboardingTest',
-      suiteName: 'Onboarding Tests',
+      suiteName: 'Onboarding Guide',
     }),
 
     userProfile: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ProfileTest',
-      channelNamePrefix: 'profile-channel',
-      createChannel: true,
-      suiteName: 'User Profile Tests',
+      suiteName: 'User Profile',
     }),
   };
 

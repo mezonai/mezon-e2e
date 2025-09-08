@@ -5,20 +5,29 @@ import { WEBSITE_CONFIGS } from '../../config/environment';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { AuthHelper } from '@/utils/authHelper';
-
-const CLAN_CHAT_URL = joinUrlPaths(
-  WEBSITE_CONFIGS.MEZON.baseURL || '',
-  'chat/clans/1786228934740807680/channels/1786228934753390593'
-);
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('User Profile - Clan Profiles', () => {
-  test.beforeAll(async () => {
+  let clanSetupHelper: ClanSetupHelper;
+  let testClanUrl: string;
+
+  test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
       suite: AllureConfig.Suites.USER_MANAGEMENT,
       subSuite: AllureConfig.SubSuites.USER_PROFILE,
       story: AllureConfig.Stories.PROFILE_SETUP,
       severity: AllureConfig.Severity.CRITICAL,
     });
+
+    clanSetupHelper = new ClanSetupHelper(browser);
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
+    testClanUrl = setupResult.clanUrl;
+  });
+
+  test.afterAll(async () => {
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
+    }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
@@ -38,7 +47,7 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Navigate to clan chat page', async () => {
-      await page.goto(CLAN_CHAT_URL);
+      await page.goto(testClanUrl);
       await page.waitForLoadState('networkidle');
     });
 
@@ -50,7 +59,7 @@ test.describe('User Profile - Clan Profiles', () => {
       await profilePage.buttons.userSettingProfileButton.click();
     });
 
-    await AllureReporter.addParameter('clanChatUrl', CLAN_CHAT_URL);
+    await AllureReporter.addParameter('clanChatUrl', testClanUrl);
   });
 
   test('Change avatar clan - button visible', async ({ page }) => {

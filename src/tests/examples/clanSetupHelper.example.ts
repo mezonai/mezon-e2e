@@ -42,17 +42,13 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
     test.beforeAll(async ({ browser }) => {
       clanSetupHelper = new ClanSetupHelper(browser);
 
-      const setupResult = await clanSetupHelper.setupTestClanWithChannel({
-        clanNamePrefix: 'ChannelClan',
-        channelNamePrefix: 'test-channel',
-        channelType: ChannelType.TEXT,
-        channelStatus: ChannelStatus.PUBLIC,
-        suiteName: 'Channel Tests',
+      const setupResult = await clanSetupHelper.setupTestClan({
+        clanNamePrefix: 'ChannelTestClan',
       });
 
       testClanName = setupResult.clanName;
       testClanUrl = setupResult.clanUrl;
-      testChannelUrl = setupResult.clanChannelUrl!;
+      testChannelUrl = setupResult.clanUrl;
     });
 
     test.afterAll(async ({ browser }) => {
@@ -73,12 +69,10 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
       clanSetupHelper = new ClanSetupHelper(browser);
 
       // Use predefined configuration for message tests
-      const setupResult = await clanSetupHelper.setupTestClanWithChannel(
-        ClanSetupHelper.configs.messageTests
-      );
+      const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
 
       testClanName = setupResult.clanName;
-      testChannelUrl = setupResult.clanChannelUrl!;
+      testChannelUrl = setupResult.clanUrl;
     });
 
     test.afterAll(async ({ browser }) => {
@@ -131,8 +125,6 @@ test.describe('Convenience Functions Example', () => {
     // Using the static setup method
     setupResult = await ClanSetupHelper.setupTestClan(browser, {
       clanNamePrefix: 'ConvenienceClan',
-      createChannel: true,
-      channelType: ChannelType.VOICE,
       suiteName: 'Convenience Tests',
     });
   });
