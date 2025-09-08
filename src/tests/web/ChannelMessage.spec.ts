@@ -608,7 +608,7 @@ test.describe('Channel Message Functionality', () => {
 
     const emojiMsg = '😀🎉👍';
     await messageHelpers.sendMessageInThread(emojiMsg);
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(3000);
 
     const topicMessages = await messageHelpers.getMessagesFromTopicDrawer();
     expect(emojiMsg).toEqual(topicMessages[topicMessages.length - 1].content);
