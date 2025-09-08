@@ -30,12 +30,12 @@ export interface NotificationPayload {
     error: string;
     duration: number;
   }>;
-  // GitHub/CI related fields
   prUrl?: string;
   actionUrl?: string;
   commitSha?: string;
   branch?: string;
   actor?: string;
+  reportUrl?: string;
 }
 
 export class MezonNotifier {
@@ -73,12 +73,19 @@ export class MezonNotifier {
 
     try {
       const githubInfo = this.getGitHubInfo();
+      const { ReportExporter } = await import('./reportExporter');
+      const reportExporter = new ReportExporter();
+      const exportResult = await reportExporter.exportPlaywrightReport();
+      const reportUrl = exportResult.success
+        ? `https://mezon-reports.nccquynhon.edu.vn/${exportResult.folderId}`
+        : undefined;
       const enrichedPayload = {
         ...payload,
         ...githubInfo,
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
         project: 'Mezon E2E Tests',
+        reportUrl,
       };
 
       // Check if this is a simple start message or if all tests passed (simple success message)
@@ -162,7 +169,12 @@ export class MezonNotifier {
 
       let successMessage = `✅ All tests passed! ${passed}/${total} tests completed successfully in ${duration} ⏰ ${timestamp} (GMT+7)`;
 
-      // Add links for success messages
+      // Add report URL if available
+      if (payload.reportUrl) {
+        successMessage += `\n📊 [View Test Report](${payload.reportUrl})`;
+      }
+
+      // Add GitHub links for success messages
       const links = this.formatGitHubLinks(payload);
       if (links) {
         successMessage += `\n\n${links}`;
@@ -210,7 +222,6 @@ export class MezonNotifier {
       },
     };
 
-    // Add mention if configured
     if (this.mentionUserId) {
       const mentionText = `\n\n@mezon.bot`;
       const fullMessage = `${message}${mentionText}`;
