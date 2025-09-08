@@ -22,13 +22,13 @@ test.describe('Dual Users Chat in Clan @dual ', () => {
     const mockContext = await browser.newContext();
     const mockPage = await mockContext.newPage();
 
-    await AllureReporter.initializeTest(mockPage, testInfo, {
-      suite: AllureConfig.Suites.CHAT_PLATFORM,
-      subSuite: AllureConfig.SubSuites.GROUP_CHAT,
-      story: AllureConfig.Stories.TEXT_MESSAGING,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
+    // await AllureReporter.initializeTest(mockPage, testInfo, {
+    //   suite: AllureConfig.Suites.CHAT_PLATFORM,
+    //   subSuite: AllureConfig.SubSuites.GROUP_CHAT,
+    //   story: AllureConfig.Stories.TEXT_MESSAGING,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
