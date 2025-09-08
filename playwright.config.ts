@@ -19,7 +19,7 @@ export default defineConfig({
 
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  fullyParallel: true,
+  fullyParallel: false,
   workers,
   reporter: [
     ['list'],

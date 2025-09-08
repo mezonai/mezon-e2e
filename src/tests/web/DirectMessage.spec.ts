@@ -7,6 +7,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 import { ROUTES } from '@/selectors';
+import { AuthHelper } from '@/utils/authHelper';
 
 test.describe('Direct Message', () => {
   test.beforeAll(async () => {
@@ -19,6 +20,7 @@ test.describe('Direct Message', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Direct Message');
     await AllureReporter.initializeTest(page, testInfo, {
       suite: AllureConfig.Suites.CHAT_PLATFORM,
       subSuite: AllureConfig.SubSuites.DIRECT_MESSAGING,

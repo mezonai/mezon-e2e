@@ -2,12 +2,37 @@ import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import test, { expect } from '@playwright/test';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('Create New Channels', () => {
+  let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
+  let clanUrl: string;
+
+  test.beforeAll(async ({ browser }) => {
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.channelManagement
+    );
+
+    clanName = setupResult.clanName;
+    clanUrl = setupResult.clanUrl;
+
+    console.log(`✅ Test clan setup complete: ${clanName}`);
+  });
+
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
+    }
+  });
 
   test.beforeEach(async ({ page }, testInfo) => {
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Management');
+
     // Initialize Allure reporting for this test suite
     await AllureReporter.initializeTest(page, testInfo, {
       suite: AllureConfig.Suites.CLAN_MANAGEMENT,
@@ -26,39 +51,14 @@ test.describe('Create New Channels', () => {
       operation: 'Channel Creation',
     });
 
-    clanName = `New Clan ${new Date().getTime()}`;
-    const clanPage = new ClanPageV2(page);
-
-    await AllureReporter.step('Navigate to direct friends page', async () => {
-      await clanPage.navigate('/chat/direct/friends');
-    });
-
-    await AllureReporter.step('Create new clan for testing', async () => {
-      await clanPage.clickCreateClanButton();
-      await clanPage.createNewClan(clanName);
+    // Navigate to the test clan
+    await AllureReporter.step('Navigate to test clan', async () => {
+      await page.goto(clanUrl);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(3000);
     });
 
     await AllureReporter.addParameter('clanName', clanName);
-  });
-
-  test.afterEach(async ({ page }, testInfo) => {
-    const clanPage = new ClanPageV2(page);
-
-    await AllureReporter.step('Clean up: Delete test clan', async () => {
-      const deletedClan = await clanPage.deleteClan(clanName);
-      if (deletedClan) {
-        console.log(`Successfully deleted clan: ${clanName}`);
-      } else {
-        console.log(`Failed to delete clan: ${clanName}`);
-        // Take screenshot on cleanup failure
-        await AllureReporter.attachScreenshot(page, 'Cleanup Failed - Delete Clan');
-      }
-    });
-
-    // Add test result metadata
-    if (testInfo.status === 'failed') {
-      await AllureReporter.attachScreenshot(page, 'Test Failed - Final Screenshot');
-    }
   });
 
   test('Verify that I can create a new private text channel', async ({ page }) => {

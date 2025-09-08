@@ -8,6 +8,8 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
+import { AuthHelper } from '@/utils/authHelper';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 // Custom auth data for OnboardingGuide tests
 const ONBOARDING_AUTH_DATA = {
@@ -34,11 +36,11 @@ const ONBOARDING_AUTH_DATA = {
     }),
   },
 };
-const overrideAuth = async page => {
+const overrideAuth = async (page: any) => {
   await page.goto(WEBSITE_CONFIGS.MEZON.baseURL as string);
   await page.waitForLoadState('networkidle');
 
-  await page.evaluate(authData => {
+  await page.evaluate((authData: any) => {
     localStorage.setItem(authData.persist.key, JSON.stringify(authData.persist.value));
     localStorage.setItem(authData.mezonSession.key, authData.mezonSession.value);
   }, ONBOARDING_AUTH_DATA);
@@ -48,6 +50,7 @@ const overrideAuth = async page => {
 };
 
 test.describe('Onboarding Guide Task Completion', () => {
+  let clanSetupHelper: ClanSetupHelper;
   let testClanName: string;
   let clanUrl: string;
 
@@ -59,9 +62,11 @@ test.describe('Onboarding Guide Task Completion', () => {
       severity: AllureConfig.Severity.CRITICAL,
     });
 
+    // Create a custom setup for onboarding with special auth
     const context = await browser.newContext();
     const page = await context.newPage();
     await overrideAuth(page);
+
     try {
       const homePage = new HomePage(page);
       await homePage.navigate();
@@ -73,6 +78,7 @@ test.describe('Onboarding Guide Task Completion', () => {
         await clanPage.createNewClan(testClanName);
         await page.waitForTimeout(5000);
         clanUrl = page.url();
+        console.log(`✅ Created onboarding test clan: ${testClanName}`);
       }
     } catch (error) {
       console.error('Error creating clan:', error);
@@ -91,6 +97,7 @@ test.describe('Onboarding Guide Task Completion', () => {
         await page.waitForTimeout(3000);
         const clanPage = new ClanPageV2(page);
         await clanPage.deleteClan(testClanName);
+        console.log(`🗑️ Deleted onboarding test clan: ${testClanName}`);
       } catch (error) {
         console.error(`❌ Error deleting test clan: ${error}`);
       } finally {
@@ -102,6 +109,8 @@ test.describe('Onboarding Guide Task Completion', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Onboarding Guide');
+
     await overrideAuth(page);
     await AllureReporter.initializeTest(page, testInfo, {
       suite: AllureConfig.Suites.USER_MANAGEMENT,

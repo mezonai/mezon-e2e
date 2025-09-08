@@ -4,13 +4,14 @@ import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
+import { AuthHelper } from '@/utils/authHelper';
+import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ChannelType, ChannelStatus } from '@/types/clan-page.types';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/1955879210568388608/3');
-const CLAN_CHANNEL_URL = joinUrlPaths(
-  MEZON_BASE_URL,
-  'chat/clans/1786228934740807680/channels/1786228934753390593'
-);
+
 const THREAD_CLAN_URL = joinUrlPaths(
   MEZON_BASE_URL,
   'chat/clans/1960192934003347456/channels/1960192934070456320'
@@ -25,6 +26,26 @@ interface NavigationHelpers {
 
 test.describe('Channel Message Functionality', () => {
   let messageHelpers: MessageTestHelpers;
+  let clanSetupHelper: ClanSetupHelper;
+  let testClanName: string;
+  let testChannelName: string;
+  let testClanChannelUrl: string;
+
+  test.beforeAll(async ({ browser }) => {
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
+
+    testClanName = setupResult.clanName;
+    testChannelName = setupResult.channelName!;
+    testClanChannelUrl = setupResult.clanChannelUrl!;
+  });
+
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
+    }
+  });
 
   const createNavigationHelpers = (page: any): NavigationHelpers => ({
     async navigateToHomePage(): Promise<void> {
@@ -64,13 +85,17 @@ test.describe('Channel Message Functionality', () => {
     },
 
     async navigateToClanChannel(): Promise<void> {
-      await page.goto(CLAN_CHANNEL_URL);
+      // Use the dynamically created clan channel URL, fallback to default if not available
+      const urlToUse = testClanChannelUrl;
+      await page.goto(urlToUse);
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(3000);
     },
   });
 
   test.beforeEach(async ({ page, context }, testInfo) => {
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Message');
+
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,
       severity: AllureConfig.Severity.CRITICAL,
@@ -389,7 +414,7 @@ test.describe('Channel Message Functionality', () => {
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -417,7 +442,7 @@ test.describe('Channel Message Functionality', () => {
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -445,7 +470,7 @@ test.describe('Channel Message Functionality', () => {
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -459,7 +484,7 @@ test.describe('Channel Message Functionality', () => {
     });
 
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -497,7 +522,7 @@ test.describe('Channel Message Functionality', () => {
     });
 
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
@@ -628,7 +653,7 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -651,7 +676,7 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -666,7 +691,7 @@ test.describe('Channel Message Functionality', () => {
   test('Send message with hashtag', async ({ page, context }) => {
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -683,7 +708,7 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
     await messageHelpers.sendMessageWithMultipleLinks(LINK_TEST_URLS);
@@ -699,7 +724,7 @@ test.describe('Channel Message Functionality', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(page);
 
-    await page.goto(CLAN_CHANNEL_URL);
+    await page.goto(testClanChannelUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 

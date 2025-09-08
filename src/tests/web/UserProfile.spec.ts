@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
+import { AuthHelper } from '@/utils/authHelper';
 
 const CLAN_CHAT_URL = joinUrlPaths(
   WEBSITE_CONFIGS.MEZON.baseURL || '',
@@ -21,6 +22,8 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'User Profile');
+
     const profilePage = new ProfilePage(page);
     await AllureReporter.initializeTest(page, testInfo, {
       suite: AllureConfig.Suites.USER_MANAGEMENT,
