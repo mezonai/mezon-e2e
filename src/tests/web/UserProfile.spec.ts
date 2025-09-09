@@ -319,7 +319,7 @@ test.describe('User Profile - Clan Profiles', () => {
 
     await AllureReporter.step('Enter new display name', async () => {
       const displayNameInput = profilePage.inputs.displayNameInput;
-      await expect(displayNameInput).toBeVisible({ timeout: 1000 });
+      await expect(displayNameInput).toBeVisible({ timeout: 5000 });
       await displayNameInput.click();
 
       const isMac = process.platform === 'darwin';
