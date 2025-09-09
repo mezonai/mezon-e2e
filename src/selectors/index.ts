@@ -241,17 +241,17 @@ export const DATA_E2E_IDENTIFIER = {
       tab_account: '',
     },
     profile: {
-			button_setting: '',
-			tab_profile: '',
-			user_profile: {
-				input: {
-					display_name: ''
-				},
-				button: {
-					reset: '',
-					save_changes: ''
-				}
-			},
+      button_setting: '',
+      tab_profile: '',
+      user_profile: {
+        input: {
+          display_name: '',
+        },
+        button: {
+          reset: '',
+          save_changes: '',
+        },
+      },
       clan_profile: {
         button: '',
         select: '',
