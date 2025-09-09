@@ -89,7 +89,6 @@ export class MezonNotifier {
       const body = this.createMezonWebhookPayload(messageToSend);
 
       // console.log(`[Mezon] Sending ${isSimpleMessage ? 'simple' : 'detailed'} notification...`);
-
       await fetch(this.webhookUrl!, {
         method: 'POST',
         headers: {
@@ -146,15 +145,14 @@ export class MezonNotifier {
 
       let successMessage = `✅ All tests passed! ${passed}/${total} tests completed successfully in ${duration} ⏰ ${timestamp} (GMT+7)`;
 
-      // Add report URL if available
-      if (payload.reportUrl) {
-        successMessage += `\n📊 [View Test Report](${payload.reportUrl})`;
-      }
-
       // Add GitHub links for success messages
       const links = this.formatGitHubLinks(payload);
       if (links) {
         successMessage += `\n\n${links}`;
+      }
+
+      if (payload.reportUrl) {
+        successMessage += `\n📊 [View Test Report] ${payload.reportUrl}`;
       }
 
       return successMessage;
@@ -186,6 +184,9 @@ export class MezonNotifier {
     const links = this.formatGitHubLinks(payload);
     if (links) {
       detailedMessage += `\n${links}`;
+    }
+    if (payload.reportUrl) {
+      detailedMessage += `\n📊 [View Test Report] ${payload.reportUrl}`;
     }
 
     return detailedMessage;
