@@ -1,3 +1,17 @@
+import { REPORT_SERVER_URL, REPORT_WEBHOOK_URL } from 'libs/mezon-reporter/constant';
+
+interface MezonWebhookPayload {
+  type: string;
+  message: {
+    t: string;
+    mentions?: Array<{
+      user_id: string;
+      s: number;
+      e: number;
+    }>;
+  };
+}
+
 export interface NotificationPayload {
   totalTests?: number;
   file?: string;
@@ -62,10 +76,16 @@ export class MezonNotifier {
       const githubInfo = this.getGitHubInfo();
       const { ReportExporter } = await import('./reportExporter');
       const reportExporter = new ReportExporter();
-      const exportResult = await reportExporter.exportPlaywrightReport();
-      const reportUrl = exportResult.success
-        ? `https://mezon-reports.nccquynhon.edu.vn/${exportResult.folderId}`
-        : undefined;
+      const exportResult = await reportExporter.uploadFolderToServer();
+      let reportUrl = '';
+      if (exportResult?.success && exportResult.folderId) {
+        reportUrl = `${REPORT_SERVER_URL}/${exportResult.folderId}`;
+        await fetch(`${REPORT_WEBHOOK_URL}/webhook`, {
+          method: 'POST',
+          body: JSON.stringify({ folderId: exportResult.folderId }),
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
       const enrichedPayload = {
         ...payload,
         ...githubInfo,
@@ -75,7 +95,6 @@ export class MezonNotifier {
         reportUrl,
       };
 
-      // Check if this is a simple start message or if all tests passed (simple success message)
       const isStartMessage = message.includes('started') || message.includes('🚀');
       const isAllTestsPassed =
         message.includes('Successfully') &&
@@ -92,15 +111,17 @@ export class MezonNotifier {
 
       // console.log(`[Mezon] Sending ${isSimpleMessage ? 'simple' : 'detailed'} notification...`);
 
-      await fetch(this.webhookUrl!, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-    } catch (error) {
-      // console.warn('[Mezon] Error sending notification:', error);
+      if (this.webhookUrl) {
+        await fetch(this.webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+      }
+    } catch {
+      // console.warn('[Mezon] Error sending notification');
     }
   }
 
@@ -193,8 +214,8 @@ export class MezonNotifier {
     return detailedMessage;
   }
 
-  private createMezonWebhookPayload(message: string): any {
-    const payload: any = {
+  private createMezonWebhookPayload(message: string): MezonWebhookPayload {
+    const payload: MezonWebhookPayload = {
       type: 'hook',
       message: {
         t: message,
@@ -307,7 +328,7 @@ export class MezonNotifier {
         if (eventPayload.pull_request?.html_url) {
           githubInfo.prUrl = eventPayload.pull_request.html_url;
         }
-      } catch (error) {
+      } catch {
         // Ignore errors reading event payload
         // console.log('[Mezon] Could not read GitHub event payload');
       }
