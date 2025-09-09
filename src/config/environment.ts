@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Multiple persistent auth configurations
-const persistentAuthConfigs = {
+export const persistentAuthConfigs = {
   account1: {
     loadingStatus: '"loaded"',
     session:

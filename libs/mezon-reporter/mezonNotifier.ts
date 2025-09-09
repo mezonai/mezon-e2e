@@ -49,25 +49,12 @@ export class MezonNotifier {
       'https://webhook.mezon.ai/webhooks/1959843615589011456/MTc1NzA1NzkzNDY1OTcyMDIzNjoxNzc5NDg0NTA0Mzc3NzkwNDY0OjE5NTk4NDM2MTU1ODkwMTE0NTY6MTk2Mzg2OTQzMzkwNjU5Nzg4OA.PvCwfUrrY00hKbtB6XsYnr8zVomZqeHrLecTSIB5Jdo';
 
     this.isEnabled = process.env.MEZON_NOTIFICATIONS !== 'false' && !!this.webhookUrl;
-    // this.mentionUserId = process.env.MEZON_MENTION_USER_ID || '1840655335266717696';
-
-    // console.log('[Mezon] Reporter initialized');
-    // console.log('[Mezon] Webhook URL configured:', !!this.webhookUrl);
-    // console.log('[Mezon] Notifications enabled:', this.isEnabled);
-    // console.log('[Mezon] Running in:', process.env.NODE_ENV || 'unknown environment');
-    // if (!this.webhookUrl) {
-    //   console.log('[Mezon] To enable notifications, set MEZON_WEBHOOK_URL environment variable');
-    // }
   }
 
   async send(message: string, payload?: NotificationPayload): Promise<void> {
     // console.log('[Mezon] Attempting to send notification:', message);
 
     if (!this.isEnabled) {
-      // console.log(`[Mezon] Notifications disabled. Message: ${message}`);
-      if (payload) {
-        // console.log('[Mezon] Payload:', JSON.stringify(payload, null, 2));
-      }
       return;
     }
 
@@ -105,21 +92,13 @@ export class MezonNotifier {
 
       // console.log(`[Mezon] Sending ${isSimpleMessage ? 'simple' : 'detailed'} notification...`);
 
-      const response = await fetch(this.webhookUrl!, {
+      await fetch(this.webhookUrl!, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
       });
-
-      if (!response.ok) {
-        // console.warn(
-        //   `[Mezon] Failed to send notification: ${response.status} ${response.statusText}`
-        // );
-      } else {
-        // console.log(`[Mezon] Notification sent successfully`);
-      }
     } catch (error) {
       // console.warn('[Mezon] Error sending notification:', error);
     }

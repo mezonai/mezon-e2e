@@ -1,7 +1,11 @@
 import { Page } from '@playwright/test';
-import { getLocalAuthData, getAuthConfigBySuite } from '@/config/environment';
+import {
+  getLocalAuthData,
+  getAuthConfigBySuite,
+  persistentAuthConfigs,
+} from '@/config/environment';
 
-export type AccountKey = 'account1' | 'account2' | 'account3';
+export type AccountKey = keyof typeof persistentAuthConfigs;
 
 export class AuthHelper {
   /**

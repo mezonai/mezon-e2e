@@ -71,9 +71,6 @@ export class ClanSetupHelper {
       // Get the clan URL
       const clanUrl = page.url();
 
-      console.log(`✅ Created test clan: ${clanName}`);
-      console.log(`🔗 Clan URL: ${clanUrl}`);
-
       // Create cleanup function
       const cleanup = async () => {
         await this.cleanupClan(clanName, clanUrl, suiteName);
@@ -107,7 +104,6 @@ export class ClanSetupHelper {
     suiteName: string = 'Cleanup'
   ): Promise<void> {
     if (!clanName || !clanUrl) {
-      console.log('⚠️ No clan name or URL provided for cleanup');
       return;
     }
 
@@ -128,8 +124,6 @@ export class ClanSetupHelper {
       // Delete the test clan
       await clanPage.deleteClan(clanName);
       await page.waitForTimeout(3000);
-
-      console.log(`🗑️ Deleted test clan: ${clanName}`);
     } catch (error) {
       console.error(`❌ Failed to cleanup test clan: ${error}`);
       // Don't throw error in cleanup to avoid affecting test results
@@ -142,8 +136,6 @@ export class ClanSetupHelper {
    * Cleans up all clans created by this helper instance
    */
   async cleanupAllClans(): Promise<void> {
-    console.log(`🧹 Starting cleanup of ${this.cleanupFunctions.length} clans...`);
-
     for (const cleanup of this.cleanupFunctions) {
       try {
         await cleanup();
