@@ -40,12 +40,12 @@ const persistentAuthConfigs = {
   account4: {
     loadingStatus: '"loaded"',
     session:
-      '{"1964952630786527200":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJhYThjNDkyZC0yMDA5LTRjM2EtOWZlMi1mZWMyOWE1MjkwNjIiLCJ1aWQiOjE5NjQ5NTI2MzA3ODY1MjcyMzIsInVzbiI6ImRhdC5oYXF1b2MrMDQiLCJleHAiOjE3NTc0MDI1ODh9.v2aUUvHOYOfTr8qdKaoQOPTMlVsMi1AuDpMTNXv6YWQ","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJhYThjNDkyZC0yMDA5LTRjM2EtOWZlMi1mZWMyOWE1MjkwNjIiLCJ1aWQiOjE5NjQ5NTI2MzA3ODY1MjcyMzIsInVzbiI6ImRhdC5oYXF1b2MrMDQiLCJleHAiOjE3NTc5MjA5ODh9.pZJ2APcbzB7MiJpGtiYYugSVmZg99cTymB8dQixrDzI","created_at":1757316188,"is_remember":false,"refresh_expires_at":1757920988,"expires_at":1757402588,"username":"dat.haquoc+04","user_id":1964952630786527200}}',
+      '{"1958389436492288000":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJmMTU1NDU2ZC03MDRjLTRlYjUtOWM2MS0zODczOGFhODE0MTYiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1Njk2Njg5MH0.5m7o0S9d-eRou2hUVYszA-8SlGRWZ_etDHXiqPqcFFE","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJmMTU1NDU2ZC03MDRjLTRlYjUtOWM2MS0zODczOGFhODE0MTYiLCJ1aWQiOjE5NTgzODk0MzY0OTIyODgwMDAsInVzbiI6InRka2llbi45OS52biIsImV4cCI6MTc1NzQ4NTI5MH0.JUGfgLhnCdfD3rduFGCumpO0WUhmGZ9921IIJvMt4kE","created_at":1756880490,"is_remember":false,"refresh_expires_at":1757485290,"expires_at":1756966890,"username":"tdkien.99.vn","user_id":1958389436492288000}}',
     isLogin: 'true',
     isRegistering: '"not loaded"',
     loadingStatusEmail: '"not loaded"',
     redirectUrl: 'null',
-    activeAccount: '"1964952630786527200"',
+    activeAccount: '"1958389436492288000"',
     _persist: '{"version":-1,"rehydrated":true}',
   },
   account5: {

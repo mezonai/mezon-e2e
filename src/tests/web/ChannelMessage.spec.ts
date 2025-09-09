@@ -12,11 +12,6 @@ import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/1955879210568388608/3');
 
-const THREAD_CLAN_URL = joinUrlPaths(
-  MEZON_BASE_URL,
-  'chat/clans/1960192934003347456/channels/1960192934070456320'
-);
-
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
   navigateToDirectChat(): Promise<void>;
@@ -243,7 +238,7 @@ test.describe('Channel Message Functionality', () => {
     });
 
     messageHelpers = new MessageTestHelpers(page);
-    await page.goto(THREAD_CLAN_URL);
+    await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
     const initialMessageCount = await messageHelpers.countMessages();
