@@ -125,7 +125,7 @@ jobs:
           BASE_URL=http://127.0.0.1:4200/
           API_URL=http://127.0.0.1:4200/api
           SKIP_LOGIN=true
-          WORKER=6
+          WORKERS=6
           CI=true
           EOF
 
