@@ -10,58 +10,58 @@ import { HomePage } from '../../pages/HomePage';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
 
 // Custom auth data for OnboardingGuide tests
-const ONBOARDING_AUTH_DATA = {
-  persist: {
-    key: 'persist:auth',
-    value: {
-      loadingStatus: '"loaded"',
-      session:
-        '{"1840651409016492000":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIzYTljNzY5NS0zYTQ3LTRmODktOGY4ZC02MTFlYzhmNmI0NjYiLCJ1aWQiOjE4NDA2NTE0MDkwMTY0OTIwMzIsInVzbiI6ImR1bmcuYnVpaHV1IiwiZXhwIjoxNzU3Mjc2NDY4fQ.TzAX7wVtTkjoEdXdVWmtECDTJQao2hh6kMOpZ4NF9tA","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIzYTljNzY5NS0zYTQ3LTRmODktOGY4ZC02MTFlYzhmNmI0NjYiLCJ1aWQiOjE4NDA2NTE0MDkwMTY0OTIwMzIsInVzbiI6ImR1bmcuYnVpaHV1IiwiZXhwIjoxNzU3ODgwNjY4fQ.NPXN4ec-ApsEylTx1UW4UtamILXGu7e-MLkMdRxX7VI","created_at":1757275868,"is_remember":false,"refresh_expires_at":1757880668,"expires_at":1757276468,"username":"dung.buihuu","user_id":1840651409016492000}}',
-      isLogin: 'true',
-      isRegistering: '"not loaded"',
-      loadingStatusEmail: '"not loaded"',
-      redirectUrl: 'null',
-      activeAccount: '"1840651409016492000"',
-      _persist: '{"version":-1,"rehydrated":true}',
-    },
-  },
-  mezonSession: {
-    key: 'mezon_session',
-    value: JSON.stringify({
-      host: 'dev-mezon.nccsoft.vn',
-      port: '7305',
-      ssl: true,
-    }),
-  },
-};
-const overrideAuth = async page => {
-  await page.goto(WEBSITE_CONFIGS.MEZON.baseURL as string);
-  await page.waitForLoadState('networkidle');
+// const ONBOARDING_AUTH_DATA = {
+//   persist: {
+//     key: 'persist:auth',
+//     value: {
+//       loadingStatus: '"loaded"',
+//       session:
+//         '{"1840651409016492000":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIzYTljNzY5NS0zYTQ3LTRmODktOGY4ZC02MTFlYzhmNmI0NjYiLCJ1aWQiOjE4NDA2NTE0MDkwMTY0OTIwMzIsInVzbiI6ImR1bmcuYnVpaHV1IiwiZXhwIjoxNzU3Mjc2NDY4fQ.TzAX7wVtTkjoEdXdVWmtECDTJQao2hh6kMOpZ4NF9tA","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIzYTljNzY5NS0zYTQ3LTRmODktOGY4ZC02MTFlYzhmNmI0NjYiLCJ1aWQiOjE4NDA2NTE0MDkwMTY0OTIwMzIsInVzbiI6ImR1bmcuYnVpaHV1IiwiZXhwIjoxNzU3ODgwNjY4fQ.NPXN4ec-ApsEylTx1UW4UtamILXGu7e-MLkMdRxX7VI","created_at":1757275868,"is_remember":false,"refresh_expires_at":1757880668,"expires_at":1757276468,"username":"dung.buihuu","user_id":1840651409016492000}}',
+//       isLogin: 'true',
+//       isRegistering: '"not loaded"',
+//       loadingStatusEmail: '"not loaded"',
+//       redirectUrl: 'null',
+//       activeAccount: '"1840651409016492000"',
+//       _persist: '{"version":-1,"rehydrated":true}',
+//     },
+//   },
+//   mezonSession: {
+//     key: 'mezon_session',
+//     value: JSON.stringify({
+//       host: 'dev-mezon.nccsoft.vn',
+//       port: '7305',
+//       ssl: true,
+//     }),
+//   },
+// };
+// const overrideAuth = async page => {
+//   await page.goto(WEBSITE_CONFIGS.MEZON.baseURL as string);
+//   await page.waitForLoadState('networkidle');
 
-  await page.evaluate(authData => {
-    localStorage.setItem(authData.persist.key, JSON.stringify(authData.persist.value));
-    localStorage.setItem(authData.mezonSession.key, authData.mezonSession.value);
-  }, ONBOARDING_AUTH_DATA);
+//   await page.evaluate(authData => {
+//     localStorage.setItem(authData.persist.key, JSON.stringify(authData.persist.value));
+//     localStorage.setItem(authData.mezonSession.key, authData.mezonSession.value);
+//   }, ONBOARDING_AUTH_DATA);
 
-  await page.reload();
-  await page.waitForLoadState('networkidle');
-};
+//   await page.reload();
+//   await page.waitForLoadState('networkidle');
+// };
 
 test.describe('Onboarding Guide Task Completion', () => {
   let testClanName: string;
   let clanUrl: string;
 
   test.beforeAll(async ({ browser }) => {
-    // await TestSetups.clanTest({
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    // });
+    await TestSetups.clanTest({
+      suite: AllureConfig.Suites.USER_MANAGEMENT,
+      subSuite: AllureConfig.SubSuites.USER_PROFILE,
+      story: AllureConfig.Stories.PROFILE_SETUP,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
 
     const context = await browser.newContext();
     const page = await context.newPage();
-    await overrideAuth(page);
+    //await overrideAuth(page);
     try {
       const homePage = new HomePage(page);
       await homePage.navigate();
@@ -102,14 +102,14 @@ test.describe('Onboarding Guide Task Completion', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await overrideAuth(page);
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
+    // await overrideAuth(page);
+    await AllureReporter.initializeTest(page, testInfo, {
+      suite: AllureConfig.Suites.USER_MANAGEMENT,
+      subSuite: AllureConfig.SubSuites.USER_PROFILE,
+      story: AllureConfig.Stories.PROFILE_SETUP,
+      severity: AllureConfig.Severity.CRITICAL,
+      testType: AllureConfig.TestTypes.E2E,
+    });
 
     await AllureReporter.addWorkItemLinks({
       tms: '63452',
@@ -178,7 +178,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     await AllureReporter.attachScreenshot(page, 'Send First Message Task Completed');
   });
 
-  test('should mark "Create channel" task as done after user creates a channel', async ({
+  test('should mark "Create channel" task as done by modal after user creates a channel', async ({
     page,
   }) => {
     await AllureReporter.addTestParameters({
@@ -223,7 +223,85 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     let channelCreated = false;
     await AllureReporter.step('Perform create channel workflow', async () => {
-      channelCreated = await clanPage.createNewChannel(
+      channelCreated = await clanPage.createNewChannelByModal(
+        ChannelType.TEXT,
+        testChannelName,
+        ChannelStatus.PUBLIC
+      );
+
+      await AllureReporter.addParameter(
+        'channelCreationResult',
+        channelCreated ? 'Success' : 'Failed'
+      );
+
+      if (channelCreated) {
+        await AllureReporter.attachScreenshot(page, 'Channel Created Successfully');
+      } else {
+        await AllureReporter.attachScreenshot(page, 'Channel Creation Failed');
+      }
+    });
+
+    await AllureReporter.step('Verify "Create channel" task completion', async () => {
+      const isTaskMarkedDone = await onboardingPage.waitForTaskToBeMarkedDone(
+        OnboardingTask.CREATE_CHANNEL,
+        10000
+      );
+      expect(isTaskMarkedDone).toBe(true);
+      await AllureReporter.addParameter(
+        'channelTaskCompletionStatus',
+        isTaskMarkedDone ? 'Completed' : 'Not Completed'
+      );
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Create Channel Task Completed');
+  });
+
+  test('should mark "Create channel" task as done by section after user creates a channel', async ({
+    page,
+  }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the onboarding guide correctly marks the "Create channel" task as completed after a user creates a new channel.
+      
+      **Test Steps:**
+      1. Check initial channel task status in onboarding guide
+      2. Create a new channel (text channel, public)
+      3. Verify the "Create channel" task is marked as done
+      
+      **Expected Result:** The "Create channel" task should show as completed with a green checkmark after successfully creating a channel.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['onboarding', 'channel-creation', 'task-completion', 'clan-management'],
+    });
+
+    const clanPage = new ClanPageV2(page);
+    const onboardingPage = new OnboardingPage(page);
+    const testChannelName = `test-channel-${Date.now()}`;
+
+    await AllureReporter.addParameter('testChannelName', testChannelName);
+    await AllureReporter.addParameter('channelType', ChannelType.TEXT);
+    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step('Check initial channel task status', async () => {
+      await page.waitForTimeout(3000);
+
+      const onboardingVisible = await onboardingPage.isOnboardingGuideVisible();
+      if (!onboardingVisible) {
+        await onboardingPage.openOnboardingGuide();
+      }
+
+      await AllureReporter.attachScreenshot(page, 'Initial Channel Task Status');
+    });
+
+    let channelCreated = false;
+    await AllureReporter.step('Perform create channel workflow', async () => {
+      channelCreated = await clanPage.createNewChannelBySection(
         ChannelType.TEXT,
         testChannelName,
         ChannelStatus.PUBLIC

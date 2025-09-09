@@ -73,6 +73,10 @@ export class ClanPageV2 extends BasePage {
     },
   };
 
+  private sections = {
+    createChannelSection: this.page.locator(generateE2eSelector('onboarding.chat.guide_sections')),
+  };
+
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.input.clanName.fill(clanName);
@@ -124,13 +128,46 @@ export class ClanPageV2 extends BasePage {
     }
   }
 
-  async createNewChannel(
+  async createNewChannelByModal(
     typeChannel: ChannelType,
     channelName: string,
     status?: ChannelStatus
   ): Promise<boolean> {
     try {
       await this.buttons.createChannel.click();
+      await this.page.waitForTimeout(2000);
+      switch (typeChannel) {
+        case ChannelType.TEXT:
+          await this.createChannelModal.type.text.click();
+          break;
+        case ChannelType.VOICE:
+          await this.createChannelModal.type.voice.click();
+          break;
+        case ChannelType.STREAM:
+          await this.createChannelModal.type.stream.click();
+          break;
+      }
+      this.createChannelModal.input.channelName.fill(channelName);
+      if (status === ChannelStatus.PRIVATE && typeChannel === ChannelType.TEXT) {
+        await this.createChannelModal.toggle.isPrivate.click();
+      }
+      this.createChannelModal.button.confirm.click();
+
+      await this.page.waitForTimeout(2000);
+      return true;
+    } catch (error) {
+      console.error(`Error creating channel: ${error}`);
+      return false;
+    }
+  }
+
+  async createNewChannelBySection(
+    typeChannel: ChannelType,
+    channelName: string,
+    status?: ChannelStatus
+  ): Promise<boolean> {
+    try {
+      await this.sections.createChannelSection.last().click();
       await this.page.waitForTimeout(2000);
       switch (typeChannel) {
         case ChannelType.TEXT:
