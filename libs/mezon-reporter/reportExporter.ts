@@ -1,3 +1,5 @@
+import { REPORT_SERVER_URL } from 'libs/mezon-reporter/constant';
+
 export interface ReportUploadResult {
   success: boolean;
   reportUrl?: string;
@@ -7,11 +9,10 @@ export interface ReportUploadResult {
 }
 
 export class ReportExporter {
-  private serverUrl: string;
+  private webhookUrl?: string;
 
-  constructor(serverUrl?: string) {
-    this.serverUrl =
-      serverUrl || process.env.REPORT_SERVER_URL || 'https://mezon-reports.nccquynhon.edu.vn';
+  constructor(webhookUrl?: string) {
+    this.webhookUrl = webhookUrl || process.env.WEBHOOK_URL || `${REPORT_SERVER_URL}/webhook`;
   }
 
   async exportPlaywrightReport(
@@ -71,6 +72,7 @@ export class ReportExporter {
         // console.log(`✅ Report zip created: ${zipPath}`);
         return zipPath;
       } catch (zipError) {
+        console.warn('Zip command failed, trying tar:', zipError);
         // Fallback: try using tar command for compression
         try {
           const tarPath = zipPath.replace('.zip', '.tar.gz');
@@ -81,9 +83,10 @@ export class ReportExporter {
             }
           );
 
-          // console.log(`✅ Report archive created: ${tarPath}`);
+          console.log(`✅ Report archive created: ${tarPath}`);
           return tarPath;
         } catch (tarError) {
+          console.warn('Tar command failed:', tarError);
           throw new Error('Both zip and tar commands failed');
         }
       }
@@ -97,50 +100,39 @@ export class ReportExporter {
   private async uploadReportToServer(zipFilePath: string): Promise<ReportUploadResult> {
     try {
       const fs = await import('fs');
+      const path = await import('path');
 
       if (!fs.existsSync(zipFilePath)) {
         throw new Error(`Report file not found: ${zipFilePath}`);
       }
 
-      // console.log(`📤 Uploading report: ${zipFilePath}`);
-      // console.log(`🌐 Server URL: ${this.serverUrl}/upload`);
+      const fileName = path.basename(zipFilePath);
+      console.log(`📤 Uploading report to transfer.sh: ${fileName}`);
 
-      // Create FormData and upload file
-      const formData = new FormData();
+      // Use transfer.sh API - simple PUT request with file content
       const fileBuffer = fs.readFileSync(zipFilePath);
-      const blob = new Blob([fileBuffer]);
-      const fileName = zipFilePath.split('/').pop() || 'playwright-report.zip';
+      const uploadUrl = `https://transfer.adttemp.com.br/${fileName}`;
 
-      formData.append('report', blob, fileName);
-
-      const response = await fetch(`${this.serverUrl}/upload`, {
-        method: 'POST',
-        body: formData,
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: fileBuffer,
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
       });
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
       }
-
-      const result = await response.json();
-
-      if (result.success) {
-        // console.log('✅ Report upload successful!');
-        // console.log(`🆔 Folder ID: ${result.folderId}`);
-        // console.log(`🔗 Report URL: ${result.reportUrl}`);
-
-        return {
-          success: true,
-          reportUrl: result.reportUrl,
-          folderId: result.folderId,
-        };
-      } else {
-        console.error('❌ Report upload failed:', result.error);
-        return {
-          success: false,
-          error: result.error || 'Upload failed',
-        };
-      }
+      const downloadUrl = await response.text();
+      const trimmedUrl = downloadUrl.trim();
+      console.log('✅ Report upload successful!');
+      console.log(`🔗 Download URL: ${trimmedUrl}`);
+      const reportUrl = await this.sendToWebhook(trimmedUrl);
+      return {
+        success: true,
+        reportUrl,
+      };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error(error);
@@ -152,13 +144,47 @@ export class ReportExporter {
     }
   }
 
+  private async sendToWebhook(url: string): Promise<string> {
+    try {
+      if (!this.webhookUrl) {
+        console.warn('⚠️ No webhook URL configured, skipping webhook notification');
+        return '';
+      }
+
+      console.log('📨 Sending transfer.sh link to webhook...');
+
+      const webhookPayload = {
+        url,
+      };
+
+      const response = await fetch(this.webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookPayload),
+      });
+      const result = await response.json();
+      console.log('Webhook response:', result);
+      if (response.ok) {
+        console.log('✅ Webhook notification sent successfully');
+      } else {
+        console.warn(`⚠️ Webhook notification failed: ${response.status} ${response.statusText}`);
+      }
+      return `${REPORT_SERVER_URL}/${result?.folderId || ''}`;
+    } catch (error) {
+      console.warn('⚠️ Failed to send webhook notification:', error);
+      return '';
+    }
+  }
+
   private async cleanupZipFile(zipPath: string): Promise<void> {
     try {
       const fs = await import('fs');
       fs.unlinkSync(zipPath);
       // console.log(`🗑️ Cleaned up temporary zip file: ${zipPath}`);
     } catch (cleanupError) {
-      console.warn(`⚠️ Could not clean up zip file: ${zipPath}`);
+      console.warn(`⚠️ Could not clean up zip file: ${zipPath}`, cleanupError);
     }
   }
 
@@ -170,5 +196,10 @@ export class ReportExporter {
   // Utility method to upload an existing zip file
   async uploadExistingZip(zipFilePath: string): Promise<ReportUploadResult> {
     return await this.uploadReportToServer(zipFilePath);
+  }
+
+  // Utility method to set webhook URL
+  setWebhookUrl(webhookUrl: string): void {
+    this.webhookUrl = webhookUrl;
   }
 }

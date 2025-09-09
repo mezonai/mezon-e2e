@@ -63,16 +63,14 @@ export class MezonNotifier {
       const { ReportExporter } = await import('./reportExporter');
       const reportExporter = new ReportExporter();
       const exportResult = await reportExporter.exportPlaywrightReport();
-      const reportUrl = exportResult.success
-        ? `https://mezon-reports.nccquynhon.edu.vn/${exportResult.folderId}`
-        : undefined;
+
       const enrichedPayload = {
         ...payload,
         ...githubInfo,
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
         project: 'Mezon E2E Tests',
-        reportUrl,
+        reportUrl: exportResult?.reportUrl,
       };
 
       // Check if this is a simple start message or if all tests passed (simple success message)
