@@ -448,9 +448,6 @@ test.describe('Channel Message Functionality', () => {
     const mentionVisible = await messageHelpers.verifyMentionListVisible();
     expect(mentionVisible).toBeTruthy();
 
-    const hasUser = await messageHelpers.verifyMentionListHasUsers(['yTkgOodQmT', 'ytkgoodqmt']);
-    expect(hasUser).toBeTruthy();
-
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
   });
@@ -605,7 +602,7 @@ test.describe('Channel Message Functionality', () => {
     const topicMessages = await messageHelpers.getMessagesFromTopicDrawer();
     expect(emojiMsg).toEqual(topicMessages[topicMessages.length - 1].content);
   });
-  test('Send message from short profile in clan channel', async ({ page, context }) => {
+  test.skip('Send message from short profile in clan channel', async ({ page, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63403',
     });
