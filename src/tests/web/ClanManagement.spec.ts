@@ -32,7 +32,7 @@ test.describe('Create Clan', () => {
     const clanPage = new ClanPageV2(page);
     await AllureReporter.step('Navigate to direct friends page', async () => {
       await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
     });
   });
 
@@ -144,7 +144,6 @@ test.describe('Create Category', () => {
     await AllureReporter.step('Navigate to test clan', async () => {
       await page.goto(clanUrl);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
     });
 
     await AllureReporter.addParameter('clanName', clanName);
