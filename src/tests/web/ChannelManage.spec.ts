@@ -53,9 +53,7 @@ test.describe('Create New Channels', () => {
 
     // Navigate to the test clan
     await AllureReporter.step('Navigate to test clan', async () => {
-      await page.goto(clanUrl);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
+      await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.addParameter('clanName', clanName);
