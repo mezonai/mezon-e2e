@@ -3,11 +3,11 @@ import { GLOBAL_CONFIG } from '@/config/environment';
 import { MessgaePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
-import { AuthHelper } from '@/utils/authHelper';
 
 test.describe('Direct Message', () => {
   test.beforeAll(async () => {
@@ -220,5 +220,32 @@ test.describe('Direct Message', () => {
       const groupLeaved = await messagePage.isLeavedGroup(prevGroupCount);
       expect(groupLeaved).toBeTruthy();
     });
+  });
+
+  test('Pinned message should be removed when deleted', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63627',
+    });
+
+    const messagePage = new MessgaePage(page);
+
+    let pinnedMessageId: string;
+
+    await AllureReporter.step('Send a message and pin it', async () => {
+      await messagePage.sendMessage(messageText);
+      await messagePage.messages.last().waitFor({ state: 'visible', timeout: 10000 });
+      pinnedMessageId = await messagePage.pinLastMessage();
+    });
+
+    await AllureReporter.step('Delete the pinned message', async () => {
+      await messagePage.deleteLastMessage();
+    });
+
+    await AllureReporter.step('Verify pinned message is removed from list', async () => {
+      const isStillPinned = await messagePage.isMessageStillPinned(pinnedMessageId);
+      expect(isStillPinned).toBe(false);
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Pinned Message Removed');
   });
 });
