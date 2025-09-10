@@ -104,6 +104,10 @@ test.describe('Create Category', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    await clanSetupHelper.cleanupAllClans(
+      browser,
+      ClanSetupHelper.configs.clanManagement.suiteName
+    );
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
 
@@ -115,7 +119,10 @@ test.describe('Create Category', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.clanManagement.suiteName
+      );
     }
   });
 

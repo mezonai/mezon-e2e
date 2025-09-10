@@ -13,6 +13,10 @@ test.describe('Create New Channels', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    await clanSetupHelper.cleanupAllClans(
+      browser,
+      ClanSetupHelper.configs.channelManagement.suiteName
+    );
 
     const setupResult = await clanSetupHelper.setupTestClan(
       ClanSetupHelper.configs.channelManagement
@@ -25,9 +29,10 @@ test.describe('Create New Channels', () => {
   });
 
   test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
-    }
+    await clanSetupHelper.cleanupAllClans(
+      browser,
+      ClanSetupHelper.configs.channelManagement.suiteName
+    );
   });
 
   test.beforeEach(async ({ page }, testInfo) => {

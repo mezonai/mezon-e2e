@@ -27,6 +27,7 @@ test.describe('Channel Message Functionality', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.messageTests.suiteName);
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
 
@@ -36,7 +37,10 @@ test.describe('Channel Message Functionality', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.messageTests.suiteName
+      );
     }
   });
 
