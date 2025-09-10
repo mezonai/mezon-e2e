@@ -76,9 +76,8 @@ export class ClanPageV2 extends BasePage {
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.input.clanName.fill(clanName);
-      await this.page.waitForTimeout(2000);
+      await this.buttons.createClanConfirm.waitFor({ state: 'visible', timeout: 5000 });
       await this.buttons.createClanConfirm.click();
-      await this.page.waitForTimeout(2000);
       return true;
     } catch (error) {
       console.error(`Error creating clan: ${error}`);
@@ -91,13 +90,17 @@ export class ClanPageV2 extends BasePage {
       hasText: clanName,
     });
 
-    return clanLocator.isVisible();
+    try {
+      await clanLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async clickCreateClanButton(): Promise<boolean> {
     if (this.buttons.createClan) {
       await this.buttons.createClan.click();
-      await this.page.waitForTimeout(2000);
       return true;
     }
 
@@ -130,7 +133,7 @@ export class ClanPageV2 extends BasePage {
   ): Promise<boolean> {
     try {
       await this.buttons.createChannel.click();
-      await this.page.waitForTimeout(2000);
+
       switch (typeChannel) {
         case ChannelType.TEXT:
           await this.createChannelModal.type.text.click();
@@ -142,13 +145,12 @@ export class ClanPageV2 extends BasePage {
           await this.createChannelModal.type.stream.click();
           break;
       }
-      this.createChannelModal.input.channelName.fill(channelName);
+      await this.createChannelModal.input.channelName.fill(channelName);
       if (status === ChannelStatus.PRIVATE && typeChannel === ChannelType.TEXT) {
         await this.createChannelModal.toggle.isPrivate.click();
       }
-      this.createChannelModal.button.confirm.click();
+      await this.createChannelModal.button.confirm.click();
 
-      await this.page.waitForTimeout(2000);
       return true;
     } catch (error) {
       console.error(`Error creating channel: ${error}`);
@@ -162,6 +164,11 @@ export class ClanPageV2 extends BasePage {
       { hasText: channelName }
     );
 
-    return channelLocator.isVisible();
+    try {
+      await channelLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
