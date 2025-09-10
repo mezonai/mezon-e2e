@@ -32,17 +32,8 @@ class MezonReporter implements Reporter {
   }
 
   async onBegin(config: FullConfig, suite: Suite): Promise<void> {
-    // console.log('[Mezon] onBegin called - Test suite starting');
     this.startTime = new Date();
     this.testStats.total = suite.allTests().length;
-
-    // Send simple start notification
-    // await this.notifier.send('🚀 Playwright test suite started', {
-    //     totalTests: this.testStats.total,
-    //     environment: process.env.NODE_ENV || 'development'
-    // });
-
-    // console.log(`[Mezon] Test suite started with ${this.testStats.total} tests`);
   }
 
   async onTestBegin(test: TestCase): Promise<void> {
@@ -126,11 +117,6 @@ class MezonReporter implements Reporter {
     };
 
     await this.notifier.send(`${emoji} ${statusMessage}`, reportData);
-
-    // console.log(`[Mezon] Test run completed: ${result.status}`);
-    // console.log(
-    //   `[Mezon] Results: ${this.testStats.passed} passed, ${this.testStats.failed} failed, ${this.testStats.skipped} skipped`
-    // );
   }
 
   private getStatusEmoji(status: string): string {
