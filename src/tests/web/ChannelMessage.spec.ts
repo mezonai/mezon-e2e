@@ -1,13 +1,11 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
-import { AuthHelper } from '@/utils/authHelper';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { ChannelType, ChannelStatus } from '@/types/clan-page.types';
-import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/1955879210568388608/3');
@@ -27,6 +25,7 @@ test.describe('Channel Message Functionality', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.messageTests.suiteName);
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
 
@@ -36,7 +35,10 @@ test.describe('Channel Message Functionality', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.messageTests.suiteName
+      );
     }
   });
 
@@ -602,21 +604,22 @@ test.describe('Channel Message Functionality', () => {
     const topicMessages = await messageHelpers.getMessagesFromTopicDrawer();
     expect(emojiMsg).toEqual(topicMessages[topicMessages.length - 1].content);
   });
-  test.skip('Send message from short profile in clan channel', async ({ page, context }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63403',
-    });
+  //Dual user chat
+  // test.skip('Send message from short profile in clan channel', async ({ page, context }) => {
+  //   await AllureReporter.addWorkItemLinks({
+  //     tms: '63403',
+  //   });
 
-    messageHelpers = new MessageTestHelpers(page);
+  //   messageHelpers = new MessageTestHelpers(page);
 
-    await messageHelpers.clickMembersButton();
-    await messageHelpers.clickMemberInList('nguyen.nguyen');
+  //   await messageHelpers.clickMembersButton();
+  //   await messageHelpers.clickMemberInList('nguyen.nguyen');
 
-    const testMessage = `Test message from Case 12 short profile 11${Date.now()}`;
-    await messageHelpers.sendMessageFromShortProfile(testMessage);
+  //   const testMessage = `Test message from Case 12 short profile 11${Date.now()}`;
+  //   await messageHelpers.sendMessageFromShortProfile(testMessage);
 
-    await page.waitForTimeout(2000);
-  });
+  //   await page.waitForTimeout(2000);
+  // });
 
   test('Send Message With Markdown', async ({ page, context }) => {
     await AllureReporter.addWorkItemLinks({

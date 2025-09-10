@@ -1,11 +1,9 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { expect, test } from '@playwright/test';
-import { WEBSITE_CONFIGS } from '../../config/environment';
-import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { expect, test } from '@playwright/test';
 
 test.describe('User Profile - Clan Profiles', () => {
   let clanSetupHelper: ClanSetupHelper;
@@ -20,13 +18,15 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     clanSetupHelper = new ClanSetupHelper(browser);
+    await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.userProfile.suiteName);
+
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
     testClanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async () => {
+  test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+      await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.userProfile.suiteName);
     }
   });
 
@@ -257,7 +257,7 @@ test.describe('User Profile - Clan Profiles', () => {
     ];
 
     for (const button of buttons) {
-      await AllureReporter.step(`Click button: ${await button.textContent()}`, async () => {;
+      await AllureReporter.step(`Click button: ${await button.textContent()}`, async () => {
         await button.click();
         await profilePage.expectProfileTabsVisible();
       });

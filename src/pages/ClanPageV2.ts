@@ -63,8 +63,8 @@ export class ClanPageV2 extends BasePage {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
   };
 
-  private sidebar = {
-    clanItem: {
+  readonly sidebar = {
+    clanItems: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
@@ -107,7 +107,7 @@ export class ClanPageV2 extends BasePage {
     return false;
   }
 
-  async deleteClan(clanName: string): Promise<boolean> {
+  async deleteClan(clanName?: string): Promise<boolean> {
     try {
       const categoryPage = new CategoryPage(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
@@ -116,7 +116,6 @@ export class ClanPageV2 extends BasePage {
       await categoryPage.buttons.clanSettings.click();
       await this.page.waitForTimeout(2000);
       await categorySettingPage.buttons.deleteSidebar.click();
-      await categorySettingPage.input.delete.fill(clanName);
       await categorySettingPage.buttons.confirmDelete.click();
       await this.page.waitForTimeout(2000);
       return true;
