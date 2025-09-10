@@ -63,8 +63,8 @@ export class ClanPageV2 extends BasePage {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
   };
 
-  readonly sidebar = {
-    clanItems: {
+  private sidebar = {
+    clanItem: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
@@ -76,8 +76,9 @@ export class ClanPageV2 extends BasePage {
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.input.clanName.fill(clanName);
-      await this.buttons.createClanConfirm.waitFor({ state: 'visible', timeout: 5000 });
+      await this.page.waitForTimeout(2000);
       await this.buttons.createClanConfirm.click();
+      await this.page.waitForTimeout(2000);
       return true;
     } catch (error) {
       console.error(`Error creating clan: ${error}`);
@@ -90,24 +91,20 @@ export class ClanPageV2 extends BasePage {
       hasText: clanName,
     });
 
-    try {
-      await clanLocator.waitFor({ state: 'visible', timeout: 5000 });
-      return true;
-    } catch {
-      return false;
-    }
+    return clanLocator.isVisible();
   }
 
   async clickCreateClanButton(): Promise<boolean> {
     if (this.buttons.createClan) {
       await this.buttons.createClan.click();
+      await this.page.waitForTimeout(2000);
       return true;
     }
 
     return false;
   }
 
-  async deleteClan(clanName?: string): Promise<boolean> {
+  async deleteClan(clanName: string): Promise<boolean> {
     try {
       const categoryPage = new CategoryPage(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
@@ -116,6 +113,7 @@ export class ClanPageV2 extends BasePage {
       await categoryPage.buttons.clanSettings.click();
       await this.page.waitForTimeout(2000);
       await categorySettingPage.buttons.deleteSidebar.click();
+      await categorySettingPage.input.delete.fill(clanName);
       await categorySettingPage.buttons.confirmDelete.click();
       await this.page.waitForTimeout(2000);
       return true;
@@ -132,7 +130,7 @@ export class ClanPageV2 extends BasePage {
   ): Promise<boolean> {
     try {
       await this.buttons.createChannel.click();
-
+      await this.page.waitForTimeout(2000);
       switch (typeChannel) {
         case ChannelType.TEXT:
           await this.createChannelModal.type.text.click();
@@ -144,12 +142,13 @@ export class ClanPageV2 extends BasePage {
           await this.createChannelModal.type.stream.click();
           break;
       }
-      await this.createChannelModal.input.channelName.fill(channelName);
+      this.createChannelModal.input.channelName.fill(channelName);
       if (status === ChannelStatus.PRIVATE && typeChannel === ChannelType.TEXT) {
         await this.createChannelModal.toggle.isPrivate.click();
       }
-      await this.createChannelModal.button.confirm.click();
+      this.createChannelModal.button.confirm.click();
 
+      await this.page.waitForTimeout(2000);
       return true;
     } catch (error) {
       console.error(`Error creating channel: ${error}`);
@@ -163,11 +162,6 @@ export class ClanPageV2 extends BasePage {
       { hasText: channelName }
     );
 
-    try {
-      await channelLocator.waitFor({ state: 'visible', timeout: 5000 });
-      return true;
-    } catch {
-      return false;
-    }
+    return channelLocator.isVisible();
   }
 }

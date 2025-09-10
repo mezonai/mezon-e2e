@@ -73,6 +73,11 @@ class MezonReporter implements Reporter {
         break;
     }
 
+    const statusEmoji = this.getStatusEmoji(result.status);
+    const statusText = result.status.toUpperCase();
+
+    // console.log(`[Mezon] Finished test: ${test.title} - ${statusText}`);
+
     // No individual test notifications - only final report
   }
 
@@ -114,30 +119,32 @@ class MezonReporter implements Reporter {
     await this.notifier.send(`${emoji} ${statusMessage}`, reportData);
   }
 
-  // private getStatusEmoji(status: string): string {
-  //   switch (status) {
-  //     case 'passed':
-  //       return '✅';
-  //     case 'failed':
-  //       return '❌';
-  //     case 'skipped':
-  //       return '⏭️';
-  //     case 'timedOut':
-  //       return '⏰';
-  //     default:
-  //       return '❓';
-  //   }
-  // }
+  private getStatusEmoji(status: string): string {
+    switch (status) {
+      case 'passed':
+        return '✅';
+      case 'failed':
+        return '❌';
+      case 'skipped':
+        return '⏭️';
+      case 'timedOut':
+        return '⏰';
+      default:
+        return '❓';
+    }
+  }
 
-  // private shouldNotifyProgress(): boolean {
-  //   const completed = this.testStats.passed + this.testStats.failed + this.testStats.skipped;
-  //   const total = this.testStats.total;
-  //   const quarterMark = Math.ceil(total * 0.25);
-  //   const tenTestMark = 10;
-  //   const notifyInterval = Math.min(quarterMark, tenTestMark);
+  private shouldNotifyProgress(): boolean {
+    const completed = this.testStats.passed + this.testStats.failed + this.testStats.skipped;
+    const total = this.testStats.total;
 
-  //   return completed > 0 && completed % notifyInterval === 0;
-  // }
+    // Notify every 25% completion or for every 10 tests (whichever is smaller)
+    const quarterMark = Math.ceil(total * 0.25);
+    const tenTestMark = 10;
+    const notifyInterval = Math.min(quarterMark, tenTestMark);
+
+    return completed > 0 && completed % notifyInterval === 0;
+  }
 }
 
 export default MezonReporter;

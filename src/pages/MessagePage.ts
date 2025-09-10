@@ -246,7 +246,7 @@ export class MessgaePage {
 
     const currentUserCount = await this.helpers.countUsers();
 
-    return currentUserCount === 0 || currentUserCount === prevUserCount - 1;
+    return currentUserCount === prevUserCount - 1;
   }
 
   async leaveGroupByXBtn(): Promise<void> {
@@ -281,7 +281,7 @@ export class MessgaePage {
 
   async sendMessage(message: string): Promise<void> {
     this.message = message;
-    await this.firstUserAddDM.click();
+    await this.user.click();
     await this.helpers.textarea.click();
     await this.helpers.textarea.fill(message);
     await this.helpers.textarea.press('Enter');

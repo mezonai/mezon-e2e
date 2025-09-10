@@ -1,7 +1,7 @@
-import { WEBSITE_CONFIGS } from '@/config/environment';
+import { Browser, Page } from '@playwright/test';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AuthHelper } from '@/utils/authHelper';
-import { Browser } from '@playwright/test';
+import { WEBSITE_CONFIGS } from '@/config/environment';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 
@@ -134,62 +134,18 @@ export class ClanSetupHelper {
 
   /**
    * Cleans up all clans created by this helper instance
-   * @param browser Playwright browser instance
-   * @param suiteName Name of the test suite for authentication (default: 'Cleanup')
    */
-  async cleanupAllClans(browser: Browser, suiteName: string = 'Cleanup'): Promise<void> {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    try {
-      await AuthHelper.setAuthForSuite(page, suiteName);
-
-      await page.goto(MEZON_BASE_URL);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
-
-      const clanPage = new ClanPageV2(page);
-      await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
-
-      const clanItems = await clanPage.sidebar.clanItems;
-      const clanItemsCount = await clanItems.clanName.count();
-
-      if (clanItemsCount === 0) {
-        return;
+  async cleanupAllClans(): Promise<void> {
+    for (const cleanup of this.cleanupFunctions) {
+      try {
+        await cleanup();
+      } catch (error) {
+        console.error(`❌ Error during clan cleanup: ${error}`);
       }
-
-      for (let i = clanItemsCount - 1; i >= 0; i--) {
-        try {
-          const currentClanItems = await clanPage.sidebar.clanItems;
-          const currentCount = await currentClanItems.clanName.count();
-
-          if (i >= currentCount) {
-            continue;
-          }
-
-          const clanItem = currentClanItems.clanName.nth(i);
-          const clanName = await clanItem.innerText();
-
-          await clanItem.click();
-          await page.waitForTimeout(1000);
-
-          await clanPage.deleteClan(clanName);
-          await page.waitForTimeout(3000);
-        } catch (error) {
-          console.error(`❌ Failed to delete clan at index ${i}: ${error}`);
-          continue;
-        }
-      }
-
-      console.log('✅ All clans cleanup completed successfully');
-    } catch (error) {
-      console.error(`❌ Error during cleanup process: ${error}`);
-      throw error;
-    } finally {
-      await context.close();
-      console.log('🔄 Browser context closed');
     }
+
+    this.cleanupFunctions = [];
+    console.log('✅ Clan cleanup completed');
   }
 
   /**

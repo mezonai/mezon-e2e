@@ -27,7 +27,7 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
 
     test.afterAll(async ({ browser }) => {
       if (clanSetupHelper) {
-        await clanSetupHelper.cleanupAllClans(browser, 'Simple Tests');
+        await clanSetupHelper.cleanupAllClans();
       }
     });
 
@@ -53,7 +53,7 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
 
     test.afterAll(async ({ browser }) => {
       if (clanSetupHelper) {
-        await clanSetupHelper.cleanupAllClans(browser, 'Channel Tests');
+        await clanSetupHelper.cleanupAllClans();
       }
     });
 
@@ -77,7 +77,7 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
 
     test.afterAll(async ({ browser }) => {
       if (clanSetupHelper) {
-        await clanSetupHelper.cleanupAllClans(browser, 'Message Tests');
+        await clanSetupHelper.cleanupAllClans();
       }
     });
 
@@ -107,7 +107,7 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
       }
 
       // Option 2: Use the helper's cleanup all method
-      // await clanSetupHelper.cleanupAllClans(browser, 'Manual Tests');
+      // await clanSetupHelper.cleanupAllClans();
     });
 
     test('should allow manual cleanup', async ({ page }) => {
