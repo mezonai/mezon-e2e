@@ -1,7 +1,7 @@
-import { Browser, Page } from '@playwright/test';
+import { WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AuthHelper } from '@/utils/authHelper';
-import { WEBSITE_CONFIGS } from '@/config/environment';
+import { Browser } from '@playwright/test';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 
@@ -178,7 +178,6 @@ export class ClanSetupHelper {
           await page.waitForTimeout(3000);
         } catch (error) {
           console.error(`❌ Failed to delete clan at index ${i}: ${error}`);
-          // Continue with next clan instead of stopping the entire process
           continue;
         }
       }
