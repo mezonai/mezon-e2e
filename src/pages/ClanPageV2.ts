@@ -130,7 +130,7 @@ export class ClanPageV2 extends BasePage {
   ): Promise<boolean> {
     try {
       await this.buttons.createChannel.click();
-      await this.page.waitForTimeout(2000);
+
       switch (typeChannel) {
         case ChannelType.TEXT:
           await this.createChannelModal.type.text.click();
@@ -142,13 +142,12 @@ export class ClanPageV2 extends BasePage {
           await this.createChannelModal.type.stream.click();
           break;
       }
-      this.createChannelModal.input.channelName.fill(channelName);
+      await this.createChannelModal.input.channelName.fill(channelName);
       if (status === ChannelStatus.PRIVATE && typeChannel === ChannelType.TEXT) {
         await this.createChannelModal.toggle.isPrivate.click();
       }
-      this.createChannelModal.button.confirm.click();
+      await this.createChannelModal.button.confirm.click();
 
-      await this.page.waitForTimeout(2000);
       return true;
     } catch (error) {
       console.error(`Error creating channel: ${error}`);
@@ -162,6 +161,11 @@ export class ClanPageV2 extends BasePage {
       { hasText: channelName }
     );
 
-    return channelLocator.isVisible();
+    try {
+      await channelLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
