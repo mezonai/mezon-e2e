@@ -14,30 +14,11 @@ interface MezonWebhookPayload {
 
 export interface NotificationPayload {
   totalTests?: number;
-  file?: string;
-  duration?: number;
-  status?: string;
-  timestamp?: string;
   environment?: string;
-  project?: string;
-  workers?: number | string;
-  timeout?: number;
-  retries?: number;
   error?: string;
-  progress?: string;
   passed?: number;
   failed?: number;
-  skipped?: number;
-  successRate?: number;
-  projectName?: string;
-  testTitle?: string;
-  testFile?: string;
-  browserName?: string;
-  startTime?: string;
-  endTime?: string;
   totalDuration?: number;
-  testSuites?: string[];
-  testFiles?: string[];
   failedTests?: Array<{
     title: string;
     file: string;

@@ -188,19 +188,4 @@ export class ReportExporter {
       console.warn(`⚠️ Could not clean up zip file: ${zipPath}`, cleanupError);
     }
   }
-
-  // Utility method to just create zip without uploading
-  async createReportZip(customReportPath?: string): Promise<string | null> {
-    return await this.createPlaywrightReportZip(customReportPath);
-  }
-
-  // Utility method to upload an existing zip file
-  async uploadExistingZip(zipFilePath: string): Promise<ReportUploadResult> {
-    return await this.uploadReportToServer(zipFilePath);
-  }
-
-  // Utility method to set webhook URL
-  setWebhookUrl(webhookUrl: string): void {
-    this.webhookUrl = webhookUrl;
-  }
 }
