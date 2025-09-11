@@ -1,29 +1,24 @@
+import { MEZON_THREAD_URL } from 'libs/mezon-reporter/constant';
+
+interface MezonWebhookPayload {
+  type: string;
+  message: {
+    t: string;
+    mentions?: Array<{
+      user_id: string;
+      s: number;
+      e: number;
+    }>;
+  };
+}
+
 export interface NotificationPayload {
   totalTests?: number;
-  file?: string;
-  duration?: number;
-  status?: string;
-  timestamp?: string;
   environment?: string;
-  project?: string;
-  workers?: number | string;
-  timeout?: number;
-  retries?: number;
   error?: string;
-  progress?: string;
   passed?: number;
   failed?: number;
-  skipped?: number;
-  successRate?: number;
-  projectName?: string;
-  testTitle?: string;
-  testFile?: string;
-  browserName?: string;
-  startTime?: string;
-  endTime?: string;
   totalDuration?: number;
-  testSuites?: string[];
-  testFiles?: string[];
   failedTests?: Array<{
     title: string;
     file: string;
@@ -44,9 +39,7 @@ export class MezonNotifier {
   private mentionUserId?: string;
 
   constructor() {
-    this.webhookUrl =
-      process.env.MEZON_WEBHOOK_URL ||
-      'https://webhook.mezon.ai/webhooks/1959843615589011456/MTc1NzA1NzkzNDY1OTcyMDIzNjoxNzc5NDg0NTA0Mzc3NzkwNDY0OjE5NTk4NDM2MTU1ODkwMTE0NTY6MTk2Mzg2OTQzMzkwNjU5Nzg4OA.PvCwfUrrY00hKbtB6XsYnr8zVomZqeHrLecTSIB5Jdo';
+    this.webhookUrl = process.env.MEZON_WEBHOOK_URL || MEZON_THREAD_URL;
 
     this.isEnabled = process.env.MEZON_NOTIFICATIONS !== 'false' && !!this.webhookUrl;
   }
@@ -89,15 +82,17 @@ export class MezonNotifier {
       const body = this.createMezonWebhookPayload(messageToSend);
 
       // console.log(`[Mezon] Sending ${isSimpleMessage ? 'simple' : 'detailed'} notification...`);
-      await fetch(this.webhookUrl!, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+      if (this.webhookUrl) {
+        await fetch(this.webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+      }
     } catch (error) {
-      // console.warn('[Mezon] Error sending notification:', error);
+      console.warn('[Mezon] Error sending notification:', error);
     }
   }
 
@@ -192,8 +187,8 @@ export class MezonNotifier {
     return detailedMessage;
   }
 
-  private createMezonWebhookPayload(message: string): any {
-    const payload: any = {
+  private createMezonWebhookPayload(message: string): MezonWebhookPayload {
+    const payload: MezonWebhookPayload = {
       type: 'hook',
       message: {
         t: message,
@@ -306,7 +301,7 @@ export class MezonNotifier {
         if (eventPayload.pull_request?.html_url) {
           githubInfo.prUrl = eventPayload.pull_request.html_url;
         }
-      } catch (error) {
+      } catch {
         // Ignore errors reading event payload
         // console.log('[Mezon] Could not read GitHub event payload');
       }

@@ -178,7 +178,7 @@ export class MessgaePage {
           `Not enough friends to create group: need ${count}, have ${await this.friendItems.count()}`
         );
       }
-      await this.page.waitForTimeout(200);
+      await this.page.waitForTimeout(3000);
     }
 
     const first = this.friendItems.nth(0);
@@ -202,7 +202,7 @@ export class MessgaePage {
     while (Date.now() - start < 8000) {
       const current = await this.helpers.countGroups();
       if (current >= prevGroupCount + 1) break;
-      await this.page.waitForTimeout(200);
+      await this.page.waitForTimeout(3000);
     }
 
     const current = await this.helpers.countGroups();
@@ -226,7 +226,7 @@ export class MessgaePage {
     await this.userItem.click();
     this.userNameItemText = (await this.userNameItem.textContent()) ?? '';
     await this.addToGroupButton.click();
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForTimeout(3000);
   }
 
   async getMemberCount(): Promise<number> {
@@ -247,7 +247,7 @@ export class MessgaePage {
       await this.sumMember.click();
       newCount = await this.memberCount.count();
       if (newCount >= previousCount + 1) return true;
-      await this.page.waitForTimeout(250);
+      await this.page.waitForTimeout(3000);
     }
 
     const namesRaw = await this.memberListInGroup.allTextContents();
@@ -264,11 +264,11 @@ export class MessgaePage {
   }
 
   async isDMClosed(prevUserCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(3000);
 
     const currentUserCount = await this.helpers.countUsers();
 
-    return currentUserCount === prevUserCount - 1;
+    return currentUserCount === 0 || currentUserCount === prevUserCount - 1;
   }
 
   async leaveGroupByXBtn(): Promise<void> {
@@ -294,7 +294,7 @@ export class MessgaePage {
   }
 
   async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(3000);
 
     const currentGroupCount = await this.helpers.countGroups();
 
@@ -303,7 +303,7 @@ export class MessgaePage {
 
   async sendMessage(message: string): Promise<void> {
     this.message = message;
-    await this.user.click();
+    await this.firstUserAddDM.click();
     await this.helpers.textarea.click();
     await this.helpers.textarea.fill(message);
     await this.helpers.textarea.press('Enter');

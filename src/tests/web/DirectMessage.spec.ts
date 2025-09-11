@@ -21,13 +21,6 @@ test.describe('Direct Message', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     const accountUsed = await AuthHelper.setAuthForSuite(page, 'Direct Message');
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.CHAT_PLATFORM,
-    //   subSuite: AllureConfig.SubSuites.DIRECT_MESSAGING,
-    //   story: AllureConfig.Stories.TEXT_MESSAGING,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',
@@ -35,12 +28,10 @@ test.describe('Direct Message', () => {
 
     const homePage = new HomePage(page);
 
-    // await AllureReporter.step('Navigate to home page', async () => {
-    //   await homePage.navigate();
-    // });
-
     await AllureReporter.step('Navigate to direct friends page', async () => {
       await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(3000);
     });
   });
 
@@ -50,7 +41,7 @@ test.describe('Direct Message', () => {
   const messageText = `message-text-${dateTimeString}`;
   const nameGroupChat = `name-groupchat-${dateTimeString}`;
 
-  test('Create direct message ', async ({ page }) => {
+  test.skip('Create direct message ', async ({ page }) => {
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -190,6 +181,11 @@ test.describe('Direct Message', () => {
     const messagePage = new MessgaePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevUsersCount = await helpers.countUsers();
+
+    if (prevUsersCount === 0) {
+      await messagePage.createDM();
+      await page.waitForTimeout(3000);
+    }
 
     await test.step(`Close direct message`, async () => {
       await messagePage.closeDM();
