@@ -8,6 +8,8 @@ on:
 jobs:
   verify-automation-tests:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.55.0-noble
     steps:
       - name: Checkout mezon-e2e repository
         uses: actions/checkout@v4
@@ -20,37 +22,52 @@ jobs:
           repository: kientrinh-dev/mezon.git
           ref: develop
           path: mezon
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: |
-            mezon/yarn.lock
-            mezon-e2e/yarn.lock
-
       - name: Install system dependencies
         run: |
-          npm install -g node-gyp
-          node-gyp install 20.19.4
-          sudo apt update
-          sudo apt install libx11-dev libxss-dev libxext-dev
+          apt-get update
+          apt-get install -y \
+            build-essential \
+            make \
+            g++ \
+            wget \
+            curl \
+            software-properties-common \
+            libx11-dev \
+            libxss-dev \
+            libxext-dev \
+            libnss3-dev \
+            libatk-bridge2.0-dev \
+            libdrm2 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libgbm1 \
+            libxkbcommon0 \
+            libasound2t64
+
+      - name: Install Python 3.9
+        run: |
+          add-apt-repository ppa:deadsnakes/ppa -y
+          apt-get update
+          apt-get install -y python3.9 python3.9-dev python3.9-distutils
+          # Create symlinks for easier access
+          ln -sf /usr/bin/python3.9 /usr/local/bin/python3.9
+          echo "Python 3.9 installed at: $(which python3.9)"
+          python3.9 --version
 
       - name: Install mezon dependencies
         working-directory: ./mezon
         run: |
           echo "Installing mezon dependencies..."
-          export nv=$(node -v)
-          echo "Node version: $nv"
-          yarn config set nodedir ~/.cache/node-gyp/"${nv:1}"
-          echo "Node directory: ${nv:1}"
-
-          # Try to install with frozen lockfile first, fallback to regular install
-          if ! yarn install --frozen-lockfile; then
-            echo "⚠️  Frozen lockfile install failed, trying regular install..."
-            yarn install
-          fi
+          # Set Python 3.9 for node-gyp (similar to your local setup)
+          export NODE_GYP_FORCE_PYTHON="/usr/bin/python3.9"
+          export python="/usr/bin/python3.9"
+          echo "Using Python: $python"
+          echo "NODE_GYP_FORCE_PYTHON: $NODE_GYP_FORCE_PYTHON"
+          # Verify Python version
+          $python --version
+          # Install dependencies
+          yarn install
 
       - name: Start mezon dev server
         working-directory: ./mezon
@@ -113,10 +130,6 @@ jobs:
       - name: Install mezon-e2e dependencies
         working-directory: ./mezon-e2e
         run: yarn
-
-      - name: Install Playwright browsers
-        working-directory: ./mezon-e2e
-        run: npx playwright install
 
       - name: Create environment file
         working-directory: ./mezon-e2e
