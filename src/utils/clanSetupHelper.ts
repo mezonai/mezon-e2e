@@ -18,7 +18,6 @@ export interface ClanSetupResult {
 
 export class ClanSetupHelper {
   private browser: Browser;
-  private cleanupFunctions: Array<() => Promise<void>> = [];
 
   constructor(browser: Browser) {
     this.browser = browser;
@@ -75,9 +74,6 @@ export class ClanSetupHelper {
       const cleanup = async () => {
         await this.cleanupClan(clanName, clanUrl, suiteName);
       };
-
-      // Store cleanup function for batch cleanup
-      this.cleanupFunctions.push(cleanup);
 
       await context.close();
 
@@ -146,11 +142,10 @@ export class ClanSetupHelper {
 
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
       await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       const clanItems = await clanPage.sidebar.clanItems;
       const clanItemsCount = await clanItems.clanName.count();

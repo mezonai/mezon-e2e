@@ -22,23 +22,21 @@ test.describe('Channel Message Functionality', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanName: string;
   let testClanUrl: string;
+  let cleanupFunction: () => Promise<void>;
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
-    await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.messageTests.suiteName);
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
 
     testClanName = setupResult.clanName;
     testClanUrl = setupResult.clanUrl;
+    cleanupFunction = setupResult.cleanup;
   });
 
-  test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans(
-        browser,
-        ClanSetupHelper.configs.messageTests.suiteName
-      );
+  test.afterAll(async () => {
+    if (cleanupFunction) {
+      await cleanupFunction();
     }
   });
 

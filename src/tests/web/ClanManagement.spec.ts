@@ -101,28 +101,23 @@ test.describe('Create Category', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
+  let cleanupFunction: () => Promise<void>;
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
-    await clanSetupHelper.cleanupAllClans(
-      browser,
-      ClanSetupHelper.configs.clanManagement.suiteName
-    );
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
 
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
+    cleanupFunction = setupResult.cleanup;
 
     console.log(`✅ Test clan setup complete: ${clanName}`);
   });
 
-  test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans(
-        browser,
-        ClanSetupHelper.configs.clanManagement.suiteName
-      );
+  test.afterAll(async () => {
+    if (cleanupFunction) {
+      await cleanupFunction();
     }
   });
 
