@@ -355,7 +355,7 @@ export class MessgaePage {
 
   async isMessageStillPinned(messageId: string): Promise<boolean> {
     await this.displayListPinButton.click();
-    const pinnedMessage = this.page.locator(`[id="${messageId}"]`);
+    const pinnedMessage = this.page.locator(generateE2eSelector('common.pin_message', messageId));
     return (await pinnedMessage.count()) > 0;
   }
 }

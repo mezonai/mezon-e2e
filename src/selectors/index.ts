@@ -281,6 +281,7 @@ export const DATA_E2E_IDENTIFIER = {
     item_pin_message: {
       username: '',
     },
+    pin_message: '',
   },
 };
 
