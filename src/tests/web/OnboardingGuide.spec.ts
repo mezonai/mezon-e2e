@@ -48,7 +48,6 @@ test.describe('Onboarding Guide Task Completion', () => {
     if (clanUrl) {
       await AllureReporter.step('Navigate to test clan', async () => {
         await page.goto(clanUrl);
-        await page.waitForTimeout(3000);
       });
       await AllureReporter.addParameter('testClanName', testClanName);
       await AllureReporter.addParameter('clanUrl', clanUrl);
@@ -141,8 +140,6 @@ test.describe('Onboarding Guide Task Completion', () => {
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
 
     await AllureReporter.step('Check initial channel task status', async () => {
-      await page.waitForTimeout(3000);
-
       const onboardingVisible = await onboardingPage.isOnboardingGuideVisible();
       if (!onboardingVisible) {
         await onboardingPage.openOnboardingGuide();
