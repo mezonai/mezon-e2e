@@ -23,6 +23,7 @@ export class DirectMessageHelper {
   }
 
   async countGroups(): Promise<number> {
+    await this.memberList.first().waitFor({ state: 'visible' });
     let groupCount = 0;
     const count = await this.memberList.count();
 
@@ -40,6 +41,7 @@ export class DirectMessageHelper {
   }
 
   async countUsers(): Promise<number> {
+    await this.memberList.first().waitFor({ state: 'visible' });
     let userCount = 0;
     const count = await this.memberList.count();
 

@@ -1,7 +1,4 @@
-import * as archiver from 'archiver';
-import * as fs from 'fs';
 import { REPORT_SERVER_URL } from 'libs/mezon-reporter/constant';
-import * as path from 'path';
 
 export interface ReportUploadResult {
   success: boolean;
@@ -46,6 +43,10 @@ export class ReportExporter {
 
   private async createPlaywrightReportZip(customReportPath?: string): Promise<string | null> {
     try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const { execSync } = await import('child_process');
+
       // Default to playwright-report directory
       const reportDir = customReportPath || 'playwright-report';
       const reportPath = path.resolve(reportDir);
@@ -57,41 +58,38 @@ export class ReportExporter {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const zipPath = path.join(process.cwd(), `playwright-report-${timestamp}.zip`);
 
-      console.log(`📦 Creating zip of ${reportDir} using JavaScript archiver...`);
+      // console.log(`📦 Creating zip of ${reportDir}...`);
 
-      return new Promise<string>((resolve, reject) => {
-        const output = fs.createWriteStream(zipPath);
-        const archive = archiver.default('zip', {
-          zlib: { level: 9 }, // Compression level
-        });
-
-        output.on('close', () => {
-          console.log(`✅ Report zip created: ${zipPath}`);
-          console.log(`📦 Archive size: ${archive.pointer()} bytes`);
-          resolve(zipPath);
-        });
-
-        output.on('error', err => {
-          console.error('❌ Error writing zip file:', err);
-          reject(err);
-        });
-
-        archive.on('error', (err: Error) => {
-          console.error('❌ Error creating archive:', err);
-          reject(err);
-        });
-
-        archive.on('warning', (err: Error & { code?: string }) => {
-          if (err.code === 'ENOENT') {
-            console.warn('⚠️ Archive warning:', err);
-          } else {
-            reject(err);
+      try {
+        // Create zip using native zip command (works on Unix-like systems)
+        execSync(
+          `cd "${path.dirname(reportPath)}" && zip -r "${zipPath}" "${path.basename(reportPath)}"`,
+          {
+            stdio: 'pipe',
           }
-        });
-        archive.pipe(output);
-        archive.directory(reportPath, path.basename(reportPath));
-        archive.finalize();
-      });
+        );
+
+        // console.log(`✅ Report zip created: ${zipPath}`);
+        return zipPath;
+      } catch (zipError) {
+        console.warn('Zip command failed, trying tar:', zipError);
+        // Fallback: try using tar command for compression
+        try {
+          const tarPath = zipPath.replace('.zip', '.tar.gz');
+          execSync(
+            `tar -czf "${tarPath}" -C "${path.dirname(reportPath)}" "${path.basename(reportPath)}"`,
+            {
+              stdio: 'pipe',
+            }
+          );
+
+          console.log(`✅ Report archive created: ${tarPath}`);
+          return tarPath;
+        } catch (tarError) {
+          console.warn('Tar command failed:', tarError);
+          throw new Error('Both zip and tar commands failed');
+        }
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('❌ Error creating report zip:', errorMessage);
@@ -190,5 +188,18 @@ export class ReportExporter {
     }
   }
 
+  // Utility method to just create zip without uploading
+  async createReportZip(customReportPath?: string): Promise<string | null> {
+    return await this.createPlaywrightReportZip(customReportPath);
+  }
 
+  // Utility method to upload an existing zip file
+  async uploadExistingZip(zipFilePath: string): Promise<ReportUploadResult> {
+    return await this.uploadReportToServer(zipFilePath);
+  }
+
+  // Utility method to set webhook URL
+  setWebhookUrl(webhookUrl: string): void {
+    this.webhookUrl = webhookUrl;
+  }
 }
