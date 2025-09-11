@@ -10,9 +10,9 @@ export class ClanPageV2 extends BasePage {
     super(page);
   }
 
-  private buttons = {
+  readonly buttons = {
     createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
-    clanName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
+    clanName: this.page.locator(`${generateE2eSelector('clan_page.header.title.clan_name')} p`),
     invitePeople: this.page.locator(
       generateE2eSelector('clan_page.header.modal_panel.invite_people')
     ),

@@ -193,6 +193,43 @@ export class ClanSetupHelper {
   }
 
   /**
+   * Cleans up a clan by its URL.
+   * @param clanUrl URL of the clan to delete
+   * @param suiteName Name of the test suite for authentication (default: 'Cleanup')
+   */
+  async cleanUpClan(
+    browser: Browser,
+    clanUrl: string,
+    suiteName: string = 'Cleanup'
+  ): Promise<void> {
+    if (!clanUrl) {
+      return;
+    }
+
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    try {
+      await AuthHelper.setAuthForSuite(page, suiteName);
+      await page.goto(clanUrl);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(3000);
+
+      const clanPage = new ClanPageV2(page);
+
+      // Optionally, get the clan name from the page if needed
+      const clanName = await clanPage.buttons.clanName.innerText();
+
+      await clanPage.deleteClan(clanName);
+      await page.waitForTimeout(3000);
+    } catch (error) {
+      console.error(`❌ Failed to cleanup clan by URL: ${error}`);
+    } finally {
+      await context.close();
+    }
+  }
+
+  /**
    * Creates a setup configuration for different test scenarios
    */
   static createConfig(overrides: Partial<ClanSetupConfig> = {}): ClanSetupConfig {
