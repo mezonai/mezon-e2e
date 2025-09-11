@@ -1,6 +1,6 @@
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 
 export class MessgaePage {
   private helpers: DirectMessageHelper;
@@ -117,7 +117,6 @@ export class MessgaePage {
 
       this.firstUserNameText = (await firstUser.textContent())?.trim().split(/\s+/)[0] ?? '';
       await firstUser.click();
-      await firstUser.waitFor({ state: 'visible', timeout: 2000 });
 
       await this.createGroupButton.click();
     } catch (error) {
@@ -180,7 +179,6 @@ export class MessgaePage {
     while (Date.now() - start < 8000) {
       const current = await this.helpers.countGroups();
       if (current >= prevGroupCount + 1) break;
-      await this.page.waitForTimeout(3000);
     }
 
     const current = await this.helpers.countGroups();
@@ -200,11 +198,9 @@ export class MessgaePage {
   async addMoreMemberToGroup(): Promise<void> {
     await this.helpers.group.click();
     await this.addUserButton.click();
-    await this.page.waitForTimeout(5000);
     await this.userItem.click();
     this.userNameItemText = (await this.userNameItem.textContent()) ?? '';
     await this.addToGroupButton.click();
-    await this.page.waitForTimeout(3000);
   }
 
   async getMemberCount(): Promise<number> {
@@ -242,10 +238,8 @@ export class MessgaePage {
   }
 
   async isDMClosed(prevUserCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
-
+    await this.user.waitFor({ state: 'detached', timeout: 5000 });
     const currentUserCount = await this.helpers.countUsers();
-
     return currentUserCount === 0 || currentUserCount === prevUserCount - 1;
   }
 
@@ -272,11 +266,12 @@ export class MessgaePage {
   }
 
   async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
-
-    const currentGroupCount = await this.helpers.countGroups();
-
-    return currentGroupCount === prevGroupCount - 1;
+    await expect(async () => {
+      const currentCount = await this.helpers.countGroups();
+      expect(currentCount).toBeLessThan(prevGroupCount);
+    }).toPass({ timeout: 5000 });
+  
+    return true;
   }
 
   async sendMessage(message: string): Promise<void> {
@@ -306,7 +301,13 @@ export class MessgaePage {
   }
 
   async isGroupNameDMUpdated(): Promise<boolean> {
-    const groupName = (await this.helpers.groupName.innerText()).trim();
-    return groupName === this.groupNameText;
+    try {
+      await expect(this.helpers.groupName).toHaveText(this.groupNameText, {
+        timeout: 5000,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

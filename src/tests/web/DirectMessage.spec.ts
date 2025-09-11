@@ -30,8 +30,6 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.step('Navigate to direct friends page', async () => {
       await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
     });
   });
 
@@ -115,7 +113,6 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.step(`Send message: ${messageText}`, async () => {
       await messagePage.sendMessage(messageText);
-      await page.waitForTimeout(3000);
     });
 
     await AllureReporter.step('Verify the message is sent', async () => {
@@ -137,7 +134,6 @@ test.describe('Direct Message', () => {
 
     await test.step(`Create group chat`, async () => {
       await messagePage.createGroup();
-      await page.waitForTimeout(3000);
     });
 
     await test.step('Verify group chat is ceated', async () => {
@@ -155,7 +151,6 @@ test.describe('Direct Message', () => {
 
     await test.step(`Add more member to group chat`, async () => {
       await messagePage.addMoreMemberToGroup();
-      await page.waitForTimeout(5000);
     });
   });
 
@@ -168,7 +163,6 @@ test.describe('Direct Message', () => {
 
     await test.step(`Update name for group chat DM`, async () => {
       await messagePage.updateNameGroupChatDM(nameGroupChat);
-      await page.waitForTimeout(3000);
     });
 
     await test.step('Verify the group name is updated', async () => {
@@ -184,12 +178,10 @@ test.describe('Direct Message', () => {
 
     if (prevUsersCount === 0) {
       await messagePage.createDM();
-      await page.waitForTimeout(3000);
     }
 
     await test.step(`Close direct message`, async () => {
       await messagePage.closeDM();
-      await page.waitForTimeout(3000);
     });
 
     await test.step('Verify direct message is closed', async () => {
@@ -209,7 +201,6 @@ test.describe('Direct Message', () => {
 
     await test.step(`Leave group chat`, async () => {
       await messagePage.leaveGroupByXBtn();
-      await page.waitForTimeout(4000);
     });
 
     await test.step('Verify group chat is left', async () => {
