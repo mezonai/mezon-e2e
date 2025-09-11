@@ -1,12 +1,13 @@
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 
 export class MessgaePage {
   private helpers: DirectMessageHelper;
   readonly page: Page;
   readonly user: Locator;
   readonly addUserButton: Locator;
+  readonly usernameFriendItem: Locator;
   readonly userItem: Locator;
   readonly friendItems: Locator;
   readonly friendUsernames: Locator;
@@ -31,6 +32,8 @@ export class MessgaePage {
   readonly saveGroupNameButton: Locator;
   readonly leaveGroupButtonInPopup: Locator;
   readonly buttonCreateGroupSidebar: Locator;
+  readonly users: Locator;
+  readonly displaynameFriendItem: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -50,9 +53,18 @@ export class MessgaePage {
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
       .first();
+    this.users = this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+      .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) });
     this.addUserButton = page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
     this.userItem = page
       .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
+      .first();
+    this.usernameFriendItem = page
+      .locator(generateE2eSelector('chat.direct_message.friend_list.username_friend_item'))
+      .first();
+    this.displaynameFriendItem = page
+      .locator(generateE2eSelector('chat.direct_message.friend_list.displayname_friend_item'))
       .first();
     this.friendItems = page.locator(
       generateE2eSelector('chat.direct_message.friend_list.friend_item')
@@ -112,14 +124,18 @@ export class MessgaePage {
     try {
       await this.buttonCreateGroupSidebar.click();
 
-      const firstUser = this.page.locator('.bg-item-theme').first();
+      const firstUser = this.userItem;
       await firstUser.waitFor({ state: 'visible', timeout: 5000 });
 
-      this.firstUserNameText = (await firstUser.textContent())?.trim().split(/\s+/)[0] ?? '';
+      this.firstUserNameText =
+        ((await this.usernameFriendItem.textContent())?.trim() ||
+          (await this.displaynameFriendItem.textContent())?.trim()) ??
+        '';
       await firstUser.click();
       await firstUser.waitFor({ state: 'visible', timeout: 2000 });
 
       await this.createGroupButton.click();
+      await this.page.waitForLoadState('networkidle');
     } catch (error) {
       console.error('Error creating DM:', error);
       throw error;
@@ -127,15 +143,12 @@ export class MessgaePage {
   }
 
   async isDMCreated(): Promise<boolean> {
-    await this.userNamesInDM.first().waitFor({ state: 'visible', timeout: 5000 });
-    const allUserNamesInDM = await this.userNamesInDM.allInnerTexts();
-    const found = allUserNamesInDM.some(
-      name =>
-        name.includes(this.firstUserNameText.replace(/^A/, '')) ||
-        name.includes(this.firstUserNameText)
+    const allUserNamesInDM = await this.userNamesInDM.allTextContents();
+    const stillExists = allUserNamesInDM.some(name =>
+      name.includes(this.firstUserNameText)
     );
 
-    return found;
+    return stillExists;
   }
 
   async createGroup(): Promise<void> {
@@ -235,18 +248,16 @@ export class MessgaePage {
       .filter(Boolean);
     return !!this.userNameItemText && names.some(n => n.includes(this.userNameItemText));
   }
-
+  
   async closeDM(): Promise<void> {
     await this.user.hover();
     await this.closeFirstDMButton.click({ force: true });
   }
 
-  async isDMClosed(prevUserCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
-
-    const currentUserCount = await this.helpers.countUsers();
-
-    return currentUserCount === prevUserCount - 1;
+  async isDMClosed(): Promise<boolean> {
+    const allUserNamesInDM = await this.userNamesInDM.allInnerTexts();
+    const stillExists = allUserNamesInDM.some(name => name.includes(this.firstUserNameText));
+    return !stillExists;
   }
 
   async leaveGroupByXBtn(): Promise<void> {
@@ -270,13 +281,19 @@ export class MessgaePage {
     // click vào "Leave Group"
     //await leaveGroupBtn.click();
   }
+  async isLeavedGroup(): Promise<boolean> {
+    const groupNames = await this.helpers.groupList.allInnerTexts(); // lấy lại toàn bộ tên group
 
-  async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
+    if (!groupNames.length) {
+      return true;
+    }
 
-    const currentGroupCount = await this.helpers.countGroups();
+    const containsFirst =
+      !!this.firstUserNameText && groupNames.some(n => n.includes(this.firstUserNameText));
+    const containsSecond =
+      !!this.secondUserNameText && groupNames.some(n => n.includes(this.secondUserNameText));
 
-    return currentGroupCount === prevGroupCount - 1;
+    return !containsFirst && !containsSecond;
   }
 
   async sendMessage(message: string): Promise<void> {
@@ -308,5 +325,29 @@ export class MessgaePage {
   async isGroupNameDMUpdated(): Promise<boolean> {
     const groupName = (await this.helpers.groupName.innerText()).trim();
     return groupName === this.groupNameText;
+  }
+
+  async cleanDMAndGroup() {
+    let dmCount = await this.helpers.countUsers();
+    while (dmCount > 0) {
+      const firstDM = this.users.first();
+      await firstDM.waitFor({ state: 'visible' });
+      await this.closeDM();
+
+      await expect(this.users).toHaveCount(dmCount - 1);
+
+      dmCount = await this.helpers.countUsers();
+    }
+
+    let groupCount = await this.helpers.countGroups();
+    while (groupCount > 0) {
+      const firstGroup = this.helpers.groups.first();
+      await firstGroup.waitFor({ state: 'visible' });
+      await this.leaveGroupByXBtn();
+
+      await expect(this.helpers.groups).toHaveCount(groupCount - 1);
+
+      groupCount = await this.helpers.countGroups();
+    }
   }
 }

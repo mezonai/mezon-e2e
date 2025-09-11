@@ -173,6 +173,7 @@ export const DATA_E2E_IDENTIFIER = {
         friend_item: '',
         username_friend_item: '',
         all_friend: '',
+				displayname_friend_item: ''
       },
       member_list: {
         button: '',

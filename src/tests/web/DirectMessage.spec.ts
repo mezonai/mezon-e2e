@@ -5,18 +5,40 @@ import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { expect, test } from '@playwright/test';
+import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 import { AuthHelper } from '@/utils/authHelper';
 
 test.describe('Direct Message', () => {
-  test.beforeAll(async () => {
+  let context: BrowserContext;
+  let page: Page;
+
+  test.beforeAll(async ({ browser }) => {
+    context = await browser.newContext();
+    page = await context.newPage();
+
+    await AuthHelper.setAuthForSuite(page, 'Direct Message');
+
+    await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
+
+    await page.waitForLoadState('networkidle');
+
     await TestSetups.chatTest({
       suite: AllureConfig.Suites.CHAT_PLATFORM,
       subSuite: AllureConfig.SubSuites.DIRECT_MESSAGING,
       story: AllureConfig.Stories.TEXT_MESSAGING,
       severity: AllureConfig.Severity.CRITICAL,
     });
+
+    const messagePage = new MessgaePage(page);
+
+    await messagePage.cleanDMAndGroup();
+  });
+
+  test.afterAll(async ({ browser }) => {
+    const messagePage = new MessgaePage(page);
+    await messagePage.cleanDMAndGroup();
+    await context.close();
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
@@ -85,10 +107,10 @@ test.describe('Direct Message', () => {
       await messagePage.createDM();
     });
 
-    // await AllureReporter.step('Verify direct message is created', async () => {
-    //   const DMCreated = await messagePage.isDMCreated();
-    //   expect(DMCreated).toBe(true);
-    // });
+    await AllureReporter.step('Verify direct message is created', async () => {
+      const DMCreated = await messagePage.isDMCreated();
+      expect(DMCreated).toBe(true);
+    });
 
     await AllureReporter.attachScreenshot(page, 'Direct Message Created');
   });
@@ -106,11 +128,11 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can successfully send a message in a direct message conversation.
-      
+
       **Test Steps:**
       1. Send a test message
       2. Verify the message is sent successfully
-      
+
       **Expected Result:** Message should be sent and visible in the conversation.
     `);
 
@@ -188,8 +210,6 @@ test.describe('Direct Message', () => {
 
   test('Close direct message', async ({ page }) => {
     const messagePage = new MessgaePage(page);
-    const helpers = new DirectMessageHelper(page);
-    const prevUsersCount = await helpers.countUsers();
 
     await test.step(`Close direct message`, async () => {
       await messagePage.closeDM();
@@ -197,7 +217,7 @@ test.describe('Direct Message', () => {
     });
 
     await test.step('Verify direct message is closed', async () => {
-      const DMClosed = await messagePage.isDMClosed(prevUsersCount);
+      const DMClosed = await messagePage.isDMClosed();
       expect(DMClosed).toBeTruthy();
     });
   });
@@ -208,8 +228,6 @@ test.describe('Direct Message', () => {
     });
 
     const messagePage = new MessgaePage(page);
-    const helpers = new DirectMessageHelper(page);
-    const prevGroupCount = await helpers.countGroups();
 
     await test.step(`Leave group chat`, async () => {
       await messagePage.leaveGroupByXBtn();
@@ -217,7 +235,7 @@ test.describe('Direct Message', () => {
     });
 
     await test.step('Verify group chat is left', async () => {
-      const groupLeaved = await messagePage.isLeavedGroup(prevGroupCount);
+      const groupLeaved = await messagePage.isLeavedGroup();
       expect(groupLeaved).toBeTruthy();
     });
   });

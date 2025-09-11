@@ -7,6 +7,7 @@ export class DirectMessageHelper {
   readonly groupList: Locator;
   readonly groupName: Locator;
   readonly group: Locator;
+  readonly groups: Locator;
 
   constructor(private page: Page) {
     this.textarea = page.locator(generateE2eSelector('mention.input'));
@@ -20,12 +21,19 @@ export class DirectMessageHelper {
       .filter({ has: this.page.locator('p', { hasText: 'Members' }) })
       .first();
     this.groupName = page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+    this.groups = this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+      .filter({ has: this.page.locator('p', { hasText: 'Members' }) });
   }
 
   async countGroups(): Promise<number> {
+    const count = await this.memberList.count();
+
+    if (count === 0) {
+      return 0;
+    }
     await this.memberList.first().waitFor({ state: 'visible' });
     let groupCount = 0;
-    const count = await this.memberList.count();
 
     for (let i = 0; i < count; i++) {
       const dm = this.memberList.nth(i);
@@ -41,9 +49,13 @@ export class DirectMessageHelper {
   }
 
   async countUsers(): Promise<number> {
+    const count = await this.memberList.count();
+
+    if (count === 0) {
+      return 0;
+    }
     await this.memberList.first().waitFor({ state: 'visible' });
     let userCount = 0;
-    const count = await this.memberList.count();
 
     for (let i = 0; i < count; i++) {
       const dm = this.memberList.nth(i);
