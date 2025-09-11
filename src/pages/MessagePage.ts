@@ -34,6 +34,11 @@ export class MessgaePage {
   readonly buttonCreateGroupSidebar: Locator;
   readonly users: Locator;
   readonly displaynameFriendItem: Locator;
+  readonly pinMessageButton: Locator;
+  readonly confirmPinMessageButton: Locator;
+  readonly deleteMessageButton: Locator;
+  readonly confirmDeleteMessageButton: Locator;
+  readonly displayListPinButton: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -117,6 +122,23 @@ export class MessgaePage {
     this.saveGroupNameButton = page.locator('button:has-text("Save")');
     this.leaveGroupButtonInPopup = page.locator(
       generateE2eSelector('chat.direct_message.menu.leave_group.button')
+    );
+    this.pinMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Pin message' });
+    this.confirmPinMessageButton = page.locator(
+      generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
+      { hasText: 'Oh yeah. Pin it' }
+    );
+    this.deleteMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Delete Message' });
+    this.confirmDeleteMessageButton = page.locator(
+      generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
+      { hasText: 'Delete' }
+    );
+    this.displayListPinButton = page.locator(
+      generateE2eSelector('chat.channel_message.header.button.pin')
     );
   }
 
@@ -298,7 +320,7 @@ export class MessgaePage {
 
   async sendMessage(message: string): Promise<void> {
     this.message = message;
-    await this.user.click();
+    await this.firstUserAddDM.click();
     await this.helpers.textarea.click();
     await this.helpers.textarea.fill(message);
     await this.helpers.textarea.press('Enter');
@@ -327,6 +349,7 @@ export class MessgaePage {
     return groupName === this.groupNameText;
   }
 
+
   async cleanDMAndGroup() {
     let dmCount = await this.helpers.countUsers();
     while (dmCount > 0) {
@@ -349,5 +372,31 @@ export class MessgaePage {
 
       groupCount = await this.helpers.countGroups();
     }
+
+  async pinLastMessage(): Promise<string> {
+    const lastMessage = this.messages.last();
+    const messageId = await lastMessage.getAttribute('id');
+    if (!messageId) {
+      throw new Error('Message does not have an id');
+    }
+
+    await lastMessage.click({ button: 'right' });
+    await this.pinMessageButton.click();
+    await this.confirmPinMessageButton.click();
+
+    return messageId;
+  }
+
+  async deleteLastMessage() {
+    const lastMessage = this.messages.last();
+    await lastMessage.click({ button: 'right' });
+    await this.deleteMessageButton.click();
+    await this.confirmDeleteMessageButton.click();
+  }
+
+  async isMessageStillPinned(messageId: string): Promise<boolean> {
+    await this.displayListPinButton.click();
+    const pinnedMessage = this.page.locator(generateE2eSelector('common.pin_message', messageId));
+    return (await pinnedMessage.count()) > 0;
   }
 }

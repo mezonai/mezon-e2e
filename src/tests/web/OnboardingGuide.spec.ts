@@ -16,22 +16,17 @@ test.describe('Onboarding Guide Task Completion', () => {
   let clanUrl: string;
 
   test.beforeAll(async ({ browser }) => {
-    // await TestSetups.clanTest({
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    // });
-
     clanSetupHelper = new ClanSetupHelper(browser);
+    await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.onboarding.suiteName);
+
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.onboarding);
     testClanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async () => {
+  test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+      await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.onboarding.suiteName);
     }
   });
 
@@ -53,7 +48,6 @@ test.describe('Onboarding Guide Task Completion', () => {
     if (clanUrl) {
       await AllureReporter.step('Navigate to test clan', async () => {
         await page.goto(clanUrl);
-        await page.waitForTimeout(3000);
       });
       await AllureReporter.addParameter('testClanName', testClanName);
       await AllureReporter.addParameter('clanUrl', clanUrl);
@@ -146,8 +140,6 @@ test.describe('Onboarding Guide Task Completion', () => {
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
 
     await AllureReporter.step('Check initial channel task status', async () => {
-      await page.waitForTimeout(3000);
-
       const onboardingVisible = await onboardingPage.isOnboardingGuideVisible();
       if (!onboardingVisible) {
         await onboardingPage.openOnboardingGuide();

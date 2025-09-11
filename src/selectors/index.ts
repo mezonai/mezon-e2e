@@ -225,6 +225,17 @@ export const DATA_E2E_IDENTIFIER = {
         thread_box: '',
       },
     },
+    message_action_modal: {
+      button: {
+        base: '',
+      },
+      confirm_modal: {
+        button: {
+          confirm: '',
+          cancel: '',
+        },
+      },
+    },
     suggest_item: '',
   },
   onboarding: {
@@ -271,6 +282,7 @@ export const DATA_E2E_IDENTIFIER = {
     item_pin_message: {
       username: '',
     },
+    pin_message: '',
   },
 };
 

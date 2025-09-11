@@ -33,6 +33,7 @@ export class DirectMessageHelper {
       return 0;
     }
     await this.memberList.first().waitFor({ state: 'visible' });
+
     let groupCount = 0;
 
     for (let i = 0; i < count; i++) {
@@ -55,6 +56,7 @@ export class DirectMessageHelper {
       return 0;
     }
     await this.memberList.first().waitFor({ state: 'visible' });
+
     let userCount = 0;
 
     for (let i = 0; i < count; i++) {
