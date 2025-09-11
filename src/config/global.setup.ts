@@ -27,6 +27,8 @@ async function globalSetup() {
     throw new Error('Site is not accessible or title is incorrect');
   }
 
+  await context.storageState({ path: 'playwright/.auth/user.json' });
+
   await context.close();
   await browser.close();
 }

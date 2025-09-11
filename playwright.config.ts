@@ -73,6 +73,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
+        storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
     },
@@ -96,6 +97,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Firefox'],
         ...getBrowserConfig(),
+        storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
     },
@@ -146,6 +148,7 @@ export default defineConfig({
     //     ...devices['Desktop Chrome'],
     //     viewport: { width: 1920, height: 1080 },
     //     // Use prepared auth state
+    //     storageState: 'playwright/.auth/user.json',
     //   },
     //   dependencies: ['setup'],
     // },
