@@ -14,19 +14,20 @@ test.describe('Onboarding Guide Task Completion', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanName: string;
   let clanUrl: string;
+  let cleanupFunction: () => Promise<void>;
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
-    await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.onboarding.suiteName);
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.onboarding);
     testClanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
+    cleanupFunction = setupResult.cleanup;
   });
 
-  test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.onboarding.suiteName);
+  test.afterAll(async () => {
+    if (cleanupFunction) {
+      await cleanupFunction();
     }
   });
 
