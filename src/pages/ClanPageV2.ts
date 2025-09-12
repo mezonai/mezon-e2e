@@ -78,7 +78,7 @@ export class ClanPageV2 extends BasePage {
       await this.input.clanName.fill(clanName);
       await this.page.waitForTimeout(3000);
       await this.buttons.createClanConfirm.click();
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(5000);
       return true;
     } catch (error) {
       console.error(`Error creating clan: ${error}`);
@@ -111,11 +111,11 @@ export class ClanPageV2 extends BasePage {
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(5000);
       await categorySettingPage.buttons.deleteSidebar.click();
       await categorySettingPage.input.delete.fill(clanName);
       await categorySettingPage.buttons.confirmDelete.click();
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(5000);
       return true;
     } catch (error) {
       return false;
