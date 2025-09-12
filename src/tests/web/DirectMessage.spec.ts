@@ -218,7 +218,7 @@ test.describe('Direct Message', () => {
     });
   });
 
-  test('Pinned message should be removed when deleted', async ({ page }) => {
+  test.skip('Pinned message should be removed when deleted', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63627',
     });

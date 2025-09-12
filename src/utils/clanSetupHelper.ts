@@ -210,6 +210,21 @@ export class ClanSetupHelper {
       clanNamePrefix: 'ProfileTest',
       suiteName: 'User Profile',
     }),
+
+    channelMessageCore: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'CoreMessageTest',
+      suiteName: 'Channel Message - Core',
+    }),
+
+    channelMessageSocial: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'SocialMessageTest',
+      suiteName: 'Channel Message - Social',
+    }),
+
+    channelMessageMedia: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MediaMessageTest',
+      suiteName: 'Channel Message - Media',
+    }),
   };
 
   /**

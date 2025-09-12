@@ -40,8 +40,8 @@ export const setupChannelMessageSuite = (suiteName: string) => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanUpClan(
-        browser,
+      await clanSetupHelper.cleanupClan(
+        testClanName,
         testClanUrl,
         ClanSetupHelper.configs.messageTests.suiteName
       );
