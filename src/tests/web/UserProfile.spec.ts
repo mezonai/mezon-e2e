@@ -6,6 +6,7 @@ import { WEBSITE_CONFIGS } from '../../config/environment';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import generateRandomString from '@/utils/randomString';
 
 test.describe('User Profile - Clan Profiles', () => {
   let clanSetupHelper: ClanSetupHelper;
@@ -194,42 +195,42 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.attachScreenshot(page, 'Clan Nickname Changed Successfully');
   });
 
-  test.skip('Remove avatar clan', async ({ page }) => {
-    const profilePage = new ProfilePage(page);
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.NORMAL,
-    });
+  // test.skip('Remove avatar clan', async ({ page }) => {
+  //   const profilePage = new ProfilePage(page);
+  //   await AllureReporter.addTestParameters({
+  //     testType: AllureConfig.TestTypes.E2E,
+  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
+  //     severity: AllureConfig.Severity.NORMAL,
+  //   });
 
-    await AllureReporter.step('Navigate to profile tab', async () => {
-      await profilePage.openProfileTab();
-    });
+  //   await AllureReporter.step('Navigate to profile tab', async () => {
+  //     await profilePage.openProfileTab();
+  //   });
 
-    await AllureReporter.step('Navigate to clan profile tab', async () => {
-      await profilePage.openClanProfileTab();
-    });
+  //   await AllureReporter.step('Navigate to clan profile tab', async () => {
+  //     await profilePage.openClanProfileTab();
+  //   });
 
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a user can successfully remove their clan avatar.
-      
-      **Test Steps:**
-      1. Navigate to clan profile settings
-      2. Locate the remove/delete avatar option
-      3. Remove the current avatar
-      4. Verify the avatar has been removed
-      
-      **Expected Result:** The clan avatar should be successfully removed.
-      
-      **Note:** This test is currently skipped pending implementation.
-    `);
+  //   await AllureReporter.addDescription(`
+  //     **Test Objective:** Verify that a user can successfully remove their clan avatar.
 
-    await AllureReporter.addLabels({
-      tag: ['user-profile', 'avatar-removal', 'profile-update', 'clan-profile', 'skipped'],
-    });
+  //     **Test Steps:**
+  //     1. Navigate to clan profile settings
+  //     2. Locate the remove/delete avatar option
+  //     3. Remove the current avatar
+  //     4. Verify the avatar has been removed
 
-    // Implementation pending
-  });
+  //     **Expected Result:** The clan avatar should be successfully removed.
+
+  //     **Note:** This test is currently skipped pending implementation.
+  //   `);
+
+  //   await AllureReporter.addLabels({
+  //     tag: ['user-profile', 'avatar-removal', 'profile-update', 'clan-profile', 'skipped'],
+  //   });
+
+  //   // Implementation pending
+  // });
 
   test('Edit user profile - button visible', async ({ page }) => {
     const profilePage = new ProfilePage(page);
@@ -299,13 +300,13 @@ test.describe('User Profile - Clan Profiles', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can successfully change their display name profile.
-      
+
       **Test Steps:**
       1. Locate the display name input field
       2. Clear existing display name and enter new one
       3. Save the changes
       4. Verify the display name has been updated
-      
+
       **Expected Result:** The clan display name should be successfully updated and saved.
     `);
 
@@ -375,5 +376,96 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.attachScreenshot(page, 'Display Name Changed Successfully');
+  });
+
+  test('Update About me status', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63571',
+    })
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully change their About me status.
+
+      **Test Steps:**
+      1. Locate the About me status input field
+      2. Clear existing About me status and enter new one
+      3. Save the changes
+      4. Verify the About me status has been updated
+
+      **Expected Result:** The About me status should be successfully updated and saved.
+    `);
+
+    const profilePage = new ProfilePage(page);
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
+
+    await AllureReporter.addLabels({
+      tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
+    });
+
+    const target = `about me status - ${generateRandomString(10)}`;
+    await AllureReporter.addParameter('newAboutMeStatus', target);
+    await AllureReporter.addParameter('platform', process.platform);
+
+    await AllureReporter.step('Enter new about me status', async () => {
+      const aboutMeStatusInput = profilePage.inputs.aboutMeInput;
+      await expect(aboutMeStatusInput).toBeVisible({ timeout: 5000 });
+      await aboutMeStatusInput.click();
+
+      const isMac = process.platform === 'darwin';
+      await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
+
+      let ok = false;
+      for (let i = 0; i < 3; i++) {
+        await aboutMeStatusInput.press(isMac ? 'Meta+A' : 'Control+A');
+        await aboutMeStatusInput.press('Backspace');
+        await aboutMeStatusInput.type(target, { delay: 40 });
+        const v = await aboutMeStatusInput.inputValue();
+        if (v === target) {
+          ok = true;
+          break;
+        }
+      }
+
+      if (!ok) {
+        await aboutMeStatusInput.evaluate((el: HTMLInputElement, value: string) => {
+          el.value = value;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }, target);
+      }
+
+      await aboutMeStatusInput.evaluate((el: HTMLInputElement) => {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.blur();
+      });
+
+      await expect(aboutMeStatusInput).toHaveValue(target, { timeout: 3000 });
+      await AllureReporter.addParameter(
+        'aboutMeInputSuccess',
+        ok ? 'Direct input' : 'Programmatic input'
+      );
+    });
+
+    await AllureReporter.step('Save About me status', async () => {
+      const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
+      await saveChangesBtn.scrollIntoViewIfNeeded();
+      await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
+      await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
+      await saveChangesBtn.click();
+      await AllureReporter.addParameter('saveButtonClicked', 'Yes');
+    });
+
+    await AllureReporter.step('Verify About me status has been changed successfully', async () => {
+      await profilePage.verifyAboutMeStatusUpdated(target);
+    });
+
+    await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
   });
 });
