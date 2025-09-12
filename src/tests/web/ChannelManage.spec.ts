@@ -20,25 +20,38 @@ test.describe('Create New Channels', () => {
 
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
+
+    console.log(`✅ Test clan setup complete: ${clanName}`);
   });
 
   test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.channelManagement.suiteName
-      );
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
     }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await AuthHelper.setAuthForSuite(page, 'Channel Management');
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Management');
+
+    // Initialize Allure reporting for this test suite
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
+    //   story: AllureConfig.Stories.CHANNEL_ORGANIZATION,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
 
+    // await TestSetups.clanTest({
+    //   subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
+    //   operation: 'Channel Creation',
+    // });
+
+    // Navigate to the test clan
     await AllureReporter.step('Navigate to test clan', async () => {
       await page.goto(clanUrl);
       await page.waitForLoadState('domcontentloaded');
@@ -53,6 +66,7 @@ test.describe('Create New Channels', () => {
       tms: '63374',
     });
 
+    // Test metadata
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
