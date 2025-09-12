@@ -8,26 +8,21 @@ import { CategoryPage } from '../../pages/CategoryPage';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('Create Clan', () => {
+  let clanUrl: string;
+  let clanSetupHelper: ClanSetupHelper;
+  let clanTestName: string;
+
+  test.beforeAll(async ({ browser }) => {
+    clanSetupHelper = new ClanSetupHelper(browser);
+  });
+
   test.beforeEach(async ({ page }, testInfo) => {
     // Set authentication for this suite (uses account1)
     const accountUsed = await AuthHelper.setAuthForSuite(page, 'Clan Management');
 
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.CLAN_CREATION,
-    //   story: AllureConfig.Stories.CLAN_SETUP,
-    //   severity: AllureConfig.Severity.BLOCKER,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
-
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
     });
-
-    // await TestSetups.clanTest({
-    //   subSuite: AllureConfig.SubSuites.CLAN_CREATION,
-    //   operation: 'Clan Creation',
-    // });
 
     const clanPage = new ClanPageV2(page);
     await AllureReporter.step('Navigate to direct friends page', async () => {
@@ -64,6 +59,7 @@ test.describe('Create Clan', () => {
     });
 
     const clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
+    clanTestName = clanName;
     const clanPage = new ClanPageV2(page);
 
     await AllureReporter.addParameter('clanName', clanName);
@@ -73,8 +69,6 @@ test.describe('Create Clan', () => {
     });
 
     if (createClanClicked) {
-      console.log('Successfully double clicked create clan button');
-
       await AllureReporter.step(`Create new clan: ${clanName}`, async () => {
         await clanPage.createNewClan(clanName);
       });
@@ -83,7 +77,7 @@ test.describe('Create Clan', () => {
         const isClanPresent = await clanPage.isClanPresent(clanName);
 
         if (isClanPresent) {
-          console.log(`Successfully created clan: ${clanName}`);
+          clanUrl = page.url();
         } else {
           console.log(`Could not complete clan creation: ${clanName}`);
         }
@@ -91,8 +85,17 @@ test.describe('Create Clan', () => {
 
       await AllureReporter.attachScreenshot(page, 'Clan Created Successfully');
     } else {
-      console.log('Failed to find or click create clan button');
       await AllureReporter.attachScreenshot(page, 'Failed to Create Clan');
+    }
+  });
+
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupClan(
+        clanTestName,
+        clanUrl,
+        ClanSetupHelper.configs.clanManagement.suiteName
+      );
     }
   });
 });
@@ -115,7 +118,11 @@ test.describe('Create Category', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.clanManagement.suiteName
+      );
     }
   });
 

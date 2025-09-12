@@ -45,13 +45,12 @@ export class ClanSetupHelper {
       // Navigate to home page
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
 
       // Navigate to the clan creation area
       await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Create new clan
       const createClanClicked = await clanPage.clickCreateClanButton();
@@ -136,14 +135,13 @@ export class ClanSetupHelper {
    * Cleans up all clans created by this helper instance
    */
   async cleanupAllClans(): Promise<void> {
-    return; // for (const cleanup of this.cleanupFunctions) {
+    // for (const cleanup of this.cleanupFunctions) {
     //   try {
     //     await cleanup();
     //   } catch (error) {
     //     console.error(`❌ Error during clan cleanup: ${error}`);
     //   }
     // }
-
     // this.cleanupFunctions = [];
     // console.log('✅ Clan cleanup completed');
   }
