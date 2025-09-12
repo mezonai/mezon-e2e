@@ -281,7 +281,7 @@ export class MessgaePage {
 
   async sendMessage(message: string): Promise<void> {
     this.message = message;
-    await this.user.click();
+    await this.firstUserAddDM.click();
     await this.helpers.textarea.click();
     await this.helpers.textarea.fill(message);
     await this.helpers.textarea.press('Enter');

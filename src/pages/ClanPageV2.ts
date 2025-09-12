@@ -78,7 +78,7 @@ export class ClanPageV2 extends BasePage {
       await this.input.clanName.fill(clanName);
       await this.page.waitForTimeout(2000);
       await this.buttons.createClanConfirm.click();
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle');
       return true;
     } catch (error) {
       console.error(`Error creating clan: ${error}`);
