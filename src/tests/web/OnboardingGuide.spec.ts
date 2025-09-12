@@ -31,7 +31,7 @@ test.describe('Onboarding Guide Task Completion', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+      await clanSetupHelper.cleanupClan(testClanName, clanUrl, 'Onboarding Guide');
     }
   });
 
