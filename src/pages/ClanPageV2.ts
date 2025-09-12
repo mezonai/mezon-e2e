@@ -63,8 +63,8 @@ export class ClanPageV2 extends BasePage {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
   };
 
-  readonly sidebar = {
-    clanItems: {
+  private sidebar = {
+    clanItem: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
@@ -76,7 +76,7 @@ export class ClanPageV2 extends BasePage {
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.input.clanName.fill(clanName);
-      await this.page.waitForTimeout(3000);
+      await this.page.waitForTimeout(2000);
       await this.buttons.createClanConfirm.click();
       await this.page.waitForTimeout(5000);
       return true;
@@ -118,6 +118,7 @@ export class ClanPageV2 extends BasePage {
       await this.page.waitForTimeout(5000);
       return true;
     } catch (error) {
+      console.error(`Error deleting clan: ${error}`);
       return false;
     }
   }

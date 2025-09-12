@@ -17,10 +17,8 @@ test.describe('Create Clan', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await AuthHelper.setAuthForSuite(
-      page,
-      ClanSetupHelper.configs.clanManagement.suiteName || 'Clan Management'
-    );
+    // Set authentication for this suite (uses account1)
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Clan Management');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
@@ -80,6 +78,8 @@ test.describe('Create Clan', () => {
 
         if (isClanPresent) {
           clanUrl = page.url();
+        } else {
+          console.log(`Could not complete clan creation: ${clanName}`);
         }
       });
 
@@ -90,7 +90,7 @@ test.describe('Create Clan', () => {
   });
 
   test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper && clanTestName && clanUrl) {
+    if (clanSetupHelper) {
       await clanSetupHelper.cleanupClan(
         clanTestName,
         clanUrl,
@@ -112,6 +112,8 @@ test.describe('Create Category', () => {
 
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
+
+    console.log(`✅ Test clan setup complete: ${clanName}`);
   });
 
   test.afterAll(async ({ browser }) => {
@@ -125,12 +127,27 @@ test.describe('Create Category', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await AuthHelper.setAuthForSuite(page, 'Clan Management');
+    // Set authentication for this suite
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Clan Management');
+
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.CATEGORY_MANAGEMENT,
+    //   story: AllureConfig.Stories.CHANNEL_ORGANIZATION,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       tms: '63510',
     });
 
+    // await TestSetups.clanTest({
+    //   subSuite: AllureConfig.SubSuites.CATEGORY_MANAGEMENT,
+    //   operation: 'Category Creation',
+    // });
+
+    // Navigate to the test clan
     await AllureReporter.step('Navigate to test clan', async () => {
       await page.goto(clanUrl);
       await page.waitForLoadState('domcontentloaded');
