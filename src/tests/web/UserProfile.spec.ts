@@ -1,12 +1,10 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { expect, test } from '@playwright/test';
-import { WEBSITE_CONFIGS } from '../../config/environment';
-import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
+import { expect, test } from '@playwright/test';
 
 test.describe('User Profile - Clan Profiles', () => {
   let clanSetupHelper: ClanSetupHelper;
