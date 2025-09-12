@@ -1,11 +1,13 @@
 // import { AllureConfig } from '@/config/allure.config';
 // import { AllureReporter } from '@/utils/allureHelpers';
-// import { AuthHelper } from '@/utils/authHelper';
-// import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 // import { expect, test } from '@playwright/test';
 // import { WEBSITE_CONFIGS } from '../../config/environment';
 // import { joinUrlPaths } from '../../utils/joinUrlPaths';
 // import { LINK_TEST_URLS, MessageTestHelpers } from '../../utils/messageHelpers';
+// import { AuthHelper } from '@/utils/authHelper';
+// import { ClanPageV2 } from '@/pages/ClanPageV2';
+// import { ChannelType, ChannelStatus } from '@/types/clan-page.types';
+// import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 // const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 // const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/1955879210568388608/3');
@@ -25,7 +27,6 @@
 
 //   test.beforeAll(async ({ browser }) => {
 //     clanSetupHelper = new ClanSetupHelper(browser);
-//     await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.messageTests.suiteName);
 
 //     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
 
@@ -34,9 +35,10 @@
 //   });
 
 //   test.afterAll(async ({ browser }) => {
-//     if (clanSetupHelper) {
-//       await clanSetupHelper.cleanupAllClans(
-//         browser,
+//     if (clanSetupHelper && testClanName && testClanUrl) {
+//       await clanSetupHelper.cleanupClan(
+//         testClanName,
+//         testClanUrl,
 //         ClanSetupHelper.configs.messageTests.suiteName
 //       );
 //     }
@@ -80,7 +82,6 @@
 //     },
 
 //     async navigateToClanChannel(): Promise<void> {
-//       // Use the dynamically created clan URL
 //       await page.goto(testClanUrl);
 //       await page.waitForLoadState('networkidle');
 //       await page.waitForTimeout(3000);
@@ -88,7 +89,10 @@
 //   });
 
 //   test.beforeEach(async ({ page, context }, testInfo) => {
-//     const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Message');
+//     const accountUsed = await AuthHelper.setAuthForSuite(
+//       page,
+//       ClanSetupHelper.configs.messageTests.suiteName || 'Channel Message Tests'
+//     );
 
 //     await AllureReporter.initializeTest(page, testInfo, {
 //       story: AllureConfig.Stories.TEXT_MESSAGING,
@@ -106,8 +110,6 @@
 //     const navigationHelpers = createNavigationHelpers(page);
 
 //     await AllureReporter.step('Setup test environment', async () => {
-//       await navigationHelpers.navigateToHomePage();
-//       await navigationHelpers.navigateToDirectChat();
 //       await navigationHelpers.navigateToClanChannel();
 //     });
 //   });
@@ -171,6 +173,24 @@
 //     await AllureReporter.step('Paste and send image', async () => {
 //       await messageHelpers.pasteAndSendImage();
 //     });
+
+//     await AllureReporter.step('Verify pasted image is visible', async () => {
+//       await expect(page.locator('img[src*="blob:"]').last()).toBeVisible();
+//     });
+
+//     await AllureReporter.attachScreenshot(page, 'Image Copy Test Completed');
+//   });
+
+//   test('Copy image from context menu outside the message', async ({ page }) => {
+//     const initialImageCount = await messageHelpers.countImages();
+//     if (initialImageCount === 0) {
+//       return;
+//     }
+//     const targetImage = await messageHelpers.findImage();
+//     await messageHelpers.copyImage(targetImage);
+//     await messageHelpers.pasteAndSendImage();
+//     await expect(page.locator('img[src*="blob:"]').last()).toBeVisible();
+//   });
 
 //     await AllureReporter.step('Verify pasted image is visible', async () => {
 //       await expect(page.locator('img[src*="blob:"]').last()).toBeVisible();

@@ -39,21 +39,16 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      // Authenticate the user
       await AuthHelper.setAuthForSuite(page, suiteName);
 
-      // Navigate to home page
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
 
-      // Navigate to the clan creation area
       await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
 
-      // Create new clan
       const createClanClicked = await clanPage.clickCreateClanButton();
       if (!createClanClicked) {
         throw new Error('Failed to click create clan button');
@@ -61,22 +56,18 @@ export class ClanSetupHelper {
 
       await clanPage.createNewClan(clanName);
 
-      // Wait for clan creation and verify it exists
       await page.waitForTimeout(5000);
       const clanExists = await clanPage.isClanPresent(clanName);
       if (!clanExists) {
         throw new Error(`Failed to create clan: ${clanName}`);
       }
 
-      // Get the clan URL
       const clanUrl = page.url();
 
-      // Create cleanup function
       const cleanup = async () => {
         await this.cleanupClan(clanName, clanUrl, suiteName);
       };
 
-      // Store cleanup function for batch cleanup
       this.cleanupFunctions.push(cleanup);
 
       await context.close();
@@ -111,22 +102,16 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      // Authenticate the user
       await AuthHelper.setAuthForSuite(page, suiteName);
 
-      // Navigate to the specific clan URL to ensure we're in the right context
       await page.goto(clanUrl);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
 
-      // Delete the test clan
       await clanPage.deleteClan(clanName);
-      await page.waitForTimeout(3000);
     } catch (error) {
-      console.error(`❌ Failed to cleanup test clan: ${error}`);
-      // Don't throw error in cleanup to avoid affecting test results
+      console.log(`Failed to cleanup test clan: ${error}`);
     } finally {
       await context.close();
     }
@@ -146,11 +131,10 @@ export class ClanSetupHelper {
 
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
       await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       const clanItems = await clanPage.sidebar.clanItems;
       const clanItemsCount = await clanItems.clanName.count();
@@ -172,10 +156,8 @@ export class ClanSetupHelper {
           const clanName = await clanItem.innerText();
 
           await clanItem.click();
-          await page.waitForTimeout(1000);
 
           await clanPage.deleteClan(clanName);
-          await page.waitForTimeout(3000);
         } catch (error) {
           console.error(`❌ Failed to delete clan at index ${i}: ${error}`);
           continue;
@@ -193,43 +175,6 @@ export class ClanSetupHelper {
   }
 
   /**
-   * Cleans up a clan by its URL.
-   * @param clanUrl URL of the clan to delete
-   * @param suiteName Name of the test suite for authentication (default: 'Cleanup')
-   */
-  async cleanUpClan(
-    browser: Browser,
-    clanUrl: string,
-    suiteName: string = 'Cleanup'
-  ): Promise<void> {
-    if (!clanUrl) {
-      return;
-    }
-
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    try {
-      await AuthHelper.setAuthForSuite(page, suiteName);
-      await page.goto(clanUrl);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
-
-      const clanPage = new ClanPageV2(page);
-
-      // Optionally, get the clan name from the page if needed
-      const clanName = await clanPage.buttons.clanName.innerText();
-
-      await clanPage.deleteClan(clanName);
-      await page.waitForTimeout(3000);
-    } catch (error) {
-      console.error(`❌ Failed to cleanup clan by URL: ${error}`);
-    } finally {
-      await context.close();
-    }
-  }
-
-  /**
    * Creates a setup configuration for different test scenarios
    */
   static createConfig(overrides: Partial<ClanSetupConfig> = {}): ClanSetupConfig {
@@ -240,9 +185,6 @@ export class ClanSetupHelper {
     };
   }
 
-  /**
-   * Predefined configurations for common test scenarios
-   */
   static readonly configs = {
     messageTests: ClanSetupHelper.createConfig({
       clanNamePrefix: 'MessageTestClan',

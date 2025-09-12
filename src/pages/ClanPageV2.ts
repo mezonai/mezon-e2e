@@ -76,8 +76,9 @@ export class ClanPageV2 extends BasePage {
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.input.clanName.fill(clanName);
-      await this.buttons.createClanConfirm.waitFor({ state: 'visible', timeout: 5000 });
+      await this.page.waitForTimeout(3000);
       await this.buttons.createClanConfirm.click();
+      await this.page.waitForLoadState('networkidle');
       return true;
     } catch (error) {
       console.error(`Error creating clan: ${error}`);
@@ -114,13 +115,12 @@ export class ClanPageV2 extends BasePage {
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle');
       await categorySettingPage.buttons.deleteSidebar.click();
       await categorySettingPage.buttons.confirmDelete.click();
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle');
       return true;
     } catch (error) {
-      console.error(`Error deleting clan: ${error}`);
       return false;
     }
   }

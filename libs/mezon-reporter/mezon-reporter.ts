@@ -132,6 +132,8 @@ class MezonReporter implements Reporter {
   // private shouldNotifyProgress(): boolean {
   //   const completed = this.testStats.passed + this.testStats.failed + this.testStats.skipped;
   //   const total = this.testStats.total;
+
+  //   // Notify every 25% completion or for every 10 tests (whichever is smaller)
   //   const quarterMark = Math.ceil(total * 0.25);
   //   const tenTestMark = 10;
   //   const notifyInterval = Math.min(quarterMark, tenTestMark);

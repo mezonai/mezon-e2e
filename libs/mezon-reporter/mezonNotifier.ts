@@ -40,7 +40,6 @@ export class MezonNotifier {
 
   constructor() {
     this.webhookUrl = process.env.MEZON_WEBHOOK_URL || MEZON_THREAD_URL;
-
     this.isEnabled = process.env.MEZON_NOTIFICATIONS !== 'false' && !!this.webhookUrl;
   }
 

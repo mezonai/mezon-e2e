@@ -2,7 +2,6 @@ import * as archiver from 'archiver';
 import * as fs from 'fs';
 import { REPORT_SERVER_URL } from 'libs/mezon-reporter/constant';
 import * as path from 'path';
-
 export interface ReportUploadResult {
   success: boolean;
   reportUrl?: string;
@@ -189,6 +188,4 @@ export class ReportExporter {
       console.warn(`⚠️ Could not clean up zip file: ${zipPath}`, cleanupError);
     }
   }
-
-
 }
