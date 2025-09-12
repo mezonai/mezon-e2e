@@ -47,7 +47,10 @@ export class ProfilePage extends BasePage {
       generateE2eSelector('user_setting.profile.clan_profile.input_nickname')
     ),
     displayNameInput: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.input.display_name')} input`
+      `${generateE2eSelector('user_setting.profile.user_profile.input.display_name')}`
+    ),
+    aboutMeInput: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.input.about_me')}`
     ),
   };
 
@@ -78,5 +81,9 @@ export class ProfilePage extends BasePage {
 
   async verifyDisplayNameUpdated(displayName: string) {
     await expect(this.inputs.displayNameInput).toHaveValue(displayName, { timeout: 2000 });
+  }
+
+  async verifyAboutMeStatusUpdated(aboutMeStatus: string) {
+    await expect(this.inputs.aboutMeInput).toHaveValue(aboutMeStatus, { timeout: 2000 });
   }
 }

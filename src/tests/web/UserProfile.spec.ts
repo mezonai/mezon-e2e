@@ -3,6 +3,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 
 test.describe('User Profile - Clan Profiles', () => {
@@ -279,99 +280,192 @@ test.describe('User Profile - Clan Profiles', () => {
     );
   });
 
-  // test('Change display name profile', async ({ page }) => {
-  //   const profilePage = new ProfilePage(page);
-  //   await AllureReporter.addTestParameters({
-  //     testType: AllureConfig.TestTypes.E2E,
-  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
-  //     severity: AllureConfig.Severity.CRITICAL,
-  //   });
+  test('Change display name profile', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
 
-  //   await AllureReporter.step('Navigate to profile tab', async () => {
-  //     await profilePage.openProfileTab();
-  //   });
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
 
-  //   await AllureReporter.step('Navigate to user profile tab', async () => {
-  //     await profilePage.openUserProfileTab();
-  //   });
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
 
-  //   await AllureReporter.addDescription(`
-  //     **Test Objective:** Verify that a user can successfully change their display name profile.
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully change their display name profile.
 
-  //     **Test Steps:**
-  //     1. Locate the display name input field
-  //     2. Clear existing display name and enter new one
-  //     3. Save the changes
-  //     4. Verify the display name has been updated
+      **Test Steps:**
+      1. Locate the display name input field
+      2. Clear existing display name and enter new one
+      3. Save the changes
+      4. Verify the display name has been updated
 
-  //     **Expected Result:** The clan display name should be successfully updated and saved.
-  //   `);
+      **Expected Result:** The clan display name should be successfully updated and saved.
+    `);
 
-  //   await AllureReporter.addLabels({
-  //     tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
-  //   });
+    await AllureReporter.addLabels({
+      tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
+    });
 
-  //   const target = `acc.automationtest-${Date.now()}`;
-  //   await AllureReporter.addParameter('newDisplayname', target);
-  //   await AllureReporter.addParameter('platform', process.platform);
+    const target = `acc.automationtest-${Date.now()}`;
+    await AllureReporter.addParameter('newDisplayname', target);
+    await AllureReporter.addParameter('platform', process.platform);
 
-  //   await AllureReporter.step('Enter new display name', async () => {
-  //     const displayNameInput = profilePage.inputs.displayNameInput;
-  //     await expect(displayNameInput).toBeVisible({ timeout: 5000 });
-  //     await displayNameInput.click();
+    await AllureReporter.step('Enter new display name', async () => {
+      const displayNameInput = profilePage.inputs.displayNameInput;
+      await expect(displayNameInput).toBeVisible({ timeout: 5000 });
+      await displayNameInput.click();
 
-  //     const isMac = process.platform === 'darwin';
-  //     await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
+      const isMac = process.platform === 'darwin';
+      await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
 
-  //     let ok = false;
-  //     for (let i = 0; i < 3; i++) {
-  //       await displayNameInput.press(isMac ? 'Meta+A' : 'Control+A');
-  //       await displayNameInput.press('Backspace');
-  //       await page.waitForTimeout(50);
-  //       await displayNameInput.type(target, { delay: 40 });
-  //       await page.waitForTimeout(150);
-  //       const v = await displayNameInput.inputValue();
-  //       if (v === target) {
-  //         ok = true;
-  //         break;
-  //       }
-  //     }
+      let ok = false;
+      for (let i = 0; i < 3; i++) {
+        await displayNameInput.press(isMac ? 'Meta+A' : 'Control+A');
+        await displayNameInput.press('Backspace');
+        await page.waitForTimeout(50);
+        await displayNameInput.type(target, { delay: 40 });
+        await page.waitForTimeout(150);
+        const v = await displayNameInput.inputValue();
+        if (v === target) {
+          ok = true;
+          break;
+        }
+      }
 
-  //     if (!ok) {
-  //       await displayNameInput.evaluate((el: HTMLInputElement, value: string) => {
-  //         el.value = value;
-  //         el.dispatchEvent(new Event('input', { bubbles: true }));
-  //         el.dispatchEvent(new Event('change', { bubbles: true }));
-  //       }, target);
-  //     }
+      if (!ok) {
+        await displayNameInput.evaluate((el: HTMLInputElement, value: string) => {
+          el.value = value;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }, target);
+      }
 
-  //     await displayNameInput.evaluate((el: HTMLInputElement) => {
-  //       el.dispatchEvent(new Event('input', { bubbles: true }));
-  //       el.dispatchEvent(new Event('change', { bubbles: true }));
-  //       el.blur();
-  //     });
+      await displayNameInput.evaluate((el: HTMLInputElement) => {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.blur();
+      });
 
-  //     await page.waitForTimeout(800);
-  //     await expect(displayNameInput).toHaveValue(target, { timeout: 3000 });
-  //     await AllureReporter.addParameter(
-  //       'dispalyNameInputSuccess',
-  //       ok ? 'Direct input' : 'Programmatic input'
-  //     );
-  //   });
+      await page.waitForTimeout(800);
+      await expect(displayNameInput).toHaveValue(target, { timeout: 3000 });
+      await AllureReporter.addParameter(
+        'dispalyNameInputSuccess',
+        ok ? 'Direct input' : 'Programmatic input'
+      );
+    });
 
-  //   await AllureReporter.step('Save display name', async () => {
-  //     const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
-  //     await saveChangesBtn.scrollIntoViewIfNeeded();
-  //     await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
-  //     await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
-  //     await saveChangesBtn.click();
-  //     await AllureReporter.addParameter('saveButtonClicked', 'Yes');
-  //   });
+    await AllureReporter.step('Save display name', async () => {
+      const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
+      await saveChangesBtn.scrollIntoViewIfNeeded();
+      await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
+      await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
+      await saveChangesBtn.click();
+      await AllureReporter.addParameter('saveButtonClicked', 'Yes');
+    });
 
-  //   await AllureReporter.step('Verify display name has been changed successfully', async () => {
-  //     await profilePage.verifyDisplayNameUpdated(target);
-  //   });
+    await AllureReporter.step('Verify display name has been changed successfully', async () => {
+      await profilePage.verifyDisplayNameUpdated(target);
+    });
 
-  //   await AllureReporter.attachScreenshot(page, 'Display Name Changed Successfully');
-  // });
+    await AllureReporter.attachScreenshot(page, 'Display Name Changed Successfully');
+  });
+
+  test('Update About me status', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully change their About me status.
+
+      **Test Steps:**
+      1. Locate the About me status input field
+      2. Clear existing About me status and enter new one
+      3. Save the changes
+      4. Verify the About me status has been updated
+
+      **Expected Result:** The About me status should be successfully updated and saved.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
+    });
+
+    const target = `about me status - ${generateRandomString(10)}`;
+    await AllureReporter.addParameter('newAboutMeStatus', target);
+    await AllureReporter.addParameter('platform', process.platform);
+
+    await AllureReporter.step('Enter new about me status', async () => {
+      const aboutMeStatusInput = profilePage.inputs.aboutMeInput;
+      await expect(aboutMeStatusInput).toBeVisible({ timeout: 5000 });
+      await aboutMeStatusInput.click();
+
+      const isMac = process.platform === 'darwin';
+      await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
+
+      let ok = false;
+      for (let i = 0; i < 3; i++) {
+        await aboutMeStatusInput.press(isMac ? 'Meta+A' : 'Control+A');
+        await aboutMeStatusInput.press('Backspace');
+        await aboutMeStatusInput.type(target, { delay: 40 });
+        const v = await aboutMeStatusInput.inputValue();
+        if (v === target) {
+          ok = true;
+          break;
+        }
+      }
+
+      if (!ok) {
+        await aboutMeStatusInput.evaluate((el: HTMLInputElement, value: string) => {
+          el.value = value;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }, target);
+      }
+
+      await aboutMeStatusInput.evaluate((el: HTMLInputElement) => {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.blur();
+      });
+
+      await expect(aboutMeStatusInput).toHaveValue(target, { timeout: 3000 });
+      await AllureReporter.addParameter(
+        'aboutMeInputSuccess',
+        ok ? 'Direct input' : 'Programmatic input'
+      );
+    });
+
+    await AllureReporter.step('Save About me status', async () => {
+      const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
+      await saveChangesBtn.scrollIntoViewIfNeeded();
+      await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
+      await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
+      await saveChangesBtn.click();
+      await AllureReporter.addParameter('saveButtonClicked', 'Yes');
+    });
+
+    await AllureReporter.step('Verify About me status has been changed successfully', async () => {
+      await profilePage.verifyAboutMeStatusUpdated(target);
+    });
+
+    await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
+  });
 });

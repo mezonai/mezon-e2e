@@ -246,6 +246,7 @@ export const DATA_E2E_IDENTIFIER = {
       user_profile: {
         input: {
           display_name: '',
+          about_me: ''
         },
         button: {
           reset: '',
