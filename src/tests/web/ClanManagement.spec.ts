@@ -8,6 +8,7 @@ import { CategoryPage } from '../../pages/CategoryPage';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('Create Clan', () => {
+  const clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
   test.beforeEach(async ({ page }, testInfo) => {
     // Set authentication for this suite (uses account1)
     const accountUsed = await AuthHelper.setAuthForSuite(page, 'Clan Management');
@@ -34,6 +35,11 @@ test.describe('Create Clan', () => {
       await clanPage.navigate('/chat/direct/friends');
       await page.waitForTimeout(2000);
     });
+  });
+
+  test.afterEach(async ({ page }) => {
+    const clanPage = new ClanPageV2(page);
+    await clanPage.deleteClan(clanName);
   });
 
   test('Verify that I can create a Clan', async ({ page }) => {
@@ -63,7 +69,6 @@ test.describe('Create Clan', () => {
       tag: ['clan-creation', 'core-functionality'],
     });
 
-    const clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
     const clanPage = new ClanPageV2(page);
 
     await AllureReporter.addParameter('clanName', clanName);
@@ -87,6 +92,7 @@ test.describe('Create Clan', () => {
         } else {
           console.log(`Could not complete clan creation: ${clanName}`);
         }
+        expect(isClanPresent).toBeTruthy();
       });
 
       await AllureReporter.attachScreenshot(page, 'Clan Created Successfully');
@@ -115,7 +121,7 @@ test.describe('Create Category', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+      await clanSetupHelper.cleanupClan(clanName, clanUrl, 'Clan Management');
     }
   });
 
