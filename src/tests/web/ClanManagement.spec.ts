@@ -57,30 +57,30 @@ test.describe('Create Clan', () => {
     await AllureReporter.addLabels({
       tag: ['clan-creation', 'core-functionality'],
     });
-
-    const clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
-    clanTestName = clanName;
+    
     const clanPage = new ClanPageV2(page);
+    clanTestName = `Mezon E2E Clan ${generateRandomString(10)}`
 
-    await AllureReporter.addParameter('clanName', clanName);
+    await AllureReporter.addParameter('clanName', clanTestName);
 
     const createClanClicked = await AllureReporter.step('Click create clan button', async () => {
       return await clanPage.clickCreateClanButton();
     });
 
     if (createClanClicked) {
-      await AllureReporter.step(`Create new clan: ${clanName}`, async () => {
-        await clanPage.createNewClan(clanName);
+      await AllureReporter.step(`Create new clan: ${clanTestName}`, async () => {
+        await clanPage.createNewClan(clanTestName);
       });
 
       await AllureReporter.step('Verify clan is present in clan list', async () => {
-        const isClanPresent = await clanPage.isClanPresent(clanName);
+        const isClanPresent = await clanPage.isClanPresent(clanTestName);
 
         if (isClanPresent) {
           clanUrl = page.url();
         } else {
-          console.log(`Could not complete clan creation: ${clanName}`);
+          console.log(`Could not complete clan creation: ${clanTestName}`);
         }
+        expect(isClanPresent).toBeTruthy();
       });
 
       await AllureReporter.attachScreenshot(page, 'Clan Created Successfully');

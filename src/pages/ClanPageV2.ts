@@ -90,7 +90,7 @@ export class ClanPageV2 extends BasePage {
     const clanLocator = this.page.locator(generateE2eSelector('clan_page.header.title.clan_name'), {
       hasText: clanName,
     });
-
+    await clanLocator.waitFor({ state: 'visible', timeout: 3000 });
     return clanLocator.isVisible();
   }
 
