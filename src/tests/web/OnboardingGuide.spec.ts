@@ -1,53 +1,17 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
-import { WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { OnboardingTask } from '@/types/onboarding.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
-
-// Custom auth data for OnboardingGuide tests
-const ONBOARDING_AUTH_DATA = {
-  persist: {
-    key: 'persist:auth',
-    value: {
-      loadingStatus: '"loaded"',
-      session:
-        '{"1840651409016492000":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIzYTljNzY5NS0zYTQ3LTRmODktOGY4ZC02MTFlYzhmNmI0NjYiLCJ1aWQiOjE4NDA2NTE0MDkwMTY0OTIwMzIsInVzbiI6ImR1bmcuYnVpaHV1IiwiZXhwIjoxNzU3Mjc2NDY4fQ.TzAX7wVtTkjoEdXdVWmtECDTJQao2hh6kMOpZ4NF9tA","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIzYTljNzY5NS0zYTQ3LTRmODktOGY4ZC02MTFlYzhmNmI0NjYiLCJ1aWQiOjE4NDA2NTE0MDkwMTY0OTIwMzIsInVzbiI6ImR1bmcuYnVpaHV1IiwiZXhwIjoxNzU3ODgwNjY4fQ.NPXN4ec-ApsEylTx1UW4UtamILXGu7e-MLkMdRxX7VI","created_at":1757275868,"is_remember":false,"refresh_expires_at":1757880668,"expires_at":1757276468,"username":"dung.buihuu","user_id":1840651409016492000}}',
-      isLogin: 'true',
-      isRegistering: '"not loaded"',
-      loadingStatusEmail: '"not loaded"',
-      redirectUrl: 'null',
-      activeAccount: '"1840651409016492000"',
-      _persist: '{"version":-1,"rehydrated":true}',
-    },
-  },
-  mezonSession: {
-    key: 'mezon_session',
-    value: JSON.stringify({
-      host: 'dev-mezon.nccsoft.vn',
-      port: '7305',
-      ssl: true,
-    }),
-  },
-};
-const overrideAuth = async page => {
-  await page.goto(WEBSITE_CONFIGS.MEZON.baseURL as string);
-  await page.waitForLoadState('networkidle');
-
-  await page.evaluate(authData => {
-    localStorage.setItem(authData.persist.key, JSON.stringify(authData.persist.value));
-    localStorage.setItem(authData.mezonSession.key, authData.mezonSession.value);
-  }, ONBOARDING_AUTH_DATA);
-
-  await page.reload();
-  await page.waitForLoadState('networkidle');
-};
+import { AuthHelper } from '@/utils/authHelper';
 
 test.describe('Onboarding Guide Task Completion', () => {
+  let clanSetupHelper: ClanSetupHelper;
   let testClanName: string;
   let clanUrl: string;
 
@@ -59,50 +23,21 @@ test.describe('Onboarding Guide Task Completion', () => {
     //   severity: AllureConfig.Severity.CRITICAL,
     // });
 
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    await overrideAuth(page);
-    try {
-      const homePage = new HomePage(page);
-      await homePage.navigate();
-      const clanPage = new ClanPageV2(page);
-      await clanPage.navigate('/chat/direct/friends');
-      const createClanClicked = await clanPage.clickCreateClanButton();
-      if (createClanClicked) {
-        testClanName = `KESON Test Clan ${Date.now()}`;
-        await clanPage.createNewClan(testClanName);
-        await page.waitForTimeout(5000);
-        clanUrl = page.url();
-      }
-    } catch (error) {
-      console.error('Error creating clan:', error);
-    } finally {
-      await context.close();
-    }
+    clanSetupHelper = new ClanSetupHelper(browser);
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.onboarding);
+    testClanName = setupResult.clanName;
+    clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
-    if (testClanName && clanUrl) {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-
-      try {
-        await page.goto(clanUrl);
-        await page.waitForTimeout(3000);
-        const clanPage = new ClanPageV2(page);
-        await clanPage.deleteClan(testClanName);
-      } catch (error) {
-        console.error(`❌ Error deleting test clan: ${error}`);
-      } finally {
-        await context.close();
-      }
-    } else {
-      console.log('⚠️ No clan name or URL available for cleanup');
+  test.afterAll(async () => {
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
     }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await overrideAuth(page);
+    await AuthHelper.setAuthForSuite(page, 'Onboarding Guide');
+
     // await AllureReporter.initializeTest(page, testInfo, {
     //   suite: AllureConfig.Suites.USER_MANAGEMENT,
     //   subSuite: AllureConfig.SubSuites.USER_PROFILE,

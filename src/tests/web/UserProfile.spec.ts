@@ -4,23 +4,35 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
-
-const CLAN_CHAT_URL = joinUrlPaths(
-  WEBSITE_CONFIGS.MEZON.baseURL || '',
-  'chat/clans/1786228934740807680/channels/1786228934753390593'
-);
+import { AuthHelper } from '@/utils/authHelper';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('User Profile - Clan Profiles', () => {
-  test.beforeAll(async () => {
+  let clanSetupHelper: ClanSetupHelper;
+  let testClanUrl: string;
+
+  test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
       suite: AllureConfig.Suites.USER_MANAGEMENT,
       subSuite: AllureConfig.SubSuites.USER_PROFILE,
       story: AllureConfig.Stories.PROFILE_SETUP,
       severity: AllureConfig.Severity.CRITICAL,
     });
+
+    clanSetupHelper = new ClanSetupHelper(browser);
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
+    testClanUrl = setupResult.clanUrl;
+  });
+
+  test.afterAll(async () => {
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
+    }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'User Profile');
+
     const profilePage = new ProfilePage(page);
     // await AllureReporter.initializeTest(page, testInfo, {
     //   suite: AllureConfig.Suites.USER_MANAGEMENT,
@@ -35,19 +47,19 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Navigate to clan chat page', async () => {
-      await page.goto(CLAN_CHAT_URL);
+      await page.goto(testClanUrl);
       await page.waitForLoadState('networkidle');
     });
 
     await AllureReporter.step('Open user settings profile', async () => {
       await profilePage.buttons.userSettingProfileButton.waitFor({
         state: 'visible',
-        timeout: 1000,
+        timeout: 3000,
       });
       await profilePage.buttons.userSettingProfileButton.click();
     });
 
-    await AllureReporter.addParameter('clanChatUrl', CLAN_CHAT_URL);
+    await AllureReporter.addParameter('clanChatUrl', testClanUrl);
   });
 
   test('Change avatar clan - button visible', async ({ page }) => {
@@ -307,7 +319,7 @@ test.describe('User Profile - Clan Profiles', () => {
 
     await AllureReporter.step('Enter new display name', async () => {
       const displayNameInput = profilePage.inputs.displayNameInput;
-      await expect(displayNameInput).toBeVisible({ timeout: 1000 });
+      await expect(displayNameInput).toBeVisible({ timeout: 5000 });
       await displayNameInput.click();
 
       const isMac = process.platform === 'darwin';

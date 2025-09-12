@@ -1,12 +1,17 @@
 import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 import { CategoryPage } from '../../pages/CategoryPage';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('Create Clan', () => {
   test.beforeEach(async ({ page }, testInfo) => {
+    // Set authentication for this suite (uses account1)
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Clan Management');
+
     // await AllureReporter.initializeTest(page, testInfo, {
     //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
     //   subSuite: AllureConfig.SubSuites.CLAN_CREATION,
@@ -175,9 +180,31 @@ test.describe('Create Clan', () => {
 });
 
 test.describe('Create Category', () => {
+  let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
+  let clanUrl: string;
+
+  test.beforeAll(async ({ browser }) => {
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
+
+    clanName = setupResult.clanName;
+    clanUrl = setupResult.clanUrl;
+
+    console.log(`✅ Test clan setup complete: ${clanName}`);
+  });
+
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
+    }
+  });
 
   test.beforeEach(async ({ page }, testInfo) => {
+    // Set authentication for this suite
+    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Clan Management');
+
     // await AllureReporter.initializeTest(page, testInfo, {
     //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
     //   subSuite: AllureConfig.SubSuites.CATEGORY_MANAGEMENT,
@@ -195,37 +222,14 @@ test.describe('Create Category', () => {
     //   operation: 'Category Creation',
     // });
 
-    clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
-    const clanPage = new ClanPageV2(page);
-
-    await AllureReporter.step('Navigate to direct friends page', async () => {
-      await clanPage.navigate('/chat/direct/friends');
-    });
-
-    await AllureReporter.step('Create test clan for category testing', async () => {
-      await clanPage.clickCreateClanButton();
-      await clanPage.createNewClan(clanName);
+    // Navigate to the test clan
+    await AllureReporter.step('Navigate to test clan', async () => {
+      await page.goto(clanUrl);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(3000);
     });
 
     await AllureReporter.addParameter('clanName', clanName);
-  });
-
-  test.afterEach(async ({ page }, testInfo) => {
-    const clanPage = new ClanPageV2(page);
-
-    await AllureReporter.step('Clean up: Delete test clan', async () => {
-      const deletedClan = await clanPage.deleteClan(clanName);
-      if (deletedClan) {
-        console.log(`Successfully deleted clan: ${clanName}`);
-      } else {
-        console.log(`Failed to delete clan: ${clanName}`);
-        await AllureReporter.attachScreenshot(page, 'Cleanup Failed - Delete Clan');
-      }
-    });
-
-    if (testInfo.status === 'failed') {
-      await AllureReporter.attachScreenshot(page, 'Test Failed - Final Screenshot');
-    }
   });
 
   test('Verify that I can create a private category', async ({ page }) => {

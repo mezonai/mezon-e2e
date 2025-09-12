@@ -47,7 +47,7 @@ export class ProfilePage extends BasePage {
       generateE2eSelector('user_setting.profile.clan_profile.input_nickname')
     ),
     displayNameInput: this.page.locator(
-      generateE2eSelector('user_setting.profile.user_profile.input.display_name')
+      `${generateE2eSelector('user_setting.profile.user_profile.input.display_name')} input`
     ),
   };
 
