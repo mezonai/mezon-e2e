@@ -1,6 +1,7 @@
 import { WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AuthHelper } from '@/utils/authHelper';
+import generateRandomString from '@/utils/randomString';
 import { Browser } from '@playwright/test';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
@@ -249,4 +250,17 @@ export class ClanSetupHelper {
  */
 export const createClanSetupHelper = (browser: Browser): ClanSetupHelper => {
   return new ClanSetupHelper(browser);
+};
+
+export const generateClanName = ({
+  prefix,
+  clanName,
+  postfix,
+}: {
+  prefix?: string;
+  clanName?: string;
+  postfix?: string;
+}): string => {
+  const uniqueString = generateRandomString(10);
+  return [prefix, clanName, postfix, uniqueString].filter(Boolean).join('_');
 };
