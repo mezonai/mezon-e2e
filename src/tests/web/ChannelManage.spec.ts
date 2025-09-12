@@ -26,7 +26,11 @@ test.describe('Create New Channels', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl, 'Channel Management');
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.channelManagement.suiteName
+      );
     }
   });
 

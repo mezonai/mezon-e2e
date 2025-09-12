@@ -86,7 +86,10 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test.beforeEach(async ({ page, context }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Message');
+    const accountUsed = await AuthHelper.setAuthForSuite(
+      page,
+      ClanSetupHelper.configs.messageTests.suiteName || 'Channel Message Tests'
+    );
 
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,
@@ -104,8 +107,6 @@ test.describe('Channel Message Functionality', () => {
     const navigationHelpers = createNavigationHelpers(page);
 
     await AllureReporter.step('Setup test environment', async () => {
-      await navigationHelpers.navigateToHomePage();
-      await navigationHelpers.navigateToDirectChat();
       await navigationHelpers.navigateToClanChannel();
     });
   });

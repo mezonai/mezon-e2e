@@ -135,14 +135,13 @@ export class ClanSetupHelper {
    * Cleans up all clans created by this helper instance
    */
   async cleanupAllClans(): Promise<void> {
-    return; // for (const cleanup of this.cleanupFunctions) {
+    // for (const cleanup of this.cleanupFunctions) {
     //   try {
     //     await cleanup();
     //   } catch (error) {
     //     console.error(`❌ Error during clan cleanup: ${error}`);
     //   }
     // }
-
     // this.cleanupFunctions = [];
     // console.log('✅ Clan cleanup completed');
   }
