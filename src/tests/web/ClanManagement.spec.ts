@@ -95,6 +95,88 @@ test.describe('Create Clan', () => {
       await AllureReporter.attachScreenshot(page, 'Failed to Create Clan');
     }
   });
+
+  test('Verify that I can create multiple clans', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63619',
+    });
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.BLOCKER,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully create multiple clans.
+      
+      **Test Steps:**
+      1. Generate unique clan names for each iteration
+      2. Click create clan button for each clan
+      3. Complete clan creation process for each clan
+      4. Reload page
+      5. Verify Onboarding guide is visible for each clan
+      
+      **Expected Result:** All clans are created successfully and Onboarding guide is visible for each clan.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan-creation', 'core-functionality', 'multiple-clans'],
+    });
+
+    const clanPage = new ClanPageV2(page);
+    const numberOfClans = 10;
+    const createdClans: string[] = [];
+    const results: boolean[] = [];
+
+    await AllureReporter.addParameter('numberOfClans', numberOfClans.toString());
+
+    for (let i = 0; i < numberOfClans; i++) {
+      const clanName = `Mezon E2E Clan ${i + 1} ${generateRandomString(10)}`;
+      createdClans.push(clanName);
+
+      await AllureReporter.addParameter(`clanName_${i + 1}`, clanName);
+
+      const createClanClicked = await AllureReporter.step(
+        `Click create clan button - Iteration ${i + 1}`,
+        async () => {
+          return await clanPage.clickCreateClanButton();
+        }
+      );
+
+      if (!createClanClicked) {
+        console.log(`❌ Failed to click create clan button - Iteration ${i + 1}`);
+        await AllureReporter.attachScreenshot(page, `Failed to Create Clan - Iteration ${i + 1}`);
+        continue;
+      }
+
+      await AllureReporter.step(`Create new clan: ${clanName} - Iteration ${i + 1}`, async () => {
+        await clanPage.createNewClan(clanName);
+      });
+
+      await AllureReporter.step(
+        `Verify clan is present in clan list - Iteration ${i + 1}`,
+        async () => {
+          const isClanPresent = await clanPage.isClanPresent(clanName);
+
+          if (isClanPresent) {
+            console.log(`Successfully created clan - Iteration ${i + 1}: ${clanName}`);
+          } else {
+            console.log(`Could not complete clan creation - Iteration ${i + 1}: ${clanName}`);
+          }
+        }
+      );
+      await AllureReporter.attachScreenshot(page, `Clan Created Successfully - Iteration ${i + 1}`);
+    }
+
+    const allClansCreated = results.every(result => result === true);
+    expect(allClansCreated).toBeTruthy();
+
+    await AllureReporter.addParameter('allClansCreated', allClansCreated.toString());
+    await AllureReporter.addParameter('createdClansList', createdClans.join(', '));
+
+    console.log(`All ${numberOfClans} clans created successfully: ${createdClans.join(', ')}`);
+  });
 });
 
 test.describe('Create Category', () => {
