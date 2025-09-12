@@ -8,37 +8,29 @@ import { expect, test } from '@playwright/test';
 test.describe('User Profile - Clan Profiles', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanUrl: string;
+  let testClanName: string;
 
   test.beforeAll(async ({ browser }) => {
-    await TestSetups.authenticationTest({
-      suite: AllureConfig.Suites.USER_MANAGEMENT,
-      subSuite: AllureConfig.SubSuites.USER_PROFILE,
-      story: AllureConfig.Stories.PROFILE_SETUP,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
-
     clanSetupHelper = new ClanSetupHelper(browser);
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
     testClanUrl = setupResult.clanUrl;
+    testClanName = setupResult.clanName;
   });
 
   test.afterAll(async () => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+    if (clanSetupHelper && testClanName && testClanUrl) {
+      await clanSetupHelper.cleanupClan(
+        testClanName,
+        testClanUrl,
+        ClanSetupHelper.configs.userProfile.suiteName
+      );
     }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'User Profile');
+    await AuthHelper.setAuthForSuite(page, 'User Profile');
 
     const profilePage = new ProfilePage(page);
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63571',
@@ -192,43 +184,6 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.attachScreenshot(page, 'Clan Nickname Changed Successfully');
   });
 
-  // test.skip('Remove avatar clan', async ({ page }) => {
-  //   const profilePage = new ProfilePage(page);
-  //   await AllureReporter.addTestParameters({
-  //     testType: AllureConfig.TestTypes.E2E,
-  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
-  //     severity: AllureConfig.Severity.NORMAL,
-  //   });
-
-  //   await AllureReporter.step('Navigate to profile tab', async () => {
-  //     await profilePage.openProfileTab();
-  //   });
-
-  //   await AllureReporter.step('Navigate to clan profile tab', async () => {
-  //     await profilePage.openClanProfileTab();
-  //   });
-
-  //   await AllureReporter.addDescription(`
-  //     **Test Objective:** Verify that a user can successfully remove their clan avatar.
-
-  //     **Test Steps:**
-  //     1. Navigate to clan profile settings
-  //     2. Locate the remove/delete avatar option
-  //     3. Remove the current avatar
-  //     4. Verify the avatar has been removed
-
-  //     **Expected Result:** The clan avatar should be successfully removed.
-
-  //     **Note:** This test is currently skipped pending implementation.
-  //   `);
-
-  //   await AllureReporter.addLabels({
-  //     tag: ['user-profile', 'avatar-removal', 'profile-update', 'clan-profile', 'skipped'],
-  //   });
-
-  //   // Implementation pending
-  // });
-
   test('Edit user profile - button visible', async ({ page }) => {
     const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
@@ -278,100 +233,4 @@ test.describe('User Profile - Clan Profiles', () => {
       'Edit User Profile, Edit Display Name and Edit Username Button Visible'
     );
   });
-
-  // test('Change display name profile', async ({ page }) => {
-  //   const profilePage = new ProfilePage(page);
-  //   await AllureReporter.addTestParameters({
-  //     testType: AllureConfig.TestTypes.E2E,
-  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
-  //     severity: AllureConfig.Severity.CRITICAL,
-  //   });
-
-  //   await AllureReporter.step('Navigate to profile tab', async () => {
-  //     await profilePage.openProfileTab();
-  //   });
-
-  //   await AllureReporter.step('Navigate to user profile tab', async () => {
-  //     await profilePage.openUserProfileTab();
-  //   });
-
-  //   await AllureReporter.addDescription(`
-  //     **Test Objective:** Verify that a user can successfully change their display name profile.
-
-  //     **Test Steps:**
-  //     1. Locate the display name input field
-  //     2. Clear existing display name and enter new one
-  //     3. Save the changes
-  //     4. Verify the display name has been updated
-
-  //     **Expected Result:** The clan display name should be successfully updated and saved.
-  //   `);
-
-  //   await AllureReporter.addLabels({
-  //     tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
-  //   });
-
-  //   const target = `acc.automationtest-${Date.now()}`;
-  //   await AllureReporter.addParameter('newDisplayname', target);
-  //   await AllureReporter.addParameter('platform', process.platform);
-
-  //   await AllureReporter.step('Enter new display name', async () => {
-  //     const displayNameInput = profilePage.inputs.displayNameInput;
-  //     await expect(displayNameInput).toBeVisible({ timeout: 5000 });
-  //     await displayNameInput.click();
-
-  //     const isMac = process.platform === 'darwin';
-  //     await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
-
-  //     let ok = false;
-  //     for (let i = 0; i < 3; i++) {
-  //       await displayNameInput.press(isMac ? 'Meta+A' : 'Control+A');
-  //       await displayNameInput.press('Backspace');
-  //       await page.waitForTimeout(50);
-  //       await displayNameInput.type(target, { delay: 40 });
-  //       await page.waitForTimeout(150);
-  //       const v = await displayNameInput.inputValue();
-  //       if (v === target) {
-  //         ok = true;
-  //         break;
-  //       }
-  //     }
-
-  //     if (!ok) {
-  //       await displayNameInput.evaluate((el: HTMLInputElement, value: string) => {
-  //         el.value = value;
-  //         el.dispatchEvent(new Event('input', { bubbles: true }));
-  //         el.dispatchEvent(new Event('change', { bubbles: true }));
-  //       }, target);
-  //     }
-
-  //     await displayNameInput.evaluate((el: HTMLInputElement) => {
-  //       el.dispatchEvent(new Event('input', { bubbles: true }));
-  //       el.dispatchEvent(new Event('change', { bubbles: true }));
-  //       el.blur();
-  //     });
-
-  //     await page.waitForTimeout(800);
-  //     await expect(displayNameInput).toHaveValue(target, { timeout: 3000 });
-  //     await AllureReporter.addParameter(
-  //       'dispalyNameInputSuccess',
-  //       ok ? 'Direct input' : 'Programmatic input'
-  //     );
-  //   });
-
-  //   await AllureReporter.step('Save display name', async () => {
-  //     const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
-  //     await saveChangesBtn.scrollIntoViewIfNeeded();
-  //     await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
-  //     await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
-  //     await saveChangesBtn.click();
-  //     await AllureReporter.addParameter('saveButtonClicked', 'Yes');
-  //   });
-
-  //   await AllureReporter.step('Verify display name has been changed successfully', async () => {
-  //     await profilePage.verifyDisplayNameUpdated(target);
-  //   });
-
-  //   await AllureReporter.attachScreenshot(page, 'Display Name Changed Successfully');
-  // });
 });
