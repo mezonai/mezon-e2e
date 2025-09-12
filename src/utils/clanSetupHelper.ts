@@ -45,13 +45,12 @@ export class ClanSetupHelper {
       // Navigate to home page
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
 
       // Navigate to the clan creation area
       await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Create new clan
       const createClanClicked = await clanPage.clickCreateClanButton();
