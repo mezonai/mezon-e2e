@@ -13,7 +13,6 @@ const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/195587
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
   navigateToDirectChat(): Promise<void>;
-  clickUserInChatList(username: string): Promise<void>;
   navigateToClanChannel(): Promise<void>;
 }
 
@@ -51,30 +50,6 @@ test.describe('Channel Message - Module 4', () => {
       await page.waitForTimeout(3000);
     },
 
-    async clickUserInChatList(username: string): Promise<void> {
-      const userSelectors = [
-        `text=${username}`,
-        `[data-testid*="${username}"]`,
-        `div:has-text("${username}")`,
-        `.user-item:has-text("${username}")`,
-        `.direct-message:has-text("${username}")`,
-      ];
-
-      for (const selector of userSelectors) {
-        const element = page.locator(selector).first();
-        if (await element.isVisible({ timeout: 5000 })) {
-          await element.click();
-          await page.waitForLoadState('networkidle');
-          await page.waitForTimeout(3000);
-          return;
-        }
-      }
-
-      await page.goto(DIRECT_CHAT_URL);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    },
-
     async navigateToClanChannel(): Promise<void> {
       // Use the dynamically created clan URL
       await page.goto(testClanUrl);
@@ -84,10 +59,7 @@ test.describe('Channel Message - Module 4', () => {
   });
 
   test.beforeEach(async ({ page, context }, testInfo) => {
-    await AuthHelper.setAuthForSuite(
-      page,
-      ClanSetupHelper.configs.messageTests.suiteName || 'Channel Message Tests'
-    );
+    await AuthHelper.setAuthForSuite(page, 'Channel Message_4');
 
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,
