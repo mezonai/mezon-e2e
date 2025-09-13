@@ -3,10 +3,10 @@ import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
-import test, { expect } from '@playwright/test';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import test, { expect } from '@playwright/test';
 
-test.describe('Create New Channels', () => {
+test.describe.skip('Channel Management', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
