@@ -16,6 +16,13 @@ test.describe('Onboarding Guide Task Completion', () => {
   let clanUrl: string;
 
   test.beforeAll(async ({ browser }) => {
+    // await TestSetups.clanTest({
+    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
+    //   story: AllureConfig.Stories.PROFILE_SETUP,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    // });
+
     clanSetupHelper = new ClanSetupHelper(browser);
     await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.onboarding.suiteName);
 
@@ -25,17 +32,21 @@ test.describe('Onboarding Guide Task Completion', () => {
   });
 
   test.afterAll(async () => {
-    if (clanSetupHelper && testClanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        testClanName,
-        clanUrl,
-        ClanSetupHelper.configs.onboarding.suiteName
-      );
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
     }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
     await AuthHelper.setAuthForSuite(page, 'Onboarding Guide');
+
+    // await AllureReporter.initializeTest(page, testInfo, {
+    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
+    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
+    //   story: AllureConfig.Stories.PROFILE_SETUP,
+    //   severity: AllureConfig.Severity.CRITICAL,
+    //   testType: AllureConfig.TestTypes.E2E,
+    // });
 
     await AllureReporter.addWorkItemLinks({
       tms: '63452',
