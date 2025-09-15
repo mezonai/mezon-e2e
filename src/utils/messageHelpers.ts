@@ -3,9 +3,11 @@ import { generateE2eSelector } from './generateE2eSelector';
 
 export class MessageTestHelpers {
   private page: Page;
+  readonly message: Locator;
 
   constructor(page: Page) {
     this.page = page;
+    this.message = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
   }
 
   private getMessageItemLocator(textContains?: string): Locator {
