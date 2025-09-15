@@ -34,6 +34,7 @@ export const AllureConfig = {
     GROUP_CHAT: 'Group Chat',
     CHAT_INTERFACE: 'Chat Interface',
     MESSAGE_SYSTEM: 'Message System',
+    FRIEND_MANAGEMENT: 'Friend Management',
 
     // User Management SubSuites
     AUTHENTICATION: 'Authentication',
