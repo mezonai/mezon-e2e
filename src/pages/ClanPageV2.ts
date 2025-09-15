@@ -61,6 +61,11 @@ export class ClanPageV2 extends BasePage {
 
   private input = {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
+    delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
+  };
+
+  private settings = {
+    clanName: this.page.locator(generateE2eSelector('clan_page.settings.overview.input.clan_name')),
   };
 
   readonly sidebar = {
@@ -108,17 +113,19 @@ export class ClanPageV2 extends BasePage {
     return false;
   }
 
-  async deleteClan(clanName?: string): Promise<boolean> {
+  async deleteClan(): Promise<boolean> {
     try {
       const categoryPage = new CategoryPage(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
-      await this.page.waitForTimeout(5000);
+      const clanName = await this.settings.clanName.inputValue();
+
       await categorySettingPage.buttons.deleteSidebar.click();
+      await categorySettingPage.input.delete.fill(clanName || '');
       await categorySettingPage.buttons.confirmDelete.click();
-      await this.page.waitForTimeout(5000);
+      await this.page.waitForLoadState('domcontentloaded');
       return true;
     } catch (error) {
       console.error(`Error deleting clan: ${error}`);

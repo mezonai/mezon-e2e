@@ -2,6 +2,7 @@ import { WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AuthHelper } from '@/utils/authHelper';
 import { Browser } from '@playwright/test';
+import generateRandomString from './randomString';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 
@@ -33,7 +34,7 @@ export class ClanSetupHelper {
     const { clanNamePrefix = 'TestClan', suiteName = 'Test Suite' } = config;
 
     const timestamp = Date.now();
-    const clanName = `${clanNamePrefix}_${timestamp}`;
+    const clanName = `${clanNamePrefix}_${generateRandomString(10)}`;
 
     const context = await this.browser.newContext();
     const page = await context.newPage();
@@ -117,7 +118,7 @@ export class ClanSetupHelper {
 
       const clanPage = new ClanPageV2(page);
 
-      await clanPage.deleteClan(clanName);
+      await clanPage.deleteClan();
     } catch (error) {
       console.log(`Failed to cleanup test clan: ${error}`);
     } finally {
@@ -165,7 +166,7 @@ export class ClanSetupHelper {
           await clanItem.click();
           const clanName = await clanPage.buttons.clanName.innerText();
 
-          await clanPage.deleteClan(clanName);
+          await clanPage.deleteClan();
         } catch (error) {
           console.error(`❌ Failed to delete clan at index ${i}: ${error}`);
           continue;
