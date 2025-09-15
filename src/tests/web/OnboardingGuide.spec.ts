@@ -25,23 +25,17 @@ test.describe('Onboarding Guide Task Completion', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async () => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper && testClanName && clanUrl) {
+      await clanSetupHelper.cleanupClan(
+        testClanName,
+        clanUrl,
+        ClanSetupHelper.configs.onboarding.suiteName
+      );
     }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    // await AuthHelper.setAuthForSuite(page, 'Onboarding Guide');
-
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
-
     await AllureReporter.addWorkItemLinks({
       tms: '63452',
     });

@@ -63,8 +63,8 @@ export class ClanPageV2 extends BasePage {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
   };
 
-  private sidebar = {
-    clanItem: {
+  readonly sidebar = {
+    clanItems: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {

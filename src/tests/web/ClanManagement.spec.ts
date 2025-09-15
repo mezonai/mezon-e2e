@@ -121,7 +121,7 @@ test.describe('Create Category', () => {
   });
 
   test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper) {
+    if (clanSetupHelper && clanName && clanUrl) {
       await clanSetupHelper.cleanupClan(
         clanName,
         clanUrl,

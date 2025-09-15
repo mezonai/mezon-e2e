@@ -32,7 +32,9 @@ export const setupChannelMessageSuite = (suiteName: string) => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.channelMessage1
+    );
 
     testClanName = setupResult.clanName;
     testClanUrl = setupResult.clanUrl;
@@ -43,7 +45,7 @@ export const setupChannelMessageSuite = (suiteName: string) => {
       await clanSetupHelper.cleanupClan(
         testClanName,
         testClanUrl,
-        ClanSetupHelper.configs.messageTests.suiteName
+        ClanSetupHelper.configs.channelMessage1.suiteName
       );
     }
   });

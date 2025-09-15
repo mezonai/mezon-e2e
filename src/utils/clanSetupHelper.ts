@@ -110,22 +110,16 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      // Authenticate the user
       await AuthHelper.setAuthForSuite(page, suiteName);
 
-      // Navigate to the specific clan URL to ensure we're in the right context
       await page.goto(clanUrl);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
 
-      // Delete the test clan
       await clanPage.deleteClan(clanName);
-      await page.waitForTimeout(3000);
     } catch (error) {
-      console.error(`❌ Failed to cleanup test clan: ${error}`);
-      // Don't throw error in cleanup to avoid affecting test results
+      console.log(`Failed to cleanup test clan: ${error}`);
     } finally {
       await context.close();
     }
@@ -136,16 +130,56 @@ export class ClanSetupHelper {
    * @param browser Playwright browser instance
    * @param suiteName Name of the test suite for authentication (default: 'Cleanup')
    */
-  async cleanupAllClans(): Promise<void> {
-    // for (const cleanup of this.cleanupFunctions) {
-    //   try {
-    //     await cleanup();
-    //   } catch (error) {
-    //     console.error(`❌ Error during clan cleanup: ${error}`);
-    //   }
-    // }
-    // this.cleanupFunctions = [];
-    // console.log('✅ Clan cleanup completed');
+  async cleanupAllClans(browser: Browser, suiteName: string = 'Cleanup'): Promise<void> {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    try {
+      await AuthHelper.setAuthForSuite(page, suiteName);
+
+      await page.goto(MEZON_BASE_URL);
+      await page.waitForLoadState('domcontentloaded');
+
+      const clanPage = new ClanPageV2(page);
+      await clanPage.navigate('/chat/direct/friends');
+      await page.waitForLoadState('networkidle');
+
+      const clanItems = await clanPage.sidebar.clanItems;
+      const clanItemsCount = await clanItems.clanName.count();
+
+      if (clanItemsCount === 0) {
+        return;
+      }
+
+      for (let i = clanItemsCount - 1; i >= 0; i--) {
+        try {
+          const currentClanItems = await clanPage.sidebar.clanItems;
+          const currentCount = await currentClanItems.clanName.count();
+
+          if (i >= currentCount) {
+            continue;
+          }
+
+          const clanItem = currentClanItems.clanName.nth(i);
+
+          await clanItem.click();
+          const clanName = await clanPage.buttons.clanName.innerText();
+
+          await clanPage.deleteClan(clanName);
+        } catch (error) {
+          console.error(`❌ Failed to delete clan at index ${i}: ${error}`);
+          continue;
+        }
+      }
+
+      console.log('✅ All clans cleanup completed successfully');
+    } catch (error) {
+      console.error(`❌ Error during cleanup process: ${error}`);
+      throw error;
+    } finally {
+      await context.close();
+      console.log('🔄 Browser context closed');
+    }
   }
 
   /**
@@ -163,9 +197,29 @@ export class ClanSetupHelper {
    * Predefined configurations for common test scenarios
    */
   static readonly configs = {
-    messageTests: ClanSetupHelper.createConfig({
+    channelMessage1: ClanSetupHelper.createConfig({
       clanNamePrefix: 'MessageTestClan',
-      suiteName: 'Channel Message',
+      suiteName: 'Channel Message - Module 1',
+    }),
+
+    channelMessage2: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 2',
+    }),
+
+    channelMessage3: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 3',
+    }),
+
+    channelMessage4: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 4',
+    }),
+
+    channelMessage5: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 5',
     }),
 
     clanManagement: ClanSetupHelper.createConfig({

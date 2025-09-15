@@ -8,6 +8,7 @@ import { expect, test } from '@playwright/test';
 test.describe('User Profile - Clan Profiles', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanUrl: string;
+  let clanName: string;
 
   test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
@@ -21,11 +22,16 @@ test.describe('User Profile - Clan Profiles', () => {
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
     testClanUrl = setupResult.clanUrl;
+    clanName = setupResult.clanName;
   });
 
-  test.afterAll(async () => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper && clanName && testClanUrl) {
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        testClanUrl,
+        ClanSetupHelper.configs.userProfile.suiteName
+      );
     }
   });
 
