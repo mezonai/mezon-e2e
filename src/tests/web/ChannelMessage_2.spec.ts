@@ -13,7 +13,6 @@ const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/195587
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
   navigateToDirectChat(): Promise<void>;
-  clickUserInChatList(username: string): Promise<void>;
   navigateToClanChannel(): Promise<void>;
 }
 
@@ -54,30 +53,6 @@ test.describe('Channel Message - Module 2', () => {
     async navigateToDirectChat(): Promise<void> {
       const directFriendsUrl = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/friends');
       await page.goto(directFriendsUrl);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    },
-
-    async clickUserInChatList(username: string): Promise<void> {
-      const userSelectors = [
-        `text=${username}`,
-        `[data-testid*="${username}"]`,
-        `div:has-text("${username}")`,
-        `.user-item:has-text("${username}")`,
-        `.direct-message:has-text("${username}")`,
-      ];
-
-      for (const selector of userSelectors) {
-        const element = page.locator(selector).first();
-        if (await element.isVisible({ timeout: 5000 })) {
-          await element.click();
-          await page.waitForLoadState('networkidle');
-          await page.waitForTimeout(3000);
-          return;
-        }
-      }
-
-      await page.goto(DIRECT_CHAT_URL);
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(3000);
     },
