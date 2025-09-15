@@ -63,8 +63,8 @@ export class ClanPageV2 extends BasePage {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
   };
 
-  readonly sidebar = {
-    clanItems: {
+  private sidebar = {
+    clanItem: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
@@ -76,9 +76,9 @@ export class ClanPageV2 extends BasePage {
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.input.clanName.fill(clanName);
-      await this.page.waitForTimeout(3000);
+      await this.page.waitForTimeout(2000);
       await this.buttons.createClanConfirm.click();
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(5000);
       return true;
     } catch (error) {
       console.error(`Error creating clan: ${error}`);
@@ -111,13 +111,14 @@ export class ClanPageV2 extends BasePage {
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(5000);
       await categorySettingPage.buttons.deleteSidebar.click();
       await categorySettingPage.input.delete.fill(clanName);
       await categorySettingPage.buttons.confirmDelete.click();
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(5000);
       return true;
     } catch (error) {
+      console.error(`Error deleting clan: ${error}`);
       return false;
     }
   }

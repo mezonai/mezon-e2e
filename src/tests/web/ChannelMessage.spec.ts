@@ -35,12 +35,8 @@ test.describe('Channel Message Functionality', () => {
   });
 
   test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper && testClanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(
-        testClanName,
-        testClanUrl,
-        ClanSetupHelper.configs.messageTests.suiteName
-      );
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupAllClans();
     }
   });
 
@@ -82,6 +78,7 @@ test.describe('Channel Message Functionality', () => {
     },
 
     async navigateToClanChannel(): Promise<void> {
+      // Use the dynamically created clan URL
       await page.goto(testClanUrl);
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(3000);
