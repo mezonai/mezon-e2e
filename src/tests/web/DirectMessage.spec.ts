@@ -3,11 +3,11 @@ import { GLOBAL_CONFIG } from '@/config/environment';
 import { MessgaePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
+import { AuthHelper } from '@/utils/authHelper';
 
 test.describe('Direct Message', () => {
   test.beforeAll(async () => {
