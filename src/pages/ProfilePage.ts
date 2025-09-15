@@ -7,76 +7,83 @@ export class ProfilePage extends BasePage {
   }
 
   readonly buttons = {
-    editUserprofileButton: this.page.locator(
+    editUserprofile: this.page.locator(
       generateE2eSelector('user_setting.account.edit_profile')
     ),
-    editDisplayNameButton: this.page.locator(
+    editDisplayName: this.page.locator(
       generateE2eSelector('user_setting.account.edit_display_name')
     ),
-    editUserNameButton: this.page.locator(
+    editUserName: this.page.locator(
       generateE2eSelector('user_setting.account.edit_username')
     ),
-    saveChangesClanProfileButton: this.page.locator(
+    saveChangesClanProfile: this.page.locator(
       `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Save Changes' }
     ),
-    saveChangesUserProfileButton: this.page.locator(
+    saveChangesUserProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.user_profile.button.save_changes')
     ),
-    changeAvatarButton: this.page.locator(
+    changeAvatar: this.page.locator(
       generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')
     ),
-    userSettingProfileButton: this.page.locator(
+    userSettingProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.button_setting')
     ),
   };
 
   readonly tabs = {
-    profileTab: this.page.locator(generateE2eSelector('user_setting.profile.tab_profile')),
-    userProfileTab: this.page.locator(
+    profile: this.page.locator(generateE2eSelector('user_setting.profile.tab_profile')),
+    userProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.user_profile.button')
     ),
-    clanProfileTab: this.page.locator(
+    clanProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.clan_profile.button')
     ),
-    accountTab: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
+    account: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
   };
 
   readonly inputs = {
-    nicknameInput: this.page.locator(
+    nickname: this.page.locator(
       generateE2eSelector('user_setting.profile.clan_profile.input_nickname')
     ),
-    displayNameInput: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.input.display_name')} input`
+    displayName: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.input.display_name')}`
+    ),
+    aboutMe: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.input.about_me')}`
     ),
   };
 
   async openProfileTab() {
-    await this.tabs.profileTab.waitFor({ state: 'visible', timeout: 1000 });
-    await this.tabs.profileTab.click();
+    await this.tabs.profile.waitFor({ state: 'visible', timeout: 1000 });
+    await this.tabs.profile.click();
   }
 
   async openClanProfileTab() {
-    await this.tabs.clanProfileTab.waitFor({ state: 'visible', timeout: 1000 });
-    await this.tabs.clanProfileTab.click();
+    await this.tabs.clanProfile.waitFor({ state: 'visible', timeout: 1000 });
+    await this.tabs.clanProfile.click();
   }
 
   async openAccountTab() {
-    await this.tabs.accountTab.waitFor({ state: 'visible', timeout: 1000 });
-    await this.tabs.accountTab.click();
+    await this.tabs.account.waitFor({ state: 'visible', timeout: 1000 });
+    await this.tabs.account.click();
   }
 
   async expectProfileTabsVisible() {
-    await expect(this.tabs.userProfileTab).toBeVisible({ timeout: 1000 });
-    await expect(this.tabs.clanProfileTab).toBeVisible({ timeout: 1000 });
+    await expect(this.tabs.userProfile).toBeVisible({ timeout: 1000 });
+    await expect(this.tabs.clanProfile).toBeVisible({ timeout: 1000 });
   }
 
   async openUserProfileTab() {
-    await this.tabs.userProfileTab.waitFor({ state: 'visible', timeout: 1000 });
-    await this.tabs.userProfileTab.click();
+    await this.tabs.userProfile.waitFor({ state: 'visible', timeout: 1000 });
+    await this.tabs.userProfile.click();
   }
 
   async verifyDisplayNameUpdated(displayName: string) {
-    await expect(this.inputs.displayNameInput).toHaveValue(displayName, { timeout: 2000 });
+    await expect(this.inputs.displayName).toHaveValue(displayName, { timeout: 2000 });
+  }
+
+  async verifyDisplayNameCleared() {
+    await expect(this.inputs.aboutMe).toHaveValue('', { timeout: 2000 });
   }
 }

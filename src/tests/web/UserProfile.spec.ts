@@ -3,6 +3,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 
 test.describe('User Profile - Clan Profiles', () => {
@@ -42,11 +43,11 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Open user settings profile', async () => {
-      await profilePage.buttons.userSettingProfileButton.waitFor({
+      await profilePage.buttons.userSettingProfile.waitFor({
         state: 'visible',
         timeout: 3000,
       });
-      await profilePage.buttons.userSettingProfileButton.click();
+      await profilePage.buttons.userSettingProfile.click();
     });
 
     await AllureReporter.addParameter('clanChatUrl', testClanUrl);
@@ -84,7 +85,7 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Verify change avatar button is visible', async () => {
-      const changeAvatarButton = profilePage.buttons.changeAvatarButton;
+      const changeAvatarButton = profilePage.buttons.changeAvatar;
       await expect(changeAvatarButton).toBeVisible({ timeout: 1000 });
       await AllureReporter.addParameter('changeAvatarButtonVisible', 'Yes');
     });
@@ -129,7 +130,7 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.addParameter('platform', process.platform);
 
     await AllureReporter.step('Enter new nickname', async () => {
-      const nicknameInput = profilePage.inputs.nicknameInput;
+      const nicknameInput = profilePage.inputs.nickname;
       await expect(nicknameInput).toBeVisible({ timeout: 1000 });
       await nicknameInput.click();
 
@@ -173,7 +174,7 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.step('Save nickname changes', async () => {
-      const saveChangesBtn = profilePage.buttons.saveChangesClanProfileButton;
+      const saveChangesBtn = profilePage.buttons.saveChangesClanProfile;
       await saveChangesBtn.scrollIntoViewIfNeeded();
       await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
       await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
@@ -213,9 +214,9 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     const buttons = [
-      profilePage.buttons.editUserprofileButton,
-      profilePage.buttons.editDisplayNameButton,
-      profilePage.buttons.editUserNameButton,
+      profilePage.buttons.editUserprofile,
+      profilePage.buttons.editDisplayName,
+      profilePage.buttons.editUserName,
     ];
 
     for (const button of buttons) {
@@ -232,5 +233,93 @@ test.describe('User Profile - Clan Profiles', () => {
       page,
       'Edit User Profile, Edit Display Name and Edit Username Button Visible'
     );
+  });
+
+  test('Clear About me status', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63572',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully clear their About me status.
+    **Test Steps:**
+    1. Locate the About me status input field
+    2. Clear existing About me status (leave it blank)
+    3. Save the changes
+    4. Verify the About me status has been removed
+    **Expected Result:** The About me status should be cleared and saved as empty.
+  `);
+
+    const profilePage = new ProfilePage(page);
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
+
+    await AllureReporter.addLabels({
+      tag: ['user-profile', 'aboutme-clear', 'profile-update', 'clan-profile'],
+    });
+
+    const target = ''; 
+    await AllureReporter.addParameter('newAboutMeStatus', target);
+    await AllureReporter.addParameter('platform', process.platform);
+
+    await AllureReporter.step('Clear about me status input', async () => {
+      const aboutMeStatusInput = profilePage.inputs.aboutMe;
+      await expect(aboutMeStatusInput).toBeVisible({ timeout: 5000 });
+      await aboutMeStatusInput.click();
+
+      const isMac = process.platform === 'darwin';
+      await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
+
+      let ok = false;
+      for (let i = 0; i < 3; i++) {
+        await aboutMeStatusInput.press(isMac ? 'Meta+A' : 'Control+A');
+        await aboutMeStatusInput.press('Backspace');
+        const v = await aboutMeStatusInput.inputValue();
+        if (v === '') {
+          ok = true;
+          break;
+        }
+      }
+
+      if (!ok) {
+        await aboutMeStatusInput.evaluate((el: HTMLInputElement) => {
+          el.value = '';
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      }
+
+      await aboutMeStatusInput.evaluate((el: HTMLInputElement) => {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.blur();
+      });
+
+      await expect(aboutMeStatusInput).toHaveValue('', { timeout: 3000 });
+      await AllureReporter.addParameter(
+        'aboutMeInputSuccess',
+        ok ? 'Cleared by shortcut' : 'Cleared programmatically'
+      );
+    });
+
+    await AllureReporter.step('Save About me status', async () => {
+      const saveChangesBtn = profilePage.buttons.saveChangesUserProfile;
+      await saveChangesBtn.scrollIntoViewIfNeeded();
+      await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
+      await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
+      await saveChangesBtn.click();
+      await AllureReporter.addParameter('saveButtonClicked', 'Yes');
+    });
+
+    await AllureReporter.step('Verify About me status has been cleared successfully', async () => {
+      await profilePage.verifyDisplayNameCleared();
+    });
+
+    await AllureReporter.attachScreenshot(page, 'About me status Cleared Successfully');
   });
 });
