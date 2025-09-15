@@ -208,14 +208,10 @@ export class MessgaePage {
     const current = await this.helpers.countGroups();
     if (current >= prevGroupCount + 1) return true;
 
-    const groupNames = (await this.helpers.groupList.allInnerTexts())
-      .map(n => (n || '').trim())
-      .filter(Boolean);
-    if (!groupNames.length) return false;
-    const containsFirst =
-      !!this.firstUserNameText && groupNames.some(n => n.includes(this.firstUserNameText));
-    const containsSecond =
-      !!this.secondUserNameText && groupNames.some(n => n.includes(this.secondUserNameText));
+    const groupName = await this.helpers.groupName.innerText();
+    if (!groupName) return false;
+    const containsFirst = !!this.firstUserNameText && groupName.includes(this.firstUserNameText);
+    const containsSecond = !!this.secondUserNameText && groupName.includes(this.secondUserNameText);
     return containsFirst || containsSecond;
   }
 
