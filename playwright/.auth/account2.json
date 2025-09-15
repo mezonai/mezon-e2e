@@ -43,7 +43,7 @@
   ],
   "origins": [
     {
-      "origin": "http://127.0.0.1:4200",
+      "origin": "http://localhost:4200",
       "localStorage": [
         {
           "name": "persist:notichannelcategorysetting",
