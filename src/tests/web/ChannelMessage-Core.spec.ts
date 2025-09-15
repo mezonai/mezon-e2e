@@ -11,6 +11,8 @@ test.describe('Channel Message - Core', () => {
   let clanUrl: string;
   let messageHelpers: MessageTestHelpers;
 
+  test.use({ storageState: 'playwright/.auth/account2-core.json' });
+
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
     const setupResult = await clanSetupHelper.setupTestClan(
@@ -21,10 +23,10 @@ test.describe('Channel Message - Core', () => {
   });
 
   test.beforeEach(async ({ page, context }, testInfo) => {
-    await AuthHelper.setAuthForSuite(
-      page,
-      ClanSetupHelper.configs.channelMessageCore.suiteName || 'Channel Message - Core'
-    );
+    // await AuthHelper.setAuthForSuite(
+    //   page,
+    //   ClanSetupHelper.configs.channelMessageCore.suiteName || 'Channel Message - Core'
+    // );
 
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,

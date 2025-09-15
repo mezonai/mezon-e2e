@@ -10,6 +10,8 @@ import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
 
 test.describe('Direct Message', () => {
+  test.use({ storageState: 'playwright/.auth/account4.json' });
+
   test.beforeAll(async () => {
     await TestSetups.chatTest({
       suite: AllureConfig.Suites.CHAT_PLATFORM,
@@ -20,7 +22,7 @@ test.describe('Direct Message', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Direct Message');
+    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'Direct Message');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',

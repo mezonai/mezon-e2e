@@ -31,14 +31,11 @@ test.describe('Manual Cleanup - All Clans', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account1', async () => {
-      await clanSetupHelper.cleanupAllClans(
-        browser,
-        ClanSetupHelper.configs.channelManagement.suiteName
-      );
+      await clanSetupHelper.cleanupAllClans();
     });
   });
 
-  test('Clean all clans from all accounts', async ({ browser }) => {
+  test.skip('Clean all clans from all accounts', async ({ browser }) => {
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -74,7 +71,7 @@ test.describe('Manual Cleanup - All Clans', () => {
 
       try {
         await AllureReporter.step(`Cleanup account: ${suiteName}`, async () => {
-          await clanSetupHelper.cleanupAllClans(browser, suiteName);
+          await clanSetupHelper.cleanupAllClans();
           successCount++;
         });
       } catch (error) {

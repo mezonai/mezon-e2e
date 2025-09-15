@@ -40,7 +40,7 @@ export class ClanSetupHelper {
 
     try {
       // Authenticate the user
-      await AuthHelper.setAuthForSuite(page, suiteName);
+      // await AuthHelper.setAuthForSuite(page, suiteName);
 
       // Navigate to home page
       await page.goto(MEZON_BASE_URL);

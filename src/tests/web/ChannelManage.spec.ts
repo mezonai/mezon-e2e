@@ -11,12 +11,10 @@ test.describe('Create New Channels', () => {
   let clanName: string;
   let clanUrl: string;
 
+  test.use({ storageState: 'playwright/.auth/account1.json' });
+
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
-    await clanSetupHelper.cleanupAllClans(
-      browser,
-      ClanSetupHelper.configs.channelManagement.suiteName
-    );
 
     const setupResult = await clanSetupHelper.setupTestClan(
       ClanSetupHelper.configs.channelManagement
@@ -35,7 +33,7 @@ test.describe('Create New Channels', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Management');
+    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Management');
 
     // Initialize Allure reporting for this test suite
     // await AllureReporter.initializeTest(page, testInfo, {

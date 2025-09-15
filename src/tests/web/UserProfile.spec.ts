@@ -18,7 +18,6 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     clanSetupHelper = new ClanSetupHelper(browser);
-    await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.userProfile.suiteName);
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
     testClanUrl = setupResult.clanUrl;
@@ -31,7 +30,7 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'User Profile');
+    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'User Profile');
 
     const profilePage = new ProfilePage(page);
     // await AllureReporter.initializeTest(page, testInfo, {
@@ -184,6 +183,8 @@ test.describe('User Profile - Clan Profiles', () => {
 
     await AllureReporter.attachScreenshot(page, 'Clan Nickname Changed Successfully');
   });
+
+  test.use({ storageState: 'playwright/.auth/account6.json' });
 
   // test.skip('Remove avatar clan', async ({ page }) => {
   //   const profilePage = new ProfilePage(page);

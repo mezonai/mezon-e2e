@@ -12,13 +12,15 @@ test.describe('Create Clan', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanTestName: string;
 
+  test.use({ storageState: 'playwright/.auth/account3.json' });
+
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
     // Set authentication for this suite (uses account1)
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Clan Management');
+    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'Clan Management');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
@@ -105,12 +107,10 @@ test.describe('Create Category', () => {
   let clanName: string;
   let clanUrl: string;
 
+  test.use({ storageState: 'playwright/.auth/account3.json' });
+
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
-    await clanSetupHelper.cleanupAllClans(
-      browser,
-      ClanSetupHelper.configs.clanManagement.suiteName
-    );
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
 

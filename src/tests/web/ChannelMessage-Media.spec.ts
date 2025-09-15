@@ -10,6 +10,7 @@ test.describe('Channel Message - Media', () => {
   let testClanName: string;
   let clanUrl: string;
   let messageHelpers: MessageTestHelpers;
+  test.use({ storageState: 'playwright/.auth/account2-media.json' });
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -21,10 +22,10 @@ test.describe('Channel Message - Media', () => {
   });
 
   test.beforeEach(async ({ page, context }, testInfo) => {
-    await AuthHelper.setAuthForSuite(
-      page,
-      ClanSetupHelper.configs.channelMessageMedia.suiteName || 'Channel Message - Media'
-    );
+    // await AuthHelper.setAuthForSuite(
+    //   page,
+    //   ClanSetupHelper.configs.channelMessageMedia.suiteName || 'Channel Message - Media'
+    // );
 
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,

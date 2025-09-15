@@ -15,16 +15,10 @@ test.describe('Onboarding Guide Task Completion', () => {
   let testClanName: string;
   let clanUrl: string;
 
-  test.beforeAll(async ({ browser }) => {
-    // await TestSetups.clanTest({
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    // });
+  test.use({ storageState: 'playwright/.auth/account5.json' });
 
+  test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
-    await clanSetupHelper.cleanupAllClans(browser, ClanSetupHelper.configs.onboarding.suiteName);
 
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.onboarding);
     testClanName = setupResult.clanName;
@@ -38,7 +32,7 @@ test.describe('Onboarding Guide Task Completion', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await AuthHelper.setAuthForSuite(page, 'Onboarding Guide');
+    // await AuthHelper.setAuthForSuite(page, 'Onboarding Guide');
 
     // await AllureReporter.initializeTest(page, testInfo, {
     //   suite: AllureConfig.Suites.USER_MANAGEMENT,
