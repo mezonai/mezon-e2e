@@ -73,6 +73,19 @@ export class ClanPageV2 extends BasePage {
     },
   };
 
+  readonly header = {
+    button: {
+      thread: this.page.locator(generateE2eSelector('chat.channel_message.header.button.thread')),
+      createThread: this.page.locator(generateE2eSelector('chat.channel_message.header.button.thread.modal.thread_management.button.create_thread')),
+    }
+  }
+
+  readonly threadBox = {
+    threadNameInput: this.page.locator(generateE2eSelector('chat.channel_message.thread_name_input.thread_box')),
+    threadPrivateCheckbox: this.page.locator(generateE2eSelector('chat.channel_message.thread_name_input.thread_private_checkbox')),
+  }
+
+
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.input.clanName.fill(clanName);
@@ -163,5 +176,28 @@ export class ClanPageV2 extends BasePage {
     );
 
     return channelLocator.isVisible();
+  }
+
+  async createThread(threadName: string, status?: ChannelStatus): Promise<void> {
+    await this.header.button.thread.click();
+    await this.header.button.createThread.click();
+    await this.threadBox.threadNameInput.fill(threadName);
+    if (status === ChannelStatus.PRIVATE) {
+      await this.threadBox.threadPrivateCheckbox.click();
+    }
+    const threadInput = this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`);
+    await threadInput.fill(threadName);
+    await threadInput.press('Enter');
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  async isNewThreadPresent(threadName: string): Promise<boolean> {
+    await this.page.waitForTimeout(2000);
+    const threadLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_list.thread_item.name'),
+      { hasText: threadName }
+    );
+
+    return threadLocator.isVisible();
   }
 }

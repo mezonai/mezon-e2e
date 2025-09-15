@@ -185,6 +185,10 @@ export class ClanSetupHelper {
       clanNamePrefix: 'ProfileTest',
       suiteName: 'User Profile',
     }),
+    threadManagement: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'ThreadMgmtTest',
+      suiteName: 'Thread Management',
+    }),
   };
 
   /**

@@ -89,6 +89,7 @@ export const getAuthConfigBySuite = (suiteName: string) => {
     'Direct Message': 'account4',
     'Onboarding Guide': 'account5',
     'User Profile': 'account6',
+    'Thread Management': 'account1',
   };
 
   const accountKey = suiteToAccountMap[suiteName] || 'account1';
