@@ -1,6 +1,8 @@
 import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Page } from '@playwright/test';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
+import { expect, Page } from '@playwright/test';
+import { DirectMessageHelper } from './../utils/directMessageHelper';
 import { BasePage } from './BasePage';
 import { CategoryPage } from './CategoryPage';
 import { CategorySettingPage } from './CategorySettingPage';
@@ -25,6 +27,14 @@ export class ClanPageV2 extends BasePage {
       `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Create' }
     ),
+    invitePeopleFromHeaderMenu: this.page.locator(
+      generateE2eSelector('clan_page.header.modal_panel.item'),
+      { hasText: 'Invite People' }
+    ),
+    invitePeople: this.page.locator(
+      generateE2eSelector('clan_page.modal.invite_people.user_item.button.invite')
+    ),
+    closeInviteModal: this.page.locator(generateE2eSelector('button.base'), { hasText: '×' }),
     eventButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.events')),
   };
 
@@ -84,6 +94,7 @@ export class ClanPageV2 extends BasePage {
 
   private input = {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
+    urlInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.url_invite')),
     delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
   };
 
@@ -135,6 +146,11 @@ export class ClanPageV2 extends BasePage {
     limitCreation: {
       title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
     },
+  };
+
+  private modalInvite = {
+    userInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.user_item')),
+    container: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.container')),
   };
 
   async createNewClan(clanName: string): Promise<boolean> {
@@ -334,5 +350,69 @@ export class ClanPageV2 extends BasePage {
     } catch {
       return false;
     }
+  }
+
+  async clickButtonInvitePeopleFromMenu(): Promise<boolean> {
+    try {
+      await this.buttons.clanName.click();
+      await this.buttons.invitePeopleFromHeaderMenu.click();
+      return true;
+    } catch (error) {
+      console.error(`Error clicking invite people:`, error);
+      return false;
+    }
+  }
+
+  async sendInviteOnModal(): Promise<{
+    success: boolean;
+    username?: string;
+    urlInvite?: string;
+  }> {
+    try {
+      await expect(this.modalInvite.userInvite.first()).toBeVisible();
+
+      const userInviteItem = this.modalInvite.userInvite.first();
+      const usernameElement = userInviteItem.locator('p');
+      await expect(usernameElement).toBeVisible();
+
+      const username = (await usernameElement.innerText()).trim();
+
+      await expect(this.input.urlInvite).toHaveValue(/http/);
+      const urlInvite = (await this.input.urlInvite.inputValue()).trim();
+
+      if (!username || !urlInvite) {
+        throw new Error('Missing invite info or URL');
+      }
+
+      await this.buttons.invitePeople.first().click();
+
+      await this.buttons.closeInviteModal.click();
+
+      await this.modalInvite.container.waitFor({ state: 'hidden', timeout: 5000 });
+
+      return { success: true, username, urlInvite };
+    } catch (error) {
+      console.error('Error sending invite:', error);
+      return { success: false };
+    }
+  }
+
+  async openDirectMessageWithUser(username: string): Promise<void> {
+    const directMessageHelpers = new DirectMessageHelper(this.page);
+
+    await expect(
+      directMessageHelpers.userNamesInDM.getByText(username, { exact: true })
+    ).toBeVisible();
+
+    await directMessageHelpers.userNamesInDM.getByText(username, { exact: true }).click();
+  }
+
+  async getLastMessageInChat(): Promise<string> {
+    const messageHelpers = new MessageTestHelpers(this.page);
+    const lastMessage = await messageHelpers.message.last();
+
+    await expect(lastMessage).toBeVisible();
+
+    return (await lastMessage.innerText()).trim();
   }
 }
