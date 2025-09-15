@@ -22,18 +22,26 @@ test.describe('Channel Message - Module 3', () => {
   let testClanName: string;
   let testClanUrl: string;
 
+  test.use({ storageState: 'playwright/.auth/account2-3.json' });
+
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.channelMessage3
+    );
 
     testClanName = setupResult.clanName;
     testClanUrl = setupResult.clanUrl;
   });
 
   test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+    if (clanSetupHelper && testClanName && testClanUrl) {
+      await clanSetupHelper.cleanupClan(
+        testClanName,
+        testClanUrl,
+        ClanSetupHelper.configs.channelMessage3.suiteName
+      );
     }
   });
 
@@ -59,8 +67,6 @@ test.describe('Channel Message - Module 3', () => {
   });
 
   test.beforeEach(async ({ page, context }, testInfo) => {
-    await AuthHelper.setAuthForSuite(page, 'Channel Message_3');
-
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,
       severity: AllureConfig.Severity.CRITICAL,

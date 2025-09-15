@@ -70,39 +70,59 @@ export const persistentAuthConfigs = {
     activeAccount: '"1964953606733959200"',
     _persist: '{"version":-1,"rehydrated":true}',
   },
-  'account2-core': {
+  'account2-1': {
     loadingStatus: '"loaded"',
     session:
-      '{"1966417800234799000":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI0ZWExMThkYi0xYmVlLTRjMmEtODRhOC1iYzcxNzMxZDY5OGQiLCJ1aWQiOjE5NjY0MTc4MDAyMzQ3OTkxMDQsInVzbiI6ImRhdC5oYXF1b2MrMDItY29yZSIsImV4cCI6MTc1Nzc1MTkxMn0.94HA85qULxtHgNd0MJuXBWLt8Ha5n5ZwJ35YQHqT9n0","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI0ZWExMThkYi0xYmVlLTRjMmEtODRhOC1iYzcxNzMxZDY5OGQiLCJ1aWQiOjE5NjY0MTc4MDAyMzQ3OTkxMDQsInVzbiI6ImRhdC5oYXF1b2MrMDItY29yZSIsImV4cCI6MTc1ODI3MDMxMn0.WcmyuJzgtXhYQEaf1mJXKKAmrNgYyhCL7GSmSuHW1YE","created_at":1757665512,"is_remember":false,"refresh_expires_at":1758270312,"expires_at":1757751912,"username":"dat.haquoc+02-core","user_id":1966417800234799000}}',
+      '{"1967441732656173000":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI3YjlmYmQyZC1hYTc4LTQ3MWMtOWZjYi1mOWUwNjc5NDlhMDgiLCJ1aWQiOjE5Njc0NDE3MzI2NTYxNzMwNTYsInVzbiI6ImRhdC5oYXF1b2MrMDItMSIsImV4cCI6MTc1Nzk5NjAzN30.ij6HleQt_63iiludFYmBEWaa9uxPdQxyaVOSAWunkUI","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI3YjlmYmQyZC1hYTc4LTQ3MWMtOWZjYi1mOWUwNjc5NDlhMDgiLCJ1aWQiOjE5Njc0NDE3MzI2NTYxNzMwNTYsInVzbiI6ImRhdC5oYXF1b2MrMDItMSIsImV4cCI6MTc1ODUxNDQzN30.7ZqQXhtCDFIY7SE27uDcJxmV4Qy04ZECTkitD4UYw-0","created_at":1757909637,"is_remember":false,"refresh_expires_at":1758514437,"expires_at":1757996037,"username":"dat.haquoc+02-1","user_id":1967441732656173000}}',
     isLogin: 'true',
     isRegistering: '"not loaded"',
     loadingStatusEmail: '"not loaded"',
     redirectUrl: 'null',
-    activeAccount: '"1966417800234799000"',
+    activeAccount: '"1967441732656173000"',
     _persist: '{"version":-1,"rehydrated":true}',
   },
-
-  'account2-social': {
+  'account2-2': {
     loadingStatus: '"loaded"',
     session:
-      '{"1966418106272190500":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJiYTgxMDEyYy0yMTFiLTQzZjgtYTU2YS01NjlkOGFmYTk2ZmIiLCJ1aWQiOjE5NjY0MTgxMDYyNzIxOTA0NjQsInVzbiI6ImRhdC5oYXF1b2MrMDItc29jaWFsIiwiZXhwIjoxNzU3NzUxOTg1fQ.O08pMZmG_iB33VqXmIK0DJxoSP896_H8OPZ-ZAhgbyg","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJiYTgxMDEyYy0yMTFiLTQzZjgtYTU2YS01NjlkOGFmYTk2ZmIiLCJ1aWQiOjE5NjY0MTgxMDYyNzIxOTA0NjQsInVzbiI6ImRhdC5oYXF1b2MrMDItc29jaWFsIiwiZXhwIjoxNzU4MjcwMzg1fQ.KhkQQz7AUlNllI8CZpZY3vRIWsC2v4kjwnzbmDF3wgA","created_at":1757665585,"is_remember":false,"refresh_expires_at":1758270385,"expires_at":1757751985,"username":"dat.haquoc+02-social","user_id":1966418106272190500}}',
+      '{"1967442215051464700":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJmYWZjMWQxMC1hZjljLTQxM2EtYmM1My1hYmU4OTU0ODFmM2QiLCJ1aWQiOjE5Njc0NDIyMTUwNTE0NjQ3MDQsInVzbiI6ImRhdC5oYXF1b2MrMDItMiIsImV4cCI6MTc1Nzk5NjE1Mn0.LljIxHrmugt-0cPVENRHEhom-RQ_dCMweOj-DAx08ZI","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJmYWZjMWQxMC1hZjljLTQxM2EtYmM1My1hYmU4OTU0ODFmM2QiLCJ1aWQiOjE5Njc0NDIyMTUwNTE0NjQ3MDQsInVzbiI6ImRhdC5oYXF1b2MrMDItMiIsImV4cCI6MTc1ODUxNDU1Mn0.uUiyaTgYo4Ib07qSB1ts8NyhIb1qqghcTOo7uKbJWP4","created_at":1757909751,"is_remember":false,"refresh_expires_at":1758514552,"expires_at":1757996152,"username":"dat.haquoc+02-2","user_id":1967442215051464700}}',
     isLogin: 'true',
     isRegistering: '"not loaded"',
     loadingStatusEmail: '"not loaded"',
     redirectUrl: 'null',
-    activeAccount: '"1966418106272190500"',
+    activeAccount: '"1967442215051464700"',
     _persist: '{"version":-1,"rehydrated":true}',
   },
-
-  'account2-media': {
+  'account2-3': {
     loadingStatus: '"loaded"',
     session:
-      '{"1966418341190963200":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIzMzVmYjE2OS0yODMxLTRjNTYtYjZlYy0yNjcyZjE5NjZhMDMiLCJ1aWQiOjE5NjY0MTgzNDExOTA5NjMyMDAsInVzbiI6ImRhdC5oYXF1b2MrMDItbWVkaWEiLCJleHAiOjE3NTc3NTIwNDF9.BK7_gevPIjR28Cl3-eAd8U429DHRMOVEfjbKmR2u7FM","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIzMzVmYjE2OS0yODMxLTRjNTYtYjZlYy0yNjcyZjE5NjZhMDMiLCJ1aWQiOjE5NjY0MTgzNDExOTA5NjMyMDAsInVzbiI6ImRhdC5oYXF1b2MrMDItbWVkaWEiLCJleHAiOjE3NTgyNzA0NDF9.O587tagB1KWMJXpwmHy-oynyiX8nvGd8LHxJ5We9yJQ","created_at":1757665641,"is_remember":false,"refresh_expires_at":1758270441,"expires_at":1757752041,"username":"dat.haquoc+02-media","user_id":1966418341190963200}}',
+      '{"1967442542983123000":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJmNmE4MTlkNC05YTEwLTRkMWQtOGVjYS1jYTUyMTU0NjI1ODMiLCJ1aWQiOjE5Njc0NDI1NDI5ODMxMjI5NDQsInVzbiI6ImRhdC5oYXF1b2MrMDItMyIsImV4cCI6MTc1Nzk5NjIzMH0.CKwRf555ROYBsE-tX1Czsxe0ZlQxNFIC2qpzwT5QIrQ","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJmNmE4MTlkNC05YTEwLTRkMWQtOGVjYS1jYTUyMTU0NjI1ODMiLCJ1aWQiOjE5Njc0NDI1NDI5ODMxMjI5NDQsInVzbiI6ImRhdC5oYXF1b2MrMDItMyIsImV4cCI6MTc1ODUxNDYzMH0.f1vnhSgxvpNqNJxfMAiHnby74f-zGV186gnDd4uAMBw","created_at":1757909830,"is_remember":false,"refresh_expires_at":1758514630,"expires_at":1757996230,"username":"dat.haquoc+02-3","user_id":1967442542983123000}}',
     isLogin: 'true',
     isRegistering: '"not loaded"',
     loadingStatusEmail: '"not loaded"',
     redirectUrl: 'null',
-    activeAccount: '"1966418341190963200"',
+    activeAccount: '"1967442542983123000"',
+    _persist: '{"version":-1,"rehydrated":true}',
+  },
+  'account2-4': {
+    loadingStatus: '"loaded"',
+    session:
+      '{"1967442871149662200":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJhYjEzZWE4NS0wZDAxLTRlNDctYWY3Zi02NGY3NGQ4MmJhOTQiLCJ1aWQiOjE5Njc0NDI4NzExNDk2NjIyMDgsInVzbiI6ImRhdC5oYXF1b2MrMDItNCIsImV4cCI6MTc1Nzk5NjMwOH0.zG3eFlv1FLgLmAh-OVAFJjxuZIKsMDAXGp8XeJNjFB0","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJhYjEzZWE4NS0wZDAxLTRlNDctYWY3Zi02NGY3NGQ4MmJhOTQiLCJ1aWQiOjE5Njc0NDI4NzExNDk2NjIyMDgsInVzbiI6ImRhdC5oYXF1b2MrMDItNCIsImV4cCI6MTc1ODUxNDcwOH0.wM39f3thcLGZbt9KQ1UVzEyoWCwFWqn0mCv2yD3gaCM","created_at":1757909908,"is_remember":false,"refresh_expires_at":1758514708,"expires_at":1757996308,"username":"dat.haquoc+02-4","user_id":1967442871149662200}}',
+    isLogin: 'true',
+    isRegistering: '"not loaded"',
+    loadingStatusEmail: '"not loaded"',
+    redirectUrl: 'null',
+    activeAccount: '"1967442871149662200"',
+    _persist: '{"version":-1,"rehydrated":true}',
+  },
+  'account2-5': {
+    loadingStatus: '"loaded"',
+    session:
+      '{"1967443118043172900":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIwNDQ4Y2U1Ni1hNTQ0LTQxZjMtYTMzOC0xMGE4ZGUwYTlmZjEiLCJ1aWQiOjE5Njc0NDMxMTgwNDMxNzI4NjQsInVzbiI6ImRhdC5oYXF1b2MrMDItNSIsImV4cCI6MTc1Nzk5NjM2N30.FrVPvoXqQ5cjc1Ikbdn-oltaycEa5YG0Y3I4qT9KvJ0","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiIwNDQ4Y2U1Ni1hNTQ0LTQxZjMtYTMzOC0xMGE4ZGUwYTlmZjEiLCJ1aWQiOjE5Njc0NDMxMTgwNDMxNzI4NjQsInVzbiI6ImRhdC5oYXF1b2MrMDItNSIsImV4cCI6MTc1ODUxNDc2N30.s4756AF0GIQx1OJo1tvwAeZX0Xu7AYJapoax2CZfV2I","created_at":1757909967,"is_remember":false,"refresh_expires_at":1758514767,"expires_at":1757996367,"username":"dat.haquoc+02-5","user_id":1967443118043172900}}',
+    isLogin: 'true',
+    isRegistering: '"not loaded"',
+    loadingStatusEmail: '"not loaded"',
+    redirectUrl: 'null',
+    activeAccount: '"1967443118043172900"',
     _persist: '{"version":-1,"rehydrated":true}',
   },
 };
@@ -124,9 +144,11 @@ export const getAuthConfigBySuite = (suiteName: string) => {
     'Direct Message': 'account4',
     'Onboarding Guide': 'account5',
     'User Profile': 'account6',
-    'Channel Message_2': 'account2-core',
-    'Channel Message_3': 'account2-social',
-    'Channel Message_4': 'account2-media',
+    'Channel Message_1': 'account2-1',
+    'Channel Message_2': 'account2-2',
+    'Channel Message_3': 'account2-3',
+    'Channel Message_4': 'account2-4',
+    'Channel Message_5': 'account2-5',
   };
 
   const accountKey = suiteToAccountMap[suiteName] || 'account1';

@@ -22,21 +22,28 @@ test.describe('Channel Message - Module 2', () => {
   let testClanName: string;
   let testClanUrl: string;
 
+  test.use({ storageState: 'playwright/.auth/account2-2.json' });
+
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.channelMessage2
+    );
 
     testClanName = setupResult.clanName;
     testClanUrl = setupResult.clanUrl;
   });
 
   test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+    if (clanSetupHelper && testClanName && testClanUrl) {
+      await clanSetupHelper.cleanupClan(
+        testClanName,
+        testClanUrl,
+        ClanSetupHelper.configs.channelMessage2.suiteName
+      );
     }
   });
-
   const createNavigationHelpers = (page: any): NavigationHelpers => ({
     async navigateToHomePage(): Promise<void> {
       await page.goto(MEZON_BASE_URL);
@@ -59,8 +66,6 @@ test.describe('Channel Message - Module 2', () => {
   });
 
   test.beforeEach(async ({ page, context }, testInfo) => {
-    await AuthHelper.setAuthForSuite(page, 'Channel Message_2');
-
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,
       severity: AllureConfig.Severity.CRITICAL,
