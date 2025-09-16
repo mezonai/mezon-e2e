@@ -22,8 +22,6 @@ test.describe('Direct Message', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'Direct Message');
-
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',
     });
