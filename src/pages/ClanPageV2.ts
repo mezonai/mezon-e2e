@@ -89,8 +89,8 @@ export class ClanPageV2 extends BasePage {
   }
 
   readonly threadBox = {
-    threadNameInput: this.page.locator(generateE2eSelector('chat.channel_message.thread_name_input.thread_box')),
-    threadPrivateCheckbox: this.page.locator(generateE2eSelector('chat.channel_message.thread_name_input.thread_private_checkbox')),
+    threadNameInput: this.page.locator(generateE2eSelector('chat.channel_message.thread_box.thread_name_input')),
+    threadPrivateCheckbox: this.page.locator(generateE2eSelector('chat.channel_message.thread_box.thread_private_checkbox')),
     threadInputMention: this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`)
   }
 

@@ -626,14 +626,14 @@ export class MessageTestHelpers {
 
   async fillThreadName(threadName: string): Promise<void> {
     const threadNameInput = this.page
-      .locator(generateE2eSelector('chat.channel_message.thread_name_input.thread_box'))
+      .locator(generateE2eSelector('chat.channel_message.thread_box.thread_name_input'))
       .first();
 
     try {
       await threadNameInput.waitFor({ state: 'visible', timeout: 5000 });
     } catch {
       throw new Error(
-        'Could not find thread name input via data-e2e="chat-channel_message-thread_name_input-thread_box"'
+        'Could not find thread name input via data-e2e="chat-channel_message-thread_box-thread_name_input"'
       );
     }
 
