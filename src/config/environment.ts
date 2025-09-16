@@ -144,11 +144,11 @@ export const getAuthConfigBySuite = (suiteName: string) => {
     'Direct Message': 'account4',
     'Onboarding Guide': 'account5',
     'User Profile': 'account6',
-    'Channel Message_1': 'account2-1',
-    'Channel Message_2': 'account2-2',
-    'Channel Message_3': 'account2-3',
-    'Channel Message_4': 'account2-4',
-    'Channel Message_5': 'account2-5',
+    'Channel Message - Module 1': 'account2-1',
+    'Channel Message - Module 2': 'account2-2',
+    'Channel Message - Module 3': 'account2-3',
+    'Channel Message - Module 4': 'account2-4',
+    'Channel Message - Module 5': 'account2-5',
   };
 
   const accountKey = suiteToAccountMap[suiteName] || 'account1';
