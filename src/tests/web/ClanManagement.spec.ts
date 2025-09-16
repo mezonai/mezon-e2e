@@ -6,6 +6,7 @@ import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 import { CategoryPage } from '../../pages/CategoryPage';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { CategoryTestHelper } from '@/utils/categoryHelper';
 
 test.describe('Create Clan', () => {
   let clanUrl: string;
@@ -221,5 +222,117 @@ test.describe('Create Category', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Public Category Created - ${categoryPublicName}`);
+  });
+});
+
+test.describe('Category Management', () => {
+  let clanSetupHelper: ClanSetupHelper;
+  let clanName: string;
+  let clanUrl: string;
+
+  test.use({ storageState: 'playwright/.auth/account3.json' });
+
+  test.beforeAll(async ({ browser }) => {
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
+
+    clanName = setupResult.clanName;
+    clanUrl = setupResult.clanUrl;
+
+    console.log(`✅ Test clan setup complete: ${clanName}`);
+  });
+
+  test.afterAll(async () => {
+    if (clanSetupHelper && clanName && clanUrl) {
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.clanManagement.suiteName
+      );
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63517',
+    });
+
+    await AllureReporter.step('Navigate to test clan', async () => {
+      await page.goto(clanUrl);
+      await page.waitForLoadState('domcontentloaded');
+    });
+
+    await AllureReporter.addParameter('clanName', clanName);
+  });
+
+  test('Verify that delete empty public category', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addWorkItemLinks({
+      tms: '63579',
+      github_issue: '9466',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully delete a new empty public category within a clan.
+      
+      **Test Steps:**
+      1. Generate unique category name
+      2. Delete new empty public category
+      3. Verify category appears in category list
+      
+      **Expected Result:** Public category is deleted and not visible in the clan's category list.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['category-deletion', 'empty-public-category'],
+    });
+
+    const categoryTestHelper = new CategoryTestHelper(page);
+    const categoryName = await categoryTestHelper.createAndVerifyCategory('public');
+    expect(categoryName !== '').toBe(true);
+    await categoryTestHelper.deleteAndVerifyCategory(categoryName, 'public');
+
+    await AllureReporter.attachScreenshot(page, `Empty Public Category Deleted`);
+  });
+
+  test('Verify that delete empty private category', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addWorkItemLinks({
+      tms: '63578',
+      github_issue: '9466',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully delete a new empty private category within a clan.
+      
+      **Test Steps:**
+      1. Generate unique category name
+      2. Delete new empty private category
+      3. Verify category appears in category list
+      
+      **Expected Result:** Private category is deleted and not visible in the clan's category list.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['category-deletion', 'empty-private-category'],
+    });
+
+    const categoryTestHelper = new CategoryTestHelper(page);
+    const categoryName = await categoryTestHelper.createAndVerifyCategory('private');
+    expect(categoryName !== '').toBe(true);
+    await categoryTestHelper.deleteAndVerifyCategory(categoryName, 'private');
+
+    await AllureReporter.attachScreenshot(page, `Empty Private Category Deleted`);
   });
 });
