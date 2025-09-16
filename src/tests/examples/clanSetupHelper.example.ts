@@ -69,7 +69,9 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
       clanSetupHelper = new ClanSetupHelper(browser);
 
       // Use predefined configuration for message tests
-      const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.messageTests);
+      const setupResult = await clanSetupHelper.setupTestClan(
+        ClanSetupHelper.configs.channelMessage - 1
+      );
 
       testClanName = setupResult.clanName;
       testChannelUrl = setupResult.clanUrl;
