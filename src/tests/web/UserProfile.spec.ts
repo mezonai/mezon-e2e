@@ -36,16 +36,7 @@ test.describe('User Profile - Clan Profiles', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'User Profile');
-
     const profilePage = new ProfilePage(page);
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63571',

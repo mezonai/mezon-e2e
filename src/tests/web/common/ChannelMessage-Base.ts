@@ -51,8 +51,6 @@ export const setupChannelMessageSuite = (suiteName: string) => {
   });
 
   test.beforeEach(async ({ page, context }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Message');
-
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,
       severity: AllureConfig.Severity.CRITICAL,
