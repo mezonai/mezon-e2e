@@ -3,13 +3,15 @@ import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
-import test, { expect } from '@playwright/test';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import test, { expect } from '@playwright/test';
 
-test.describe('Create New Channels', () => {
+test.describe('Channel Management', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
+
+  test.use({ storageState: 'playwright/.auth/account1.json' });
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -20,18 +22,20 @@ test.describe('Create New Channels', () => {
 
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
-
-    console.log(`✅ Test clan setup complete: ${clanName}`);
   });
 
   test.afterAll(async ({ browser }) => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+    if (clanSetupHelper && clanName && clanUrl) {
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.channelManagement.suiteName
+      );
     }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Management');
+    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Management');
 
     // Initialize Allure reporting for this test suite
     // await AllureReporter.initializeTest(page, testInfo, {
@@ -53,9 +57,7 @@ test.describe('Create New Channels', () => {
 
     // Navigate to the test clan
     await AllureReporter.step('Navigate to test clan', async () => {
-      await page.goto(clanUrl);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
+      await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.addParameter('clanName', clanName);
