@@ -1,4 +1,4 @@
-import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
+import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
@@ -76,6 +76,9 @@ export class ClanPageV2 extends BasePage {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.item.name')),
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
     },
+    threadItem: {
+      name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name'))
+    },
   };
 
   readonly header = {
@@ -88,6 +91,7 @@ export class ClanPageV2 extends BasePage {
   readonly threadBox = {
     threadNameInput: this.page.locator(generateE2eSelector('chat.channel_message.thread_name_input.thread_box')),
     threadPrivateCheckbox: this.page.locator(generateE2eSelector('chat.channel_message.thread_name_input.thread_private_checkbox')),
+    threadInputMention: this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`)
   }
 
 
@@ -192,26 +196,28 @@ export class ClanPageV2 extends BasePage {
     }
   }
 
-  async createThread(threadName: string, status?: ChannelStatus): Promise<void> {
+  async createThread(threadName: string, status?: ThreadStatus): Promise<void> {
     await this.header.button.thread.click();
     await this.header.button.createThread.click();
     await this.threadBox.threadNameInput.fill(threadName);
-    if (status === ChannelStatus.PRIVATE) {
+    if (status === ThreadStatus.PRIVATE) {
       await this.threadBox.threadPrivateCheckbox.click();
     }
-    const threadInput = this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`);
-    await threadInput.fill(threadName);
-    await threadInput.press('Enter');
+    await this.threadBox.threadInputMention.fill(threadName);
+    await this.threadBox.threadInputMention.press('Enter');
     await this.page.waitForLoadState('networkidle');
   }
 
   async isNewThreadPresent(threadName: string): Promise<boolean> {
-    await this.page.waitForTimeout(2000);
-    const threadLocator = this.page.locator(
-      generateE2eSelector('clan_page.channel_list.thread_item.name'),
-      { hasText: threadName }
-    );
-
-    return threadLocator.isVisible();
+    const threadLocator = this.sidebar.threadItem.name.filter({
+      hasText: threadName,
+    });
+  
+    try {
+      await threadLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

@@ -1,16 +1,19 @@
 import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
+import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
-import test, { expect } from '@playwright/test';
+import test from '@playwright/test';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
+import { ThreadTestHelpers } from '@/utils/threadHelpers';
 
 test.describe('Thread in Private Channel', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
+
+  test.use({ storageState: 'playwright/.auth/account7.json' });
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -23,7 +26,7 @@ test.describe('Thread in Private Channel', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
       await clanSetupHelper.cleanupClan(
         clanName,
@@ -82,22 +85,8 @@ test.describe('Thread in Private Channel', () => {
       tag: ['thread-creation', 'public-thread', 'private-channel'],
     });
 
-    const threadName = `public-thread-${generateRandomString(5)}`;
-    const clanPage = new ClanPageV2(page);
-
-    await AllureReporter.addParameter('threadName', threadName);
-    await AllureReporter.addParameter('threadStatus', ChannelStatus.PUBLIC);
-
-    await AllureReporter.step(`Create new public thread: ${threadName}`, async () => {
-      await clanPage.createThread(threadName);
-    });
-
-    await AllureReporter.step('Verify thread is present in thread list', async () => {
-      const isNewThreadPresent = await clanPage.isNewThreadPresent(threadName);
-      expect(isNewThreadPresent).toBe(true);
-    });
-
-    await AllureReporter.attachScreenshot(page, `Public Thread Created - ${threadName}`);
+    const threadTestHelpers = new ThreadTestHelpers(page);
+    await threadTestHelpers.createAndVerifyThread(ThreadStatus.PUBLIC);
   });
 
   test('Verify that I can create a new private thread in a private channel', async ({ page }) => {
@@ -126,22 +115,8 @@ test.describe('Thread in Private Channel', () => {
       tag: ['thread-creation', 'private-thread', 'private-channel'],
     });
 
-    const threadName = `private-thread-${generateRandomString(5)}`;
-    const clanPage = new ClanPageV2(page);
-
-    await AllureReporter.addParameter('threadName', threadName);
-    await AllureReporter.addParameter('threadStatus', ChannelStatus.PRIVATE);
-
-    await AllureReporter.step(`Create new private thread: ${threadName}`, async () => {
-      await clanPage.createThread(threadName, ChannelStatus.PRIVATE);
-    });
-
-    await AllureReporter.step('Verify thread is present in thread list', async () => {
-      const isNewThreadPresent = await clanPage.isNewThreadPresent(threadName);
-      expect(isNewThreadPresent).toBe(true);
-    });
-
-    await AllureReporter.attachScreenshot(page, `Private Thread Created - ${threadName}`);
+    const threadTestHelpers = new ThreadTestHelpers(page);
+    await threadTestHelpers.createAndVerifyThread(ThreadStatus.PRIVATE);
   });
 });
 
@@ -161,7 +136,7 @@ test.describe('Thread in Public Channel', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
       await clanSetupHelper.cleanupClan(
         clanName,
@@ -219,22 +194,8 @@ test.describe('Thread in Public Channel', () => {
       tag: ['thread-creation', 'public-thread', 'public-channel'],
     });
 
-    const threadName = `public-thread-${generateRandomString(5)}`;
-    const clanPage = new ClanPageV2(page);
-
-    await AllureReporter.addParameter('threadName', threadName);
-    await AllureReporter.addParameter('threadStatus', ChannelStatus.PUBLIC);
-
-    await AllureReporter.step(`Create new public thread: ${threadName}`, async () => {
-      await clanPage.createThread(threadName);
-    });
-
-    await AllureReporter.step('Verify thread is present in thread list', async () => {
-      const isNewThreadPresent = await clanPage.isNewThreadPresent(threadName);
-      expect(isNewThreadPresent).toBe(true);
-    });
-
-    await AllureReporter.attachScreenshot(page, `Public Thread Created - ${threadName}`);
+    const threadTestHelpers = new ThreadTestHelpers(page);
+    await threadTestHelpers.createAndVerifyThread(ThreadStatus.PUBLIC);
   });
 
   test('Verify that I can create a new private thread in a public channel', async ({ page }) => {
@@ -263,21 +224,7 @@ test.describe('Thread in Public Channel', () => {
       tag: ['thread-creation', 'private-thread', 'public-channel'],
     });
 
-    const threadName = `private-thread-${generateRandomString(5)}`;
-    const clanPage = new ClanPageV2(page);
-
-    await AllureReporter.addParameter('threadName', threadName);
-    await AllureReporter.addParameter('threadStatus', ChannelStatus.PRIVATE);
-
-    await AllureReporter.step(`Create new private thread: ${threadName}`, async () => {
-      await clanPage.createThread(threadName, ChannelStatus.PRIVATE);
-    });
-
-    await AllureReporter.step('Verify thread is present in thread list', async () => {
-      const isNewThreadPresent = await clanPage.isNewThreadPresent(threadName);
-      expect(isNewThreadPresent).toBe(true);
-    });
-
-    await AllureReporter.attachScreenshot(page, `Private Thread Created - ${threadName}`);
+    const threadTestHelpers = new ThreadTestHelpers(page);
+    await threadTestHelpers.createAndVerifyThread(ThreadStatus.PRIVATE);
   });
 });
