@@ -237,9 +237,13 @@ export const DATA_E2E_IDENTIFIER = {
         delete_message: '',
       },
       thread_box: {
-        thread_name_input: '',
-        thread_private_checkbox: ''
-      },
+				input: {
+					thread_name: ''
+				},
+				checkbox: {
+					private_thread: ''
+				}
+			}
     },
     message_action_modal: {
       button: {
