@@ -7,6 +7,20 @@ export class CategoryPage extends BasePage {
     super(page);
   }
 
+  readonly modalConfirm = {
+    button: {
+      cancel: this.page.locator(generateE2eSelector('modal_confirm.button.cancel')),
+      confirm: this.page.locator(generateE2eSelector('modal_confirm.button.confirm')),
+    },
+  };
+
+  readonly sidebarSetting = {
+    deleteCategory: this.page.locator(
+      generateE2eSelector('clan_page.category_setting_bar.button'),
+      { hasText: 'Delete Category' }
+    ),
+  };
+
   readonly buttons = {
     createCategory: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
       hasText: 'Create Category',
@@ -69,6 +83,24 @@ export class CategoryPage extends BasePage {
       // Ignore errors
       return false;
     }
+  }
+
+  async deleteCategory(name: string): Promise<boolean> {
+    await this.text.clanName.click();
+
+    await this.page.mouse.click(0, 0);
+
+    const categoryLocator = this.page.locator(
+      generateE2eSelector('clan_page.side_bar.channel_list.category'),
+      { hasText: name }
+    );
+    await categoryLocator.click({ button: 'right' });
+    await this.sidebarSetting.deleteCategory.click();
+
+    await this.modalConfirm.button.confirm.click();
+
+    await this.page.waitForTimeout(3000);
+    return true;
   }
 
   async cancelCreateCategory(name: string): Promise<boolean> {

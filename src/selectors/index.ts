@@ -11,6 +11,12 @@
  * */
 
 export const DATA_E2E_IDENTIFIER = {
+  modal_confirm: {
+    button: {
+      cancel: '',
+      confirm: '',
+    },
+  },
   avatar: {
     image: '',
   },
@@ -154,6 +160,9 @@ export const DATA_E2E_IDENTIFIER = {
         },
         name: '',
       },
+    },
+    category_setting_bar: {
+      button: '',
     },
   },
   chat: {

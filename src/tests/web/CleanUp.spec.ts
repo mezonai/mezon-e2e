@@ -5,7 +5,7 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('Manual Cleanup - All Clans', () => {
-  test.skip('Clean all clans from 1 account', async ({ browser }) => {
+  test('Clean all clans from 1 account', async ({ browser }) => {
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
