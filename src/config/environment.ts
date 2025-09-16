@@ -70,6 +70,17 @@ export const persistentAuthConfigs = {
     activeAccount: '"1964953606733959200"',
     _persist: '{"version":-1,"rehydrated":true}',
   },
+  account7: {
+    loadingStatus: '"loaded"',
+    session:
+      '{"1967789474532298800":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJlNzFkY2MyYy02YjdmLTQ1NTQtYTE3NC1lMmEyYTljMjRjM2EiLCJ1aWQiOjE5Njc3ODk0NzQ1MzIyOTg3NTIsInVzbiI6ImRhdC5oYXF1b2MrMDciLCJleHAiOjE3NTgwNzg5NDV9.b30k3FypgiJM-MPCUAQda3AZ5xFPJ-Ofxp-a7ifW2Ug","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJlNzFkY2MyYy02YjdmLTQ1NTQtYTE3NC1lMmEyYTljMjRjM2EiLCJ1aWQiOjE5Njc3ODk0NzQ1MzIyOTg3NTIsInVzbiI6ImRhdC5oYXF1b2MrMDciLCJleHAiOjE3NTg1OTczNDV9.n8YI8xL1Y2bXrkmz2xYWWN-KOYluFwtLJ_-fNrEvxc0","created_at":1757992545,"is_remember":false,"refresh_expires_at":1758597345,"expires_at":1758078945,"username":"dat.haquoc+07","user_id":1967789474532298800}}',
+    isLogin: 'true',
+    isRegistering: '"not loaded"',
+    loadingStatusEmail: '"not loaded"',
+    redirectUrl: 'null',
+    activeAccount: '"1967789474532298800"',
+    _persist: '{"version":-1,"rehydrated":true}',
+  },
   'account2-1': {
     loadingStatus: '"loaded"',
     session:
@@ -144,6 +155,7 @@ export const getAuthConfigBySuite = (suiteName: string) => {
     'Direct Message': 'account4',
     'Onboarding Guide': 'account5',
     'User Profile': 'account6',
+    'Thread Management': 'account7',
     'Channel Message_1': 'account2-1',
     'Channel Message_2': 'account2-2',
     'Channel Message_3': 'account2-3',
