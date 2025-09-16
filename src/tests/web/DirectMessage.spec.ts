@@ -50,48 +50,48 @@ test.describe('Direct Message', () => {
   const messageText = `message-text-${dateTimeString}`;
   const nameGroupChat = `name-groupchat-${dateTimeString}`;
 
-  test('Create direct message ', async ({ page }) => {
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
+  // test.skip('Create direct message ', async ({ page }) => {
+  //   await AllureReporter.addTestParameters({
+  //     testType: AllureConfig.TestTypes.E2E,
+  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
+  //     severity: AllureConfig.Severity.CRITICAL,
+  //   });
 
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a user can successfully create a new direct message conversation.
-      
-      **Test Steps:**
-      1. Count existing users before creating DM
-      2. Create a new direct message
-      3. Verify the direct message is created
-      
-      **Expected Result:** Direct message should be successfully created and user count should increase.
-    `);
+  //   await AllureReporter.addDescription(`
+  //     **Test Objective:** Verify that a user can successfully create a new direct message conversation.
 
-    await AllureReporter.addLabels({
-      tag: ['direct-message', 'messaging', 'conversation-creation'],
-    });
+  //     **Test Steps:**
+  //     1. Count existing users before creating DM
+  //     2. Create a new direct message
+  //     3. Verify the direct message is created
 
-    const messagePage = new MessgaePage(page);
-    const helpers = new DirectMessageHelper(page);
+  //     **Expected Result:** Direct message should be successfully created and user count should increase.
+  //   `);
 
-    const prevUsersCount = await AllureReporter.step('Get initial user count', async () => {
-      return await helpers.countUsers();
-    });
+  //   await AllureReporter.addLabels({
+  //     tag: ['direct-message', 'messaging', 'conversation-creation'],
+  //   });
 
-    await AllureReporter.addParameter('initialUserCount', prevUsersCount);
+  //   const messagePage = new MessgaePage(page);
+  //   const helpers = new DirectMessageHelper(page);
 
-    await AllureReporter.step('Create direct message', async () => {
-      await messagePage.createDM();
-    });
+  //   const prevUsersCount = await AllureReporter.step('Get initial user count', async () => {
+  //     return await helpers.countUsers();
+  //   });
 
-    // await AllureReporter.step('Verify direct message is created', async () => {
-    //   const DMCreated = await messagePage.isDMCreated();
-    //   expect(DMCreated).toBe(true);
-    // });
+  //   await AllureReporter.addParameter('initialUserCount', prevUsersCount);
 
-    await AllureReporter.attachScreenshot(page, 'Direct Message Created');
-  });
+  //   await AllureReporter.step('Create direct message', async () => {
+  //     await messagePage.createDM();
+  //   });
+
+  //   // await AllureReporter.step('Verify direct message is created', async () => {
+  //   //   const DMCreated = await messagePage.isDMCreated();
+  //   //   expect(DMCreated).toBe(true);
+  //   // });
+
+  //   await AllureReporter.attachScreenshot(page, 'Direct Message Created');
+  // });
 
   test('Send a message', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({

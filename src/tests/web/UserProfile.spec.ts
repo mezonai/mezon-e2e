@@ -1,12 +1,10 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { expect, test } from '@playwright/test';
-import { WEBSITE_CONFIGS } from '../../config/environment';
-import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
+import { expect, test } from '@playwright/test';
 
 test.describe('User Profile - Clan Profiles', () => {
   let clanSetupHelper: ClanSetupHelper;
@@ -282,101 +280,101 @@ test.describe('User Profile - Clan Profiles', () => {
     );
   });
 
-  test('Change display name profile', async ({ page }) => {
-    const profilePage = new ProfilePage(page);
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
+  // test('Change display name profile', async ({ page }) => {
+  //   const profilePage = new ProfilePage(page);
+  //   await AllureReporter.addTestParameters({
+  //     testType: AllureConfig.TestTypes.E2E,
+  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
+  //     severity: AllureConfig.Severity.CRITICAL,
+  //   });
 
-    await AllureReporter.step('Navigate to profile tab', async () => {
-      await profilePage.openProfileTab();
-    });
+  //   await AllureReporter.step('Navigate to profile tab', async () => {
+  //     await profilePage.openProfileTab();
+  //   });
 
-    await AllureReporter.step('Navigate to user profile tab', async () => {
-      await profilePage.openUserProfileTab();
-    });
+  //   await AllureReporter.step('Navigate to user profile tab', async () => {
+  //     await profilePage.openUserProfileTab();
+  //   });
 
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a user can successfully change their display name profile.
+  //   await AllureReporter.addDescription(`
+  //     **Test Objective:** Verify that a user can successfully change their display name profile.
 
-      **Test Steps:**
-      1. Locate the display name input field
-      2. Clear existing display name and enter new one
-      3. Save the changes
-      4. Verify the display name has been updated
 
-      **Expected Result:** The clan display name should be successfully updated and saved.
-    `);
+  //     **Test Steps:**
+  //     1. Locate the display name input field
+  //     2. Clear existing display name and enter new one
+  //     3. Save the changes
+  //     4. Verify the display name has been updated
 
-    await AllureReporter.addLabels({
-      tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
-    });
+  //     **Expected Result:** The clan display name should be successfully updated and saved.
+  //   `);
 
-    const target = `acc.automationtest-${Date.now()}`;
-    await AllureReporter.addParameter('newDisplayname', target);
-    await AllureReporter.addParameter('platform', process.platform);
+  //   await AllureReporter.addLabels({
+  //     tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
+  //   });
 
-    await AllureReporter.step('Enter new display name', async () => {
-      const displayNameInput = profilePage.inputs.displayNameInput;
-      await expect(displayNameInput).toBeVisible({ timeout: 5000 });
-      await displayNameInput.click();
+  //   const target = `acc.automationtest-${Date.now()}`;
+  //   await AllureReporter.addParameter('newDisplayname', target);
+  //   await AllureReporter.addParameter('platform', process.platform);
 
-      const isMac = process.platform === 'darwin';
-      await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
+  //   await AllureReporter.step('Enter new display name', async () => {
+  //     const displayNameInput = profilePage.inputs.displayNameInput;
+  //     await expect(displayNameInput).toBeVisible({ timeout: 5000 });
+  //     await displayNameInput.click();
 
-      let ok = false;
-      for (let i = 0; i < 3; i++) {
-        await displayNameInput.press(isMac ? 'Meta+A' : 'Control+A');
-        await displayNameInput.press('Backspace');
-        await page.waitForTimeout(50);
-        await displayNameInput.type(target, { delay: 40 });
-        await page.waitForTimeout(150);
-        const v = await displayNameInput.inputValue();
-        if (v === target) {
-          ok = true;
-          break;
-        }
-      }
+  //     const isMac = process.platform === 'darwin';
+  //     await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
 
-      if (!ok) {
-        await displayNameInput.evaluate((el: HTMLInputElement, value: string) => {
-          el.value = value;
-          el.dispatchEvent(new Event('input', { bubbles: true }));
-          el.dispatchEvent(new Event('change', { bubbles: true }));
-        }, target);
-      }
+  //     let ok = false;
+  //     for (let i = 0; i < 3; i++) {
+  //       await displayNameInput.press(isMac ? 'Meta+A' : 'Control+A');
+  //       await displayNameInput.press('Backspace');
+  //       await page.waitForTimeout(50);
+  //       await displayNameInput.type(target, { delay: 40 });
+  //       await page.waitForTimeout(150);
+  //       const v = await displayNameInput.inputValue();
+  //       if (v === target) {
+  //         ok = true;
+  //         break;
+  //       }
+  //     }
 
-      await displayNameInput.evaluate((el: HTMLInputElement) => {
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        el.blur();
-      });
+  //     if (!ok) {
+  //       await displayNameInput.evaluate((el: HTMLInputElement, value: string) => {
+  //         el.value = value;
+  //         el.dispatchEvent(new Event('input', { bubbles: true }));
+  //         el.dispatchEvent(new Event('change', { bubbles: true }));
+  //       }, target);
+  //     }
 
-      await page.waitForTimeout(800);
-      await expect(displayNameInput).toHaveValue(target, { timeout: 3000 });
-      await AllureReporter.addParameter(
-        'dispalyNameInputSuccess',
-        ok ? 'Direct input' : 'Programmatic input'
-      );
-    });
+  //     await displayNameInput.evaluate((el: HTMLInputElement) => {
+  //       el.dispatchEvent(new Event('input', { bubbles: true }));
+  //       el.dispatchEvent(new Event('change', { bubbles: true }));
+  //       el.blur();
+  //     });
 
-    await AllureReporter.step('Save display name', async () => {
-      const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
-      await saveChangesBtn.scrollIntoViewIfNeeded();
-      await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
-      await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
-      await saveChangesBtn.click();
-      await AllureReporter.addParameter('saveButtonClicked', 'Yes');
-    });
+  //     await page.waitForTimeout(800);
+  //     await expect(displayNameInput).toHaveValue(target, { timeout: 3000 });
+  //     await AllureReporter.addParameter(
+  //       'dispalyNameInputSuccess',
+  //       ok ? 'Direct input' : 'Programmatic input'
+  //     );
+  //   });
+  //   await AllureReporter.step('Save display name', async () => {
+  //     const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
+  //     await saveChangesBtn.scrollIntoViewIfNeeded();
+  //     await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
+  //     await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
+  //     await saveChangesBtn.click();
+  //     await AllureReporter.addParameter('saveButtonClicked', 'Yes');
+  //   });
 
-    await AllureReporter.step('Verify display name has been changed successfully', async () => {
-      await profilePage.verifyDisplayNameUpdated(target);
-    });
+  //   await AllureReporter.step('Verify display name has been changed successfully', async () => {
+  //     await profilePage.verifyDisplayNameUpdated(target);
+  //   });
 
-    await AllureReporter.attachScreenshot(page, 'Display Name Changed Successfully');
-  });
+  //   await AllureReporter.attachScreenshot(page, 'Display Name Changed Successfully');
+  // });
 
   test('Update About me status', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({

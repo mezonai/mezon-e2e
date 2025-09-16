@@ -1,7 +1,7 @@
-import { Browser, Page } from '@playwright/test';
+import { WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AuthHelper } from '@/utils/authHelper';
-import { WEBSITE_CONFIGS } from '@/config/environment';
+import { Browser } from '@playwright/test';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 
@@ -45,13 +45,12 @@ export class ClanSetupHelper {
       // Navigate to home page
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
 
       // Navigate to the clan creation area
       await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Create new clan
       const createClanClicked = await clanPage.clickCreateClanButton();
@@ -136,16 +135,15 @@ export class ClanSetupHelper {
    * Cleans up all clans created by this helper instance
    */
   async cleanupAllClans(): Promise<void> {
-    for (const cleanup of this.cleanupFunctions) {
-      try {
-        await cleanup();
-      } catch (error) {
-        console.error(`❌ Error during clan cleanup: ${error}`);
-      }
-    }
-
-    this.cleanupFunctions = [];
-    console.log('✅ Clan cleanup completed');
+    // for (const cleanup of this.cleanupFunctions) {
+    //   try {
+    //     await cleanup();
+    //   } catch (error) {
+    //     console.error(`❌ Error during clan cleanup: ${error}`);
+    //   }
+    // }
+    // this.cleanupFunctions = [];
+    // console.log('✅ Clan cleanup completed');
   }
 
   /**
