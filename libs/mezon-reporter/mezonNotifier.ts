@@ -91,7 +91,7 @@ export class MezonNotifier {
         });
       }
     } catch (error) {
-      // console.warn('[Mezon] Error sending notification:', error);
+      console.warn('[Mezon] Error sending notification:', error);
     }
   }
 
@@ -300,7 +300,7 @@ export class MezonNotifier {
         if (eventPayload.pull_request?.html_url) {
           githubInfo.prUrl = eventPayload.pull_request.html_url;
         }
-      } catch (error) {
+      } catch {
         // Ignore errors reading event payload
         // console.log('[Mezon] Could not read GitHub event payload');
       }

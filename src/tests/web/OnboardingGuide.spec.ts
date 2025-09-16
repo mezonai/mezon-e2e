@@ -15,37 +15,27 @@ test.describe('Onboarding Guide Task Completion', () => {
   let testClanName: string;
   let clanUrl: string;
 
-  test.beforeAll(async ({ browser }) => {
-    // await TestSetups.clanTest({
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    // });
+  test.use({ storageState: 'playwright/.auth/account5.json' });
 
+  test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+
     const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.onboarding);
     testClanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async () => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupAllClans();
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper && testClanName && clanUrl) {
+      await clanSetupHelper.cleanupClan(
+        testClanName,
+        clanUrl,
+        ClanSetupHelper.configs.onboarding.suiteName
+      );
     }
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    await AuthHelper.setAuthForSuite(page, 'Onboarding Guide');
-
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.USER_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.USER_PROFILE,
-    //   story: AllureConfig.Stories.PROFILE_SETUP,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
-
     await AllureReporter.addWorkItemLinks({
       tms: '63452',
     });
@@ -53,7 +43,6 @@ test.describe('Onboarding Guide Task Completion', () => {
     if (clanUrl) {
       await AllureReporter.step('Navigate to test clan', async () => {
         await page.goto(clanUrl);
-        await page.waitForTimeout(3000);
       });
       await AllureReporter.addParameter('testClanName', testClanName);
       await AllureReporter.addParameter('clanUrl', clanUrl);
@@ -146,8 +135,6 @@ test.describe('Onboarding Guide Task Completion', () => {
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
 
     await AllureReporter.step('Check initial channel task status', async () => {
-      await page.waitForTimeout(3000);
-
       const onboardingVisible = await onboardingPage.isOnboardingGuideVisible();
       if (!onboardingVisible) {
         await onboardingPage.openOnboardingGuide();

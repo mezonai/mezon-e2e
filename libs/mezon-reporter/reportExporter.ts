@@ -56,7 +56,7 @@ export class ReportExporter {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const zipPath = path.join(process.cwd(), `playwright-report-${timestamp}.zip`);
 
-      // console.log(`📦 Creating zip of ${reportDir}...`);
+      console.log(`📦 Creating zip of ${reportDir} using JavaScript archiver...`);
 
       return new Promise<string>((resolve, reject) => {
         const output = fs.createWriteStream(zipPath);

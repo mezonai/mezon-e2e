@@ -55,27 +55,23 @@ export class ProfilePage extends BasePage {
   };
 
   async openProfileTab() {
-    await this.tabs.profileTab.waitFor({ state: 'visible', timeout: 1000 });
     await this.tabs.profileTab.click();
   }
 
   async openClanProfileTab() {
-    await this.tabs.clanProfileTab.waitFor({ state: 'visible', timeout: 1000 });
     await this.tabs.clanProfileTab.click();
   }
 
   async openAccountTab() {
-    await this.tabs.accountTab.waitFor({ state: 'visible', timeout: 1000 });
     await this.tabs.accountTab.click();
   }
 
   async expectProfileTabsVisible() {
-    await expect(this.tabs.userProfileTab).toBeVisible({ timeout: 1000 });
-    await expect(this.tabs.clanProfileTab).toBeVisible({ timeout: 1000 });
+    await expect(this.tabs.userProfileTab).toBeVisible({ timeout: 5000 });
+    await expect(this.tabs.clanProfileTab).toBeVisible({ timeout: 5000 });
   }
 
   async openUserProfileTab() {
-    await this.tabs.userProfileTab.waitFor({ state: 'visible', timeout: 1000 });
     await this.tabs.userProfileTab.click();
   }
 

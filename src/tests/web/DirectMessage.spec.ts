@@ -10,6 +10,8 @@ import { HomePage } from '../../pages/HomePage';
 import { AuthHelper } from '@/utils/authHelper';
 
 test.describe('Direct Message', () => {
+  test.use({ storageState: 'playwright/.auth/account4.json' });
+
   test.beforeAll(async () => {
     await TestSetups.chatTest({
       suite: AllureConfig.Suites.CHAT_PLATFORM,
@@ -20,14 +22,7 @@ test.describe('Direct Message', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Direct Message');
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.CHAT_PLATFORM,
-    //   subSuite: AllureConfig.SubSuites.DIRECT_MESSAGING,
-    //   story: AllureConfig.Stories.TEXT_MESSAGING,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
+    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'Direct Message');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',
@@ -35,12 +30,10 @@ test.describe('Direct Message', () => {
 
     const homePage = new HomePage(page);
 
-    // await AllureReporter.step('Navigate to home page', async () => {
-    //   await homePage.navigate();
-    // });
-
     await AllureReporter.step('Navigate to direct friends page', async () => {
       await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(3000);
     });
   });
 
@@ -191,6 +184,11 @@ test.describe('Direct Message', () => {
     const helpers = new DirectMessageHelper(page);
     const prevUsersCount = await helpers.countUsers();
 
+    if (prevUsersCount === 0) {
+      await messagePage.createDM();
+      await page.waitForTimeout(3000);
+    }
+
     await test.step(`Close direct message`, async () => {
       await messagePage.closeDM();
       await page.waitForTimeout(3000);
@@ -220,5 +218,32 @@ test.describe('Direct Message', () => {
       const groupLeaved = await messagePage.isLeavedGroup(prevGroupCount);
       expect(groupLeaved).toBeTruthy();
     });
+  });
+
+  test.skip('Pinned message should be removed when deleted', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63627',
+    });
+
+    const messagePage = new MessgaePage(page);
+
+    let pinnedMessageId: string;
+
+    await AllureReporter.step('Send a message and pin it', async () => {
+      await messagePage.sendMessage(messageText);
+      await messagePage.messages.last().waitFor({ state: 'visible', timeout: 10000 });
+      pinnedMessageId = await messagePage.pinLastMessage();
+    });
+
+    await AllureReporter.step('Delete the pinned message', async () => {
+      await messagePage.deleteLastMessage();
+    });
+
+    await AllureReporter.step('Verify pinned message is removed from list', async () => {
+      const isStillPinned = await messagePage.isMessageStillPinned(pinnedMessageId);
+      expect(isStillPinned).toBe(false);
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Pinned Message Removed');
   });
 });
