@@ -25,7 +25,7 @@ test.describe('User Profile - Clan Profiles', () => {
     clanName = setupResult.clanName;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && testClanUrl) {
       await clanSetupHelper.cleanupClan(
         clanName,
@@ -35,7 +35,7 @@ test.describe('User Profile - Clan Profiles', () => {
     }
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     const profilePage = new ProfilePage(page);
 
     await AllureReporter.addWorkItemLinks({

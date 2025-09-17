@@ -73,7 +73,9 @@ export class FileSizeTestHelpers {
       try {
         base = await this.downloadToBuffer(url);
         if (base && base.length > 0) break;
-      } catch {}
+      } catch {
+        // Element might not exist or be accessible, continue
+      }
     }
     if (!base) {
       base = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
@@ -165,7 +167,9 @@ export class FileSizeTestHelpers {
         try {
           await input.setInputFiles(filePath);
           return;
-        } catch {}
+        } catch {
+          // Element might not exist or be accessible, continue
+        }
       }
     }
 
@@ -188,7 +192,9 @@ export class FileSizeTestHelpers {
           if (await loc.isVisible({ timeout: 200 })) {
             return (await loc.first().innerText()).trim();
           }
-        } catch {}
+        } catch {
+          // Element might not exist or be accessible, continue
+        }
       }
       await this.page.waitForTimeout(150);
     }
