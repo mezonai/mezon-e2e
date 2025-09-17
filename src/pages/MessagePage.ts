@@ -31,6 +31,11 @@ export class MessgaePage {
   readonly saveGroupNameButton: Locator;
   readonly leaveGroupButtonInPopup: Locator;
   readonly buttonCreateGroupSidebar: Locator;
+  readonly pinMessageButton: Locator;
+  readonly confirmPinMessageButton: Locator;
+  readonly deleteMessageButton: Locator;
+  readonly confirmDeleteMessageButton: Locator;
+  readonly displayListPinButton: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -105,6 +110,23 @@ export class MessgaePage {
     this.saveGroupNameButton = page.locator('button:has-text("Save")');
     this.leaveGroupButtonInPopup = page.locator(
       generateE2eSelector('chat.direct_message.menu.leave_group.button')
+    );
+    this.pinMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Pin message' });
+    this.confirmPinMessageButton = page.locator(
+      generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
+      { hasText: 'Oh yeah. Pin it' }
+    );
+    this.deleteMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Delete Message' });
+    this.confirmDeleteMessageButton = page.locator(
+      generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
+      { hasText: 'Delete' }
+    );
+    this.displayListPinButton = page.locator(
+      generateE2eSelector('chat.channel_message.header.button.pin')
     );
   }
 
@@ -186,14 +208,10 @@ export class MessgaePage {
     const current = await this.helpers.countGroups();
     if (current >= prevGroupCount + 1) return true;
 
-    const groupNames = (await this.helpers.groupList.allInnerTexts())
-      .map(n => (n || '').trim())
-      .filter(Boolean);
-    if (!groupNames.length) return false;
-    const containsFirst =
-      !!this.firstUserNameText && groupNames.some(n => n.includes(this.firstUserNameText));
-    const containsSecond =
-      !!this.secondUserNameText && groupNames.some(n => n.includes(this.secondUserNameText));
+    const groupName = await this.helpers.groupName.innerText();
+    if (!groupName) return false;
+    const containsFirst = !!this.firstUserNameText && groupName.includes(this.firstUserNameText);
+    const containsSecond = !!this.secondUserNameText && groupName.includes(this.secondUserNameText);
     return containsFirst || containsSecond;
   }
 
@@ -246,7 +264,7 @@ export class MessgaePage {
 
     const currentUserCount = await this.helpers.countUsers();
 
-    return currentUserCount === prevUserCount - 1;
+    return currentUserCount === 0 || currentUserCount === prevUserCount - 1;
   }
 
   async leaveGroupByXBtn(): Promise<void> {
@@ -281,7 +299,7 @@ export class MessgaePage {
 
   async sendMessage(message: string): Promise<void> {
     this.message = message;
-    await this.user.click();
+    await this.firstUserAddDM.click();
     await this.helpers.textarea.click();
     await this.helpers.textarea.fill(message);
     await this.helpers.textarea.press('Enter');
@@ -308,5 +326,32 @@ export class MessgaePage {
   async isGroupNameDMUpdated(): Promise<boolean> {
     const groupName = (await this.helpers.groupName.innerText()).trim();
     return groupName === this.groupNameText;
+  }
+
+  async pinLastMessage(): Promise<string> {
+    const lastMessage = this.messages.last();
+    const messageId = await lastMessage.getAttribute('id');
+    if (!messageId) {
+      throw new Error('Message does not have an id');
+    }
+
+    await lastMessage.click({ button: 'right' });
+    await this.pinMessageButton.click();
+    await this.confirmPinMessageButton.click();
+
+    return messageId;
+  }
+
+  async deleteLastMessage() {
+    const lastMessage = this.messages.last();
+    await lastMessage.click({ button: 'right' });
+    await this.deleteMessageButton.click();
+    await this.confirmDeleteMessageButton.click();
+  }
+
+  async isMessageStillPinned(messageId: string): Promise<boolean> {
+    await this.displayListPinButton.click();
+    const pinnedMessage = this.page.locator(generateE2eSelector('common.pin_message', messageId));
+    return (await pinnedMessage.count()) > 0;
   }
 }

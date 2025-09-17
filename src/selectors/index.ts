@@ -139,6 +139,11 @@ export const DATA_E2E_IDENTIFIER = {
           cancel: '',
         },
       },
+      overview: {
+        input: {
+          clan_name: '',
+        },
+      },
     },
     channel_list: {
       item: {
@@ -149,6 +154,9 @@ export const DATA_E2E_IDENTIFIER = {
         },
         name: '',
       },
+      thread_item: {
+				name: ''
+			}
     },
   },
   chat: {
@@ -203,7 +211,15 @@ export const DATA_E2E_IDENTIFIER = {
           inbox: '',
           pin: '',
           canvas: '',
-          thread: '',
+          thread: {
+            modal: {
+              thread_management: {
+                button: {
+                  create_thread: ''
+                }
+              }
+            }
+          },
           chat: '',
         },
       },
@@ -220,8 +236,24 @@ export const DATA_E2E_IDENTIFIER = {
         forward_message: '',
         delete_message: '',
       },
-      thread_name_input: {
-        thread_box: '',
+      thread_box: {
+				input: {
+					thread_name: ''
+				},
+				checkbox: {
+					private_thread: ''
+				}
+			}
+    },
+    message_action_modal: {
+      button: {
+        base: '',
+      },
+      confirm_modal: {
+        button: {
+          confirm: '',
+          cancel: '',
+        },
       },
     },
     suggest_item: '',
@@ -270,6 +302,7 @@ export const DATA_E2E_IDENTIFIER = {
     item_pin_message: {
       username: '',
     },
+    pin_message: '',
   },
 };
 

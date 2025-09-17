@@ -1,10 +1,13 @@
-import { Browser, Page } from '@playwright/test';
+import { WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AuthHelper } from '@/utils/authHelper';
-import { WEBSITE_CONFIGS } from '@/config/environment';
+import { Browser } from '@playwright/test';
+import generateRandomString from './randomString';
+import sleep from './sleep';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
-
+const MAX_RETRIES = 3;
+const WAITING_TIME_MS = 5000;
 export interface ClanSetupConfig {
   clanNamePrefix?: string;
   suiteName?: string;
@@ -19,6 +22,7 @@ export interface ClanSetupResult {
 export class ClanSetupHelper {
   private browser: Browser;
   private cleanupFunctions: Array<() => Promise<void>> = [];
+  private retryCount: number = 0;
 
   constructor(browser: Browser) {
     this.browser = browser;
@@ -29,31 +33,24 @@ export class ClanSetupHelper {
    * @param config Configuration options for clan setup
    * @returns Promise<ClanSetupResult> Setup result with clan details and cleanup function
    */
+
   async setupTestClan(config: ClanSetupConfig = {}): Promise<ClanSetupResult> {
     const { clanNamePrefix = 'TestClan', suiteName = 'Test Suite' } = config;
 
-    const timestamp = Date.now();
-    const clanName = `${clanNamePrefix}_${timestamp}`;
+    const clanName = `${clanNamePrefix}_${generateRandomString(10)}`;
 
     const context = await this.browser.newContext();
     const page = await context.newPage();
 
     try {
-      // Authenticate the user
-      await AuthHelper.setAuthForSuite(page, suiteName);
-
-      // Navigate to home page
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
 
-      // Navigate to the clan creation area
       await clanPage.navigate('/chat/direct/friends');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
 
-      // Create new clan
       const createClanClicked = await clanPage.clickCreateClanButton();
       if (!createClanClicked) {
         throw new Error('Failed to click create clan button');
@@ -61,22 +58,18 @@ export class ClanSetupHelper {
 
       await clanPage.createNewClan(clanName);
 
-      // Wait for clan creation and verify it exists
       await page.waitForTimeout(5000);
       const clanExists = await clanPage.isClanPresent(clanName);
       if (!clanExists) {
         throw new Error(`Failed to create clan: ${clanName}`);
       }
 
-      // Get the clan URL
       const clanUrl = page.url();
 
-      // Create cleanup function
       const cleanup = async () => {
         await this.cleanupClan(clanName, clanUrl, suiteName);
       };
 
-      // Store cleanup function for batch cleanup
       this.cleanupFunctions.push(cleanup);
 
       await context.close();
@@ -88,7 +81,15 @@ export class ClanSetupHelper {
       };
     } catch (error) {
       await context.close();
-      throw new Error(`Failed to setup test clan: ${error}`);
+      if (this.retryCount >= MAX_RETRIES) {
+        throw new Error(`Failed to setup test clan: ${error}`);
+      }
+      this.retryCount++;
+      console.log(
+        `Waiting ${WAITING_TIME_MS}ms for retrying setup clan with test suite: ${config.suiteName} - (${this.retryCount}/${MAX_RETRIES})...`
+      );
+      await sleep(WAITING_TIME_MS);
+      return this.setupTestClan(config);
     }
   }
 
@@ -111,22 +112,16 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      // Authenticate the user
       await AuthHelper.setAuthForSuite(page, suiteName);
 
-      // Navigate to the specific clan URL to ensure we're in the right context
       await page.goto(clanUrl);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       const clanPage = new ClanPageV2(page);
 
-      // Delete the test clan
-      await clanPage.deleteClan(clanName);
-      await page.waitForTimeout(3000);
+      await clanPage.deleteClan();
     } catch (error) {
-      console.error(`❌ Failed to cleanup test clan: ${error}`);
-      // Don't throw error in cleanup to avoid affecting test results
+      console.log(`Failed to cleanup test clan: ${error}`);
     } finally {
       await context.close();
     }
@@ -134,18 +129,59 @@ export class ClanSetupHelper {
 
   /**
    * Cleans up all clans created by this helper instance
+   * @param browser Playwright browser instance
+   * @param suiteName Name of the test suite for authentication (default: 'Cleanup')
    */
-  async cleanupAllClans(): Promise<void> {
-    for (const cleanup of this.cleanupFunctions) {
-      try {
-        await cleanup();
-      } catch (error) {
-        console.error(`❌ Error during clan cleanup: ${error}`);
-      }
-    }
+  async cleanupAllClans(browser: Browser, suiteName: string = 'Cleanup'): Promise<void> {
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    this.cleanupFunctions = [];
-    console.log('✅ Clan cleanup completed');
+    try {
+      await AuthHelper.setAuthForSuite(page, suiteName);
+
+      await page.goto(MEZON_BASE_URL);
+      await page.waitForLoadState('domcontentloaded');
+
+      const clanPage = new ClanPageV2(page);
+      await clanPage.navigate('/chat/direct/friends');
+      await page.waitForLoadState('networkidle');
+
+      const clanItems = await clanPage.sidebar.clanItems;
+      const clanItemsCount = await clanItems.clanName.count();
+
+      if (clanItemsCount === 0) {
+        return;
+      }
+
+      for (let i = clanItemsCount - 1; i >= 0; i--) {
+        try {
+          const currentClanItems = await clanPage.sidebar.clanItems;
+          const currentCount = await currentClanItems.clanName.count();
+
+          if (i >= currentCount) {
+            continue;
+          }
+
+          const clanItem = currentClanItems.clanName.nth(i);
+
+          await clanItem.click();
+          const clanName = await clanPage.buttons.clanName.innerText();
+
+          await clanPage.deleteClan();
+        } catch (error) {
+          console.error(`❌ Failed to delete clan at index ${i}: ${error}`);
+          continue;
+        }
+      }
+
+      console.log('✅ All clans cleanup completed successfully');
+    } catch (error) {
+      console.error(`❌ Error during cleanup process: ${error}`);
+      throw error;
+    } finally {
+      await context.close();
+      console.log('🔄 Browser context closed');
+    }
   }
 
   /**
@@ -163,9 +199,29 @@ export class ClanSetupHelper {
    * Predefined configurations for common test scenarios
    */
   static readonly configs = {
-    messageTests: ClanSetupHelper.createConfig({
+    channelMessage1: ClanSetupHelper.createConfig({
       clanNamePrefix: 'MessageTestClan',
-      suiteName: 'Channel Message',
+      suiteName: 'Channel Message - Module 1',
+    }),
+
+    channelMessage2: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 2',
+    }),
+
+    channelMessage3: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 3',
+    }),
+
+    channelMessage4: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 4',
+    }),
+
+    channelMessage5: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 5',
     }),
 
     clanManagement: ClanSetupHelper.createConfig({
@@ -186,6 +242,10 @@ export class ClanSetupHelper {
     userProfile: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ProfileTest',
       suiteName: 'User Profile',
+    }),
+    threadManagement: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'ThreadMgmtTest',
+      suiteName: 'Thread Management',
     }),
   };
 

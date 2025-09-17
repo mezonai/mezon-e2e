@@ -3,13 +3,11 @@ name: Verify Automation Test Results
 on:
   workflow_dispatch:
   pull_request:
-    branches: [develop]
+    branches: [develop, main]
     types: [opened, synchronize, reopened]
 jobs:
   verify-automation-tests:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.55.0-noble
     steps:
       - name: Checkout mezon-e2e repository
         uses: actions/checkout@v4
@@ -22,52 +20,100 @@ jobs:
           repository: kientrinh-dev/mezon.git
           ref: develop
           path: mezon
-      - name: Install system dependencies
-        run: |
-          apt-get update
-          apt-get install -y \
-            build-essential \
-            make \
-            g++ \
-            wget \
-            curl \
-            software-properties-common \
-            libx11-dev \
-            libxss-dev \
-            libxext-dev \
-            libnss3-dev \
-            libatk-bridge2.0-dev \
-            libdrm2 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libgbm1 \
-            libxkbcommon0 \
-            libasound2t64
 
-      - name: Install Python 3.9
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: |
+            mezon/yarn.lock
+            mezon-e2e/yarn.lock
+
+      - name: Cache system dependencies
+        uses: actions/cache@v4
+        id: system-cache
+        with:
+          path: |
+            /var/cache/apt
+            /var/lib/apt/lists
+          key: ${{ runner.os }}-system-deps-${{ hashFiles('.github/workflows/playwright.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-system-deps-
+
+      - name: Install system dependencies
+        if: steps.system-cache.outputs.cache-hit != 'true'
         run: |
-          add-apt-repository ppa:deadsnakes/ppa -y
-          apt-get update
-          apt-get install -y python3.9 python3.9-dev python3.9-distutils
-          # Create symlinks for easier access
-          ln -sf /usr/bin/python3.9 /usr/local/bin/python3.9
+          echo "🏗️ Installing system dependencies (cache miss)..."
+          # Install system dependencies
+          sudo apt update
+          sudo apt install -y libx11-dev libxss-dev libxext-dev
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt-get update
+          sudo apt-get install -y python3.9 python3.9-dev python3.9-distutils
+          echo "✅ System dependencies installed"
+
+      - name: Setup Python symlink
+        run: |
+          if [ "${{ steps.system-cache.outputs.cache-hit }}" == "true" ]; then
+            echo "🚀 Using cached system dependencies"
+          fi
+          # Create symlinks for easier access (always needed as they don't persist in cache)
+          sudo ln -sf /usr/bin/python3.9 /usr/local/bin/python3.9
           echo "Python 3.9 installed at: $(which python3.9)"
           python3.9 --version
 
-      - name: Install mezon dependencies
-        working-directory: ./mezon
+      - name: Install dependencies in parallel
         run: |
-          echo "Installing mezon dependencies..."
-          # Set Python 3.9 for node-gyp (similar to your local setup)
-          export NODE_GYP_FORCE_PYTHON="/usr/bin/python3.9"
-          export python="/usr/bin/python3.9"
-          echo "Using Python: $python"
-          echo "NODE_GYP_FORCE_PYTHON: $NODE_GYP_FORCE_PYTHON"
-          # Verify Python version
-          $python --version
-          # Install dependencies
-          yarn install
+          echo "🚀 Installing dependencies in parallel..."
+
+          # Function to install mezon dependencies
+          install_mezon() {
+            cd ./mezon
+            echo "Installing mezon dependencies..."
+            # Set Python 3.9 for node-gyp (similar to your local setup)
+            export NODE_GYP_FORCE_PYTHON="/usr/bin/python3.9"
+            export python="/usr/bin/python3.9"
+            echo "Using Python: $python"
+            echo "NODE_GYP_FORCE_PYTHON: $NODE_GYP_FORCE_PYTHON"
+            # Verify Python version
+            $python --version
+            # Install dependencies
+            yarn install
+            echo "✅ Mezon dependencies installed"
+          }
+
+          # Function to install e2e dependencies and browsers
+          install_e2e() {
+            cd ./mezon-e2e
+            echo "Installing mezon-e2e dependencies..."
+            yarn install
+            echo "Installing Playwright browsers..."
+            npx playwright install chromium
+            echo "✅ E2E dependencies and browsers installed"
+          }
+
+          # Run both installations in parallel
+          install_mezon &
+          MEZON_PID=$!
+          install_e2e &
+          E2E_PID=$!
+
+          # Wait for both to complete
+          wait $MEZON_PID
+          MEZON_EXIT=$?
+          wait $E2E_PID
+          E2E_EXIT=$?
+
+          # Check if both succeeded
+          if [ $MEZON_EXIT -eq 0 ] && [ $E2E_EXIT -eq 0 ]; then
+            echo "🎉 All dependencies installed successfully!"
+          else
+            echo "❌ Dependency installation failed!"
+            echo "Mezon exit code: $MEZON_EXIT"
+            echo "E2E exit code: $E2E_EXIT"
+            exit 1
+          fi
 
       - name: Start mezon dev server
         working-directory: ./mezon
@@ -127,16 +173,11 @@ jobs:
             exit 1
           fi
 
-      - name: Install mezon-e2e dependencies
-        working-directory: ./mezon-e2e
-        run: yarn
-
       - name: Create environment file
         working-directory: ./mezon-e2e
         run: |
           cat > .env << EOF
-          BASE_URL=http://127.0.0.1:4200/
-          API_URL=http://127.0.0.1:4200/api
+          BASE_URL=http://localhost:4200/
           SKIP_LOGIN=true
           WORKERS=6
           CI=true
