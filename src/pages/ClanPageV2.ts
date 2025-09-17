@@ -84,6 +84,7 @@ export class ClanPageV2 extends BasePage {
   };
 
   readonly sidebar = {
+    clanItem: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item')),
     clanItems: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
@@ -107,6 +108,12 @@ export class ClanPageV2 extends BasePage {
     threadNameInput: this.page.locator(generateE2eSelector('chat.channel_message.thread_box.input.thread_name')),
     threadPrivateCheckbox: this.page.locator(generateE2eSelector('chat.channel_message.thread_box.checkbox.private_thread')),
     threadInputMention: this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`)
+  }
+
+  readonly modal = {
+    limitCreation: {
+      title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
+    }
   }
 
 
@@ -233,6 +240,21 @@ export class ClanPageV2 extends BasePage {
   
     try {
       await threadLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async getAllClan(): Promise<number> {
+    const clanElements = this.sidebar.clanItem;
+    return await clanElements.count();
+  }
+
+  async isLimitCreationModalPresent(): Promise<boolean> {
+    const limitCreationModalLocator = this.modal.limitCreation.title;
+    try {
+      await limitCreationModalLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
       return false;

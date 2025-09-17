@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx playwright test --project Chrome",
+    "test:standalone": "npx playwright test --project Chrome-Standalone",
     "test:setup": "npx playwright test --project setup && echo '\nTo open last HTML report run:\n\n\\033[32mnpm run report\\033[0m\n'",
     "test:debug": "npx playwright test --debug",
     "test:dual": "npx playwright test --project Chrome --ui",
