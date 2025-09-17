@@ -9,6 +9,7 @@
     "test:setup": "npx playwright test --project setup && echo '\nTo open last HTML report run:\n\n\\033[32mnpm run report\\033[0m\n'",
     "test:debug": "npx playwright test --debug",
     "test:dual": "npx playwright test --project Chrome --ui",
+    "test:cleanup": "npx playwright test --project cleanup",
     "test:report": "npx playwright show-report --host=127.0.0.1",
     "report:playwright": "npx playwright show-report",
     "allure:generate": "allure generate allure-results --clean -o allure-report",
