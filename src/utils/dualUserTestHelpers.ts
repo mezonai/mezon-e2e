@@ -25,7 +25,9 @@ export class DualUserTestHelpers {
             await this.page.waitForTimeout(500);
             break;
           }
-        } catch {}
+        } catch {
+          // Element might not exist or be clickable, continue
+        }
       }
     }
   }

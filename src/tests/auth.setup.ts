@@ -1,6 +1,5 @@
 import { test as setup } from '@playwright/test';
 import { WEBSITE_CONFIGS, persistentAuthConfigs } from '../config/environment';
-const authFile = 'playwright/.auth/user.json';
 
 // Setup authentication states for all accounts in persistentAuthConfigs
 setup('prepare all mezon auth states', async ({ browser }) => {
