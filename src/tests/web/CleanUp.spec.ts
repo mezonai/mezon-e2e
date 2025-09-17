@@ -5,7 +5,7 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('Manual Cleanup - All Clans', () => {
-  test.skip('Clean all clans from 1 account', async ({ browser }) => {
+  test('Clean all clans from 1 account', async ({ browser }) => {
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -21,7 +21,7 @@ test.describe('Manual Cleanup - All Clans', () => {
       
       **Expected Result:** All clans should be deleted successfully.
       
-      **Note:** This test is skipped by default. Remove test.skip to run manually.
+      **Note:** This test runs separately from main test suite using 'yarn test:cleanup' command.
     `);
 
     await AllureReporter.addLabels({
@@ -38,7 +38,7 @@ test.describe('Manual Cleanup - All Clans', () => {
     });
   });
 
-  test.skip('Clean all clans from all accounts', async ({ browser }) => {
+  test('Clean all clans from all accounts', async ({ browser }) => {
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -54,7 +54,7 @@ test.describe('Manual Cleanup - All Clans', () => {
       
       **Expected Result:** All clans from all accounts should be deleted successfully.
       
-      **Note:** This test is skipped by default. Remove test.skip to run manually.
+      **Note:** This test runs separately from main test suite using 'yarn test:cleanup' command.
       **Warning:** This will delete ALL clans from ALL accounts. Use with caution!
     `);
 

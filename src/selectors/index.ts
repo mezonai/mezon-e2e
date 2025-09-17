@@ -138,6 +138,10 @@ export const DATA_E2E_IDENTIFIER = {
           confirm: '',
           cancel: '',
         },
+        permission: {
+          confirm: '',
+          cancel: '',
+        },
       },
       overview: {
         input: {
