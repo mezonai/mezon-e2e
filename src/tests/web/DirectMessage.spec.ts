@@ -7,7 +7,6 @@ import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { HomePage } from '../../pages/HomePage';
-import { AuthHelper } from '@/utils/authHelper';
 
 test.describe('Direct Message', () => {
   test.use({ storageState: 'playwright/.auth/account4.json' });
@@ -218,7 +217,7 @@ test.describe('Direct Message', () => {
     });
   });
 
-  test.skip('Pinned message should be removed when deleted', async ({ page }) => {
+  test('Pinned message should be removed when deleted', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63627',
     });

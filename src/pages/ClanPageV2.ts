@@ -27,6 +27,21 @@ export class ClanPageV2 extends BasePage {
     ),
   };
 
+  readonly permissionModal = {
+    isVisible: async (): Promise<boolean> => {
+      const permissionModalLocator = this.page.locator(
+        generateE2eSelector('clan_page.settings.modal.permission')
+      );
+      try {
+        await permissionModalLocator.waitFor({ state: 'visible', timeout: 1000 });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    cancel: this.page.locator(generateE2eSelector('clan_page.settings.modal.permission.cancel')),
+  };
+
   public createChannelModal = {
     type: {
       text: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), {
@@ -143,6 +158,9 @@ export class ClanPageV2 extends BasePage {
       await categorySettingPage.input.delete.fill(clanName || '');
       await categorySettingPage.buttons.confirmDelete.click();
       await this.page.waitForLoadState('domcontentloaded');
+      if (await this.permissionModal.isVisible()) {
+        await this.permissionModal.cancel.click();
+      }
       return true;
     } catch (error) {
       console.error(`Error deleting clan: ${error}`);
