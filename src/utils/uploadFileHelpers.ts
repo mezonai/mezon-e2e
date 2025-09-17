@@ -154,7 +154,8 @@ export class FileSizeTestHelpers {
       'input#upload_banner_background',
       '[data-e2e="user_setting.profile.clan_profile.button_change_avatar"] input[type="file"]',
       'label:has-text("Change avatar") input[type="file"]',
-      'input[accept*=".jpg"], input[accept*="image"]',
+      'input[accept*=".jpg"], input[accept*=".jpeg"], input[accept*=".png"], input[accept*=".gif"], input[accept*="image"]',
+      'input[accept*="audio/mp3"], input[accept*="audio/mpeg"], input[accept*="audio/wav"], input[accept*="audio"]',
       'input[type="file"]',
     ];
 
@@ -178,6 +179,8 @@ export class FileSizeTestHelpers {
       this.page.getByText(/Your files are too powerful/i),
       this.page.getByText(/Max file size is/i),
       this.page.getByText(/too large|size exceeds|file size/i),
+      this.page.getByText(/File too big, max 1MB/i),
+      this.page.getByText(/Support file .mp3 or .wav/i),
     ];
 
     const timeoutMs = 4000;

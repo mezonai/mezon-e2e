@@ -239,6 +239,11 @@ export class ClanSetupHelper {
       suiteName: 'Onboarding Guide',
     }),
 
+    uploadFile: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'UploadFileTest',
+      suiteName: 'Upload File',
+    }),
+
     userProfile: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ProfileTest',
       suiteName: 'User Profile',
