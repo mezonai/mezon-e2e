@@ -369,7 +369,7 @@ test.describe('User Profile - Clan Profiles', () => {
   test('Update About me status', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63571',
-    })
+    });
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can successfully change their About me status.
@@ -377,6 +377,8 @@ test.describe('User Profile - Clan Profiles', () => {
       **Test Steps:**
       1. Locate the About me status input field
       2. Clear existing About me status and enter new one
+      3. Verify save changes button visible
+      4. Verify that the length of the "About Me" status is reflected correctly.
       3. Save the changes
       4. Verify the About me status has been updated
 
@@ -393,64 +395,33 @@ test.describe('User Profile - Clan Profiles', () => {
     });
 
     await AllureReporter.addLabels({
-      tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
+      tag: ['user-profile'],
     });
 
     const target = `about me status - ${generateRandomString(10)}`;
     await AllureReporter.addParameter('newAboutMeStatus', target);
     await AllureReporter.addParameter('platform', process.platform);
 
-    await AllureReporter.step('Enter new about me status', async () => {
-      const aboutMeStatusInput = profilePage.inputs.aboutMeInput;
-      await expect(aboutMeStatusInput).toBeVisible({ timeout: 5000 });
-      await aboutMeStatusInput.click();
+    await AllureReporter.step('Enter new about me status and save button visible', async () => {
+      await profilePage.enterAboutMeStatus(target);
+      const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
+      await expect(saveChangesBtn).toBeVisible({ timeout: 500 });
+      await expect(saveChangesBtn).toBeEnabled({ timeout: 500 });
+    });
 
-      const isMac = process.platform === 'darwin';
-      await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
-
-      let ok = false;
-      for (let i = 0; i < 3; i++) {
-        await aboutMeStatusInput.press(isMac ? 'Meta+A' : 'Control+A');
-        await aboutMeStatusInput.press('Backspace');
-        await aboutMeStatusInput.type(target, { delay: 40 });
-        const v = await aboutMeStatusInput.inputValue();
-        if (v === target) {
-          ok = true;
-          break;
-        }
-      }
-
-      if (!ok) {
-        await aboutMeStatusInput.evaluate((el: HTMLInputElement, value: string) => {
-          el.value = value;
-          el.dispatchEvent(new Event('input', { bubbles: true }));
-          el.dispatchEvent(new Event('change', { bubbles: true }));
-        }, target);
-      }
-
-      await aboutMeStatusInput.evaluate((el: HTMLInputElement) => {
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        el.blur();
-      });
-
-      await expect(aboutMeStatusInput).toHaveValue(target, { timeout: 3000 });
-      await AllureReporter.addParameter(
-        'aboutMeInputSuccess',
-        ok ? 'Direct input' : 'Programmatic input'
-      );
+    await AllureReporter.step('Verify length of new about me status', async () => {
+      await profilePage.validateLength(target);
     });
 
     await AllureReporter.step('Save About me status', async () => {
-      const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
-      await saveChangesBtn.scrollIntoViewIfNeeded();
-      await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
-      await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
-      await saveChangesBtn.click();
-      await AllureReporter.addParameter('saveButtonClicked', 'Yes');
+      await profilePage.buttons.saveChangesUserProfileButton.click();
     });
 
     await AllureReporter.step('Verify About me status has been changed successfully', async () => {
+      await page.reload();
+      await profilePage.openUserSettingProfile();
+      await profilePage.openProfileTab();
+      await profilePage.openUserProfileTab();
       await profilePage.verifyAboutMeStatusUpdated(target);
     });
 

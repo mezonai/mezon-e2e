@@ -1,6 +1,7 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+
 export class ProfilePage extends BasePage {
   constructor(page: Page) {
     super(page);
@@ -54,6 +55,16 @@ export class ProfilePage extends BasePage {
     ),
   };
 
+  readonly texts = {
+    aboutMeLength: this.page.locator(
+      generateE2eSelector('user_setting.profile.user_profile.text.about_me_length')
+    ),
+  };
+
+  async openUserSettingProfile() {
+    await this.buttons.userSettingProfileButton.click();
+  }
+
   async openProfileTab() {
     await this.tabs.profileTab.click();
   }
@@ -81,5 +92,21 @@ export class ProfilePage extends BasePage {
 
   async verifyAboutMeStatusUpdated(aboutMeStatus: string) {
     await expect(this.inputs.aboutMeInput).toHaveValue(aboutMeStatus, { timeout: 2000 });
+  }
+
+  async getAboutMeLength(): Promise<number> {
+    const text = await this.texts.aboutMeLength.innerText();
+    return parseInt(text.split('/')[0], 10);
+  }
+
+  async enterAboutMeStatus(aboutMeStatus: string) {
+    if (aboutMeStatus?.length > 0 && aboutMeStatus.length < 128) {
+      await this.inputs.aboutMeInput.fill(aboutMeStatus);
+    }
+  }
+
+  async validateLength(aboutMeStatus: string): Promise<boolean> {
+    const currentLength = await this.getAboutMeLength();
+    return aboutMeStatus.length === currentLength;
   }
 }
