@@ -38,7 +38,7 @@ test.describe('Manual Cleanup - All Clans', () => {
     });
   });
 
-  test('Clean all clans from all accounts', async ({ browser }) => {
+  test.skip('Clean all clans from all accounts', async ({ browser }) => {
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
