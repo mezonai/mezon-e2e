@@ -39,10 +39,18 @@ export class CategoryPage extends BasePage {
   };
 
   readonly categoryItem = {
-    name: this.page.locator(generateE2eSelector('clan_page.side_bar.channel_list.category')),
+    item: this.page.locator(generateE2eSelector('clan_page.side_bar.channel_list.category')),
+    itemName: this.page.locator(
+      generateE2eSelector('clan_page.side_bar.channel_list.category.name')
+    ),
+    addChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
   };
 
   readonly panelCategory = {
+    edit: this.page.locator(
+      `${generateE2eSelector('clan_page.side_bar.panel.category_panel')} ${generateE2eSelector('panel.panel_item')}`,
+      { hasText: 'Edit Category' }
+    ),
     delete: this.page.locator(
       `${generateE2eSelector('clan_page.side_bar.panel.category_panel')} ${generateE2eSelector('panel.panel_item')}`,
       { hasText: 'Delete Category' }
@@ -56,6 +64,13 @@ export class CategoryPage extends BasePage {
           hasText: 'Delete Category',
         }),
         cancel: this.page.locator(generateE2eSelector('modal.confirm_modal.button.cancel')),
+      },
+    },
+    editCategory: {
+      button: {
+        delete: this.page.locator(
+          generateE2eSelector('clan_page.modal.delete_category.button.delete')
+        ),
       },
     },
   };
@@ -81,7 +96,7 @@ export class CategoryPage extends BasePage {
 
   async isCategoryPresent(categoryName: string): Promise<boolean> {
     const categoryLocator = this.page.locator(
-      generateE2eSelector('clan_page.side_bar.channel_list.category'),
+      generateE2eSelector('clan_page.side_bar.channel_list.category.name'),
       { hasText: categoryName }
     );
     try {
@@ -109,15 +124,16 @@ export class CategoryPage extends BasePage {
   }
 
   async deleteCategory(categoryName: string): Promise<boolean> {
-    const categoryItem = this.categoryItem.name.filter({ hasText: categoryName });
+    const categoryItem = this.categoryItem.itemName.filter({ hasText: categoryName });
     await categoryItem.click({ button: 'right' });
-    await this.panelCategory.delete.click();
+    await this.panelCategory.edit.click();
+    await this.modal.editCategory.button.delete.click();
     await this.modal.deleteCategory.button.confirm.click();
     return true;
   }
 
   async isCategoryDeleted(categoryName: string): Promise<boolean> {
-    const categoryLocator = this.categoryItem.name.filter({
+    const categoryLocator = this.categoryItem.itemName.filter({
       hasText: categoryName,
     });
 

@@ -2,6 +2,8 @@ import { expect, Page } from '@playwright/test';
 import { CategoryPage } from '@/pages/CategoryPage';
 import generateRandomString from './randomString';
 import { AllureReporter } from './allureHelpers';
+import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 
 export class CategoryTestHelper {
   private page: Page;
@@ -10,8 +12,9 @@ export class CategoryTestHelper {
     this.page = page;
   }
 
-  async createAndVerifyCategory(categoryType: 'private' | 'public'): Promise<string> {
+  async createAndVerifyCategory(categoryType: 'private' | 'public', hasChannel?: boolean): Promise<string> {
     const categoryPage = new CategoryPage(this.page);
+    const clanPage = new ClanPageV2(this.page);
     const categoryName = `${categoryType}-category-${generateRandomString(10)}`;
 
     await AllureReporter.addParameter('categoryName', categoryName);
@@ -22,6 +25,10 @@ export class CategoryTestHelper {
     await AllureReporter.step(`Create new ${categoryType} category: ${categoryName}`, async () => {
       await categoryPage.createCategory(categoryName, categoryType);
       isCategoryPresent = await categoryPage.isCategoryPresent(categoryName);
+      if(hasChannel) {
+        const channelName = `channel-${generateRandomString(10)}`;
+        await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC, categoryName);
+      }
     });
     if (isCategoryPresent) {
       return categoryName;

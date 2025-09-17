@@ -92,23 +92,39 @@ export class ClanPageV2 extends BasePage {
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
     },
     threadItem: {
-      name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name'))
+      name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
+    },
+    categoryItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.side_bar.channel_list.category')),
+      itemName: this.page.locator(
+        generateE2eSelector('clan_page.side_bar.channel_list.category.name')
+      ),
+      addChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
     },
   };
 
   readonly header = {
     button: {
       thread: this.page.locator(generateE2eSelector('chat.channel_message.header.button.thread')),
-      createThread: this.page.locator(generateE2eSelector('chat.channel_message.header.button.thread.modal.thread_management.button.create_thread')),
-    }
-  }
+      createThread: this.page.locator(
+        generateE2eSelector(
+          'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
+        )
+      ),
+    },
+  };
 
   readonly threadBox = {
-    threadNameInput: this.page.locator(generateE2eSelector('chat.channel_message.thread_box.input.thread_name')),
-    threadPrivateCheckbox: this.page.locator(generateE2eSelector('chat.channel_message.thread_box.checkbox.private_thread')),
-    threadInputMention: this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`)
-  }
-
+    threadNameInput: this.page.locator(
+      generateE2eSelector('chat.channel_message.thread_box.input.thread_name')
+    ),
+    threadPrivateCheckbox: this.page.locator(
+      generateE2eSelector('chat.channel_message.thread_box.checkbox.private_thread')
+    ),
+    threadInputMention: this.page.locator(
+      `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`
+    ),
+  };
 
   async createNewClan(clanName: string): Promise<boolean> {
     try {
@@ -171,10 +187,20 @@ export class ClanPageV2 extends BasePage {
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
-    status?: ChannelStatus
+    status?: ChannelStatus,
+    categoryName?: string
   ): Promise<boolean> {
     try {
-      await this.buttons.createChannel.click();
+      let addChannelButton;
+      if (categoryName) {
+        addChannelButton = this.sidebar.categoryItem.item
+          .filter({ hasText: categoryName })
+          .locator(this.sidebar.categoryItem.addChannel);
+      } else {
+        addChannelButton = await this.buttons.createChannel;
+      }
+
+      await addChannelButton.click();
 
       switch (typeChannel) {
         case ChannelType.TEXT:
@@ -230,7 +256,7 @@ export class ClanPageV2 extends BasePage {
     const threadLocator = this.sidebar.threadItem.name.filter({
       hasText: threadName,
     });
-  
+
     try {
       await threadLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;

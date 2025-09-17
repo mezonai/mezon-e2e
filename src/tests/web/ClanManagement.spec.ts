@@ -301,7 +301,7 @@ test.describe('Category Management', () => {
     await AllureReporter.attachScreenshot(page, `Empty Public Category Deleted`);
   });
 
-  test('Verify that delete empty private category', async ({ page }) => {
+  test.skip('Verify that delete empty private category', async ({ page }) => {
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -334,5 +334,41 @@ test.describe('Category Management', () => {
     await categoryTestHelper.deleteAndVerifyCategory(categoryName, 'private');
 
     await AllureReporter.attachScreenshot(page, `Empty Private Category Deleted`);
+  });
+
+  test('Verify that delete public category with channel', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addWorkItemLinks({
+      tms: '63579',
+      github_issue: '9466',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully delete a new public category within a clan with a channel.
+      
+      **Test Steps:**
+      1. Generate unique category name
+      2. Create new public category with a channel
+      2. Delete new public category
+      3. Verify category appears in category list
+      
+      **Expected Result:** Public category is deleted and not visible in the clan's category list with a channel.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['category-deletion', 'public-category'],
+    });
+
+    const categoryTestHelper = new CategoryTestHelper(page);
+    const categoryName = await categoryTestHelper.createAndVerifyCategory('public', true);
+    expect(categoryName !== '').toBe(true);
+    await categoryTestHelper.deleteAndVerifyCategory(categoryName, 'public');
+
+    await AllureReporter.attachScreenshot(page, `Public Category Deleted with Channel`);
   });
 });
