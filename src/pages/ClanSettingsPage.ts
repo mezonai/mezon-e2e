@@ -1,9 +1,30 @@
-import { type Page } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { joinUrlPaths } from '../utils/joinUrlPaths';
 import { WEBSITE_CONFIGS } from '../config/environment';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 export class ClanSettingsPage extends BasePage {
+  readonly buttons = {
+    sidebarItem: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item')),
+    uploadEmoji: this.page.locator(generateE2eSelector('clan_page.settings.emoji.upload')),
+    uploadVoiceSticker: this.page.locator(
+      generateE2eSelector('clan_page.settings.voice_sticker.button_upload')
+    ),
+    enableOnboarding: this.page.locator(
+      generateE2eSelector('clan_page.settings.onboarding.button.enable_onboarding')
+    ),
+    editClanGuide: this.page.locator(
+      generateE2eSelector('clan_page.settings.onboarding.button.clan_guide')
+    ),
+    addResource: this.page.locator(
+      generateE2eSelector('clan_page.settings.onboarding.button.add_resources')
+    ),
+    enableCommunity: this.page.locator(
+      generateE2eSelector('clan_page.settings.community.button.enable_community')
+    ),
+  };
+
   private readonly clanMenuSelectors = [
     '[data-testid="clan-menu"]',
     'button:has-text("Clan")',
@@ -33,12 +54,41 @@ export class ClanSettingsPage extends BasePage {
     '[aria-label*="sticker" i]',
   ];
 
+  private readonly emojiSectionSelectors = [
+    '[data-testid="emoji-section"]',
+    'button:has-text("Emoji")',
+    'a:has-text("Emoji")',
+    'div:has-text("Emoji")',
+    '[aria-label*="emoji" i]',
+  ];
+
+  private readonly voiceStickerSectionSelectors = [
+    '[data-testid="voice-stickers"]',
+    'button:has-text("Voice Stickers")',
+    'a:has-text("Voice Stickers")',
+    'div:has-text("Voice Stickers")',
+    '[aria-label*="voice" i]',
+  ];
+
   private readonly uploadButtonSelectors = [
     '[data-testid="upload-stickers"]',
     'button:has-text("Upload Stickers")',
     'button:has-text("Upload")',
     '[aria-label*="upload" i]',
     'input[type="file"]',
+  ];
+
+  private readonly uploadEmojiButtonSelectors = [
+    '[data-testid="upload-emoji"]',
+    'button:has-text("Upload emoji")',
+    'div:has-text("Upload emoji")',
+    'text=Upload emoji',
+  ];
+
+  private readonly uploadVoiceButtonSelectors = [
+    '[data-testid="upload-sound"]',
+    'button:has-text("Upload sound")',
+    'text=Upload sound',
   ];
 
   private readonly modalSelectors = [
@@ -49,6 +99,8 @@ export class ClanSettingsPage extends BasePage {
     '[role="modal"]',
     '.overlay',
     '.modal-overlay',
+    '.bg-modal-overlay',
+    '[class*="modal-overlay"]',
     '[data-testid="modal"]',
     '[data-testid="upload-modal"]',
   ];
@@ -226,6 +278,58 @@ export class ClanSettingsPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
+  async clickSettingClanSection(section: string): Promise<void> {
+    await this.buttons.sidebarItem.filter({ hasText: section }).click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async createClanWebhookButton(): Promise<void> {
+    const button = this.page.locator(
+      generateE2eSelector('clan_page.settings.integrations.create_clan_webhook_button')
+    );
+    await button.click();
+    await this.page.waitForTimeout(500);
+    const new_clan_webhook_button = this.page.locator(
+      generateE2eSelector('clan_page.settings.integrations.new_clan_webhook_button')
+    );
+    await new_clan_webhook_button.click();
+    await this.page.waitForTimeout(1000);
+    const navigate_webhook_button = this.page.locator(
+      generateE2eSelector('clan_page.settings.integrations.navigate_webhook_button')
+    );
+    await navigate_webhook_button.click();
+  }
+
+  async clickVoiceStickersSection(): Promise<void> {
+    let sectionFound = false;
+
+    for (const selector of this.voiceStickerSectionSelectors) {
+      try {
+        const element = this.page.locator(selector).first();
+        if (await element.isVisible({ timeout: 3000 })) {
+          await element.click();
+          sectionFound = true;
+          break;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    if (!sectionFound) {
+      const textElements = this.page.getByText(/voice stickers|upload sound|sound effect/i);
+      const count = await textElements.count();
+      if (count > 0) {
+        await textElements.first().click();
+      } else {
+        await this.takeScreenshot('voice-stickers-section-not-found');
+        throw new Error('Cannot find Voice Stickers section');
+      }
+    }
+
+    await this.page.waitForTimeout(500);
+  }
+
   async clickUploadStickers(): Promise<void> {
     let uploadButtonFound = false;
 
@@ -263,6 +367,26 @@ export class ClanSettingsPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
+  async clickUploadEmoji(): Promise<void> {
+    await this.buttons.uploadEmoji.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async clickUploadVoiceStickers(): Promise<void> {
+    await this.buttons.uploadVoiceSticker.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async openEditOnboardingResource(): Promise<void> {
+    await this.buttons.enableOnboarding.click();
+    await this.buttons.editClanGuide.click();
+    await this.buttons.addResource.click();
+  }
+
+  async openCommunityModal(): Promise<void> {
+    await this.buttons.enableCommunity.click();
+  }
+
   async getVisibleModalCount(): Promise<number> {
     let visibleModals = 0;
 
@@ -293,9 +417,23 @@ export class ClanSettingsPage extends BasePage {
 
         return { isDisplayed: true, selector };
       } catch {
-        // Ignore errors
         continue;
       }
+    }
+
+    const contentSelectors = [
+      this.page.getByText(/Upload a file/i).first(),
+      this.page.getByText(/Sticker Name/i).first(),
+      this.page.getByRole('button', { name: /Never Mind/i }).first(),
+      this.page.getByRole('button', { name: /^Upload$/i }).first(),
+    ];
+
+    for (const locator of contentSelectors) {
+      try {
+        if (await locator.isVisible({ timeout: 1500 })) {
+          return { isDisplayed: true, selector: 'content-match' };
+        }
+      } catch {}
     }
 
     const allElements = this.page.locator('*');
@@ -789,9 +927,6 @@ export class ClanSettingsPage extends BasePage {
     }
   }
 
-  /**
-   * Full workflow: Open sticker upload modal
-   */
   async openStickerUploadModal(): Promise<void> {
     await this.verifyAuthentication();
     await this.navigateToFullClanSettings();
@@ -800,6 +935,122 @@ export class ClanSettingsPage extends BasePage {
 
     const modalResult = await this.isUploadModalDisplayed();
     if (!modalResult.isDisplayed) {
+      await this.takeScreenshot('sticker-upload-modal-not-found');
+      throw new Error('Cannot open Sticker upload modal');
+    }
+  }
+
+  async openEventsModal(): Promise<void> {
+    // await this.verifyAuthentication();
+
+    const candidates = [/^Events?$/i, /^\d+\s+Events?$/i, /Events?/i];
+    let opened = false;
+    for (const pattern of candidates) {
+      try {
+        const el = this.page.getByText(pattern).first();
+        if (await el.isVisible({ timeout: 1500 })) {
+          await el.click();
+          opened = true;
+          break;
+        }
+      } catch {
+        continue;
+      }
+    }
+    if (!opened) {
+      await this.takeScreenshot('events-modal-open-failed');
+      throw new Error('Cannot open Events modal');
+    }
+    await expect(this.page.getByText(/Create|Create Event/i)).toBeVisible();
+  }
+
+  async startCreateEvent(): Promise<void> {
+    const createBtn = this.page.getByText(/Create Event|Create/i).first();
+    await createBtn.click();
+    await this.page.waitForTimeout(400);
+  }
+
+  async goToEventInfoStep(): Promise<void> {
+    const nextBtn = this.page.getByRole('button', { name: /^Next$/ }).first();
+    await nextBtn.click();
+    await this.page.waitForTimeout(300);
+    await expect(this.page.getByText(/Cover Image/i)).toBeVisible();
+    await expect(this.page.getByText(/Upload Image/i)).toBeVisible();
+  }
+
+  async isFileValidationModalVisible(): Promise<boolean> {
+    const modal = this.page.locator('[data-e2e="modal.validate_file"]').first();
+    try {
+      return await modal.isVisible({ timeout: 1000 });
+    } catch {
+      return false;
+    }
+  }
+
+  async isRuleImagePreviewVisible(): Promise<boolean> {
+    const img = this.page.locator('img#blah').first();
+    try {
+      return await img.isVisible({ timeout: 1000 });
+    } catch {
+      return false;
+    }
+  }
+
+  async openCommunitySettings(): Promise<void> {
+    await this.verifyAuthentication();
+    await this.navigateToFullClanSettings();
+
+    const candidates = [
+      this.page.getByText(/^Enable Community$/i).first(),
+      this.page.getByRole('button', { name: /^Enable Community$/i }).first(),
+      this.page.getByText(/^Community Settings$/i).first(),
+      this.page.getByText(/^Community$/i).first(),
+    ];
+
+    let opened = false;
+    for (const el of candidates) {
+      try {
+        if (await el.isVisible({ timeout: 1500 })) {
+          await el.click();
+          opened = true;
+          break;
+        }
+      } catch {}
+    }
+
+    if (!opened) {
+      await this.takeScreenshot('community-settings-open-failed');
+      throw new Error('Cannot open Community Settings section');
+    }
+
+    const enableBtn = this.page
+      .getByRole('button', { name: /Enable Comunity|Enable Community/i })
+      .first();
+    if (await enableBtn.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await enableBtn.click();
+      await this.page.waitForTimeout(400);
+    }
+
+    await expect(this.page.getByText(/Community Banner/i)).toBeVisible();
+  }
+
+  async uploadCommunityBanner(filePath: string): Promise<void> {
+    let uploaded = false;
+    try {
+      const bannerLabel = this.page.getByText(/Community Banner/i).first();
+      const container = bannerLabel.locator('xpath=..');
+      const inputNear = container.locator('input[type="file"]').first();
+      if ((await inputNear.count()) > 0) {
+        await inputNear.setInputFiles(filePath);
+        uploaded = true;
+      }
+    } catch {}
+
+    if (!uploaded) {
+      const genericInput = this.page
+        .locator('input[type="file"][accept*="image"], input[type="file"][accept*="image/*"]')
+        .first();
+      await genericInput.setInputFiles(filePath);
     }
   }
 }

@@ -25,6 +25,14 @@ export class ClanPageV2 extends BasePage {
       `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Create' }
     ),
+    eventButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.events')),
+  };
+
+  readonly eventModal = {
+    createEventButton: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.button_create')
+    ),
+    nextButton: this.page.locator(generateE2eSelector('clan_page.modal.create_event.next')),
   };
 
   readonly permissionModal = {
@@ -92,23 +100,35 @@ export class ClanPageV2 extends BasePage {
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
     },
     threadItem: {
-      name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name'))
+      name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
+    },
+    panelItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
   };
 
   readonly header = {
     button: {
       thread: this.page.locator(generateE2eSelector('chat.channel_message.header.button.thread')),
-      createThread: this.page.locator(generateE2eSelector('chat.channel_message.header.button.thread.modal.thread_management.button.create_thread')),
-    }
-  }
+      createThread: this.page.locator(
+        generateE2eSelector(
+          'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
+        )
+      ),
+    },
+  };
 
   readonly threadBox = {
-    threadNameInput: this.page.locator(generateE2eSelector('chat.channel_message.thread_box.input.thread_name')),
-    threadPrivateCheckbox: this.page.locator(generateE2eSelector('chat.channel_message.thread_box.checkbox.private_thread')),
-    threadInputMention: this.page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`)
-  }
-
+    threadNameInput: this.page.locator(
+      generateE2eSelector('chat.channel_message.thread_box.input.thread_name')
+    ),
+    threadPrivateCheckbox: this.page.locator(
+      generateE2eSelector('chat.channel_message.thread_box.checkbox.private_thread')
+    ),
+    threadInputMention: this.page.locator(
+      `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`
+    ),
+  };
 
   async createNewClan(clanName: string): Promise<boolean> {
     try {
@@ -166,6 +186,32 @@ export class ClanPageV2 extends BasePage {
       console.error(`Error deleting clan: ${error}`);
       return false;
     }
+  }
+
+  async openClanSettings(): Promise<boolean> {
+    try {
+      const categoryPage = new CategoryPage(this.page);
+
+      await categoryPage.text.clanName.click();
+      await categoryPage.buttons.clanSettings.click();
+      return true;
+    } catch (error) {
+      console.error(`Error deleting clan: ${error}`);
+      return false;
+    }
+  }
+
+  async createEvent(): Promise<void> {
+    this.buttons.eventButton.click();
+    this.eventModal.createEventButton.click();
+    this.eventModal.nextButton.click();
+  }
+
+  async openChannelSettings(channelName: string): Promise<void> {
+    const channelLocator = this.sidebar.channelItem.name.filter({ hasText: channelName });
+    await channelLocator.click({ button: 'right' });
+    await this.sidebar.panelItem.item.filter({ hasText: 'Edit Channel' }).click();
+    await this.page.waitForTimeout(500);
   }
 
   async createNewChannel(
@@ -230,7 +276,7 @@ export class ClanPageV2 extends BasePage {
     const threadLocator = this.sidebar.threadItem.name.filter({
       hasText: threadName,
     });
-  
+
     try {
       await threadLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
