@@ -29,6 +29,7 @@ jobs:
           cat > .env << EOF
           BASE_URL=https://dev-mezon.nccsoft.vn
           WORKERS=6
+          AUTO_EXPORT_CREDENTIALS=${{ secrets.AUTO_EXPORT_CREDENTIALS }}
           EOF
 
       - name: Verify dev environment is accessible

@@ -289,7 +289,6 @@ test.describe('User Profile - Clan Profiles', () => {
   //   await AllureReporter.addDescription(`
   //     **Test Objective:** Verify that a user can successfully change their display name profile.
 
-
   //     **Test Steps:**
   //     1. Locate the display name input field
   //     2. Clear existing display name and enter new one
@@ -417,20 +416,26 @@ test.describe('User Profile - Clan Profiles', () => {
       await profilePage.buttons.saveChangesUserProfile.click();
     });
 
-    await AllureReporter.step('Verify About me status has been changed successfully at About me input', async () => {
-      await page.reload();
-      await profilePage.openUserSettingProfile();
-      await profilePage.openProfileTab();
-      await profilePage.openUserProfileTab();
-      await profilePage.verifyAboutMeStatusUpdated(target);
-    });
+    await AllureReporter.step(
+      'Verify About me status has been changed successfully at About me input',
+      async () => {
+        await page.reload();
+        await profilePage.openUserSettingProfile();
+        await profilePage.openProfileTab();
+        await profilePage.openUserProfileTab();
+        await profilePage.verifyAboutMeStatusUpdated(target);
+      }
+    );
 
     const mentionText = `mention text - ${generateRandomString(10)}`;
-    await AllureReporter.step('Verify About me status has been changed successfully at short profile', async () => {
-      await page.reload();
-      await profilePage.sendMessage(mentionText);
-      await profilePage.verifyAboutMeStatusInShortProfile(target);
-    });
+    await AllureReporter.step(
+      'Verify About me status has been changed successfully at short profile',
+      async () => {
+        await page.reload();
+        await profilePage.sendMessage(mentionText);
+        await profilePage.verifyAboutMeStatusInShortProfile(target);
+      }
+    );
 
     await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
   });
