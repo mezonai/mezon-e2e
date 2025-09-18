@@ -130,7 +130,9 @@ export async function waitForLoadingToComplete(
 ): Promise<void> {
   try {
     await waitForElementToHide(page, loadingSelector, timeout);
-  } catch {}
+  } catch {
+    // Loading element might not exist or timeout, continue
+  }
 }
 
 export async function waitForCondition(
@@ -178,7 +180,9 @@ export async function waitForAjaxRequests(page: Page, timeout: number = 30000): 
   await page.waitForFunction(
     () => {
       // Check if jQuery is available
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof (window as any).jQuery !== 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (window as any).jQuery.active === 0;
       }
 
@@ -205,18 +209,18 @@ export async function smartWait(
 ): Promise<void> {
   const timeout = options.timeout || 30000;
 
-  const promises: Promise<any>[] = [];
+  const promises: Promise<void>[] = [];
 
   if (options.loadState) {
     promises.push(waitForPageLoad(page, options.loadState));
   }
 
   if (options.element) {
-    promises.push(waitForElement(page, options.element, timeout));
+    promises.push(waitForElement(page, options.element, timeout).then(() => Promise.resolve()));
   }
 
   if (options.text) {
-    promises.push(waitForText(page, options.text, timeout));
+    promises.push(waitForText(page, options.text, timeout).then(() => Promise.resolve()));
   }
 
   if (options.url) {
@@ -235,7 +239,7 @@ export async function retryWithBackoff<T>(
   maxRetries: number = 3,
   baseDelay: number = 1000
 ): Promise<T> {
-  let lastError: Error;
+  let lastError: Error | undefined;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -253,5 +257,5 @@ export async function retryWithBackoff<T>(
     }
   }
 
-  throw lastError!;
+  throw lastError;
 }

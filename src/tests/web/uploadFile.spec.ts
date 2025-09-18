@@ -11,21 +11,20 @@ import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 test.describe('File Size Limits Validation', () => {
   let clanSetupHelper: ClanSetupHelper;
   let fileSizeHelpers: FileSizeTestHelpers;
-  let clanSettingsPage: ClanSettingsPage;
   let profilePage: ProfilePage;
   let testClanUrl: string;
 
   test.beforeAll(async ({ browser }: { browser: Browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
-    await clanSetupHelper.cleanupAllClans();
+    await clanSetupHelper.cleanupAllClans(browser);
 
     const setupResult = await clanSetupHelper.setupTestClan({ suiteName: 'FileSizeTests' });
 
     testClanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async () => {
-    if (clanSetupHelper) await clanSetupHelper.cleanupAllClans();
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper) await clanSetupHelper.cleanupAllClans(browser);
   });
 
   test.beforeEach(
@@ -47,7 +46,6 @@ test.describe('File Size Limits Validation', () => {
       await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
       fileSizeHelpers = new FileSizeTestHelpers(page);
-      clanSettingsPage = new ClanSettingsPage(page);
       profilePage = new ProfilePage(page);
 
       await AllureReporter.step('Navigate to test clan', async () => {

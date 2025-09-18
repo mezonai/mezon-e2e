@@ -19,7 +19,7 @@ test.describe('Create Clan', () => {
     clanSetupHelper = new ClanSetupHelper(browser);
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
     });
@@ -128,7 +128,7 @@ test.describe('Create Category', () => {
     }
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63510',
     });
