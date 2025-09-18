@@ -24,7 +24,7 @@ test.describe('Channel Management', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
       await clanSetupHelper.cleanupClan(
         clanName,

@@ -1,4 +1,4 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { joinUrlPaths } from '../utils/joinUrlPaths';
 import { WEBSITE_CONFIGS } from '../config/environment';
@@ -277,7 +277,9 @@ export class ClanSettingsPage extends BasePage {
             visibleModals++;
           }
         }
-      } catch {}
+      } catch {
+        // Element might not exist or be accessible, continue
+      }
     }
 
     return visibleModals;
@@ -309,7 +311,9 @@ export class ClanSettingsPage extends BasePage {
             return { isDisplayed: true, selector: `Element with z-index at position ${i}` };
           }
         }
-      } catch {}
+      } catch {
+        // Element might not exist or be accessible, continue
+      }
     }
 
     return { isDisplayed: false };

@@ -27,6 +27,9 @@ export const DATA_E2E_IDENTIFIER = {
     gif: '',
     emoji: '',
     sticker: '',
+    text: {
+			about_me: ''
+		}
   },
   discussion: {
     box: {
@@ -135,6 +138,10 @@ export const DATA_E2E_IDENTIFIER = {
       modal: {
         delete_clan: {
           input: '',
+          confirm: '',
+          cancel: '',
+        },
+        permission: {
           confirm: '',
           cancel: '',
         },

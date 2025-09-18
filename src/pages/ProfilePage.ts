@@ -33,14 +33,18 @@ export class ProfilePage extends BasePage {
   };
 
   readonly tabs = {
-    profile: this.page.locator(generateE2eSelector('user_setting.profile.tab_profile')),
+    profile: this.page.locator(
+      generateE2eSelector('user_setting.profile.tab_profile')
+    ),
     userProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.user_profile.button')
     ),
     clanProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.clan_profile.button')
     ),
-    account: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
+    account: this.page.locator(
+      generateE2eSelector('user_setting.account.tab_account')
+    ),
   };
 
   readonly inputs = {
@@ -53,13 +57,25 @@ export class ProfilePage extends BasePage {
     aboutMe: this.page.locator(
       `${generateE2eSelector('user_setting.profile.user_profile.input.about_me')}`
     ),
+    mention: this.page.locator(
+      `${generateE2eSelector('mention.input')}`
+    ),
   };
 
   readonly texts = {
     aboutMeLength: this.page.locator(
       generateE2eSelector('user_setting.profile.user_profile.text.about_me_length')
     ),
+    aboutMeInShortProfile : this.page.locator(
+      generateE2eSelector('mention.text.about_me')
+    )
   };
+
+  readonly profiles = {
+    displayName: this.page.locator(
+      generateE2eSelector('base_profile.display_name')
+    )
+  }
 
   async openUserSettingProfile() {
     await this.buttons.userSettingProfile.click();
@@ -108,5 +124,15 @@ export class ProfilePage extends BasePage {
   async validateLength(aboutMeStatus: string): Promise<boolean> {
     const currentLength = await this.getAboutMeLength();
     return aboutMeStatus.length === currentLength;
+  }
+
+  async sendMessage(mentionText: string) {
+    await this.inputs.mention.fill(mentionText);
+    await this.inputs.mention.press('Enter');
+  }
+
+  async verifyAboutMeStatusInShortProfile(aboutMeStatus: string) {
+    await this.profiles.displayName.click();
+    await expect(this.texts.aboutMeInShortProfile).toHaveText(aboutMeStatus, { timeout: 500 });
   }
 }

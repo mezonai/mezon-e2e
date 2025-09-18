@@ -26,7 +26,7 @@ test.describe('User Profile - Clan Profiles', () => {
     clanName = setupResult.clanName;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && testClanUrl) {
       await clanSetupHelper.cleanupClan(
         clanName,
@@ -36,7 +36,7 @@ test.describe('User Profile - Clan Profiles', () => {
     }
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     const profilePage = new ProfilePage(page);
 
     await AllureReporter.addWorkItemLinks({
@@ -417,12 +417,19 @@ test.describe('User Profile - Clan Profiles', () => {
       await profilePage.buttons.saveChangesUserProfile.click();
     });
 
-    await AllureReporter.step('Verify About me status has been changed successfully', async () => {
+    await AllureReporter.step('Verify About me status has been changed successfully at About me input', async () => {
       await page.reload();
       await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
       await profilePage.openUserProfileTab();
       await profilePage.verifyAboutMeStatusUpdated(target);
+    });
+
+    const mentionText = `mention text - ${generateRandomString(10)}`;
+    await AllureReporter.step('Verify About me status has been changed successfully at short profile', async () => {
+      await page.reload();
+      await profilePage.sendMessage(mentionText);
+      await profilePage.verifyAboutMeStatusInShortProfile(target);
     });
 
     await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
