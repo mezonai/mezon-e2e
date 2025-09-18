@@ -58,7 +58,7 @@ export class ClanSetupHelper {
 
       await clanPage.createNewClan(clanName);
 
-      await page.waitForTimeout(5000);
+      await page.waitForTimeout(1000);
       const clanExists = await clanPage.isClanPresent(clanName);
       if (!clanExists) {
         throw new Error(`Failed to create clan: ${clanName}`);

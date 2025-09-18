@@ -2,8 +2,29 @@ import { type Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { joinUrlPaths } from '../utils/joinUrlPaths';
 import { WEBSITE_CONFIGS } from '../config/environment';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 export class ClanSettingsPage extends BasePage {
+  readonly buttons = {
+    sidebarItem: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item')),
+    uploadEmoji: this.page.locator(generateE2eSelector('clan_page.settings.emoji.upload')),
+    uploadVoiceSticker: this.page.locator(
+      generateE2eSelector('clan_page.settings.voice_sticker.button_upload')
+    ),
+    enableOnboarding: this.page.locator(
+      generateE2eSelector('clan_page.settings.onboarding.button.enable_onboarding')
+    ),
+    editClanGuide: this.page.locator(
+      generateE2eSelector('clan_page.settings.onboarding.button.clan_guide')
+    ),
+    addResource: this.page.locator(
+      generateE2eSelector('clan_page.settings.onboarding.button.add_resources')
+    ),
+    enableCommunity: this.page.locator(
+      generateE2eSelector('clan_page.settings.community.button.enable_community')
+    ),
+  };
+
   private readonly clanMenuSelectors = [
     '[data-testid="clan-menu"]',
     'button:has-text("Clan")',
@@ -257,35 +278,26 @@ export class ClanSettingsPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
-  async clickEmojiSection(): Promise<void> {
-    let emojiSectionFound = false;
-
-    for (const selector of this.emojiSectionSelectors) {
-      try {
-        const element = this.page.locator(selector).first();
-        if (await element.isVisible({ timeout: 3000 })) {
-          await element.click();
-          emojiSectionFound = true;
-
-          break;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    if (!emojiSectionFound) {
-      const textElements = this.page.getByText(/emoji/i);
-      const count = await textElements.count();
-      if (count > 0) {
-        await textElements.first().click();
-      } else {
-        await this.takeScreenshot('emoji-section-not-found');
-        throw new Error('Cannot find Emoji section');
-      }
-    }
-
+  async clickSettingClanSection(section: string): Promise<void> {
+    await this.buttons.sidebarItem.filter({ hasText: section }).click();
     await this.page.waitForTimeout(1000);
+  }
+
+  async createClanWebhookButton(): Promise<void> {
+    const button = this.page.locator(
+      generateE2eSelector('clan_page.settings.integrations.create_clan_webhook_button')
+    );
+    await button.click();
+    await this.page.waitForTimeout(500);
+    const new_clan_webhook_button = this.page.locator(
+      generateE2eSelector('clan_page.settings.integrations.new_clan_webhook_button')
+    );
+    await new_clan_webhook_button.click();
+    await this.page.waitForTimeout(1000);
+    const navigate_webhook_button = this.page.locator(
+      generateE2eSelector('clan_page.settings.integrations.navigate_webhook_button')
+    );
+    await navigate_webhook_button.click();
   }
 
   async clickVoiceStickersSection(): Promise<void> {
@@ -316,40 +328,6 @@ export class ClanSettingsPage extends BasePage {
     }
 
     await this.page.waitForTimeout(500);
-  }
-
-  async clickUploadVoiceStickers(): Promise<void> {
-    let uploadFound = false;
-
-    for (const selector of this.uploadVoiceButtonSelectors) {
-      try {
-        const element = this.page.locator(selector).first();
-        if (await element.isVisible({ timeout: 3000 })) {
-          await element.click();
-          uploadFound = true;
-          break;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    if (!uploadFound) {
-      const uploadElements = this.page.getByRole('button', { name: /upload sound/i });
-      if (
-        await uploadElements
-          .first()
-          .isVisible({ timeout: 1000 })
-          .catch(() => false)
-      ) {
-        await uploadElements.first().click();
-      } else {
-        await this.takeScreenshot('upload-voice-button-not-found');
-        throw new Error('Cannot find Upload sound button');
-      }
-    }
-
-    await expect(this.page.getByText(/Upload Sound Effect|Edit Sound Effect/i)).toBeVisible();
   }
 
   async clickUploadStickers(): Promise<void> {
@@ -390,37 +368,23 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async clickUploadEmoji(): Promise<void> {
-    let uploadButtonFound = false;
-
-    for (const selector of this.uploadEmojiButtonSelectors) {
-      try {
-        const element = this.page.locator(selector).first();
-        if (await element.isVisible({ timeout: 3000 })) {
-          await element.scrollIntoViewIfNeeded();
-          await element.click();
-          uploadButtonFound = true;
-
-          break;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    if (!uploadButtonFound) {
-      const uploadElements = this.page.getByText(/upload emoji/i);
-      const count = await uploadElements.count();
-      if (count > 0) {
-        const el = uploadElements.first();
-        await el.scrollIntoViewIfNeeded();
-        await el.click();
-      } else {
-        await this.takeScreenshot('upload-emoji-button-not-found');
-        throw new Error('Cannot find Upload emoji button');
-      }
-    }
-
+    await this.buttons.uploadEmoji.click();
     await this.page.waitForTimeout(1000);
+  }
+
+  async clickUploadVoiceStickers(): Promise<void> {
+    await this.buttons.uploadVoiceSticker.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async openEditOnboardingResource(): Promise<void> {
+    await this.buttons.enableOnboarding.click();
+    await this.buttons.editClanGuide.click();
+    await this.buttons.addResource.click();
+  }
+
+  async openCommunityModal(): Promise<void> {
+    await this.buttons.enableCommunity.click();
   }
 
   async getVisibleModalCount(): Promise<number> {
@@ -972,26 +936,6 @@ export class ClanSettingsPage extends BasePage {
     }
   }
 
-  async openEmojiUploadModal(): Promise<void> {
-    await this.verifyAuthentication();
-    await this.navigateToFullClanSettings();
-    await this.clickEmojiSection();
-    await this.clickUploadEmoji();
-
-    const modalResult = await this.isUploadModalDisplayed();
-    if (!modalResult.isDisplayed) {
-      await this.takeScreenshot('emoji-upload-modal-not-found');
-      throw new Error('Cannot open Emoji upload modal');
-    }
-  }
-
-  async openVoiceStickersUploadModal(): Promise<void> {
-    await this.verifyAuthentication();
-    await this.navigateToFullClanSettings();
-    await this.clickVoiceStickersSection();
-    await this.clickUploadVoiceStickers();
-  }
-
   async openEventsModal(): Promise<void> {
     // await this.verifyAuthentication();
 
@@ -1030,11 +974,6 @@ export class ClanSettingsPage extends BasePage {
     await expect(this.page.getByText(/Upload Image/i)).toBeVisible();
   }
 
-  async uploadEventCover(filePath: string): Promise<void> {
-    const input = this.page.locator('label:has-text("Upload Image") input[type="file"]').first();
-    await input.setInputFiles(filePath);
-  }
-
   async isFileValidationModalVisible(): Promise<boolean> {
     const modal = this.page.locator('[data-e2e="modal.validate_file"]').first();
     try {
@@ -1042,75 +981,6 @@ export class ClanSettingsPage extends BasePage {
     } catch {
       return false;
     }
-  }
-
-  async openOnboardingResourceAddModal(): Promise<void> {
-    await this.verifyAuthentication();
-    await this.navigateToFullClanSettings();
-
-    const onboardingCandidates = [
-      this.page.getByRole('button', { name: /^Onboarding$/i }).first(),
-      this.page.getByText(/^Onboarding$/i).first(),
-      this.page.locator('button:has-text("Onboarding")').first(),
-    ];
-
-    let openedOnboarding = false;
-    for (const candidate of onboardingCandidates) {
-      try {
-        if (await candidate.isVisible({ timeout: 1500 })) {
-          await candidate.click();
-          openedOnboarding = true;
-          break;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    if (!openedOnboarding) {
-      const anyOnboarding = this.page.getByText(/Onboarding/i).first();
-      if (await anyOnboarding.isVisible({ timeout: 1500 }).catch(() => false)) {
-        await anyOnboarding.click();
-      } else {
-        await this.takeScreenshot('onboarding-section-not-found');
-        throw new Error('Cannot find Onboarding section in settings');
-      }
-    }
-
-    const clanGuideText = this.page.getByText(/Clan Guide/i).first();
-    const clanGuideVisible = await clanGuideText.isVisible({ timeout: 1000 }).catch(() => false);
-    if (!clanGuideVisible) {
-      const enableBtn = this.page.getByRole('button', { name: /Enable Onboarding/i }).first();
-      if (await enableBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
-        await enableBtn.click();
-      }
-    }
-    await expect(this.page.getByText(/Clan Guide/i)).toBeVisible();
-
-    const clanGuideRow = this.page.locator('div:has-text("Clan Guide")').first();
-    const editButton = clanGuideRow.getByText(/Edit/i).first();
-    if (await editButton.isVisible({ timeout: 1500 }).catch(() => false)) {
-      await editButton.click();
-    } else {
-      const anyEdit = this.page.getByText(/^Edit$/i).first();
-      if (await anyEdit.isVisible({ timeout: 1500 }).catch(() => false)) {
-        await anyEdit.click();
-      } else {
-        await this.takeScreenshot('clan-guide-edit-button-not-found');
-        throw new Error('Cannot open Clan Guide editor');
-      }
-    }
-
-    await expect(this.page.getByText(/Resource Pages/i)).toBeVisible();
-
-    const addResourceBtn = this.page.getByText(/Add a resource/i).first();
-    await addResourceBtn.click();
-    await expect(this.page.getByText(/Edit Resources/i)).toBeVisible();
-  }
-
-  async uploadOnboardingResourceImage(filePath: string): Promise<void> {
-    const input = this.page.locator('button:has-text("Browse") input[type="file"]').first();
-    await input.setInputFiles(filePath);
   }
 
   async isRuleImagePreviewVisible(): Promise<boolean> {
@@ -1178,111 +1048,5 @@ export class ClanSettingsPage extends BasePage {
         .first();
       await genericInput.setInputFiles(filePath);
     }
-  }
-
-  async openIntegrationsSection(): Promise<void> {
-    await this.verifyAuthentication();
-    await this.navigateToFullClanSettings();
-
-    const integrationsCandidates = [
-      this.page.getByText(/^Integrations$/i).first(),
-      this.page.getByRole('button', { name: /^Integrations$/i }).first(),
-    ];
-
-    let opened = false;
-    for (const el of integrationsCandidates) {
-      try {
-        if (await el.isVisible({ timeout: 1500 })) {
-          await el.click();
-          opened = true;
-          break;
-        }
-      } catch {}
-    }
-
-    if (!opened) {
-      await this.takeScreenshot('integrations-open-failed');
-      throw new Error('Cannot open Integrations section');
-    }
-
-    await this.page.waitForTimeout(600);
-  }
-
-  async openChannelWebhooksList(): Promise<void> {
-    await this.openIntegrationsSection();
-
-    const createBtn = this.page.getByText(/^Create Webhook$/i).first();
-    if (await createBtn.isVisible({ timeout: 800 }).catch(() => false)) {
-      await createBtn.click();
-      await this.page.waitForTimeout(800);
-    }
-
-    const viewBtn = this.page.getByText(/View Webhook/i).first();
-    if (await viewBtn.isVisible({ timeout: 1200 }).catch(() => false)) {
-      await viewBtn.click();
-    } else {
-      const webhooksCard = this.page.getByText(/^Webhooks$/i).first();
-      if (await webhooksCard.isVisible({ timeout: 1200 }).catch(() => false)) {
-        await webhooksCard.click();
-      }
-    }
-
-    const newWebhookBtn = this.page.getByText(/^New Webhook$/i).first();
-    if (await newWebhookBtn.isVisible({ timeout: 800 }).catch(() => false)) {
-      await newWebhookBtn.click();
-      await this.page.waitForTimeout(800);
-    }
-
-    await expect(this.page.getByAltText(/Webhook avatar/i).first()).toBeVisible();
-  }
-
-  async openClanWebhooksList(): Promise<void> {
-    await this.openIntegrationsSection();
-
-    const createBtn = this.page.getByText(/^Create Clan Webhook$/i).first();
-    if (await createBtn.isVisible({ timeout: 800 }).catch(() => false)) {
-      await createBtn.click();
-      await this.page.waitForTimeout(800);
-    }
-
-    const viewBtn = this.page.getByText(/View Clan Webhook/i).first();
-    if (await viewBtn.isVisible({ timeout: 1200 }).catch(() => false)) {
-      await viewBtn.click();
-    } else {
-      const clanWebhooksCard = this.page.getByText(/^Clan Webhooks$/i).first();
-      if (await clanWebhooksCard.isVisible({ timeout: 1200 }).catch(() => false)) {
-        await clanWebhooksCard.click();
-      }
-    }
-
-    const newClanWebhookBtn = this.page.getByText(/^New Clan Webhook$/i).first();
-    if (await newClanWebhookBtn.isVisible({ timeout: 800 }).catch(() => false)) {
-      await newClanWebhookBtn.click();
-      await this.page.waitForTimeout(800);
-    }
-
-    await expect(this.page.getByAltText(/Webhook avatar/i).first()).toBeVisible();
-  }
-
-  async uploadWebhookAvatarFromFirstItem(filePath: string): Promise<void> {
-    const firstAvatarImg = this.page.getByAltText(/Webhook avatar/i).first();
-    await expect(firstAvatarImg).toBeVisible();
-
-    const input = firstAvatarImg
-      .locator('xpath=ancestor::div[contains(@class, "w-3/12")][1]//input[@type="file"]')
-      .first();
-
-    const count = await input.count().catch(() => 0);
-    if (count === 0) {
-      const fallbackInput = firstAvatarImg
-        .locator(
-          'xpath=ancestor::div[1]//input[@type="file"] | ancestor::div[2]//input[@type="file"]'
-        )
-        .first();
-      await fallbackInput.setInputFiles(filePath);
-      return;
-    }
-
-    await input.setInputFiles(filePath);
   }
 }
