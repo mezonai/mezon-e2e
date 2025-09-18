@@ -1,5 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
+import { MessgaePage } from '@/pages/MessagePage';
 
 export class MessageTestHelpers {
   private page: Page;
@@ -680,23 +681,14 @@ export class MessageTestHelpers {
   }
 
   async handleDeleteConfirmation(): Promise<void> {
-    const confirmSelectors = [
-      'button:has-text("Delete")',
-      'button:has-text("Confirm")',
-      'button:has-text("Yes")',
-      '[data-testid="confirm-delete"]',
-      '.confirm-button',
-      'button[class*="danger"]',
-      'button[class*="destructive"]',
-    ];
+    const messagePage = new MessgaePage(this.page);
 
-    for (const selector of confirmSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 3000 })) {
-        await element.click();
-        await this.page.waitForTimeout(2000);
-        return;
-      }
+    const element = messagePage.confirmDeleteMessageButton;
+    try {
+      await element.waitFor({ state: 'visible', timeout: 5000 });
+      await element.click();
+    } catch {
+      throw new Error('Could not find delete confirmation button');
     }
 
     await this.page.waitForTimeout(2000);
