@@ -32,7 +32,7 @@ export class AuthHelper {
    * @returns The account key that was used
    */
   static async setAuthForSuite(page: Page, suiteName: string) {
-    const { config, accountKey } = getAuthConfigBySuite(suiteName);
+    const { accountKey } = getAuthConfigBySuite(suiteName);
     await this.setAuthForAccount(page, accountKey as AccountKey);
     return accountKey;
   }

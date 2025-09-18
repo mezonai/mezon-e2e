@@ -258,14 +258,18 @@ export class LoginPage extends BasePage {
   async clearAllFields(): Promise<void> {
     try {
       await this.page.locator(this.selectors.emailInput).clear();
-    } catch {}
+    } catch {
+      // Element might not exist, continue silently
+    }
 
     try {
       const otpInput = this.page.locator(this.selectors.otpInput);
       if (await otpInput.isVisible()) {
         await otpInput.clear();
       }
-    } catch {}
+    } catch {
+      // OTP input might not exist, continue silently
+    }
   }
 
   async loginWithExistingUser(email: string, password: string): Promise<void> {
