@@ -165,8 +165,6 @@ export class ClanSetupHelper {
           const clanItem = currentClanItems.clanName.nth(i);
 
           await clanItem.click();
-          const clanName = await clanPage.buttons.clanName.innerText();
-
           await clanPage.deleteClan();
         } catch (error) {
           console.error(`❌ Failed to delete clan at index ${i}: ${error}`);

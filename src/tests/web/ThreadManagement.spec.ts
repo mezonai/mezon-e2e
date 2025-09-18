@@ -51,8 +51,6 @@ test.describe('Thread in Private Channel', () => {
       const clanPage = new ClanPageV2(page);
       const privateChannelName = `private-channel-${generateRandomString(5)}`;
       await clanPage.createNewChannel(ChannelType.TEXT, privateChannelName, ChannelStatus.PRIVATE);
-      const channelUrl = page.url();
-      await page.goto(channelUrl);
     });
 
     await AllureReporter.addParameter('clanName', clanName);
@@ -125,6 +123,8 @@ test.describe('Thread in Public Channel', () => {
   let clanName: string;
   let clanUrl: string;
 
+  test.use({ storageState: 'playwright/.auth/account7.json' });
+
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
 
@@ -161,8 +161,6 @@ test.describe('Thread in Public Channel', () => {
       const clanPage = new ClanPageV2(page);
       const publicChannelName = `public-channel-${generateRandomString(5)}`;
       await clanPage.createNewChannel(ChannelType.TEXT, publicChannelName);
-      const channelUrl = page.url();
-      await page.goto(channelUrl);
     });
 
     await AllureReporter.addParameter('clanName', clanName);
