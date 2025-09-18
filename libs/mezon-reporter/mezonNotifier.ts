@@ -44,8 +44,6 @@ export class MezonNotifier {
   }
 
   async send(message: string, payload?: NotificationPayload): Promise<void> {
-    // console.log('[Mezon] Attempting to send notification:', message);
-
     if (!this.isEnabled) {
       return;
     }
@@ -55,7 +53,6 @@ export class MezonNotifier {
       const { ReportExporter } = await import('./reportExporter');
       const reportExporter = new ReportExporter();
       const exportResult = await reportExporter.exportPlaywrightReport();
-
       const enrichedPayload = {
         ...payload,
         ...githubInfo,
@@ -64,8 +61,6 @@ export class MezonNotifier {
         project: 'Mezon E2E Tests',
         reportUrl: exportResult?.reportUrl,
       };
-
-      // Check if this is a simple start message or if all tests passed (simple success message)
       const isStartMessage = message.includes('started') || message.includes('🚀');
       const isAllTestsPassed =
         message.includes('Successfully') &&
@@ -80,7 +75,6 @@ export class MezonNotifier {
 
       const body = this.createMezonWebhookPayload(messageToSend);
 
-      // console.log(`[Mezon] Sending ${isSimpleMessage ? 'simple' : 'detailed'} notification...`);
       if (this.webhookUrl) {
         await fetch(this.webhookUrl, {
           method: 'POST',
