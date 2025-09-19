@@ -27,6 +27,8 @@ setup('prepare all mezon auth states', async ({ browser }) => {
           // Set mezon session
           localStorage.setItem('mezon_session', JSON.stringify(authData.mezonSession));
 
+          localStorage.setItem('i18nextLng', 'en');
+
           // Set persist auth data
           localStorage.setItem(
             'persist:auth',

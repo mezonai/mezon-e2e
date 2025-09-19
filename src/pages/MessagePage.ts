@@ -105,7 +105,9 @@ export class MessgaePage {
     this.memberListInGroup = page.locator(
       generateE2eSelector('chat.direct_message.member_list.member_count')
     );
-    this.editGroupButton = page.locator('button[title="Edit Group"]');
+    this.editGroupButton = page.locator(
+      generateE2eSelector('chat.direct_message.edit_group.button')
+    );
     this.groupNameInput = page.locator('input[placeholder="Enter group name"]');
     this.saveGroupNameButton = page.locator('button:has-text("Save")');
     this.leaveGroupButtonInPopup = page.locator(
@@ -157,10 +159,18 @@ export class MessgaePage {
     );
   }
 
+  async gotoDMPage(): Promise<void> {
+    await this.page.goto('/chat/direct/friends');
+  }
+
   async createGroup(): Promise<void> {
     await this.openSelectFriendsModal();
     await this.pickFriends(2);
     await this.submitCreate();
+  }
+
+  async clickEditButton(): Promise<void> {
+    await this.editGroupButton.click();
   }
 
   private async openSelectFriendsModal(): Promise<void> {

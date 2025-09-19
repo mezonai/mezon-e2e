@@ -25,6 +25,14 @@ export class ClanPageV2 extends BasePage {
       `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Create' }
     ),
+    eventButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.events')),
+  };
+
+  readonly eventModal = {
+    createEventButton: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.button_create')
+    ),
+    nextButton: this.page.locator(generateE2eSelector('clan_page.modal.create_event.next')),
   };
 
   readonly permissionModal = {
@@ -100,6 +108,9 @@ export class ClanPageV2 extends BasePage {
         generateE2eSelector('clan_page.side_bar.channel_list.category.name')
       ),
       addChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
+    },
+    panelItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
   };
 
@@ -182,6 +193,32 @@ export class ClanPageV2 extends BasePage {
       console.error(`Error deleting clan: ${error}`);
       return false;
     }
+  }
+
+  async openClanSettings(): Promise<boolean> {
+    try {
+      const categoryPage = new CategoryPage(this.page);
+
+      await categoryPage.text.clanName.click();
+      await categoryPage.buttons.clanSettings.click();
+      return true;
+    } catch (error) {
+      console.error(`Error deleting clan: ${error}`);
+      return false;
+    }
+  }
+
+  async createEvent(): Promise<void> {
+    this.buttons.eventButton.click();
+    this.eventModal.createEventButton.click();
+    this.eventModal.nextButton.click();
+  }
+
+  async openChannelSettings(channelName: string): Promise<void> {
+    const channelLocator = this.sidebar.channelItem.name.filter({ hasText: channelName });
+    await channelLocator.click({ button: 'right' });
+    await this.sidebar.panelItem.item.filter({ hasText: 'Edit Channel' }).click();
+    await this.page.waitForTimeout(500);
   }
 
   async createNewChannel(
