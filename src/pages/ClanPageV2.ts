@@ -102,6 +102,13 @@ export class ClanPageV2 extends BasePage {
     threadItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
     },
+    categoryItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.side_bar.channel_list.category')),
+      itemName: this.page.locator(
+        generateE2eSelector('clan_page.side_bar.channel_list.category.name')
+      ),
+      addChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
+    },
     panelItem: {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
@@ -217,10 +224,20 @@ export class ClanPageV2 extends BasePage {
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
-    status?: ChannelStatus
+    status?: ChannelStatus,
+    categoryName?: string
   ): Promise<boolean> {
     try {
-      await this.buttons.createChannel.click();
+      let addChannelButton;
+      if (categoryName) {
+        addChannelButton = this.sidebar.categoryItem.item
+          .filter({ hasText: categoryName })
+          .locator(this.sidebar.categoryItem.addChannel);
+      } else {
+        addChannelButton = await this.buttons.createChannel;
+      }
+
+      await addChannelButton.click();
 
       switch (typeChannel) {
         case ChannelType.TEXT:

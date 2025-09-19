@@ -37,6 +37,9 @@ export const DATA_E2E_IDENTIFIER = {
       topic: '',
     },
   },
+  panel: {
+    panel_item: '',
+  },
   homepage: {
     header: {
       link: '',
@@ -85,12 +88,17 @@ export const DATA_E2E_IDENTIFIER = {
         name: '',
       },
       channel_list: {
-        category: '',
+        category: {
+          name: '',
+        },
       },
       button: {
         add_clan: '',
         add_channel: '',
         events: '',
+      },
+      panel: {
+        category_panel: '',
       },
     },
     modal: {
@@ -130,6 +138,11 @@ export const DATA_E2E_IDENTIFIER = {
         button: {
           confirm: '',
           cancel: '',
+        },
+      },
+      delete_category: {
+        button: {
+          delete: '',
         },
       },
       create_event: {
@@ -393,6 +406,12 @@ export const DATA_E2E_IDENTIFIER = {
     validate_file: {
       title: '',
       content: '',
+    },
+    confirm_modal: {
+      button: {
+        confirm: '',
+        cancel: '',
+      },
     },
   },
 };
