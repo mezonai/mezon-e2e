@@ -132,6 +132,9 @@ export const DATA_E2E_IDENTIFIER = {
           cancel: '',
         },
       },
+      limit_creation: {
+        title: '',
+      },
       create_event: {
         button_create: '',
         next: '',

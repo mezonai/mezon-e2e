@@ -250,6 +250,10 @@ export class ClanSetupHelper {
       clanNamePrefix: 'ThreadMgmtTest',
       suiteName: 'Thread Management',
     }),
+    standaloneClanManagement: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'StandaloneClanManagementTest',
+      suiteName: 'Standalone - Clan Management',
+    }),
   };
 
   /**
