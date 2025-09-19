@@ -294,46 +294,11 @@ test.describe('Category Management', () => {
     });
 
     const categoryTestHelper = new CategoryTestHelper(page);
-    const categoryName = await categoryTestHelper.createAndVerifyCategory('public');
-    expect(categoryName !== '').toBe(true);
-    await categoryTestHelper.deleteAndVerifyCategory(categoryName, 'public');
+    const result = await categoryTestHelper.createAndVerifyCategory('public');
+    expect(result.categoryName !== '').toBe(true);
+    await categoryTestHelper.deleteAndVerifyCategory(result.categoryName, 'public');
 
     await AllureReporter.attachScreenshot(page, `Empty Public Category Deleted`);
-  });
-
-  test.skip('Verify that delete empty private category', async ({ page }) => {
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
-
-    await AllureReporter.addWorkItemLinks({
-      tms: '63578',
-      github_issue: '9466',
-    });
-
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a user can successfully delete a new empty private category within a clan.
-      
-      **Test Steps:**
-      1. Generate unique category name
-      2. Delete new empty private category
-      3. Verify category appears in category list
-      
-      **Expected Result:** Private category is deleted and not visible in the clan's category list.
-    `);
-
-    await AllureReporter.addLabels({
-      tag: ['category-deletion', 'empty-private-category'],
-    });
-
-    const categoryTestHelper = new CategoryTestHelper(page);
-    const categoryName = await categoryTestHelper.createAndVerifyCategory('private');
-    expect(categoryName !== '').toBe(true);
-    await categoryTestHelper.deleteAndVerifyCategory(categoryName, 'private');
-
-    await AllureReporter.attachScreenshot(page, `Empty Private Category Deleted`);
   });
 
   test('Verify that delete public category with channel', async ({ page }) => {
@@ -365,9 +330,9 @@ test.describe('Category Management', () => {
     });
 
     const categoryTestHelper = new CategoryTestHelper(page);
-    const categoryName = await categoryTestHelper.createAndVerifyCategory('public', true);
-    expect(categoryName !== '').toBe(true);
-    await categoryTestHelper.deleteAndVerifyCategory(categoryName, 'public');
+    const result = await categoryTestHelper.createAndVerifyCategory('public', true);
+    expect(result.categoryName !== '' && result.channelName !== '').toBe(true);
+    await categoryTestHelper.deleteAndVerifyCategoryWithChannel(result.categoryName, 'public', result.channelName);
 
     await AllureReporter.attachScreenshot(page, `Public Category Deleted with Channel`);
   });

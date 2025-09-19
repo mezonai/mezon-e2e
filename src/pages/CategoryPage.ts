@@ -48,11 +48,11 @@ export class CategoryPage extends BasePage {
 
   readonly panelCategory = {
     edit: this.page.locator(
-      `${generateE2eSelector('clan_page.side_bar.panel.category_panel')} ${generateE2eSelector('panel.panel_item')}`,
+      `${generateE2eSelector('clan_page.side_bar.panel.category_panel')} ${generateE2eSelector('clan_page.channel_list.panel.item')}`,
       { hasText: 'Edit Category' }
     ),
     delete: this.page.locator(
-      `${generateE2eSelector('clan_page.side_bar.panel.category_panel')} ${generateE2eSelector('panel.panel_item')}`,
+      `${generateE2eSelector('clan_page.side_bar.panel.category_panel')} ${generateE2eSelector('clan_page.channel_list.panel.item')}`,
       { hasText: 'Delete Category' }
     ),
   };
