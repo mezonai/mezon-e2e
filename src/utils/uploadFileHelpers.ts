@@ -202,6 +202,22 @@ export class FileSizeTestHelpers {
     await clanWebhookAvatarInput.setInputFiles(filePath);
   }
 
+  private async uploadDirectMessageIcon(filePath: string): Promise<void> {
+    const directMessageIconInput = this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.upload.direct_message_icon_input')} `
+    );
+
+    await directMessageIconInput.setInputFiles(filePath);
+  }
+
+  private async uploadGroupAvt(filePath: string): Promise<void> {
+    const directMessageIconInput = this.page.locator(
+      `${generateE2eSelector('chat.direct_message.edit_group.upload.avatar_group_input')} `
+    );
+
+    await directMessageIconInput.setInputFiles(filePath);
+  }
+
   private async uploadChannelWebhookAvatar(filePath: string): Promise<void> {
     const channelWebhookAvatarInput = this.page.locator(
       `${generateE2eSelector('channel_setting_page.webhook.input.avatar_channel_webhook')} `
@@ -235,11 +251,19 @@ export class FileSizeTestHelpers {
   }
 
   private async uploadClanLogo(filePath: string): Promise<void> {
-    const clanLoginInput = this.page.locator(
+    const clanLogoInput = this.page.locator(
       generateE2eSelector('clan_page.settings.upload.clan_logo_input')
     );
 
-    await clanLoginInput.setInputFiles(filePath);
+    await clanLogoInput.setInputFiles(filePath);
+  }
+
+  private async uploadClanLogoInNewClanModal(filePath: string): Promise<void> {
+    const clanLogoInput = this.page.locator(
+      generateE2eSelector('clan_page.modal.create_clan.input.upload_avatar_clan')
+    );
+
+    await clanLogoInput.setInputFiles(filePath);
   }
 
   private async uploadClanBanner(filePath: string): Promise<void> {
@@ -342,6 +366,29 @@ export class FileSizeTestHelpers {
     return { success, fileSize: size, errorMessage: errorMessage };
   }
 
+  async uploadClanLogoInCreateClanModalAndVerify(
+    filePath: string,
+    expectedSuccess: boolean
+  ): Promise<UploadVerificationResult> {
+    const size = (await stat(filePath)).size;
+
+    await this.uploadClanLogoInNewClanModal(filePath);
+
+    const errorMessage = await this.waitForErrorModal();
+    const success = !errorMessage;
+
+    if (expectedSuccess) {
+      await this.page.waitForTimeout(500);
+      const lateError = await this.waitForErrorModal();
+      if (lateError) {
+        return { success: false, fileSize: size, errorMessage: lateError };
+      }
+      await this.waitForSuccessIndicator();
+    }
+
+    return { success, fileSize: size, errorMessage: errorMessage };
+  }
+
   async uploadClanBannerAndVerify(
     filePath: string,
     expectedSuccess: boolean
@@ -425,6 +472,52 @@ export class FileSizeTestHelpers {
     const size = (await stat(filePath)).size;
 
     await this.uploadClanWebhookAvatar(filePath);
+
+    const errorMessage = await this.waitForErrorModal();
+    const success = !errorMessage;
+
+    if (expectedSuccess) {
+      await this.page.waitForTimeout(500);
+      const lateError = await this.waitForErrorModal();
+      if (lateError) {
+        return { success: false, fileSize: size, errorMessage: lateError };
+      }
+      await this.waitForSuccessIndicator();
+    }
+
+    return { success, fileSize: size, errorMessage: errorMessage };
+  }
+
+  async uploadDirectMessageIconAndVerify(
+    filePath: string,
+    expectedSuccess: boolean
+  ): Promise<UploadVerificationResult> {
+    const size = (await stat(filePath)).size;
+
+    await this.uploadDirectMessageIcon(filePath);
+
+    const errorMessage = await this.waitForErrorModal();
+    const success = !errorMessage;
+
+    if (expectedSuccess) {
+      await this.page.waitForTimeout(500);
+      const lateError = await this.waitForErrorModal();
+      if (lateError) {
+        return { success: false, fileSize: size, errorMessage: lateError };
+      }
+      await this.waitForSuccessIndicator();
+    }
+
+    return { success, fileSize: size, errorMessage: errorMessage };
+  }
+
+  async uploadGroupAvtAndVerify(
+    filePath: string,
+    expectedSuccess: boolean
+  ): Promise<UploadVerificationResult> {
+    const size = (await stat(filePath)).size;
+
+    await this.uploadGroupAvt(filePath);
 
     const errorMessage = await this.waitForErrorModal();
     const success = !errorMessage;
