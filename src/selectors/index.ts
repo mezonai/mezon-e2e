@@ -28,8 +28,8 @@ export const DATA_E2E_IDENTIFIER = {
     emoji: '',
     sticker: '',
     text: {
-			about_me: ''
-		}
+      about_me: '',
+    },
   },
   discussion: {
     box: {
@@ -346,15 +346,15 @@ export const DATA_E2E_IDENTIFIER = {
       user_profile: {
         input: {
           display_name: '',
-          about_me: ''
+          about_me: '',
         },
         button: {
           reset: '',
           save_changes: '',
         },
-				text: {
-					about_me_length: ''
-				}
+        text: {
+          about_me_length: '',
+        },
       },
       clan_profile: {
         button: '',

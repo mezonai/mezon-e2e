@@ -8,15 +8,11 @@ export class ProfilePage extends BasePage {
   }
 
   readonly buttons = {
-    editUserprofile: this.page.locator(
-      generateE2eSelector('user_setting.account.edit_profile')
-    ),
+    editUserprofile: this.page.locator(generateE2eSelector('user_setting.account.edit_profile')),
     editDisplayName: this.page.locator(
       generateE2eSelector('user_setting.account.edit_display_name')
     ),
-    editUserName: this.page.locator(
-      generateE2eSelector('user_setting.account.edit_username')
-    ),
+    editUserName: this.page.locator(generateE2eSelector('user_setting.account.edit_username')),
     saveChangesClanProfile: this.page.locator(
       `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Save Changes' }
@@ -33,18 +29,10 @@ export class ProfilePage extends BasePage {
   };
 
   readonly tabs = {
-    profile: this.page.locator(
-      generateE2eSelector('user_setting.profile.tab_profile')
-    ),
-    userProfile: this.page.locator(
-      generateE2eSelector('user_setting.profile.user_profile.button')
-    ),
-    clanProfile: this.page.locator(
-      generateE2eSelector('user_setting.profile.clan_profile.button')
-    ),
-    account: this.page.locator(
-      generateE2eSelector('user_setting.account.tab_account')
-    ),
+    profile: this.page.locator(generateE2eSelector('user_setting.profile.tab_profile')),
+    userProfile: this.page.locator(generateE2eSelector('user_setting.profile.user_profile.button')),
+    clanProfile: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.button')),
+    account: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
   };
 
   readonly inputs = {
@@ -57,25 +45,19 @@ export class ProfilePage extends BasePage {
     aboutMe: this.page.locator(
       `${generateE2eSelector('user_setting.profile.user_profile.input.about_me')}`
     ),
-    mention: this.page.locator(
-      `${generateE2eSelector('mention.input')}`
-    ),
+    mention: this.page.locator(`${generateE2eSelector('mention.input')}`),
   };
 
   readonly texts = {
     aboutMeLength: this.page.locator(
       generateE2eSelector('user_setting.profile.user_profile.text.about_me_length')
     ),
-    aboutMeInShortProfile : this.page.locator(
-      generateE2eSelector('mention.text.about_me')
-    )
+    aboutMeInShortProfile: this.page.locator(generateE2eSelector('mention.text.about_me')),
   };
 
   readonly profiles = {
-    displayName: this.page.locator(
-      generateE2eSelector('base_profile.display_name')
-    )
-  }
+    displayName: this.page.locator(generateE2eSelector('base_profile.display_name')),
+  };
 
   async openUserSettingProfile() {
     await this.buttons.userSettingProfile.click();

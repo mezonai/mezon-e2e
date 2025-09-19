@@ -181,6 +181,7 @@ jobs:
           SKIP_LOGIN=true
           WORKERS=6
           CI=true
+          AUTO_EXPORT_CREDENTIALS=${{ secrets.AUTO_EXPORT_CREDENTIALS }}
           EOF
 
       - name: Run automation tests
