@@ -17,6 +17,81 @@ export type UploadVerificationResult = {
   errorMessage?: string;
 };
 
+export enum UploadType {
+  STICKER = 'sticker',
+  VOICE_STICKER = 'voiceSticker',
+  CLAN_WEBHOOK_AVATAR = 'clanWebhookAvatar',
+  DIRECT_MESSAGE_ICON = 'directMessageIcon',
+  GROUP_AVATAR = 'groupAvatar',
+  CHANNEL_WEBHOOK_AVATAR = 'channelWebhookAvatar',
+  ONBOARDING_RESOURCE = 'onboardingResource',
+  COMMUNITY_BANNER = 'communityBanner',
+  EVENT_IMAGE_COVER = 'eventImageCover',
+  CLAN_LOGO = 'clanLogo',
+  CLAN_LOGO_NEW_MODAL = 'clanLogoNewModal',
+  CLAN_BANNER = 'clanBanner',
+}
+
+type UploadConfig = {
+  selector: string;
+  errorSelector?: string;
+};
+
+const UPLOAD_CONFIGS: Record<UploadType, UploadConfig> = {
+  [UploadType.STICKER]: {
+    selector: `${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[accept*=".jpg"], input[accept*=".jpeg"], input[accept*=".png"], input[accept*=".gif"], input[accept*="image"]`,
+  },
+  [UploadType.VOICE_STICKER]: {
+    selector: `${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')} input[accept*="audio/mp3"], input[accept*="audio/mpeg"], input[accept*="audio/wav"]`,
+    errorSelector: generateE2eSelector('clan_page.settings.upload.voice_sticker_input.error'),
+  },
+  [UploadType.CLAN_WEBHOOK_AVATAR]: {
+    selector: generateE2eSelector('clan_page.settings.upload.clan_webhook_avatar_input'),
+  },
+  [UploadType.DIRECT_MESSAGE_ICON]: {
+    selector: generateE2eSelector(
+      'user_setting.profile.user_profile.upload.direct_message_icon_input'
+    ),
+  },
+  [UploadType.GROUP_AVATAR]: {
+    selector: generateE2eSelector('chat.direct_message.edit_group.upload.avatar_group_input'),
+  },
+  [UploadType.CHANNEL_WEBHOOK_AVATAR]: {
+    selector: generateE2eSelector('channel_setting_page.webhook.input.avatar_channel_webhook'),
+  },
+  [UploadType.ONBOARDING_RESOURCE]: {
+    selector: generateE2eSelector('clan_page.settings.upload.onboarding_resource_input'),
+  },
+  [UploadType.COMMUNITY_BANNER]: {
+    selector: generateE2eSelector('clan_page.settings.upload.community_banner_input'),
+  },
+  [UploadType.EVENT_IMAGE_COVER]: {
+    selector: generateE2eSelector('clan_page.modal.create_event.upload.image_cover_input'),
+  },
+  [UploadType.CLAN_LOGO]: {
+    selector: generateE2eSelector('clan_page.settings.upload.clan_logo_input'),
+  },
+  [UploadType.CLAN_LOGO_NEW_MODAL]: {
+    selector: generateE2eSelector('clan_page.modal.create_clan.input.upload_avatar_clan'),
+  },
+  [UploadType.CLAN_BANNER]: {
+    selector: generateE2eSelector('clan_page.settings.upload.clan_banner_input'),
+  },
+};
+
+/**
+ * FileSizeTestHelpers - Utility class for testing file upload functionality and size limits
+ *
+ * This class provides methods to:
+ * 1. Create test files of specific sizes (images and generic files)
+ * 2. Upload files to various components using a consolidated approach
+ * 3. Verify upload success/failure and error messages
+ *
+ * The class has been refactored to use:
+ * - Enum-based upload types for better maintainability
+ * - Generic upload and verification methods to reduce code duplication
+ * - Configuration-driven selectors for different upload components
+ */
 export class FileSizeTestHelpers {
   private page: Page;
   private tmpDir: string;
@@ -41,7 +116,6 @@ export class FileSizeTestHelpers {
           res.statusCode < 400 &&
           res.headers.location
         ) {
-          // Follow redirect
           return resolve(this.downloadToBuffer(res.headers.location));
         }
         if (res.statusCode !== 200) {
@@ -75,7 +149,7 @@ export class FileSizeTestHelpers {
         base = await this.downloadToBuffer(url);
         if (base && base.length > 0) break;
       } catch {
-        // Element might not exist or be accessible, continue
+        continue;
       }
     }
     if (!base) {
@@ -131,18 +205,63 @@ export class FileSizeTestHelpers {
     for (const p of paths) {
       try {
         await unlink(p);
-      } catch {
-        /* noop */
-      }
+      } catch {}
     }
   }
 
-  private async visible(locator: ReturnType<Page['locator']>): Promise<boolean> {
-    try {
-      return await locator.first().isVisible({ timeout: 300 });
-    } catch {
-      return false;
+  // Generic upload method that can handle any upload type
+  private async uploadFile(filePath: string, uploadType: UploadType): Promise<void> {
+    const config = UPLOAD_CONFIGS[uploadType];
+    const input = this.page.locator(config.selector);
+    await input.setInputFiles(filePath);
+  }
+
+  // Generic verification method for most upload types
+  private async verifyUpload(
+    filePath: string,
+    expectedSuccess: boolean,
+    uploadType?: UploadType
+  ): Promise<UploadVerificationResult> {
+    const size = (await stat(filePath)).size;
+    let errorMessage: string | undefined;
+
+    // Handle special case for voice sticker
+    if (uploadType === UploadType.VOICE_STICKER) {
+      const config = UPLOAD_CONFIGS[uploadType];
+      if (config.errorSelector) {
+        const error = this.page.locator(config.errorSelector);
+        if (await error.isVisible({ timeout: 3000 })) {
+          errorMessage = await error.innerText();
+        }
+      }
+    } else {
+      errorMessage = await this.waitForErrorModal();
     }
+
+    const success = !errorMessage;
+
+    if (expectedSuccess) {
+      await this.page.waitForTimeout(500);
+
+      if (uploadType === UploadType.VOICE_STICKER && UPLOAD_CONFIGS[uploadType].errorSelector) {
+        const error = this.page.locator(UPLOAD_CONFIGS[uploadType].errorSelector!);
+        if (await error.isVisible({ timeout: 1000 })) {
+          const lateError = await error.innerText();
+          if (lateError) {
+            return { success: false, fileSize: size, errorMessage: lateError };
+          }
+        }
+      } else {
+        const lateError = await this.waitForErrorModal();
+        if (lateError) {
+          return { success: false, fileSize: size, errorMessage: lateError };
+        }
+      }
+
+      await this.waitForSuccessIndicator();
+    }
+
+    return { success, fileSize: size, errorMessage };
   }
 
   private async setFileOnBestInput(filePath: string): Promise<void> {
@@ -169,109 +288,19 @@ export class FileSizeTestHelpers {
         try {
           await input.setInputFiles(filePath);
           return;
-        } catch {
-          // Element might not exist or be accessible, continue
-        }
+        } catch {}
       }
     }
 
     throw new Error('No suitable file input found to upload');
   }
 
-  private async uploadSticker(filePath: string): Promise<void> {
-    const stickerInput = this.page.locator(
-      `${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[accept*=".jpg"], input[accept*=".jpeg"], input[accept*=".png"], input[accept*=".gif"], input[accept*="image"]`
-    );
-
-    await stickerInput.setInputFiles(filePath);
-  }
-
-  private async uploadVoiceSticker(filePath: string): Promise<void> {
-    const voiceStickerInput = this.page.locator(
-      `${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')} input[accept*="audio/mp3"], input[accept*="audio/mpeg"], input[accept*="audio/wav"]`
-    );
-
-    await voiceStickerInput.setInputFiles(filePath);
-  }
-
-  private async uploadClanWebhookAvatar(filePath: string): Promise<void> {
-    const clanWebhookAvatarInput = this.page.locator(
-      `${generateE2eSelector('clan_page.settings.upload.clan_webhook_avatar_input')} `
-    );
-
-    await clanWebhookAvatarInput.setInputFiles(filePath);
-  }
-
-  private async uploadDirectMessageIcon(filePath: string): Promise<void> {
-    const directMessageIconInput = this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.upload.direct_message_icon_input')} `
-    );
-
-    await directMessageIconInput.setInputFiles(filePath);
-  }
-
-  private async uploadGroupAvt(filePath: string): Promise<void> {
-    const directMessageIconInput = this.page.locator(
-      `${generateE2eSelector('chat.direct_message.edit_group.upload.avatar_group_input')} `
-    );
-
-    await directMessageIconInput.setInputFiles(filePath);
-  }
-
-  private async uploadChannelWebhookAvatar(filePath: string): Promise<void> {
-    const channelWebhookAvatarInput = this.page.locator(
-      `${generateE2eSelector('channel_setting_page.webhook.input.avatar_channel_webhook')} `
-    );
-
-    await channelWebhookAvatarInput.setInputFiles(filePath);
-  }
-
-  private async uploadOnboardingResource(filePath: string): Promise<void> {
-    const onboardingResourceInput = this.page.locator(
-      `${generateE2eSelector('clan_page.settings.upload.onboarding_resource_input')} `
-    );
-
-    await onboardingResourceInput.setInputFiles(filePath);
-  }
-
-  private async uploadCommunityBanner(filePath: string): Promise<void> {
-    const communityBannerInput = this.page.locator(
-      `${generateE2eSelector('clan_page.settings.upload.community_banner_input')} `
-    );
-
-    await communityBannerInput.setInputFiles(filePath);
-  }
-
-  private async uploadEventImageCover(filePath: string): Promise<void> {
-    const eventImageCoverInput = this.page.locator(
-      `${generateE2eSelector('clan_page.modal.create_event.upload.image_cover_input')} `
-    );
-
-    await eventImageCoverInput.setInputFiles(filePath);
-  }
-
-  private async uploadClanLogo(filePath: string): Promise<void> {
-    const clanLogoInput = this.page.locator(
-      generateE2eSelector('clan_page.settings.upload.clan_logo_input')
-    );
-
-    await clanLogoInput.setInputFiles(filePath);
-  }
-
-  private async uploadClanLogoInNewClanModal(filePath: string): Promise<void> {
-    const clanLogoInput = this.page.locator(
-      generateE2eSelector('clan_page.modal.create_clan.input.upload_avatar_clan')
-    );
-
-    await clanLogoInput.setInputFiles(filePath);
-  }
-
-  private async uploadClanBanner(filePath: string): Promise<void> {
-    const clanBannerInput = this.page.locator(
-      generateE2eSelector('clan_page.settings.upload.clan_banner_input')
-    );
-
-    await clanBannerInput.setInputFiles(filePath);
+  private async visible(locator: ReturnType<Page['locator']>): Promise<boolean> {
+    try {
+      return await locator.first().isVisible({ timeout: 300 });
+    } catch {
+      return false;
+    }
   }
 
   private async waitForErrorModal(): Promise<string | undefined> {
@@ -309,9 +338,7 @@ export class FileSizeTestHelpers {
               clearTimeout(timer);
               resolve();
             }
-          } catch {
-            /* noop */
-          }
+          } catch {}
         });
       });
       return true;
@@ -320,309 +347,59 @@ export class FileSizeTestHelpers {
     }
   }
 
+  // Generic upload and verify method for all upload types
+  private async uploadAndVerify(
+    filePath: string,
+    uploadType: UploadType,
+    expectedSuccess: boolean
+  ): Promise<UploadVerificationResult> {
+    await this.uploadFile(filePath, uploadType);
+    return await this.verifyUpload(filePath, expectedSuccess, uploadType);
+  }
+
+  // Public methods for uploading and verifying files
   async uploadFileAndVerify(
     filePath: string,
     expectedSuccess: boolean
   ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
     await this.setFileOnBestInput(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
+    return await this.verifyUpload(filePath, expectedSuccess);
   }
 
-  async uploadClanLogoAndVerify(
+  // Mapping-based approach for all upload types - more maintainable
+  private readonly uploadMethodMap = {
+    uploadClanLogoAndVerify: UploadType.CLAN_LOGO,
+    uploadClanLogoInCreateClanModalAndVerify: UploadType.CLAN_LOGO_NEW_MODAL,
+    uploadClanBannerAndVerify: UploadType.CLAN_BANNER,
+    uploadStickerAndVerify: UploadType.STICKER,
+    uploadVoiceStickerAndVerify: UploadType.VOICE_STICKER,
+    uploadClanWebhookAvatarAndVerify: UploadType.CLAN_WEBHOOK_AVATAR,
+    uploadDirectMessageIconAndVerify: UploadType.DIRECT_MESSAGE_ICON,
+    uploadGroupAvtAndVerify: UploadType.GROUP_AVATAR,
+    uploadChannelWebhookAvatarAndVerify: UploadType.CHANNEL_WEBHOOK_AVATAR,
+    uploadOnboardingResourceAndVerify: UploadType.ONBOARDING_RESOURCE,
+    uploadCommunityBannerAndVerify: UploadType.COMMUNITY_BANNER,
+    uploadEventImageCoverAndVerify: UploadType.EVENT_IMAGE_COVER,
+  } as const;
+
+  /**
+   * Universal upload and verify method - Use this directly in tests!
+   * @param filePath - Path to the file to upload
+   * @param uploadType - Type of upload (from UploadType enum)
+   * @param expectedSuccess - Whether the upload is expected to succeed
+   * @returns Upload verification result
+   *
+   * Usage in tests:
+   * - fileSizeHelpers.uploadByTypeAndVerify(path, UploadType.CLAN_LOGO, true)
+   * - fileSizeHelpers.uploadByTypeAndVerify(path, UploadType.STICKER, false)
+   * - fileSizeHelpers.uploadByTypeAndVerify(path, UploadType.CLAN_WEBHOOK_AVATAR, true)
+   */
+  async uploadByTypeAndVerify(
     filePath: string,
+    uploadType: UploadType,
     expectedSuccess: boolean
   ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadClanLogo(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadClanLogoInCreateClanModalAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadClanLogoInNewClanModal(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadClanBannerAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadClanBanner(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadStickerAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadSticker(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadVoiceStickerAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadVoiceSticker(filePath);
-
-    let errorMessage = '';
-
-    const error = await this.page.locator(
-      generateE2eSelector('clan_page.settings.upload.voice_sticker_input.error')
-    );
-
-    if (await error.isVisible({ timeout: 3000 })) {
-      errorMessage = await error.innerText();
-    }
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      if (errorMessage) {
-        return { success: false, fileSize: size, errorMessage };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadClanWebhookAvatarAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadClanWebhookAvatar(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadDirectMessageIconAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadDirectMessageIcon(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadGroupAvtAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadGroupAvt(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadChannelWebhookAvatarAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadChannelWebhookAvatar(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadOnboardingResourceAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadOnboardingResource(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadCommunityBannerAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadCommunityBanner(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
-  }
-
-  async uploadEventImageCoverAndVerify(
-    filePath: string,
-    expectedSuccess: boolean
-  ): Promise<UploadVerificationResult> {
-    const size = (await stat(filePath)).size;
-
-    await this.uploadEventImageCover(filePath);
-
-    const errorMessage = await this.waitForErrorModal();
-    const success = !errorMessage;
-
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-      await this.waitForSuccessIndicator();
-    }
-
-    return { success, fileSize: size, errorMessage: errorMessage };
+    await this.uploadFile(filePath, uploadType);
+    return await this.verifyUpload(filePath, expectedSuccess, uploadType);
   }
 }
