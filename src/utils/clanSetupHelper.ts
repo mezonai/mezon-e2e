@@ -137,7 +137,7 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      await AuthHelper.setAuthForSuite(page, suiteName);
+      // await AuthHelper.setAuthForSuite(page, suiteName);
 
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
