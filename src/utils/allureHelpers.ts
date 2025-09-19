@@ -169,15 +169,12 @@ export class AllureReporter {
     parameters?: Record<string, string | number | boolean>;
   }): string {
     const baseId = `${testInfo.file}:${testInfo.title}`;
-    const paramString = testInfo.parameters
-      ? Object.entries(testInfo.parameters)
+    return testInfo.parameters
+      ? `${baseId}[${Object.entries(testInfo.parameters)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([key, value]) => `${key}=${value}`)
-          .join('|')
-      : '';
-
-    const fullId = paramString ? `${baseId}[${paramString}]` : baseId;
-    return fullId;
+          .join('|')}]`
+      : baseId;
   }
 
   static async initializeTest(

@@ -22,13 +22,12 @@ jobs:
         run: yarn
 
       - name: Install Playwright browsers
-        run: npx playwright install-deps
+        run: npx playwright install chromium
 
       - name: Create environment file
         run: |
           cat > .env << EOF
           BASE_URL=https://dev-mezon.nccsoft.vn
-          SKIP_LOGIN=true
           WORKERS=6
           AUTO_EXPORT_CREDENTIALS=${{ secrets.AUTO_EXPORT_CREDENTIALS }}
           EOF

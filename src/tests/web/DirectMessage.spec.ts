@@ -3,7 +3,6 @@ import { GLOBAL_CONFIG } from '@/config/environment';
 import { MessgaePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
@@ -22,8 +21,6 @@ test.describe('Direct Message', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'Direct Message');
-
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',
     });
@@ -220,7 +217,7 @@ test.describe('Direct Message', () => {
     });
   });
 
-  test.skip('Pinned message should be removed when deleted', async ({ page }) => {
+  test('Pinned message should be removed when deleted', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63627',
     });

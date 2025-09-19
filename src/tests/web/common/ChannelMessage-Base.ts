@@ -40,7 +40,7 @@ export const setupChannelMessageSuite = (suiteName: string) => {
     testClanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper) {
       await clanSetupHelper.cleanupClan(
         testClanName,
@@ -50,9 +50,7 @@ export const setupChannelMessageSuite = (suiteName: string) => {
     }
   });
 
-  test.beforeEach(async ({ page, context }, testInfo) => {
-    const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Message');
-
+  test.beforeEach(async ({ page }, testInfo) => {
     await AllureReporter.initializeTest(page, testInfo, {
       story: AllureConfig.Stories.TEXT_MESSAGING,
       severity: AllureConfig.Severity.CRITICAL,

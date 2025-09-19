@@ -24,7 +24,7 @@ test.describe('Channel Management', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
       await clanSetupHelper.cleanupClan(
         clanName,
@@ -35,25 +35,9 @@ test.describe('Channel Management', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    // const accountUsed = await AuthHelper.setAuthForSuite(page, 'Channel Management');
-
-    // Initialize Allure reporting for this test suite
-    // await AllureReporter.initializeTest(page, testInfo, {
-    //   suite: AllureConfig.Suites.CLAN_MANAGEMENT,
-    //   subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
-    //   story: AllureConfig.Stories.CHANNEL_ORGANIZATION,
-    //   severity: AllureConfig.Severity.CRITICAL,
-    //   testType: AllureConfig.TestTypes.E2E,
-    // });
-
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
-
-    // await TestSetups.clanTest({
-    //   subSuite: AllureConfig.SubSuites.CHANNEL_MANAGEMENT,
-    //   operation: 'Channel Creation',
-    // });
 
     // Navigate to the test clan
     await AllureReporter.step('Navigate to test clan', async () => {
@@ -65,7 +49,7 @@ test.describe('Channel Management', () => {
 
   test('Verify that I can create a new private text channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63374',
+      tms: '63916',
     });
 
     // Test metadata
@@ -112,7 +96,7 @@ test.describe('Channel Management', () => {
 
   test('Verify that I can create a new public text channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63374',
+      tms: '63917',
     });
 
     await AllureReporter.addTestParameters({
@@ -158,7 +142,7 @@ test.describe('Channel Management', () => {
 
   test('Verify that I can create a new voice channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63374',
+      tms: '63918',
     });
 
     await AllureReporter.addTestParameters({
@@ -203,7 +187,7 @@ test.describe('Channel Management', () => {
 
   test('Verify that I can create a new stream channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63374',
+      tms: '63919',
     });
 
     await AllureReporter.addTestParameters({

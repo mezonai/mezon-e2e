@@ -25,7 +25,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && testClanName && clanUrl) {
       await clanSetupHelper.cleanupClan(
         testClanName,
@@ -35,7 +35,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     }
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63452',
     });

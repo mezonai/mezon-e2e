@@ -1,6 +1,5 @@
 import { type Page, type Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { create } from 'domain';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 interface SelectorResult {

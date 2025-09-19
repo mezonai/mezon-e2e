@@ -1,6 +1,5 @@
 import { test as setup } from '@playwright/test';
 import { WEBSITE_CONFIGS, persistentAuthConfigs } from '../config/environment';
-const authFile = 'playwright/.auth/user.json';
 
 // Setup authentication states for all accounts in persistentAuthConfigs
 setup('prepare all mezon auth states', async ({ browser }) => {
@@ -27,6 +26,8 @@ setup('prepare all mezon auth states', async ({ browser }) => {
         authData => {
           // Set mezon session
           localStorage.setItem('mezon_session', JSON.stringify(authData.mezonSession));
+
+          localStorage.setItem('i18nextLng', 'en');
 
           // Set persist auth data
           localStorage.setItem(

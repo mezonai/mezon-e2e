@@ -17,7 +17,7 @@ test.describe('Dual Users Chat in Clan @dual ', () => {
     });
   });
 
-  test('Dual users chat in clan - edit message test', async ({ browser }, testInfo) => {
+  test('Dual users chat in clan - edit message test', async ({ browser }) => {
     // Initialize Allure reporting - using a mock page for initialization since this is a multi-page test
     const mockContext = await browser.newContext();
     const mockPage = await mockContext.newPage();

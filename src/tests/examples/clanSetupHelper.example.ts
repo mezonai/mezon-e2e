@@ -2,8 +2,6 @@
 
 import { test, expect } from '@playwright/test';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { ChannelType, ChannelStatus } from '@/types/clan-page.types';
 
 test.describe('Example Test Suite Using ClanSetupHelper', () => {
   let clanSetupHelper: ClanSetupHelper;
@@ -27,7 +25,7 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
 
     test.afterAll(async ({ browser }) => {
       if (clanSetupHelper) {
-        await clanSetupHelper.cleanupAllClans();
+        await clanSetupHelper.cleanupAllClans(browser);
       }
     });
 
@@ -53,7 +51,7 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
 
     test.afterAll(async ({ browser }) => {
       if (clanSetupHelper) {
-        await clanSetupHelper.cleanupAllClans();
+        await clanSetupHelper.cleanupAllClans(browser);
       }
     });
 
@@ -70,7 +68,7 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
 
       // Use predefined configuration for message tests
       const setupResult = await clanSetupHelper.setupTestClan(
-        ClanSetupHelper.configs.channelMessage - 1
+        ClanSetupHelper.configs.channelMessage1
       );
 
       testClanName = setupResult.clanName;
@@ -79,7 +77,7 @@ test.describe('Example Test Suite Using ClanSetupHelper', () => {
 
     test.afterAll(async ({ browser }) => {
       if (clanSetupHelper) {
-        await clanSetupHelper.cleanupAllClans();
+        await clanSetupHelper.cleanupAllClans(browser);
       }
     });
 
