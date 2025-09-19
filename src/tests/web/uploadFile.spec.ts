@@ -9,12 +9,14 @@ import { ProfilePage } from '../../pages/ProfilePage';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
+import { MessgaePage } from '@/pages/MessagePage';
 
 test.describe('File Size Limits Validation', () => {
   let clanSetupHelper: ClanSetupHelper;
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
   let channelSettingPage: ChannelSettingPage;
+  let messagePage: MessgaePage;
   let profilePage: ProfilePage;
   let clanPage: ClanPageV2;
   let clanName: string;
@@ -58,6 +60,7 @@ test.describe('File Size Limits Validation', () => {
       fileSizeHelpers = new FileSizeTestHelpers(page);
       clanSettingsPage = new ClanSettingsPage(page);
       channelSettingPage = new ChannelSettingPage(page);
+      messagePage = new MessgaePage(page);
       profilePage = new ProfilePage(page);
       clanPage = new ClanPageV2(page);
 
@@ -322,6 +325,64 @@ test.describe('File Size Limits Validation', () => {
         expect(result.errorMessage?.toLowerCase()).toMatch(
           /(your files are too powerful|upload size limit exceeded|max file size)/
         );
+      }
+    );
+
+    await fileSizeHelpers.cleanupFiles([overLimitPath]);
+  });
+
+  test('Validate Clan Avatar size limit (1MB) when creating a new clan', async () => {
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify Clan Profile avatar is limited to 1MB
+      
+      **Test Steps:**
+      1. Click Create Clan from sidebar to open modal create clan
+      2. Attempt to upload clan avatar under 1MB (should succeed)
+      3. Attempt to upload clan avatar over 1MB (should fail)
+      
+      **Expected Result:** Clan avatar under 1MB uploads successfully, over 1MB is rejected
+    `);
+
+    await AllureReporter.step('Navigate to Clan Profile settings', async () => {
+      await profilePage.buttons.userSettingProfile.waitFor({
+        state: 'visible',
+        timeout: 3000,
+      });
+      await clanPage.buttons.createClan.click();
+    });
+
+    const underLimitPath = await fileSizeHelpers.createFileWithSize(
+      'clan_avatar_under_1mb',
+      900 * 1024,
+      'jpg'
+    );
+
+    await AllureReporter.step(`Test upload clan avatar under limit (900KB)`, async () => {
+      const result = await fileSizeHelpers.uploadClanLogoInCreateClanModalAndVerify(
+        underLimitPath,
+        true
+      );
+      expect(result.success).toBe(true);
+    });
+
+    await fileSizeHelpers.cleanupFiles([underLimitPath]);
+
+    const overLimitPath = await fileSizeHelpers.createFileWithSize(
+      'clan_avatar_over_1mb',
+      1 * 1024 * 1024 + 200 * 1024,
+      'jpg'
+    );
+
+    await AllureReporter.step(
+      `Test upload clan avatar over limit (1.2MB) - should fail`,
+      async () => {
+        const result = await fileSizeHelpers.uploadClanLogoInCreateClanModalAndVerify(
+          overLimitPath,
+          false
+        );
+
+        expect(result.success).toBe(false);
+        expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 1 mb, please!');
       }
     );
 
@@ -801,5 +862,95 @@ test.describe('File Size Limits Validation', () => {
       expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 8 mb, please!');
     });
     await fileSizeHelpers.cleanupFiles([over8MbClan]);
+  });
+
+  test('Validate Group Avatar (8MB)', async () => {
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify Group Avatar upload enforces 8MB limit
+
+      **Test Steps:**
+      1. Open User Settings -> Profiles
+      2. Upload image under 8MB (should succeed)
+      3. Upload image over 8MB (should show error modal)
+
+      **Expected Result:** Under 8MB uploads successfully; over 8MB shows "Your files are too powerful" with "Max file size is 8 MB"
+    `);
+
+    await AllureReporter.step('Create a group chat and open edit group modal', async () => {
+      await messagePage.gotoDMPage();
+      await messagePage.createGroup();
+      await messagePage.clickEditButton();
+    });
+
+    const under8MbGroupAvt = await fileSizeHelpers.createFileWithSize(
+      'direct_message_icon_under_8mb',
+      7 * 1024 * 1024,
+      'jpg'
+    );
+    await AllureReporter.step('Upload direct message icon under limit (7MB)', async () => {
+      const result = await fileSizeHelpers.uploadGroupAvtAndVerify(under8MbGroupAvt, true);
+      expect(result.success).toBe(true);
+    });
+    await fileSizeHelpers.cleanupFiles([under8MbGroupAvt]);
+
+    const over8MbDirectMessage = await fileSizeHelpers.createFileWithSize(
+      'direct_message_icon_over_8mb',
+      10 * 1024 * 1024,
+      'jpg'
+    );
+    await AllureReporter.step('Upload direct message icon over limit (8MB)', async () => {
+      const result = await fileSizeHelpers.uploadGroupAvtAndVerify(over8MbDirectMessage, true);
+      expect(result.success).toBe(false);
+      expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 8 mb, please!');
+    });
+    await fileSizeHelpers.cleanupFiles([over8MbDirectMessage]);
+  });
+
+  test('Validate Direct Message Icon (1MB)', async () => {
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify Direct Message Icon upload enforces 1MB limit
+
+      **Test Steps:**
+      1. Open User Settings -> Profiles
+      2. Upload image under 1MB (should succeed)
+      3. Upload image over 1MB (should show error modal)
+
+      **Expected Result:** Under 1MB uploads successfully; over 1MB shows "Your files are too powerful" with "Max file size is 1 MB"
+    `);
+
+    await AllureReporter.step('Open Integrations → Clan Webhooks list', async () => {
+      await profilePage.openUserSettingProfile();
+      await profilePage.openProfileTab();
+      await profilePage.openUserProfileTab();
+    });
+
+    const under1MbDirectMessage = await fileSizeHelpers.createFileWithSize(
+      'direct_message_icon_under_1mb',
+      700 * 1024,
+      'jpg'
+    );
+    await AllureReporter.step('Upload direct message icon under limit (700KB)', async () => {
+      const result = await fileSizeHelpers.uploadDirectMessageIconAndVerify(
+        under1MbDirectMessage,
+        true
+      );
+      expect(result.success).toBe(true);
+    });
+    await fileSizeHelpers.cleanupFiles([under1MbDirectMessage]);
+
+    const over1MbDirectMessage = await fileSizeHelpers.createFileWithSize(
+      'direct_message_icon_over_1mb',
+      1 * 1024 * 1024 + 200 * 1024,
+      'jpg'
+    );
+    await AllureReporter.step('Upload direct message icon over limit (1MB)', async () => {
+      const result = await fileSizeHelpers.uploadDirectMessageIconAndVerify(
+        over1MbDirectMessage,
+        true
+      );
+      expect(result.success).toBe(false);
+      expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 1 mb, please!');
+    });
+    await fileSizeHelpers.cleanupFiles([over1MbDirectMessage]);
   });
 });
