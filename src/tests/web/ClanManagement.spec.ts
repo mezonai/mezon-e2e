@@ -113,8 +113,6 @@ test.describe('Create Category', () => {
 
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
-
-    console.log(`✅ Test clan setup complete: ${clanName}`);
   });
 
   test.afterAll(async ({ browser }) => {
