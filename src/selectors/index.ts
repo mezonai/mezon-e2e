@@ -27,6 +27,9 @@ export const DATA_E2E_IDENTIFIER = {
     gif: '',
     emoji: '',
     sticker: '',
+    text: {
+      about_me: '',
+    },
   },
   discussion: {
     box: {
@@ -87,6 +90,7 @@ export const DATA_E2E_IDENTIFIER = {
       button: {
         add_clan: '',
         add_channel: '',
+        events: '',
       },
     },
     modal: {
@@ -105,6 +109,7 @@ export const DATA_E2E_IDENTIFIER = {
       create_clan: {
         input: {
           clan_name: '',
+          upload_avatar_clan: '',
         },
         toggle: {
           private: '',
@@ -128,12 +133,43 @@ export const DATA_E2E_IDENTIFIER = {
         },
       },
       limit_creation: {
-				title: ''
-			}
+        title: '',
+      },
+      create_event: {
+        button_create: '',
+        next: '',
+        upload: {
+          image_cover_input: '',
+        },
+      },
     },
     settings: {
+      integrations: {
+        create_clan_webhook_button: '',
+        new_clan_webhook_button: '',
+        navigate_webhook_button: '',
+      },
       sidebar: {
         delete: '',
+        item: '',
+      },
+      onboarding: {
+        button: {
+          enable_onboarding: '',
+          add_resources: '',
+          clan_guide: '',
+        },
+      },
+      community: {
+        button: {
+          enable_community: '',
+        },
+      },
+      emoji: {
+        upload: '',
+      },
+      voice_sticker: {
+        button_upload: '',
       },
       modal: {
         delete_clan: {
@@ -151,6 +187,17 @@ export const DATA_E2E_IDENTIFIER = {
           clan_name: '',
         },
       },
+      upload: {
+        clan_logo_input: '',
+        clan_banner_input: '',
+        emoji_input: '',
+        clan_webhook_avatar_input: '',
+        onboarding_resource_input: '',
+        community_banner_input: '',
+        voice_sticker_input: {
+          error: '',
+        },
+      },
     },
     channel_list: {
       item: {
@@ -162,8 +209,26 @@ export const DATA_E2E_IDENTIFIER = {
         name: '',
       },
       thread_item: {
-				name: ''
-			}
+        name: '',
+      },
+      panel: {
+        item: '',
+      },
+    },
+  },
+  channel_setting_page: {
+    side_bar: {
+      item: '',
+    },
+    webhook: {
+      button: {
+        create_webhook: '',
+        new_webhook: '',
+        view_webhook: '',
+      },
+      input: {
+        avatar_channel_webhook: '',
+      },
     },
   },
   chat: {
@@ -179,6 +244,14 @@ export const DATA_E2E_IDENTIFIER = {
         add_user: '',
         create_group: '',
         button_plus: '',
+      },
+      edit_group: {
+        button: '',
+        input: '',
+        save_button: '',
+        upload: {
+          avatar_group_input: '',
+        },
       },
       leave_group: {
         button: '',
@@ -222,10 +295,10 @@ export const DATA_E2E_IDENTIFIER = {
             modal: {
               thread_management: {
                 button: {
-                  create_thread: ''
-                }
-              }
-            }
+                  create_thread: '',
+                },
+              },
+            },
           },
           chat: '',
         },
@@ -244,13 +317,13 @@ export const DATA_E2E_IDENTIFIER = {
         delete_message: '',
       },
       thread_box: {
-				input: {
-					thread_name: ''
-				},
-				checkbox: {
-					private_thread: ''
-				}
-			}
+        input: {
+          thread_name: '',
+        },
+        checkbox: {
+          private_thread: '',
+        },
+      },
     },
     message_action_modal: {
       button: {
@@ -285,10 +358,17 @@ export const DATA_E2E_IDENTIFIER = {
       user_profile: {
         input: {
           display_name: '',
+          about_me: '',
         },
         button: {
           reset: '',
           save_changes: '',
+        },
+        text: {
+          about_me_length: '',
+        },
+        upload: {
+          direct_message_icon_input: '',
         },
       },
       clan_profile: {
@@ -310,6 +390,13 @@ export const DATA_E2E_IDENTIFIER = {
       username: '',
     },
     pin_message: '',
+  },
+  modal: {
+    too_many_upload: '',
+    validate_file: {
+      title: '',
+      content: '',
+    },
   },
 };
 

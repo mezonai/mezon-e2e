@@ -105,7 +105,9 @@ export class MessgaePage {
     this.memberListInGroup = page.locator(
       generateE2eSelector('chat.direct_message.member_list.member_count')
     );
-    this.editGroupButton = page.locator('button[title="Edit Group"]');
+    this.editGroupButton = page.locator(
+      generateE2eSelector('chat.direct_message.edit_group.button')
+    );
     this.groupNameInput = page.locator('input[placeholder="Enter group name"]');
     this.saveGroupNameButton = page.locator('button:has-text("Save")');
     this.leaveGroupButtonInPopup = page.locator(
@@ -150,20 +152,25 @@ export class MessgaePage {
 
   async isDMCreated(): Promise<boolean> {
     await this.userNamesInDM.first().waitFor({ state: 'visible', timeout: 5000 });
-    const allUserNamesInDM = await this.userNamesInDM.allInnerTexts();
-    const found = allUserNamesInDM.some(
+    return (await this.userNamesInDM.allInnerTexts()).some(
       name =>
         name.includes(this.firstUserNameText.replace(/^A/, '')) ||
         name.includes(this.firstUserNameText)
     );
+  }
 
-    return found;
+  async gotoDMPage(): Promise<void> {
+    await this.page.goto('/chat/direct/friends');
   }
 
   async createGroup(): Promise<void> {
     await this.openSelectFriendsModal();
     await this.pickFriends(2);
     await this.submitCreate();
+  }
+
+  async clickEditButton(): Promise<void> {
+    await this.editGroupButton.click();
   }
 
   private async openSelectFriendsModal(): Promise<void> {
@@ -230,9 +237,7 @@ export class MessgaePage {
     await this.sumMember.click();
 
     const memberItems = this.memberCount;
-    const count = await memberItems.count();
-
-    return count;
+    return await memberItems.count();
   }
 
   async isMemberAdded(previousCount: number): Promise<boolean> {
@@ -246,8 +251,7 @@ export class MessgaePage {
       await this.page.waitForTimeout(3000);
     }
 
-    const namesRaw = await this.memberListInGroup.allTextContents();
-    const names = namesRaw
+    const names = (await this.memberListInGroup.allTextContents())
       .flatMap(t => t.split(','))
       .map(s => s.trim())
       .filter(Boolean);

@@ -23,11 +23,14 @@
     "install:browsers": "npx playwright install",
     "lint": "eslint src/ --ext .ts,.tsx",
     "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
+    "lint:staged": "npx lint-staged",
+    "lint:report": "npx eslint src/ --ext .ts,.tsx -f eslint-formatter-sonarqube -o eslint-report.json",
     "ts-check": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json}\"",
     "clean": "rm -rf test-results/ playwright-report/ coverage/ allure-results/ allure-report/",
-    "prepare": "husky"
+    "prepare": "husky",
+    "sonar:report": "npm run lint:report --yes && npx sonar-scanner"
   },
   "keywords": [
     "playwright",
@@ -40,6 +43,7 @@
   "devDependencies": {
     "@estruyf/github-actions-reporter": "^1.10.0",
     "@playwright/test": "^1.55.0",
+    "@types/archiver": "^6.0.3",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
@@ -47,15 +51,34 @@
     "allure-js-commons": "^3.3.3",
     "allure-playwright": "^3.3.3",
     "eslint": "^9.0.0",
+    "eslint-formatter-sonarqube": "1.0.0",
+    "eslint-plugin-sonarjs": "^1.0.0",
     "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
     "nodemon": "^3.1.10",
     "playwright-bdd": "^8.3.1",
     "prettier": "^3.3.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "stop-only": "^3.1.2"
   },
   "dependencies": {
     "@faker-js/faker": "^9.0.0",
     "archiver": "^7.0.1",
+    "aws-sdk": "^2.1692.0",
     "dotenv": "^16.4.5"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{e2e,e2e-ee,spec}.{js,ts}": [
+      "stop-only --file"
+    ],
+    "libs/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": "prettier --write"
   }
 }

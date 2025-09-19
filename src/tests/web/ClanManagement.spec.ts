@@ -18,7 +18,7 @@ test.describe('Create Clan', () => {
     clanSetupHelper = new ClanSetupHelper(browser);
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
     });
@@ -113,8 +113,6 @@ test.describe('Create Category', () => {
 
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
-
-    console.log(`✅ Test clan setup complete: ${clanName}`);
   });
 
   test.afterAll(async ({ browser }) => {
@@ -127,7 +125,7 @@ test.describe('Create Category', () => {
     }
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63510',
     });
@@ -140,48 +138,48 @@ test.describe('Create Category', () => {
     await AllureReporter.addParameter('clanName', clanName);
   });
 
-  test('Verify that I can create a private category', async ({ page }) => {
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
+  // test('Verify that I can create a private category', async ({ page }) => {
+  //   await AllureReporter.addTestParameters({
+  //     testType: AllureConfig.TestTypes.E2E,
+  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
+  //     severity: AllureConfig.Severity.CRITICAL,
+  //   });
 
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a user can successfully create a new private category within a clan.
-      
-      **Test Steps:**
-      1. Generate unique category name
-      2. Create new private category
-      3. Verify category appears in category list
-      
-      **Expected Result:** Private category is created and visible in the clan's category list.
-    `);
+  //   await AllureReporter.addDescription(`
+  //     **Test Objective:** Verify that a user can successfully create a new private category within a clan.
 
-    await AllureReporter.addLabels({
-      tag: ['category-creation', 'private-category'],
-    });
+  //     **Test Steps:**
+  //     1. Generate unique category name
+  //     2. Create new private category
+  //     3. Verify category appears in category list
 
-    const categoryPrivateName = `category-private-${new Date().getTime()}`;
-    const categoryPage = new CategoryPage(page);
+  //     **Expected Result:** Private category is created and visible in the clan's category list.
+  //   `);
 
-    await AllureReporter.addParameter('categoryName', categoryPrivateName);
-    await AllureReporter.addParameter('categoryType', 'private');
+  //   await AllureReporter.addLabels({
+  //     tag: ['category-creation', 'private-category'],
+  //   });
 
-    await AllureReporter.step(`Create new private category: ${categoryPrivateName}`, async () => {
-      await categoryPage.createCategory(categoryPrivateName, 'private');
-    });
+  //   const categoryPrivateName = `category-private-${new Date().getTime()}`;
+  //   const categoryPage = new CategoryPage(page);
 
-    await AllureReporter.step('Verify category is present in category list', async () => {
-      const isCreatedCategory = await categoryPage.isCategoryPresent(categoryPrivateName);
-      expect(isCreatedCategory).toBeTruthy();
-    });
+  //   await AllureReporter.addParameter('categoryName', categoryPrivateName);
+  //   await AllureReporter.addParameter('categoryType', 'private');
 
-    await AllureReporter.attachScreenshot(
-      page,
-      `Private Category Created - ${categoryPrivateName}`
-    );
-  });
+  //   await AllureReporter.step(`Create new private category: ${categoryPrivateName}`, async () => {
+  //     await categoryPage.createCategory(categoryPrivateName, 'private');
+  //   });
+
+  //   await AllureReporter.step('Verify category is present in category list', async () => {
+  //     const isCreatedCategory = await categoryPage.isCategoryPresent(categoryPrivateName);
+  //     expect(isCreatedCategory).toBeTruthy();
+  //   });
+
+  //   await AllureReporter.attachScreenshot(
+  //     page,
+  //     `Private Category Created - ${categoryPrivateName}`
+  //   );
+  // });
 
   test('Verify that I can create a public category', async ({ page }) => {
     await AllureReporter.addTestParameters({

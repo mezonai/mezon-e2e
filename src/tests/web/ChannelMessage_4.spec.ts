@@ -1,14 +1,10 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
-import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { MessageTestHelpers } from '../../utils/messageHelpers';
-
-const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
-const DIRECT_CHAT_URL = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/message/1955879210568388608/3');
+import { joinUrlPaths } from '../../utils/joinUrlPaths';
 
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
@@ -21,6 +17,7 @@ test.describe('Channel Message - Module 4', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanName: string;
   let testClanUrl: string;
+  const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 
   test.use({ storageState: 'playwright/.auth/account2-4.json' });
 

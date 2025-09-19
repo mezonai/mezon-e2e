@@ -58,7 +58,7 @@ export class ClanSetupHelper {
 
       await clanPage.createNewClan(clanName);
 
-      await page.waitForTimeout(5000);
+      await page.waitForTimeout(1000);
       const clanExists = await clanPage.isClanPresent(clanName);
       if (!clanExists) {
         throw new Error(`Failed to create clan: ${clanName}`);
@@ -137,7 +137,7 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      await AuthHelper.setAuthForSuite(page, suiteName);
+      // await AuthHelper.setAuthForSuite(page, suiteName);
 
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
@@ -165,8 +165,6 @@ export class ClanSetupHelper {
           const clanItem = currentClanItems.clanName.nth(i);
 
           await clanItem.click();
-          const clanName = await clanPage.buttons.clanName.innerText();
-
           await clanPage.deleteClan();
         } catch (error) {
           console.error(`❌ Failed to delete clan at index ${i}: ${error}`);
@@ -237,6 +235,11 @@ export class ClanSetupHelper {
     onboarding: ClanSetupHelper.createConfig({
       clanNamePrefix: 'OnboardingTest',
       suiteName: 'Onboarding Guide',
+    }),
+
+    uploadFile: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'UploadFileTest',
+      suiteName: 'Upload File',
     }),
 
     userProfile: ClanSetupHelper.createConfig({

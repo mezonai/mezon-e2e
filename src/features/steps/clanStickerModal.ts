@@ -224,7 +224,9 @@ Then('the upload modal should be displayed', async ({ page }) => {
             break;
           }
         }
-      } catch {}
+      } catch {
+        // Element might not exist or be accessible, continue
+      }
     }
   }
 

@@ -24,7 +24,7 @@ test.describe('Channel Management', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
       await clanSetupHelper.cleanupClan(
         clanName,
@@ -49,7 +49,7 @@ test.describe('Channel Management', () => {
 
   test('Verify that I can create a new private text channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63374',
+      tms: '63916',
     });
 
     // Test metadata
@@ -96,7 +96,7 @@ test.describe('Channel Management', () => {
 
   test('Verify that I can create a new public text channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63374',
+      tms: '63917',
     });
 
     await AllureReporter.addTestParameters({
@@ -142,7 +142,7 @@ test.describe('Channel Management', () => {
 
   test('Verify that I can create a new voice channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63374',
+      tms: '63918',
     });
 
     await AllureReporter.addTestParameters({
@@ -187,7 +187,7 @@ test.describe('Channel Management', () => {
 
   test('Verify that I can create a new stream channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63374',
+      tms: '63919',
     });
 
     await AllureReporter.addTestParameters({

@@ -1,4 +1,6 @@
+import generateRandomString from '@/utils/randomString';
 import * as archiver from 'archiver';
+import AWS from 'aws-sdk';
 import * as fs from 'fs';
 import { REPORT_SERVER_URL } from 'libs/mezon-reporter/constant';
 import * as path from 'path';
@@ -10,18 +12,63 @@ export interface ReportUploadResult {
   zipPath?: string;
 }
 
-export class ReportExporter {
-  private webhookUrl?: string;
-
-  constructor(webhookUrl?: string) {
-    this.webhookUrl = webhookUrl || process.env.WEBHOOK_URL || `${REPORT_SERVER_URL}/webhook`;
+class S3Client {
+  private s3: AWS.S3;
+  constructor(s3: AWS.S3) {
+    this.s3 = s3;
   }
 
-  async exportPlaywrightReport(
-    customReportPath: string = 'playwright-report'
-  ): Promise<ReportUploadResult> {
+  async uploadFile(
+    bucketName: string,
+    key: string,
+    body: Buffer
+  ): Promise<AWS.S3.ManagedUpload.SendData> {
+    return this.s3
+      .upload({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+      .promise();
+  }
+}
+
+export class ReportExporter {
+  private webhookUrl?: string;
+  private enabled: boolean = true;
+  private s3Client!: S3Client;
+  private bucketName = '';
+  constructor(webhookUrl?: string) {
+    this.webhookUrl = webhookUrl || process.env.WEBHOOK_URL || `${REPORT_SERVER_URL}/webhook`;
+
+    const AUTO_EXPORT_CREDENTIALS = process.env.AUTO_EXPORT_CREDENTIALS || '';
+    const [ACCOUNT_ID, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME] =
+      AUTO_EXPORT_CREDENTIALS.split(':');
+    if (!ACCOUNT_ID || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY || !BUCKET_NAME) {
+      this.enabled = false;
+      return;
+    }
+    this.bucketName = BUCKET_NAME;
+    this.s3Client = new S3Client(
+      new AWS.S3({
+        endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        accessKeyId: ACCESS_KEY_ID,
+        secretAccessKey: SECRET_ACCESS_KEY,
+        signatureVersion: 'v4',
+        region: 'auto',
+      })
+    );
+  }
+
+  async exportPlaywrightReport(): Promise<ReportUploadResult> {
+    if (!this.enabled) {
+      return {
+        success: false,
+        error: 'Disabled via configuration',
+      };
+    }
     try {
-      const zipPath = await this.createPlaywrightReportZip(customReportPath);
+      const zipPath = await this.createPlaywrightReportZip();
       if (!zipPath) {
         return {
           success: false,
@@ -43,25 +90,18 @@ export class ReportExporter {
     }
   }
 
-  private async createPlaywrightReportZip(customReportPath?: string): Promise<string | null> {
+  private async createPlaywrightReportZip(): Promise<string | null> {
     try {
-      // Default to playwright-report directory
-      const reportDir = customReportPath || 'playwright-report';
+      const reportDir = 'playwright-report';
       const reportPath = path.resolve(reportDir);
-
       if (!fs.existsSync(reportPath)) {
         throw new Error(`Report directory not found: ${reportPath}`);
       }
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const zipPath = path.join(process.cwd(), `playwright-report-${timestamp}.zip`);
-
-      console.log(`📦 Creating zip of ${reportDir} using JavaScript archiver...`);
-
+      const zipPath = path.join(process.cwd(), `playwright-report.zip`);
       return new Promise<string>((resolve, reject) => {
         const output = fs.createWriteStream(zipPath);
         const archive = archiver.default('zip', {
-          zlib: { level: 9 }, // Compression level
+          zlib: { level: 9 },
         });
 
         output.on('close', () => {
@@ -100,36 +140,13 @@ export class ReportExporter {
 
   private async uploadReportToServer(zipFilePath: string): Promise<ReportUploadResult> {
     try {
-      const fs = await import('fs');
-      const path = await import('path');
-
       if (!fs.existsSync(zipFilePath)) {
         throw new Error(`Report file not found: ${zipFilePath}`);
       }
-
-      const fileName = path.basename(zipFilePath);
-      console.log(`📤 Uploading report to transfer.sh: ${fileName}`);
-
-      // Use transfer.sh API - simple PUT request with file content
       const fileBuffer = fs.readFileSync(zipFilePath);
-      const uploadUrl = `https://transfer.adttemp.com.br/${fileName}`;
-
-      const response = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: fileBuffer,
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
-      }
-      const downloadUrl = await response.text();
-      const trimmedUrl = downloadUrl.trim();
-      console.log('✅ Report upload successful!');
-      console.log(`🔗 Download URL: ${trimmedUrl}`);
-      const reportUrl = await this.sendToWebhook(trimmedUrl);
+      const fileName = generateRandomString(16);
+      await this.s3Client.uploadFile(this.bucketName, fileName, fileBuffer);
+      const reportUrl = await this.sendToWebhook(fileName);
       return {
         success: true,
         reportUrl,
