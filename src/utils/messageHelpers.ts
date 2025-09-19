@@ -1,5 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
+import { MessgaePage } from '@/pages/MessagePage';
 
 export class MessageTestHelpers {
   private page: Page;
@@ -284,7 +285,7 @@ export class MessageTestHelpers {
           }
         }
         return false;
-      } catch (error) {
+      } catch (_error) {
         // If clipboard is disabled or permission denied, assume success
         return true;
       }
@@ -301,7 +302,7 @@ export class MessageTestHelpers {
 
         const text = await navigator.clipboard.readText();
         return text && text.trim().length > 0 ? text : null;
-      } catch (error) {
+      } catch (_error) {
         // If clipboard is disabled or permission denied, return dummy text
         return 'Test message';
       }
@@ -411,9 +412,6 @@ export class MessageTestHelpers {
     const copyButton = await this.findCopyImageOption();
     await copyButton.click();
     await this.page.waitForTimeout(1000);
-
-    // Skip clipboard verification when clipboard is disabled
-    return;
   }
 
   async closeModal(): Promise<void> {
@@ -628,14 +626,14 @@ export class MessageTestHelpers {
 
   async fillThreadName(threadName: string): Promise<void> {
     const threadNameInput = this.page
-      .locator(generateE2eSelector('chat.channel_message.thread_name_input.thread_box'))
+      .locator(generateE2eSelector('chat.channel_message.thread_box.input.thread_name'))
       .first();
 
     try {
       await threadNameInput.waitFor({ state: 'visible', timeout: 5000 });
     } catch {
       throw new Error(
-        'Could not find thread name input via data-e2e="chat-channel_message-thread_name_input-thread_box"'
+        'Could not find thread name input via data-e2e="chat-channel_message-thread_box-input-thread_name"'
       );
     }
 
@@ -685,23 +683,14 @@ export class MessageTestHelpers {
   }
 
   async handleDeleteConfirmation(): Promise<void> {
-    const confirmSelectors = [
-      'button:has-text("Delete")',
-      'button:has-text("Confirm")',
-      'button:has-text("Yes")',
-      '[data-testid="confirm-delete"]',
-      '.confirm-button',
-      'button[class*="danger"]',
-      'button[class*="destructive"]',
-    ];
+    const messagePage = new MessgaePage(this.page);
 
-    for (const selector of confirmSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 3000 })) {
-        await element.click();
-        await this.page.waitForTimeout(2000);
-        return;
-      }
+    const element = messagePage.confirmDeleteMessageButton;
+    try {
+      await element.waitFor({ state: 'visible', timeout: 5000 });
+      await element.click();
+    } catch {
+      throw new Error('Could not find delete confirmation button');
     }
 
     await this.page.waitForTimeout(2000);
@@ -1111,11 +1100,7 @@ export class MessageTestHelpers {
       }
     }
 
-    if (allModalText.includes('Pinned Messages') && allModalText.length > 50) {
-      return true;
-    }
-
-    return false;
+    return allModalText.includes('Pinned Messages') && allModalText.length > 50;
   }
 
   async closePinnedModal(): Promise<void> {
@@ -1256,11 +1241,7 @@ export class MessageTestHelpers {
     const anyVisibleList = this.page.locator(
       'div:visible:has-text("general"), ul:visible:has-text("general"), li:visible:has-text("general")'
     );
-    if ((await anyVisibleList.count()) > 0) {
-      return true;
-    }
-
-    return false;
+    return (await anyVisibleList.count()) > 0;
   }
 
   async verifyExpectedChannelsInList(): Promise<boolean> {
@@ -1408,11 +1389,7 @@ export class MessageTestHelpers {
     }
 
     const options = this.page.locator('li[role="option"], [role="option"]');
-    if ((await options.count()) > 0) {
-      return true;
-    }
-
-    return false;
+    return (await options.count()) > 0;
   }
 
   async verifyMentionListHasUsers(expectedNames?: string[]): Promise<boolean> {
@@ -1434,14 +1411,9 @@ export class MessageTestHelpers {
     }
 
     const bodyText = (await this.page.textContent('body')) || '';
-    if (
-      expectedNames &&
-      expectedNames.some(n => bodyText.toLowerCase().includes(n.toLowerCase()))
-    ) {
-      return true;
-    }
-
-    return false;
+    return (
+      expectedNames && expectedNames.some(n => bodyText.toLowerCase().includes(n.toLowerCase()))
+    );
   }
 
   async selectMentionFromList(partialOrName: string, candidateNames?: string[]): Promise<void> {
@@ -1724,8 +1696,7 @@ export class MessageTestHelpers {
     if (expected && text.includes(expected)) return true;
     const emojiImg = last.locator('img[alt*=":" i], img[alt*="emoji" i]');
     if (await emojiImg.count()) return true;
-    const anyEmoji = /[\p{Emoji}\uFE0F]/u.test(text);
-    return anyEmoji;
+    return /[\p{Emoji}\uFE0F]/u.test(text);
   }
 
   async verifyLastMessageHasHashtag(expectedHashtag: string): Promise<boolean> {
@@ -1820,16 +1791,12 @@ export class MessageTestHelpers {
     const textContent = await lastMessage.textContent();
 
     let foundLinksCount = 0;
-    const detectedLinks: string[] = [];
 
     for (const link of expectedLinks) {
       const hasLinkText = textContent?.includes(link) || false;
 
       if (hasLinkText) {
         foundLinksCount++;
-        detectedLinks.push(link);
-      } else {
-        // Missing link
       }
 
       const specificLinkSelectors = [
@@ -2618,13 +2585,12 @@ export class MessageTestHelpers {
 
     // Also check page content for file-related text
     const pageContent = await this.page.textContent('body');
-    const hasFileIndicators =
+    return (
       pageContent?.includes('.txt') ||
       pageContent?.includes('Download') ||
       pageContent?.includes('attachment') ||
-      conversionDetected;
-
-    return hasFileIndicators;
+      conversionDetected
+    );
   }
 
   async isMessageVisible(messageText: string): Promise<boolean> {

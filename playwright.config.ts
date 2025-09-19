@@ -69,7 +69,17 @@ export default defineConfig({
     {
       name: 'Chrome',
       testDir: './src/tests',
-      testIgnore: [/dual-users-.*\.spec\.ts/],
+      testIgnore: [/dual-users-.*\.spec\.ts/, /CleanUp\.spec\.ts/],
+      use: {
+        ...devices['Desktop Chrome'],
+        ...getBrowserConfig(),
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'cleanup',
+      testDir: './src/tests',
+      testMatch: /CleanUp\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),

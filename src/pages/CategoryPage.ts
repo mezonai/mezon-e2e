@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
@@ -45,17 +45,15 @@ export class CategoryPage extends BasePage {
 
     await this.buttons.createCategory.click();
 
-    await this.input.categoryName.waitFor({ state: 'visible', timeout: 3000 });
+    await this.input.categoryName.waitFor({ state: 'visible', timeout: 5000 });
     await this.input.categoryName.fill(name);
 
     if (type === 'private') {
       await this.buttons.private.click();
-      await this.page.waitForTimeout(500);
     }
 
     await this.buttons.confirmCreateCategory.click();
 
-    await this.page.waitForTimeout(2000);
     return true;
   }
 

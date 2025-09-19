@@ -8,3 +8,8 @@ export enum ChannelStatus {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
 }
+
+export enum ThreadStatus {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
+}

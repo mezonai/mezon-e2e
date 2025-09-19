@@ -110,16 +110,14 @@ Then('the "Find or start a conversation" input should be present', async ({ page
           console.log(`  Element ${i}: visible=${isVisible}, placeholder="${placeholder}"`);
 
           if (isVisible) {
-            if (placeholder === 'Find or start a conversation') {
-              foundInput = true;
-              foundSelector = selector;
-              break;
-            } else if (
-              placeholder &&
-              (placeholder.toLowerCase().includes('find') ||
-                placeholder.toLowerCase().includes('conversation') ||
-                placeholder.toLowerCase().includes('search'))
-            ) {
+            const shouldSelect =
+              placeholder === 'Find or start a conversation' ||
+              (placeholder &&
+                (placeholder.toLowerCase().includes('find') ||
+                  placeholder.toLowerCase().includes('conversation') ||
+                  placeholder.toLowerCase().includes('search')));
+
+            if (shouldSelect) {
               foundInput = true;
               foundSelector = selector;
               break;

@@ -1,9 +1,11 @@
 import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
+import sonarjs from 'eslint-plugin-sonarjs';
 
 export default [
   eslint.configs.recommended,
+  sonarjs.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
@@ -39,7 +41,11 @@ export default [
       'indent': 'off', // Let Prettier handle this
       'quotes': 'off', // Let Prettier handle this
       'semi': 'off', // Let Prettier handle this
-      
+
+      // SonarJS
+      'sonarjs/no-duplicate-string': 'warn',
+      'sonarjs/cognitive-complexity': ['warn', 20],
+
       // Test specific rules
       'no-restricted-globals': 'off',
       'no-undef': 'off', // TypeScript handles this

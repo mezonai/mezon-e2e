@@ -1,0 +1,9 @@
+node_modules/
+uploads/
+reports/
+*.log
+.env
+.DS_Store
+*.zip
+package-lock.json
+yarn.lock

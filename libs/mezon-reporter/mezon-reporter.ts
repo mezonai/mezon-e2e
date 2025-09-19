@@ -72,7 +72,6 @@ class MezonReporter implements Reporter {
         this.testStats.skipped++;
         break;
     }
-    // console.log(`[Mezon] Finished test: ${test.title} - ${statusText}`);
 
     // No individual test notifications - only final report
   }

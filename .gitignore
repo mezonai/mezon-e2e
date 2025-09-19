@@ -72,3 +72,10 @@ results.json
 
 # Playwright
 /blob-report/
+
+# Sonar
+sonar-report.json
+.scannerwork/
+
+# ESLint
+eslint-report.json

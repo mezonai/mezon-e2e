@@ -1,1 +1,6 @@
-npm run lint && npm run format
+# Run lint-staged if available, fallback to old lint & format if dep is missing
+if command -v npx >/dev/null 2>&1; then
+  npx --yes lint-staged || (npm run lint && npm run format)
+else
+  npm run lint && npm run format
+fi

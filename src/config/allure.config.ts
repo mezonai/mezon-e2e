@@ -57,6 +57,7 @@ export const AllureConfig = {
     // Chat Stories
     TEXT_MESSAGING: 'Text Messaging',
     MEDIA_SHARING: 'Media Sharing',
+    FILE_UPLOAD: 'File Upload',
     EMOJI_SUPPORT: 'Emoji Support',
     MESSAGE_HISTORY: 'Message History',
 

@@ -40,7 +40,6 @@ export class OnboardingPage extends BasePage {
         const element = this.page.locator(selector).first();
         if (await element.isVisible({ timeout: 3000 })) {
           await element.click();
-          await this.page.waitForTimeout(500);
           return true;
         }
       } catch {
@@ -106,8 +105,6 @@ export class OnboardingPage extends BasePage {
       if (taskStatus.found && taskStatus.isDone) {
         return true;
       }
-
-      await this.page.waitForTimeout(500);
     }
 
     return false;

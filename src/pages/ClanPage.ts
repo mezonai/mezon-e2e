@@ -1,6 +1,5 @@
 import { type Page, type Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { create } from 'domain';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 interface SelectorResult {
@@ -84,6 +83,7 @@ export class ClanPage extends BasePage {
     for (const selector of selectors) {
       try {
         const element = this.page.locator(selector).first();
+        await element.waitFor({ state: 'visible', timeout });
         if (await element.isVisible({ timeout })) {
           return { found: true, element };
         }
@@ -262,9 +262,7 @@ export class ClanPage extends BasePage {
     }
 
     await result.element.fill(message);
-    await this.wait(500);
     await result.element.press('Enter');
-    await this.wait(2000);
 
     return true;
   }
