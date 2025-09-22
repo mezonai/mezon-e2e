@@ -6,7 +6,7 @@ import { expect, test, Browser, Page, BrowserContext, TestInfo } from '@playwrig
 // import { WEBSITE_CONFIGS } from '../../config/environment';
 import { ClanSettingsPage } from '../../pages/ClanSettingsPage';
 import { ProfilePage } from '../../pages/ProfilePage';
-import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
+import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { MessgaePage } from '@/pages/MessagePage';
@@ -303,7 +303,11 @@ test.describe('File Size Limits Validation', () => {
     );
 
     await AllureReporter.step(`Test upload clan avatar under limit (900KB)`, async () => {
-      const result = await fileSizeHelpers.uploadClanLogoAndVerify(underLimitPath, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        underLimitPath,
+        UploadType.CLAN_LOGO,
+        true
+      );
 
       expect(result.success).toBe(true);
     });
@@ -319,7 +323,11 @@ test.describe('File Size Limits Validation', () => {
     await AllureReporter.step(
       `Test upload clan avatar over limit (1.2MB) - should fail`,
       async () => {
-        const result = await fileSizeHelpers.uploadClanLogoAndVerify(overLimitPath, false);
+        const result = await fileSizeHelpers.uploadByTypeAndVerify(
+          overLimitPath,
+          UploadType.CLAN_LOGO,
+          false
+        );
 
         expect(result.success).toBe(false);
         expect(result.errorMessage?.toLowerCase()).toMatch(
@@ -358,8 +366,9 @@ test.describe('File Size Limits Validation', () => {
     );
 
     await AllureReporter.step(`Test upload clan avatar under limit (900KB)`, async () => {
-      const result = await fileSizeHelpers.uploadClanLogoInCreateClanModalAndVerify(
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
         underLimitPath,
+        UploadType.CLAN_LOGO_NEW_MODAL,
         true
       );
       expect(result.success).toBe(true);
@@ -376,8 +385,9 @@ test.describe('File Size Limits Validation', () => {
     await AllureReporter.step(
       `Test upload clan avatar over limit (1.2MB) - should fail`,
       async () => {
-        const result = await fileSizeHelpers.uploadClanLogoInCreateClanModalAndVerify(
+        const result = await fileSizeHelpers.uploadByTypeAndVerify(
           overLimitPath,
+          UploadType.CLAN_LOGO_NEW_MODAL,
           false
         );
 
@@ -412,7 +422,11 @@ test.describe('File Size Limits Validation', () => {
     );
 
     await AllureReporter.step('Upload small banner background (5MB)', async () => {
-      const result = await fileSizeHelpers.uploadClanBannerAndVerify(smallBannerPath, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        smallBannerPath,
+        UploadType.CLAN_BANNER,
+        true
+      );
       expect(result.success).toBe(true);
     });
 
@@ -425,7 +439,11 @@ test.describe('File Size Limits Validation', () => {
     );
 
     await AllureReporter.step('Upload large banner background (12MB) - should fail', async () => {
-      const result = await fileSizeHelpers.uploadClanBannerAndVerify(largeBannerPath, false);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        largeBannerPath,
+        UploadType.CLAN_BANNER,
+        false
+      );
       expect(result.success).toBe(false);
       expect(result.errorMessage?.toLowerCase()).toMatch(
         /(your files are too powerful|max file size.*10\s*mb|upload size limit exceeded)/
@@ -460,7 +478,11 @@ test.describe('File Size Limits Validation', () => {
     );
 
     await AllureReporter.step('Upload small emoji (90KB)', async () => {
-      const result = await fileSizeHelpers.uploadStickerAndVerify(smallEmojiPath, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        smallEmojiPath,
+        UploadType.STICKER,
+        true
+      );
       expect(result.success).toBe(true);
     });
 
@@ -473,7 +495,11 @@ test.describe('File Size Limits Validation', () => {
     );
 
     await AllureReporter.step('Upload large emoji (300KB) - should fail', async () => {
-      const result = await fileSizeHelpers.uploadStickerAndVerify(largeEmojiPath, false);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        largeEmojiPath,
+        UploadType.STICKER,
+        false
+      );
       expect(result.success).toBe(false);
       expect(result.errorMessage).toMatch(`Max file size is 256 KB, please!`);
     });
@@ -553,7 +579,11 @@ test.describe('File Size Limits Validation', () => {
     );
 
     await AllureReporter.step('Upload small sound (800KB)', async () => {
-      const result = await fileSizeHelpers.uploadVoiceStickerAndVerify(smallSoundPath, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        smallSoundPath,
+        UploadType.VOICE_STICKER,
+        true
+      );
       expect(result.success).toBe(true);
     });
 
@@ -566,7 +596,11 @@ test.describe('File Size Limits Validation', () => {
     );
 
     await AllureReporter.step('Upload large sound (1.2MB) - should fail', async () => {
-      const result = await fileSizeHelpers.uploadVoiceStickerAndVerify(largeSoundPath, false);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        largeSoundPath,
+        UploadType.VOICE_STICKER,
+        false
+      );
       expect(result.success).toBe(false);
       expect(result.errorMessage).toMatch('File too big, max 1MB');
     });
@@ -673,7 +707,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload event cover under limit (900KB)', async () => {
-      const result = await fileSizeHelpers.uploadEventImageCoverAndVerify(under1MbPath, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        under1MbPath,
+        UploadType.EVENT_IMAGE_COVER,
+        true
+      );
       expect(result.success).toBe(true);
     });
     await fileSizeHelpers.cleanupFiles([under1MbPath]);
@@ -684,7 +722,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload event cover over limit (1.2MB) - should fail', async () => {
-      const result = await fileSizeHelpers.uploadEventImageCoverAndVerify(over1MbPath, false);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        over1MbPath,
+        UploadType.EVENT_IMAGE_COVER,
+        false
+      );
       expect(result.success).toBe(false);
       expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 1 mb, please!');
     });
@@ -715,7 +757,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload resource image under limit (9MB)', async () => {
-      const result = await fileSizeHelpers.uploadOnboardingResourceAndVerify(under10Mb, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        under10Mb,
+        UploadType.ONBOARDING_RESOURCE,
+        true
+      );
       expect(result.success).toBe(true);
     });
     await fileSizeHelpers.cleanupFiles([under10Mb]);
@@ -728,7 +774,11 @@ test.describe('File Size Limits Validation', () => {
     await AllureReporter.step(
       'Upload resource image over limit (10.2MB) - should fail',
       async () => {
-        const result = await fileSizeHelpers.uploadOnboardingResourceAndVerify(over10Mb, false);
+        const result = await fileSizeHelpers.uploadByTypeAndVerify(
+          over10Mb,
+          UploadType.ONBOARDING_RESOURCE,
+          false
+        );
         expect(result.success).toBe(false);
         expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 10 mb, please!');
       }
@@ -760,7 +810,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload community banner under limit (9MB)', async () => {
-      const result = await fileSizeHelpers.uploadCommunityBannerAndVerify(under10MbBanner, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        under10MbBanner,
+        UploadType.COMMUNITY_BANNER,
+        true
+      );
       expect(result.success).toBe(true);
     });
     await fileSizeHelpers.cleanupFiles([under10MbBanner]);
@@ -773,7 +827,11 @@ test.describe('File Size Limits Validation', () => {
     await AllureReporter.step(
       'Upload community banner over limit (10.2MB) - should fail',
       async () => {
-        const result = await fileSizeHelpers.uploadCommunityBannerAndVerify(over10MbBanner, false);
+        const result = await fileSizeHelpers.uploadByTypeAndVerify(
+          over10MbBanner,
+          UploadType.COMMUNITY_BANNER,
+          false
+        );
         expect(result.success).toBe(false);
         expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 10 mb, please!');
       }
@@ -804,7 +862,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload clan webhook avatar under limit (7MB)', async () => {
-      const result = await fileSizeHelpers.uploadChannelWebhookAvatarAndVerify(under8MbClan, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        under8MbClan,
+        UploadType.CHANNEL_WEBHOOK_AVATAR,
+        true
+      );
       expect(result.success).toBe(true);
     });
     await fileSizeHelpers.cleanupFiles([under8MbClan]);
@@ -815,7 +877,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload clan webhook avatar under limit (7MB)', async () => {
-      const result = await fileSizeHelpers.uploadChannelWebhookAvatarAndVerify(over8MbClan, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        over8MbClan,
+        UploadType.CHANNEL_WEBHOOK_AVATAR,
+        false
+      );
       expect(result.success).toBe(false);
       expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 8 mb, please!');
     });
@@ -846,7 +912,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload clan webhook avatar under limit (7MB)', async () => {
-      const result = await fileSizeHelpers.uploadClanWebhookAvatarAndVerify(under8MbClan, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        under8MbClan,
+        UploadType.CLAN_WEBHOOK_AVATAR,
+        true
+      );
       expect(result.success).toBe(true);
     });
     await fileSizeHelpers.cleanupFiles([under8MbClan]);
@@ -857,7 +927,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload clan webhook avatar under limit (7MB)', async () => {
-      const result = await fileSizeHelpers.uploadClanWebhookAvatarAndVerify(over8MbClan, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        over8MbClan,
+        UploadType.CLAN_WEBHOOK_AVATAR,
+        false
+      );
       expect(result.success).toBe(false);
       expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 8 mb, please!');
     });
@@ -888,7 +962,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload direct message icon under limit (7MB)', async () => {
-      const result = await fileSizeHelpers.uploadGroupAvtAndVerify(under8MbGroupAvt, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        under8MbGroupAvt,
+        UploadType.GROUP_AVATAR,
+        true
+      );
       expect(result.success).toBe(true);
     });
     await fileSizeHelpers.cleanupFiles([under8MbGroupAvt]);
@@ -899,7 +977,11 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload direct message icon over limit (8MB)', async () => {
-      const result = await fileSizeHelpers.uploadGroupAvtAndVerify(over8MbDirectMessage, true);
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        over8MbDirectMessage,
+        UploadType.GROUP_AVATAR,
+        false
+      );
       expect(result.success).toBe(false);
       expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 8 mb, please!');
     });
@@ -930,8 +1012,9 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload direct message icon under limit (700KB)', async () => {
-      const result = await fileSizeHelpers.uploadDirectMessageIconAndVerify(
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
         under1MbDirectMessage,
+        UploadType.DIRECT_MESSAGE_ICON,
         true
       );
       expect(result.success).toBe(true);
@@ -944,9 +1027,10 @@ test.describe('File Size Limits Validation', () => {
       'jpg'
     );
     await AllureReporter.step('Upload direct message icon over limit (1MB)', async () => {
-      const result = await fileSizeHelpers.uploadDirectMessageIconAndVerify(
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
         over1MbDirectMessage,
-        true
+        UploadType.DIRECT_MESSAGE_ICON,
+        false
       );
       expect(result.success).toBe(false);
       expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 1 mb, please!');
