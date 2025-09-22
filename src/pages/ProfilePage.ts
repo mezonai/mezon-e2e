@@ -26,6 +26,9 @@ export class ProfilePage extends BasePage {
     userSettingProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.button_setting')
     ),
+    applyImageAvatar: this.page.locator(
+      generateE2eSelector('user_setting.profile.user_profile.upload.avatar_input.apply_button')
+    ),
   };
 
   readonly tabs = {
@@ -33,6 +36,12 @@ export class ProfilePage extends BasePage {
     userProfile: this.page.locator(generateE2eSelector('user_setting.profile.user_profile.button')),
     clanProfile: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.button')),
     account: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
+  };
+
+  readonly userProfile = {
+    avatar: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+    ),
   };
 
   readonly inputs = {

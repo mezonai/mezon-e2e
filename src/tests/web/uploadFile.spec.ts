@@ -9,14 +9,14 @@ import { ProfilePage } from '../../pages/ProfilePage';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
-import { MessgaePage } from '@/pages/MessagePage';
+import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('File Size Limits Validation', () => {
   let clanSetupHelper: ClanSetupHelper;
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
   let channelSettingPage: ChannelSettingPage;
-  let messagePage: MessgaePage;
+  let messagePage: MessagePage;
   let profilePage: ProfilePage;
   let clanPage: ClanPageV2;
   let clanName: string;
@@ -60,7 +60,7 @@ test.describe('File Size Limits Validation', () => {
       fileSizeHelpers = new FileSizeTestHelpers(page);
       clanSettingsPage = new ClanSettingsPage(page);
       channelSettingPage = new ChannelSettingPage(page);
-      messagePage = new MessgaePage(page);
+      messagePage = new MessagePage(page);
       profilePage = new ProfilePage(page);
       clanPage = new ClanPageV2(page);
 

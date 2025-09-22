@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
-import { MessgaePage } from '@/pages/MessagePage';
+import { MessagePage } from '@/pages/MessagePage';
 
 export class MessageTestHelpers {
   private page: Page;
@@ -681,7 +681,7 @@ export class MessageTestHelpers {
   }
 
   async handleDeleteConfirmation(): Promise<void> {
-    const messagePage = new MessgaePage(this.page);
+    const messagePage = new MessagePage(this.page);
 
     const element = messagePage.confirmDeleteMessageButton;
     try {

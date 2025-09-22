@@ -1,15 +1,19 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { getImageHash } from '@/utils/images';
 import generateRandomString from '@/utils/randomString';
-import { expect, test } from '@playwright/test';
+import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
+import { expect, Locator, test } from '@playwright/test';
 
 test.describe('User Profile - Clan Profiles', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanUrl: string;
   let clanName: string;
+
+  test.use({ storageState: 'playwright/.auth/account6.json' });
 
   test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
@@ -182,8 +186,6 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.attachScreenshot(page, 'Clan Nickname Changed Successfully');
   });
 
-  test.use({ storageState: 'playwright/.auth/account6.json' });
-
   // test.skip('Remove avatar clan', async ({ page }) => {
   //   const profilePage = new ProfilePage(page);
   //   await AllureReporter.addTestParameters({
@@ -268,6 +270,64 @@ test.describe('User Profile - Clan Profiles', () => {
       page,
       'Edit User Profile, Edit Display Name and Edit Username Button Visible'
     );
+  });
+
+  test('Update avatar user profile - button visible', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
+    const directMessagePage = new MessagePage(page);
+    const fileSizeHelpers = new FileSizeTestHelpers(page);
+    let profileAvatar: Locator;
+    let footerAvatar: Locator;
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the "Update Avatar" button is visible in the user profile section.
+      
+      **Test Steps:**
+      1. Navigate to user profile settings
+      2. Locate the update avatar button
+      3. Verify the button is visible and accessible
+      
+      **Expected Result:** The "Update Avatar" button should be visible and accessible to the user.
+    `);
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
+
+    const smallAvatarPath = await fileSizeHelpers.createFileWithSize(
+      'small_avatar',
+      5 * 1024 * 1024,
+      'jpg'
+    );
+
+    await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
+    await profilePage.buttons.applyImageAvatar.click();
+    await profilePage.buttons.saveChangesUserProfile.click();
+
+    profileAvatar = profilePage.userProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const profileSrc = await profileAvatar.getAttribute('src');
+    const profileHash = await getImageHash(profileSrc || '');
+
+    await profilePage.navigate('/chat/direct/friends');
+    footerAvatar = directMessagePage.footerAvatar;
+    await expect(footerAvatar).toBeVisible({ timeout: 5000 });
+    const footerSrc = await footerAvatar.getAttribute('src');
+    const footerHash = await getImageHash(footerSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(footerHash).not.toBeNull();
+
+    expect(profileHash).toEqual(footerHash);
   });
 
   // test('Change display name profile', async ({ page }) => {
@@ -438,5 +498,118 @@ test.describe('User Profile - Clan Profiles', () => {
     );
 
     await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
+  });
+});
+
+test.describe('User Profile - Update avatar', () => {
+  let clanSetupHelper: ClanSetupHelper;
+  let testClanUrl: string;
+  let clanName: string;
+  let profileHash: string | null = null;
+
+  test.use({ storageState: 'playwright/.auth/account6.json' });
+
+  test.beforeAll(async ({ browser }) => {
+    await TestSetups.authenticationTest({
+      suite: AllureConfig.Suites.USER_MANAGEMENT,
+      subSuite: AllureConfig.SubSuites.USER_PROFILE,
+      story: AllureConfig.Stories.PROFILE_SETUP,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
+    testClanUrl = setupResult.clanUrl;
+    clanName = setupResult.clanName;
+
+    const page = await browser.newPage();
+    await page.goto(testClanUrl);
+    const profilePage = new ProfilePage(page);
+
+    await AllureReporter.step('Open user settings profile', async () => {
+      await profilePage.buttons.userSettingProfile.click();
+    });
+
+    const fileSizeHelpers = new FileSizeTestHelpers(page);
+    let profileAvatar: Locator;
+    let footerAvatar: Locator;
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the "Update Avatar" button is visible in the user profile section.
+      
+      **Test Steps:**
+      1. Navigate to user profile settings
+      2. Locate the update avatar button
+      3. Verify the button is visible and accessible
+      
+      **Expected Result:** The "Update Avatar" button should be visible and accessible to the user.
+    `);
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
+
+    const smallAvatarPath = await fileSizeHelpers.createFileWithSize(
+      'small_avatar',
+      5 * 1024 * 1024,
+      'jpg'
+    );
+
+    await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
+    await profilePage.buttons.applyImageAvatar.click();
+    await profilePage.buttons.saveChangesUserProfile.click();
+
+    profileAvatar = profilePage.userProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const profileSrc = await profileAvatar.getAttribute('src');
+    profileHash = await getImageHash(profileSrc || '');
+  });
+
+  test.afterAll(async () => {
+    if (clanSetupHelper && clanName && testClanUrl) {
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        testClanUrl,
+        ClanSetupHelper.configs.userProfile.suiteName
+      );
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.step('Navigate to clan chat page', async () => {
+      await page.goto(testClanUrl);
+    });
+  });
+
+  test('Validate footer avatar', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    const profilePage = new ProfilePage(page);
+    const directMessagePage = new MessagePage(page);
+
+    let footerAvatar: Locator;
+
+    await profilePage.navigate('/chat/direct/friends');
+    footerAvatar = directMessagePage.footerAvatar;
+    await expect(footerAvatar).toBeVisible({ timeout: 5000 });
+    const footerSrc = await footerAvatar.getAttribute('src');
+    const footerHash = await getImageHash(footerSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(footerHash).not.toBeNull();
+
+    expect(profileHash).toEqual(footerHash);
   });
 });
