@@ -191,8 +191,6 @@ test.describe('Channel Message - Module 1', () => {
 
     messageHelpers = new MessageTestHelpers(page);
 
-    const initialMessageCount = await messageHelpers.countMessages();
-
     const originalMessage = `Original message ${Date.now()}`;
     await messageHelpers.sendTextMessage(originalMessage);
 
@@ -200,11 +198,13 @@ test.describe('Channel Message - Module 1', () => {
 
     await messageHelpers.openTopicDiscussion(targetMessage);
 
+    await expect(messageHelpers.verifyLastTopicMessage(originalMessage)).toBeTruthy();
+    
+
     const threadMessage = `Thread reply ${Date.now()}`;
     await messageHelpers.sendMessageInThread(threadMessage);
-
-    const finalMessageCount = await messageHelpers.countMessages();
-    expect(finalMessageCount).toBeGreaterThanOrEqual(initialMessageCount + 1);
+    await page.waitForTimeout(2000);
+    await expect(messageHelpers.verifyLastTopicMessage(threadMessage)).toBeTruthy();
   });
 
   test('Create thread from message and send reply', async ({ page, context }) => {

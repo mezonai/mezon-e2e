@@ -2610,6 +2610,13 @@ export class MessageTestHelpers {
   async findMessageItemByText(messageText: string) {
     return this.getMessageItemLocator(messageText).last();
   }
+
+  async verifyLastTopicMessage(messageText: string): Promise<boolean> {
+    const messagePage = new MessgaePage(this.page);
+    const lastMessage = await messagePage.topicMessages.last();
+    const textContent = await lastMessage.textContent();
+    return textContent?.includes(messageText) || false;
+  }
 }
 
 export const LINK_TEST_URLS = [
