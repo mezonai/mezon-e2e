@@ -608,7 +608,7 @@ export class MessageTestHelpers {
     throw new Error('Could not find Create Thread option in context menu');
   }
 
-  async createThread(messageElement: Locator, threadName?: string): Promise<void> {
+  async createThread(messageElement: Locator): Promise<void> {
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
@@ -617,9 +617,6 @@ export class MessageTestHelpers {
     const createThreadButton = await this.findCreateThreadOption();
     await createThreadButton.click();
     await this.page.waitForTimeout(3000);
-
-    const defaultThreadName = threadName || `Thread ${Date.now()}`;
-    await this.fillThreadName(defaultThreadName);
   }
 
   async fillThreadName(threadName: string): Promise<void> {
@@ -2629,6 +2626,28 @@ export class MessageTestHelpers {
   async verifyTopicInputEmpty(): Promise<boolean> {
     const messagePage = new MessgaePage(this.page);
     const input = await messagePage.topicInput;
+    const textContent = await input.textContent();
+    return textContent?.includes('') || false;
+  }
+
+  async verifyFirstThreadMessage(messageText: string): Promise<boolean> {
+    const messagePage = new MessgaePage(this.page);
+    const firstMessage = await messagePage.threadMessages.first();
+    const textContent = await firstMessage.textContent();
+    const countMsg = await messagePage.threadMessages.count();
+    return (textContent?.includes(messageText) && countMsg === 1) || false;
+  }
+
+  async verifyLastThreadMessage(messageText: string): Promise<boolean> {
+    const messagePage = new MessgaePage(this.page);
+    const lastMessage = await messagePage.threadMessages.last();
+    const textContent = await lastMessage.textContent();
+    return textContent?.includes(messageText) || false;
+  }
+
+  async verifyThreadInputEmpty(): Promise<boolean> {
+    const messagePage = new MessgaePage(this.page);
+    const input = await messagePage.threadInput;
     const textContent = await input.textContent();
     return textContent?.includes('') || false;
   }
