@@ -198,8 +198,9 @@ test.describe('Channel Message - Module 1', () => {
 
     await messageHelpers.openTopicDiscussion(targetMessage);
 
+    await expect(messageHelpers.verifyFirstTopicMessage(originalMessage)).toBeTruthy();
     await expect(messageHelpers.verifyLastTopicMessage(originalMessage)).toBeTruthy();
-    
+    await expect(messageHelpers.verifyTopicInputEmpty()).toBeTruthy();
 
     const threadMessage = `Thread reply ${Date.now()}`;
     await messageHelpers.sendMessageInThread(threadMessage);
