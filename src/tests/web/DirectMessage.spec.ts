@@ -6,6 +6,7 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
+import { randomInt } from 'crypto';
 import { HomePage } from '../../pages/HomePage';
 
 test.describe('Direct Message', () => {
@@ -223,13 +224,13 @@ test.describe('Direct Message', () => {
     });
 
     const messagePage = new MessgaePage(page);
-
-    let pinnedMessageId: string;
+    const indentityMessage = (Date.now() + randomInt(10)).toString();
+    const messageToPinText = `Message to pin ${indentityMessage}`;
 
     await AllureReporter.step('Send a message and pin it', async () => {
-      await messagePage.sendMessage(messageText);
+      await messagePage.sendMessage(messageToPinText);
       await messagePage.messages.last().waitFor({ state: 'visible', timeout: 10000 });
-      pinnedMessageId = await messagePage.pinLastMessage();
+      await messagePage.pinLastMessage();
     });
 
     await AllureReporter.step('Delete the pinned message', async () => {
@@ -237,7 +238,7 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.step('Verify pinned message is removed from list', async () => {
-      const isStillPinned = await messagePage.isMessageStillPinned(pinnedMessageId);
+      const isStillPinned = await messagePage.isMessageStillPinned(indentityMessage);
       expect(isStillPinned).toBe(false);
     });
 
