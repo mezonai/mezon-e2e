@@ -85,6 +85,17 @@ export const persistentAuthConfigs = {
     activeAccount: '"1967789474532298800"',
     _persist: '{"version":-1,"rehydrated":true}',
   },
+  account8: {
+    loadingStatus: '"loaded"',
+    session:
+      '{"1968198973806088200":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJhN2VjNWI0NS0xNzIzLTQ0OWUtOGM1NS0xNDRmZGU1ZjAxMTYiLCJ1aWQiOjE5NjgxOTg5NzM4MDYwODgxOTIsInVzbiI6ImRhdC5oYXF1b2MrMDgiLCJleHAiOjE3NTgxNzY1Nzd9.iw4jNroeMr-D_Yuxt1sVWaqjhpA2CecUaTClFQXDvko","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJhN2VjNWI0NS0xNzIzLTQ0OWUtOGM1NS0xNDRmZGU1ZjAxMTYiLCJ1aWQiOjE5NjgxOTg5NzM4MDYwODgxOTIsInVzbiI6ImRhdC5oYXF1b2MrMDgiLCJleHAiOjE3NTg2OTQ5Nzd9.wQz2GCyOcwPgRWGL4CQl3HfooUIX_BplO5etn0Fqapc","created_at":1758090177,"is_remember":false,"refresh_expires_at":1758694977,"expires_at":1758176577,"username":"dat.haquoc+08","user_id":1968198973806088200}}',
+    isLogin: 'true',
+    isRegistering: '"not loaded"',
+    loadingStatusEmail: '"not loaded"',
+    redirectUrl: 'null',
+    activeAccount: '"1968198973806088200"',
+    _persist: '{"version":-1,"rehydrated":true}',
+  },
   'account2-1': {
     loadingStatus: '"loaded"',
     session:
@@ -153,6 +164,40 @@ export const persistentAuthConfigs = {
     _persist: '{"version":-1,"rehydrated":true}',
   },
 };
+
+// Backward compatibility - keeping original persistentConfig
+const persistentConfig = persistentAuthConfigs.account1;
+
+// Function to get auth config by account key
+export const getAuthConfig = (accountKey: keyof typeof persistentAuthConfigs) => {
+  return persistentAuthConfigs[accountKey] || persistentAuthConfigs.account1;
+};
+
+// Function to get auth config by suite name
+export const getAuthConfigBySuite = (suiteName: string) => {
+  const suiteToAccountMap: Record<string, keyof typeof persistentAuthConfigs> = {
+    'Channel Management': 'account1',
+    'Channel Message': 'account2',
+    'Clan Management': 'account3',
+    'Direct Message': 'account4',
+    'Onboarding Guide': 'account5',
+    'User Profile': 'account6',
+    'Thread Management': 'account7',
+    'Channel Message - Module 1': 'account2-1',
+    'Channel Message - Module 2': 'account2-2',
+    'Channel Message - Module 3': 'account2-3',
+    'Channel Message - Module 4': 'account2-4',
+    'Channel Message - Module 5': 'account2-5',
+    'Standalone - Clan Management': 'account8',
+    'Upload File': 'account9',
+  };
+
+  const accountKey = suiteToAccountMap[suiteName] || 'account1';
+  return { config: getAuthConfig(accountKey), accountKey };
+};
+
+// Get available account keys
+export const getAvailableAccounts = () => Object.keys(persistentAuthConfigs);
 
 /**
  * Global configuration constants
