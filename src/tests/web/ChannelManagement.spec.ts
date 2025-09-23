@@ -2,7 +2,6 @@ import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import test, { expect } from '@playwright/test';
 
@@ -26,11 +25,7 @@ test.describe('Channel Management', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.channelManagement.suiteName
-      );
+      await clanSetupHelper.cleanupClan(clanName, clanUrl);
     }
   });
 

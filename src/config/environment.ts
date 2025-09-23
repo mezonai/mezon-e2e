@@ -1,8 +1,12 @@
 import { EnvironmentConfig } from '@/config/types';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
-// Multiple persistent auth configurations
+/**
+ * Persistent authentication configurations for multiple test accounts
+ * These are pre-configured authentication states used in Playwright tests
+ */
 export const persistentAuthConfigs = {
   account1: {
     loadingStatus: '"loaded"',
@@ -73,7 +77,7 @@ export const persistentAuthConfigs = {
   account7: {
     loadingStatus: '"loaded"',
     session:
-      '{"1967789474532298800":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJlNzFkY2MyYy02YjdmLTQ1NTQtYTE3NC1lMmEyYTljMjRjM2EiLCJ1aWQiOjE5Njc3ODk0NzQ1MzIyOTg3NTIsInVzbiI6ImRhdC5oYXF1b2MrMDciLCJleHAiOjE3NTgwNzg5NDV9.b30k3FypgiJM-MPCUAQda3AZ5xFPJ-Ofxp-a7ifW2Ug","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJlNzFkY2MyYy02YjdmLTQ1NTQtYTE3NC1lMmEyYTljMjRjM2EiLCJ1aWQiOjE5Njc3ODk0NzQ1MzIyOTg3NTIsInVzbiI6ImRhdC5oYXF1b2MrMDciLCJleHAiOjE3NTg1OTczNDV9.n8YI8xL1Y2bXrkmz2xYWWN-KOYluFwtLJ_-fNrEvxc0","created_at":1757992545,"is_remember":false,"refresh_expires_at":1758597345,"expires_at":1758078945,"username":"dat.haquoc+07","user_id":1967789474532298800}}',
+      '{"1967789474532298800":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJkZDUwMDVkZi00OGEzLTQ3OWEtOGU1NS03NjU2NTQ4MDM3ZDAiLCJ1aWQiOjE5Njc3ODk0NzQ1MzIyOTg3NTIsInVzbiI6ImRhdC5oYXF1b2MrMDciLCJleHAiOjE3NTg2ODU0MzZ9.Nei5CNBtC_nyLEmUdJeR9RJ2MTFa_4_h9bDXJtVYaCg","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJkZDUwMDVkZi00OGEzLTQ3OWEtOGU1NS03NjU2NTQ4MDM3ZDAiLCJ1aWQiOjE5Njc3ODk0NzQ1MzIyOTg3NTIsInVzbiI6ImRhdC5oYXF1b2MrMDciLCJleHAiOjE3NTkyMDM4MzZ9.1scwztuWK3IhZ7FKGdIzx_3VJWn_iaPAtObBgMHHmIg","created_at":1758599036,"is_remember":false,"refresh_expires_at":1759203836,"expires_at":1758685436,"username":"dat.haquoc+07","user_id":1967789474532298800}}',
     isLogin: 'true',
     isRegistering: '"not loaded"',
     loadingStatusEmail: '"not loaded"',
@@ -150,46 +154,17 @@ export const persistentAuthConfigs = {
   },
 };
 
-// Backward compatibility - keeping original persistentConfig
-const persistentConfig = persistentAuthConfigs.account1;
-
-// Function to get auth config by account key
-export const getAuthConfig = (accountKey: keyof typeof persistentAuthConfigs) => {
-  return persistentAuthConfigs[accountKey] || persistentAuthConfigs.account1;
-};
-
-// Function to get auth config by suite name
-export const getAuthConfigBySuite = (suiteName: string) => {
-  const suiteToAccountMap: Record<string, keyof typeof persistentAuthConfigs> = {
-    'Channel Management': 'account1',
-    'Channel Message': 'account2',
-    'Clan Management': 'account3',
-    'Direct Message': 'account4',
-    'Onboarding Guide': 'account5',
-    'User Profile': 'account6',
-    'Thread Management': 'account7',
-    'Channel Message - Module 1': 'account2-1',
-    'Channel Message - Module 2': 'account2-2',
-    'Channel Message - Module 3': 'account2-3',
-    'Channel Message - Module 4': 'account2-4',
-    'Channel Message - Module 5': 'account2-5',
-    'Upload File': 'account9',
-  };
-
-  const accountKey = suiteToAccountMap[suiteName] || 'account1';
-  return { config: getAuthConfig(accountKey), accountKey };
-};
-
-// Get available account keys
-export const getAvailableAccounts = () => Object.keys(persistentAuthConfigs);
-
+/**
+ * Global configuration constants
+ */
 export const GLOBAL_CONFIG = {
   LOCAL_BASE_URL: process.env.BASE_URL || '',
-  DEV_BASE_URL: process.env.DEV_BASE_URL,
-  API_URL: process.env.API_URL,
   SKIP_LOGIN: process.env.SKIP_LOGIN === 'true',
 } as const;
 
+/**
+ * Website-specific configurations
+ */
 export const WEBSITE_CONFIGS = {
   MEZON: {
     baseURL: process.env.BASE_URL,
@@ -197,52 +172,9 @@ export const WEBSITE_CONFIGS = {
   },
 } as const;
 
-export const SESSION_CONFIGS = {
-  MEZON_SESSION: {
-    host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
-    port: process.env.MEZON_SESSION_PORT || '7305',
-    ssl: process.env.MEZON_SESSION_SSL !== 'false' || true,
-  },
-} as const;
-
-export const getSessionConfig = () => {
-  return {
-    host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
-    port: process.env.MEZON_SESSION_PORT || '7305',
-    ssl: true,
-  };
-};
-
-export const LOCAL_CONFIG = {
-  isLocal: process.env.NODE_ENV === 'development',
-  skipLogin: process.env.SKIP_LOGIN === 'true' || process.env.NODE_ENV === 'development',
-} as const;
-
-export const LOCAL_AUTH_DATA = {
-  persist: {
-    key: 'persist:auth',
-    value: persistentConfig,
-  },
-  mezonSession: {
-    key: 'mezon_session',
-    value: JSON.stringify(getSessionConfig()),
-  },
-} as const;
-
-// Function to get auth data for specific account
-export const getLocalAuthData = (accountKey: keyof typeof persistentAuthConfigs) => {
-  return {
-    persist: {
-      key: 'persist:auth',
-      value: getAuthConfig(accountKey),
-    },
-    mezonSession: {
-      key: 'mezon_session',
-      value: JSON.stringify(getSessionConfig()),
-    },
-  };
-};
-
+/**
+ * Creates environment-specific configuration based on NODE_ENV
+ */
 function getEnvironmentConfig(): EnvironmentConfig {
   const env = process.env.NODE_ENV || 'development';
   const website = process.env.WEBSITE || 'MEZON';
@@ -335,11 +267,19 @@ function getEnvironmentConfig(): EnvironmentConfig {
   }
 }
 
+/**
+ * Main environment configuration instance
+ */
 export const ENV_CONFIG = getEnvironmentConfig();
 
-export const isProduction = () => process.env.NODE_ENV === 'production';
+/**
+ * Utility function to check if running in CI environment
+ */
 export const isCI = () => !!process.env.CI;
 
+/**
+ * Browser configuration factory function
+ */
 export const getBrowserConfig = () => ({
   headless: ENV_CONFIG.browser.headless,
   slowMo: ENV_CONFIG.browser.slowMo,
@@ -352,29 +292,3 @@ export const getBrowserConfig = () => ({
         '--disable-clipboard-sanitization',
       ],
 });
-
-export const getTestConfig = () => ({
-  timeout: ENV_CONFIG.timeout.default,
-  retries: ENV_CONFIG.retries,
-  workers: ENV_CONFIG.workers,
-  use: {
-    baseURL: ENV_CONFIG.baseURL,
-    actionTimeout: ENV_CONFIG.timeout.action,
-    navigationTimeout: ENV_CONFIG.timeout.navigation,
-    screenshot: ENV_CONFIG.screenshots.mode,
-    video: ENV_CONFIG.video.mode,
-    trace: ENV_CONFIG.trace.mode,
-  },
-});
-
-export const LOG_LEVELS = {
-  ERROR: 0,
-  WARN: 1,
-  INFO: 2,
-  DEBUG: 3,
-} as const;
-
-export const getLogLevel = (): number => {
-  const level = process.env.LOG_LEVEL?.toUpperCase() || 'INFO';
-  return LOG_LEVELS[level as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.INFO;
-};
