@@ -6,9 +6,7 @@ import { OnboardingTask } from '@/types/onboarding.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test } from '@playwright/test';
-import { HomePage } from '../../pages/HomePage';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 
 test.describe('Onboarding Guide Task Completion', () => {
   let clanSetupHelper: ClanSetupHelper;
@@ -27,11 +25,7 @@ test.describe('Onboarding Guide Task Completion', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && testClanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        testClanName,
-        clanUrl,
-        ClanSetupHelper.configs.onboarding.suiteName
-      );
+      await clanSetupHelper.cleanupClan(testClanName, clanUrl);
     }
   });
 

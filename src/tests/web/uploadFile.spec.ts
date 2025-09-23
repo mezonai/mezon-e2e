@@ -1,9 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test, Browser, Page, BrowserContext, TestInfo } from '@playwright/test';
-// import { WEBSITE_CONFIGS } from '../../config/environment';
 import { ClanSettingsPage } from '../../pages/ClanSettingsPage';
 import { ProfilePage } from '../../pages/ProfilePage';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
@@ -33,12 +31,7 @@ test.describe('File Size Limits Validation', () => {
   });
 
   test.afterAll(async () => {
-    if (clanSetupHelper)
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.uploadFile.suiteName
-      );
+    if (clanSetupHelper) await clanSetupHelper.cleanupClan(clanName, clanUrl);
   });
 
   test.beforeEach(

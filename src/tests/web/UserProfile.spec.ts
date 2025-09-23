@@ -32,11 +32,7 @@ test.describe('User Profile - Clan Profiles', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        testClanUrl,
-        ClanSetupHelper.configs.userProfile.suiteName
-      );
+      await clanSetupHelper.cleanupClan(clanName, testClanUrl);
     }
   });
 
@@ -577,11 +573,7 @@ test.describe('User Profile - Update avatar', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        testClanUrl,
-        ClanSetupHelper.configs.userProfile.suiteName
-      );
+      await clanSetupHelper.cleanupClan(clanName, testClanUrl);
     }
   });
 
