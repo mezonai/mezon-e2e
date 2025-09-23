@@ -18,11 +18,19 @@ export interface NotificationPayload {
   error?: string;
   passed?: number;
   failed?: number;
+  flaky?: number;
   totalDuration?: number;
   failedTests?: Array<{
     title: string;
     file: string;
     error: string;
+    duration: number;
+  }>;
+  flakyTests?: Array<{
+    title: string;
+    file: string;
+    retryCount: number;
+    finalStatus: string;
     duration: number;
   }>;
   prUrl?: string;
@@ -128,10 +136,19 @@ export class MezonNotifier {
     // For success messages (all tests passed)
     if (message.includes('Successfully')) {
       const passed = payload.passed || 0;
+      const flaky = payload.flaky || 0;
+      const failed = payload.failed || 0;
       const total = payload.totalTests || passed;
       const duration = payload.totalDuration ? this.formatDuration(payload.totalDuration) : 'N/A';
 
-      let successMessage = `✅ All tests passed! ${passed}/${total} tests completed successfully in ${duration} ⏰ ${timestamp} (GMT+7)`;
+      let successMessage = `✅ All tests passed! ${passed}/${total} tests completed successfully in ${duration}`;
+
+      // Add flaky tests info if any
+      if (flaky > 0) {
+        successMessage += ` (${flaky} flaky tests recovered)`;
+      }
+
+      successMessage += ` ⏰ ${timestamp} (GMT+7)`;
 
       // Add GitHub links for success messages
       const links = this.formatGitHubLinks(payload);

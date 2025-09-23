@@ -109,6 +109,15 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
+    {
+      name: 'Chrome-Standalone',
+      testDir: './src/standalone-tests',
+      use: {
+        ...devices['Desktop Chrome'],
+        ...getBrowserConfig(),
+      },
+      dependencies: ['setup'],
+    },
     // BDD Tests - Login flow (NO AUTH)
     // {
     //   name: 'chromium-bdd-login',
