@@ -1,7 +1,6 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
@@ -28,11 +27,7 @@ test.describe('User Profile - Clan Profiles', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        testClanUrl,
-        ClanSetupHelper.configs.userProfile.suiteName
-      );
+      await clanSetupHelper.cleanupClan(clanName, testClanUrl);
     }
   });
 

@@ -34,11 +34,7 @@ test.describe('Channel Message - Module 5', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper && testClanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(
-        testClanName,
-        testClanUrl,
-        ClanSetupHelper.configs.channelMessage5.suiteName
-      );
+      await clanSetupHelper.cleanupClan(testClanName, testClanUrl);
     }
   });
 
