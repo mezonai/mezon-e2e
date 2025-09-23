@@ -1,6 +1,5 @@
 import { WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { AuthHelper } from '@/utils/authHelper';
 import { Browser } from '@playwright/test';
 import generateRandomString from './randomString';
 import sleep from './sleep';
@@ -67,7 +66,7 @@ export class ClanSetupHelper {
       const clanUrl = page.url();
 
       const cleanup = async () => {
-        await this.cleanupClan(clanName, clanUrl, suiteName);
+        await this.cleanupClan(clanName, clanUrl);
       };
 
       this.cleanupFunctions.push(cleanup);
@@ -99,11 +98,7 @@ export class ClanSetupHelper {
    * @param clanUrl URL of the clan to navigate to
    * @param suiteName Name of the test suite for authentication
    */
-  async cleanupClan(
-    clanName: string,
-    clanUrl: string,
-    suiteName: string = 'Cleanup'
-  ): Promise<void> {
+  async cleanupClan(clanName: string, clanUrl: string): Promise<void> {
     if (!clanName || !clanUrl) {
       return;
     }
@@ -112,8 +107,6 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      await AuthHelper.setAuthForSuite(page, suiteName);
-
       await page.goto(clanUrl);
       await page.waitForLoadState('domcontentloaded');
 
@@ -277,14 +270,9 @@ export class ClanSetupHelper {
    * @param clanUrl URL of the clan
    * @param suiteName Name of the test suite
    */
-  static async cleanupTestClan(
-    browser: Browser,
-    clanName: string,
-    clanUrl: string,
-    suiteName: string = 'Cleanup'
-  ): Promise<void> {
+  static async cleanupTestClan(browser: Browser, clanName: string, clanUrl: string): Promise<void> {
     const helper = new ClanSetupHelper(browser);
-    return helper.cleanupClan(clanName, clanUrl, suiteName);
+    return helper.cleanupClan(clanName, clanUrl);
   }
 }
 
