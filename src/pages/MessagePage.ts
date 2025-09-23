@@ -36,6 +36,10 @@ export class MessgaePage {
   readonly deleteMessageButton: Locator;
   readonly confirmDeleteMessageButton: Locator;
   readonly displayListPinButton: Locator;
+  readonly topicMessages: Locator;
+  readonly topicInput: Locator;
+  readonly threadMessages: Locator;
+  readonly threadInput: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -130,6 +134,10 @@ export class MessgaePage {
     this.displayListPinButton = page.locator(
       generateE2eSelector('chat.channel_message.header.button.pin')
     );
+    this.topicMessages = page.locator(`${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('chat.direct_message.message.item')}`);
+    this.topicInput = page.locator(`${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`);
+    this.threadMessages = page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('chat.direct_message.message.item')}`);
+    this.threadInput = page.locator(`${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`);
   }
 
   async createDM(): Promise<void> {

@@ -187,8 +187,6 @@ test.describe('Channel Message - Module 1', () => {
 
     messageHelpers = new MessageTestHelpers(page);
 
-    const initialMessageCount = await messageHelpers.countMessages();
-
     const originalMessage = `Original message ${Date.now()}`;
     await messageHelpers.sendTextMessage(originalMessage);
 
@@ -196,23 +194,26 @@ test.describe('Channel Message - Module 1', () => {
 
     await messageHelpers.openTopicDiscussion(targetMessage);
 
+    await expect(messageHelpers.verifyFirstTopicMessage(originalMessage)).toBeTruthy();
+    await expect(messageHelpers.verifyTopicInputEmpty()).toBeTruthy();
+
     const threadMessage = `Thread reply ${Date.now()}`;
     await messageHelpers.sendMessageInThread(threadMessage);
-
-    const finalMessageCount = await messageHelpers.countMessages();
-    expect(finalMessageCount).toBeGreaterThanOrEqual(initialMessageCount + 1);
+    await page.waitForTimeout(2000);
+    await expect(messageHelpers.verifyFirstTopicMessage(originalMessage)).toBeTruthy();
+    await expect(messageHelpers.verifyLastTopicMessage(threadMessage)).toBeTruthy();
   });
 
-  test('Create thread from message and send reply', async ({ page, context }) => {
+  test('Create thread from message and send reply', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63392',
+      github_issue: '9657'
     });
 
     messageHelpers = new MessageTestHelpers(page);
     await page.goto(testClanUrl);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
-    const initialMessageCount = await messageHelpers.countMessages();
 
     const originalMessage = `Thread starter message ${Date.now()}`;
     await messageHelpers.sendTextMessage(originalMessage);
@@ -220,12 +221,16 @@ test.describe('Channel Message - Module 1', () => {
     const targetMessage = await messageHelpers.findLastMessage();
 
     const threadName = `My Test Thread ${Date.now()}`;
-    await messageHelpers.createThread(targetMessage, threadName);
+    await messageHelpers.createThread(targetMessage);
+
+    await expect(messageHelpers.verifyFirstThreadMessage(originalMessage)).toBeTruthy();
+    await expect(messageHelpers.verifyThreadInputEmpty()).toBeTruthy();
+
+    await messageHelpers.fillThreadName(threadName);
 
     const threadReply = `Thread reply ${Date.now()}`;
     await messageHelpers.sendMessageInThread(threadReply, true);
 
-    const finalMessageCount = await messageHelpers.countMessages();
-    expect(finalMessageCount).toBeGreaterThanOrEqual(initialMessageCount + 1);
+    await expect(messageHelpers.verifyFirstThreadMessage(threadReply)).toBeTruthy();
   });
 });
