@@ -211,6 +211,7 @@ test.describe('Channel Message - Module 1', () => {
   test('Create thread from message and send reply', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63392',
+      github_issue: '9657'
     });
 
     messageHelpers = new MessageTestHelpers(page);
