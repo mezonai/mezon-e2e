@@ -92,6 +92,7 @@ export class ClanPageV2 extends BasePage {
   };
 
   readonly sidebar = {
+    clanItem: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item')),
     clanItems: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
@@ -130,6 +131,12 @@ export class ClanPageV2 extends BasePage {
     ),
   };
 
+  readonly modal = {
+    limitCreation: {
+      title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
+    },
+  };
+
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.input.clanName.fill(clanName);
@@ -165,7 +172,7 @@ export class ClanPageV2 extends BasePage {
     return false;
   }
 
-  async deleteClan(): Promise<boolean> {
+  async deleteClan(removeAll?: boolean): Promise<boolean> {
     try {
       const categoryPage = new CategoryPage(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
@@ -173,7 +180,9 @@ export class ClanPageV2 extends BasePage {
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
       const clanName = await this.settings.clanName.inputValue();
-
+      if (removeAll && !this.shouldDeleteClan(clanName || '')) {
+        return false;
+      }
       await categorySettingPage.buttons.deleteSidebar.click();
       await categorySettingPage.input.delete.fill(clanName || '');
       await categorySettingPage.buttons.confirmDelete.click();
@@ -184,6 +193,33 @@ export class ClanPageV2 extends BasePage {
       return true;
     } catch (error) {
       console.error(`Error deleting clan: ${error}`);
+      return false;
+    }
+  }
+
+  /**
+   * Check if a clan should be deleted based on its timestamp
+   * @param clanName The name of the clan in format: prefix_randomString_timestamp
+   * @returns true if the clan's timestamp has passed the current time
+   */
+  private shouldDeleteClan(clanName: string): boolean {
+    try {
+      const parts = clanName.split('_');
+      if (parts.length < 3) {
+        return true;
+      }
+
+      const timestampStr = parts[parts.length - 1];
+
+      const clanTimestamp = parseInt(timestampStr);
+      if (isNaN(clanTimestamp)) {
+        return false;
+      }
+
+      const currentTime = Date.now();
+
+      return currentTime > clanTimestamp;
+    } catch (error) {
       return false;
     }
   }
@@ -279,6 +315,21 @@ export class ClanPageV2 extends BasePage {
 
     try {
       await threadLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async getAllClan(): Promise<number> {
+    const clanElements = this.sidebar.clanItem;
+    return await clanElements.count();
+  }
+
+  async isLimitCreationModalPresent(): Promise<boolean> {
+    const limitCreationModalLocator = this.modal.limitCreation.title;
+    try {
+      await limitCreationModalLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
       return false;
