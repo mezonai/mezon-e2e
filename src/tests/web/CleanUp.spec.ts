@@ -358,6 +358,38 @@ test.describe('Manual Cleanup - Account 7', () => {
   });
 });
 
+test.describe('Manual Cleanup - Account 8', () => {
+  test.use({ storageState: 'playwright/.auth/account8.json' });
+
+  test('Clean all clans from account8', async ({ browser }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Manual cleanup to delete all clans from account8.
+      
+      **Test Steps:**
+      1. Authenticate with account8
+      2. Use ClanSetupHelper to clean all clans
+      
+      **Expected Result:** All clans should be deleted successfully.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['manual-cleanup', 'clan-deletion', 'account8'],
+    });
+
+    const clanSetupHelper = new ClanSetupHelper(browser);
+
+    await AllureReporter.step('Clean all clans from account8', async () => {
+      await clanSetupHelper.cleanupAllClans(browser, 'Standalone - Clan Management');
+    });
+  });
+});
+
 test.describe('Manual Cleanup - Account 9', () => {
   test.use({ storageState: 'playwright/.auth/account9.json' });
 
