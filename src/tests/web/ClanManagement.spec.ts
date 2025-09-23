@@ -1,7 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { AllureReporter } from '@/utils/allureHelpers';
-import { AuthHelper } from '@/utils/authHelper';
 import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 import { CategoryPage } from '../../pages/CategoryPage';
@@ -90,11 +89,7 @@ test.describe('Create Clan', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupClan(
-        clanTestName,
-        clanUrl,
-        ClanSetupHelper.configs.clanManagement.suiteName
-      );
+      await clanSetupHelper.cleanupClan(clanTestName, clanUrl);
     }
   });
 });
@@ -117,11 +112,7 @@ test.describe('Create Category', () => {
 
   test.afterAll(async ({ browser }) => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.clanManagement.suiteName
-      );
+      await clanSetupHelper.cleanupClan(clanName, clanUrl);
     }
   });
 
