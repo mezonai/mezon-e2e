@@ -165,7 +165,7 @@ export class ClanPageV2 extends BasePage {
     return false;
   }
 
-  async deleteClan(): Promise<boolean> {
+  async deleteClan(removeAll?: boolean): Promise<boolean> {
     try {
       const categoryPage = new CategoryPage(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
@@ -173,7 +173,9 @@ export class ClanPageV2 extends BasePage {
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
       const clanName = await this.settings.clanName.inputValue();
-
+      if (removeAll && !this.shouldDeleteClan(clanName || '')) {
+        return false;
+      }
       await categorySettingPage.buttons.deleteSidebar.click();
       await categorySettingPage.input.delete.fill(clanName || '');
       await categorySettingPage.buttons.confirmDelete.click();
@@ -184,6 +186,33 @@ export class ClanPageV2 extends BasePage {
       return true;
     } catch (error) {
       console.error(`Error deleting clan: ${error}`);
+      return false;
+    }
+  }
+
+  /**
+   * Check if a clan should be deleted based on its timestamp
+   * @param clanName The name of the clan in format: prefix_randomString_timestamp
+   * @returns true if the clan's timestamp has passed the current time
+   */
+  private shouldDeleteClan(clanName: string): boolean {
+    try {
+      const parts = clanName.split('_');
+      if (parts.length < 3) {
+        return true;
+      }
+
+      const timestampStr = parts[parts.length - 1];
+
+      const clanTimestamp = parseInt(timestampStr);
+      if (isNaN(clanTimestamp)) {
+        return false;
+      }
+
+      const currentTime = Date.now();
+
+      return currentTime > clanTimestamp;
+    } catch (error) {
       return false;
     }
   }
