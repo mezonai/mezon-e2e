@@ -37,6 +37,7 @@ export class MessagePage {
   readonly confirmDeleteMessageButton: Locator;
   readonly displayListPinButton: Locator;
   readonly footerAvatar: Locator;
+  readonly pinnedMessages: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -134,6 +135,7 @@ export class MessagePage {
     this.footerAvatar = page.locator(
       `${generateE2eSelector('footer_profile.avatar')} ${generateE2eSelector('avatar.image')}`
     );
+    this.pinnedMessages = page.locator(generateE2eSelector('common.pin_message'));
   }
 
   async createDM(): Promise<void> {
@@ -336,18 +338,11 @@ export class MessagePage {
     return groupName === this.groupNameText;
   }
 
-  async pinLastMessage(): Promise<string> {
+  async pinLastMessage() {
     const lastMessage = this.messages.last();
-    const messageId = await lastMessage.getAttribute('id');
-    if (!messageId) {
-      throw new Error('Message does not have an id');
-    }
-
     await lastMessage.click({ button: 'right' });
     await this.pinMessageButton.click();
     await this.confirmPinMessageButton.click();
-
-    return messageId;
   }
 
   async deleteLastMessage() {
@@ -357,9 +352,9 @@ export class MessagePage {
     await this.confirmDeleteMessageButton.click();
   }
 
-  async isMessageStillPinned(messageId: string): Promise<boolean> {
+  async isMessageStillPinned(messageIdentity: string): Promise<boolean> {
     await this.displayListPinButton.click();
-    const pinnedMessage = this.page.locator(generateE2eSelector('common.pin_message', messageId));
+    const pinnedMessage = this.pinnedMessages.filter({ hasText: messageIdentity });
     return (await pinnedMessage.count()) > 0;
   }
 }
