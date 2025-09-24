@@ -289,7 +289,9 @@ export const DATA_E2E_IDENTIFIER = {
           file: '',
           mute: '',
           inbox: '',
-          pin: '',
+          pin: {
+            pin_badge: '',
+          },
           canvas: '',
           thread: {
             modal: {
@@ -337,6 +339,14 @@ export const DATA_E2E_IDENTIFIER = {
       },
     },
     suggest_item: '',
+    system_message: {
+      pin_message: {
+        button: {
+          jump_to_message: '',
+          see_all_pinned: '',
+        },
+      },
+    },
   },
   onboarding: {
     chat: {
@@ -389,7 +399,12 @@ export const DATA_E2E_IDENTIFIER = {
     item_pin_message: {
       username: '',
     },
-    pin_message: '',
+    pin_message: {
+      button: {
+        jump: '',
+        remove_pin: '',
+      },
+    },
   },
   modal: {
     too_many_upload: '',
