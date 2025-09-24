@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import fs from 'fs/promises';
 
 export async function getImageHash(url: string): Promise<string | null> {
   try {

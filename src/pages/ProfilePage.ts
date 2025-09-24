@@ -44,6 +44,12 @@ export class ProfilePage extends BasePage {
     ),
   };
 
+  readonly clanProfile = {
+    avatar: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+    ),
+  };
+
   readonly inputs = {
     nickname: this.page.locator(
       generateE2eSelector('user_setting.profile.clan_profile.input_nickname')

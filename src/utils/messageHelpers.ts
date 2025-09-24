@@ -9,7 +9,7 @@ export class MessageTestHelpers {
     this.page = page;
   }
 
-  private getMessageItemLocator(textContains?: string): Locator {
+  public getMessageItemLocator(textContains?: string): Locator {
     const selector = generateE2eSelector('chat.direct_message.message.item');
     const base = this.page.locator(selector);
     return textContains ? base.filter({ hasText: textContains }) : base;
@@ -1065,6 +1065,14 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(2000);
   }
 
+  async getThePinMessageItem(message: string): Promise<Locator> {
+    const pinMessage = this.page.locator(generateE2eSelector('common.pin_message'), {
+      hasText: message,
+    });
+    await pinMessage.waitFor({ state: 'visible', timeout: 8000 });
+    return pinMessage;
+  }
+
   async verifyMessageInPinnedModal(messageText: string): Promise<boolean> {
     await this.page.waitForTimeout(3000);
 
@@ -1410,7 +1418,7 @@ export class MessageTestHelpers {
 
     const bodyText = (await this.page.textContent('body')) || '';
     return (
-      expectedNames && expectedNames.some(n => bodyText.toLowerCase().includes(n.toLowerCase()))
+      !!expectedNames && expectedNames.some(n => bodyText.toLowerCase().includes(n.toLowerCase()))
     );
   }
 

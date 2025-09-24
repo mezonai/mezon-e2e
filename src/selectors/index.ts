@@ -16,6 +16,7 @@ export const DATA_E2E_IDENTIFIER = {
   },
   footer_profile: {
     avatar: '',
+    name: '',
   },
   button: {
     base: '',
@@ -94,7 +95,11 @@ export const DATA_E2E_IDENTIFIER = {
         add_clan: '',
         add_channel: '',
         events: '',
+        members: '',
       },
+    },
+    member_list: {
+      user_info: '',
     },
     modal: {
       create_category: {
@@ -292,7 +297,10 @@ export const DATA_E2E_IDENTIFIER = {
           file: '',
           mute: '',
           inbox: '',
-          pin: '',
+          member: '',
+          pin: {
+            pin_badge: '',
+          },
           canvas: '',
           thread: {
             modal: {
@@ -325,6 +333,14 @@ export const DATA_E2E_IDENTIFIER = {
         },
         checkbox: {
           private_thread: '',
+        },
+      },
+      mention_user: '',
+      member_list: {
+        item: {
+          actions: {
+            view_profile: '',
+          },
         },
       },
     },
