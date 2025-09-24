@@ -1,6 +1,6 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { GLOBAL_CONFIG } from '@/config/environment';
-import { MessgaePage } from '@/pages/MessagePage';
+import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
@@ -109,7 +109,7 @@ test.describe('Direct Message', () => {
       tag: ['messaging', 'send-message', 'direct-message'],
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
 
     await AllureReporter.addParameter('messageText', messageText);
 
@@ -131,7 +131,7 @@ test.describe('Direct Message', () => {
       tms: '63506',
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevGroupCount = await helpers.countGroups();
 
@@ -151,7 +151,7 @@ test.describe('Direct Message', () => {
       tms: '63506',
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
 
     await test.step(`Add more member to group chat`, async () => {
       await messagePage.addMoreMemberToGroup();
@@ -164,7 +164,7 @@ test.describe('Direct Message', () => {
       tms: '63506',
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
 
     await test.step(`Update name for group chat DM`, async () => {
       await messagePage.updateNameGroupChatDM(nameGroupChat);
@@ -178,7 +178,7 @@ test.describe('Direct Message', () => {
   });
 
   test('Close direct message', async ({ page }) => {
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevUsersCount = await helpers.countUsers();
 
@@ -203,7 +203,7 @@ test.describe('Direct Message', () => {
       tms: '63506',
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevGroupCount = await helpers.countGroups();
 
@@ -223,7 +223,7 @@ test.describe('Direct Message', () => {
       tms: '63627',
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
     const indentityMessage = (Date.now() + randomInt(10)).toString();
     const messageToPinText = `Message to pin ${indentityMessage}`;
 
