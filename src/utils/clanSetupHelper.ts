@@ -37,7 +37,7 @@ export class ClanSetupHelper {
     const { clanNamePrefix = 'TestClan', suiteName = 'Test Suite' } = config;
 
     const now = new Date();
-    now.setMinutes(now.getMinutes() + 5);
+    now.setMinutes(now.getMinutes() + 30);
     const timestamp = now.getTime();
     const clanName = `${clanNamePrefix}_${generateRandomString(10)}_${timestamp}`;
 
