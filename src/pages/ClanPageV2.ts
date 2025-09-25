@@ -15,9 +15,6 @@ export class ClanPageV2 extends BasePage {
   readonly buttons = {
     createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
     clanName: this.page.locator(`${generateE2eSelector('clan_page.header.title.clan_name')} p`),
-    // invitePeople: this.page.locator(
-    //   generateE2eSelector('clan_page.header.modal_panel.invite_people')
-    // ),
     createChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
     createClanCancel: this.page.locator(
       `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
@@ -39,6 +36,9 @@ export class ClanPageV2 extends BasePage {
     saveChanges: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save Changes' }),
     exitSettings: this.page.locator(generateE2eSelector('clan_page.settings.button.exit')),
     memberListButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.members')),
+    invitePeopleFromChannel: this.page.locator(
+      `${generateE2eSelector('onboarding.chat.guide_sections')} div:has-text("Invite your friends")`
+    ),
   };
 
   readonly memberSettings = {
@@ -444,7 +444,7 @@ export class ClanPageV2 extends BasePage {
 
   async getLastMessageInChat(): Promise<string> {
     const messageHelpers = new MessageTestHelpers(this.page);
-    const lastMessage = await messageHelpers.message.last();
+    const lastMessage = await messageHelpers.messages.last();
 
     await expect(lastMessage).toBeVisible();
 
@@ -461,5 +461,15 @@ export class ClanPageV2 extends BasePage {
     await this.buttons.saveChanges.click();
     await this.buttons.exitSettings.click();
     await this.page.waitForLoadState('networkidle');
+  }
+
+  async clickButtonInvitePeopleFromChannel(): Promise<boolean> {
+    try {
+      await this.buttons.invitePeopleFromChannel.click();
+      return true;
+    } catch (error) {
+      console.error(`Error clicking invite people:`, error);
+      return false;
+    }
   }
 }
