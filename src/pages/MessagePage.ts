@@ -9,6 +9,7 @@ export class MessagePage {
   readonly addUserButton: Locator;
   readonly userItem: Locator;
   readonly friendItems: Locator;
+  readonly friendListItems: Locator;
   readonly friendUsernames: Locator;
   readonly createGroupButton: Locator;
   readonly userNameItem: Locator;
@@ -38,6 +39,8 @@ export class MessagePage {
   readonly displayListPinButton: Locator;
   readonly footerAvatar: Locator;
   readonly pinnedMessages: Locator;
+  readonly welcomeDM: Locator;
+  readonly welcomeDMAvatar: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -85,6 +88,9 @@ export class MessagePage {
     );
     this.closeFirstDMButton = this.user.locator(
       generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+    );
+    this.friendListItems = page.locator(
+      generateE2eSelector('chat.direct_message.friend_list.all_friend')
     );
     this.firstUserAddDM = this.page
       .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
@@ -136,6 +142,8 @@ export class MessagePage {
       `${generateE2eSelector('footer_profile.avatar')} ${generateE2eSelector('avatar.image')}`
     );
     this.pinnedMessages = page.locator(generateE2eSelector('common.pin_message'));
+    this.welcomeDM = page.locator(generateE2eSelector('chat_welcome'));
+    this.welcomeDMAvatar = this.welcomeDM.locator(generateE2eSelector('avatar.image'));
   }
 
   async createDM(): Promise<void> {
@@ -284,19 +292,17 @@ export class MessagePage {
   }
 
   async leaveGroupByLeaveGroupBtn(): Promise<void> {
-    // await this.helpers.group.hover();
-    // await this.helpers.group.click({ button: 'right' });
-    // await this.helpers.group.dispatchEvent('contextmenu');
-
-    // bắn sự kiện chuột phải lên group
     await this.helpers.group.dispatchEvent('contextmenu');
+  }
 
-    // chờ menu "Leave Group" hiện ra
-    // const leaveGroupBtn = this.page.locator('text=Leave Group');
-    // await leaveGroupBtn.waitFor({ state: 'visible' });
+  async getFriendItemFromFriendList(friendName: string): Promise<Locator> {
+    return this.friendListItems.filter({ hasText: friendName }).first();
+  }
 
-    // click vào "Leave Group"
-    //await leaveGroupBtn.click();
+  async createDMWithFriendName(friendName: string): Promise<void> {
+    const friendItem = this.friendListItems.filter({ hasText: friendName }).first();
+    await friendItem.click();
+    await this.page.waitForTimeout(500);
   }
 
   async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
@@ -343,6 +349,10 @@ export class MessagePage {
     await lastMessage.click({ button: 'right' });
     await this.pinMessageButton.click();
     await this.confirmPinMessageButton.click();
+  }
+
+  async getLastMessageWithProfileName(profileName: string): Promise<Locator> {
+    return this.messages.filter({ hasText: profileName }).last();
   }
 
   async deleteLastMessage() {

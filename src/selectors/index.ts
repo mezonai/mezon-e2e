@@ -41,6 +41,7 @@ export const DATA_E2E_IDENTIFIER = {
       topic: '',
     },
   },
+  chat_welcome: '',
   homepage: {
     header: {
       link: '',
@@ -384,6 +385,7 @@ export const DATA_E2E_IDENTIFIER = {
       edit_username: '',
       set_password: '',
       tab_account: '',
+      info: '',
     },
     profile: {
       button_setting: '',
@@ -391,6 +393,7 @@ export const DATA_E2E_IDENTIFIER = {
       user_profile: {
         preview: {
           avatar: '',
+          display_name: '',
         },
         input: {
           display_name: '',
