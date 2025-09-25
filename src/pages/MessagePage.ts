@@ -2,7 +2,7 @@ import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Locator, Page } from '@playwright/test';
 
-export class MessgaePage {
+export class MessagePage {
   private helpers: DirectMessageHelper;
   readonly page: Page;
   readonly user: Locator;
@@ -36,6 +36,7 @@ export class MessgaePage {
   readonly deleteMessageButton: Locator;
   readonly confirmDeleteMessageButton: Locator;
   readonly displayListPinButton: Locator;
+  readonly footerAvatar: Locator;
   readonly pinnedMessages: Locator;
 
   firstUserNameText: string = '';
@@ -130,6 +131,9 @@ export class MessgaePage {
     );
     this.displayListPinButton = page.locator(
       generateE2eSelector('chat.channel_message.header.button.pin')
+    );
+    this.footerAvatar = page.locator(
+      `${generateE2eSelector('footer_profile.avatar')} ${generateE2eSelector('avatar.image')}`
     );
     this.pinnedMessages = page.locator(generateE2eSelector('common.pin_message'));
   }

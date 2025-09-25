@@ -1,6 +1,6 @@
 import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { CategoryPage } from './CategoryPage';
 import { CategorySettingPage } from './CategorySettingPage';
@@ -28,6 +28,15 @@ export class ClanPageV2 extends BasePage {
     eventButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.events')),
     saveChanges: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save Changes' }),
     exitSettings: this.page.locator(generateE2eSelector('clan_page.settings.button.exit')),
+    memberListButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.members')),
+  };
+
+  readonly memberSettings = {
+    usersInfo: this.page.locator(generateE2eSelector('clan_page.member_list.user_info')),
+  };
+
+  readonly footerProfile = {
+    userName: this.page.locator(generateE2eSelector('footer_profile.name')),
   };
 
   readonly eventModal = {
@@ -121,6 +130,8 @@ export class ClanPageV2 extends BasePage {
           'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
         )
       ),
+      member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
+      pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
     },
   };
 
@@ -255,6 +266,11 @@ export class ClanPageV2 extends BasePage {
     await this.page.waitForTimeout(500);
   }
 
+  async openMemberListSetting(): Promise<void> {
+    await this.buttons.memberListButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
@@ -311,6 +327,20 @@ export class ClanPageV2 extends BasePage {
     await this.threadBox.threadInputMention.fill(threadName);
     await this.threadBox.threadInputMention.press('Enter');
     await this.page.waitForLoadState('networkidle');
+  }
+
+  async openMemberList(): Promise<void> {
+    await this.header.button.member.nth(0).click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async getMemberFromMemberList(memberName: string): Promise<Locator> {
+    const memberLocator = this.page.locator(
+      `${generateE2eSelector('chat.channel_message.member_list.item')}`,
+      { hasText: memberName }
+    );
+    await memberLocator.waitFor({ state: 'visible', timeout: 5000 });
+    return memberLocator;
   }
 
   async isNewThreadPresent(threadName: string): Promise<boolean> {
