@@ -1,8 +1,10 @@
 import { AllureConfig } from '@/config/allure.config';
+import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import generateRandomString from '@/utils/randomString';
 import test, { expect } from '@playwright/test';
 
 test.describe('Channel Management', () => {
@@ -284,5 +286,102 @@ test.describe('Channel Management', () => {
       }
     );
     await AllureReporter.attachScreenshot(page, `Channel Renamed - ${newChannelName}`);
+  });
+
+  test('Verify that i can change public to private channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63377',
+      github_issue: '9641',
+    });
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully change public channel to private channel.
+    
+    **Test Steps:**
+    1. Create new public channel
+    2. Change channel status to private
+    3. Verify channel status is private
+    
+    **Expected Result:** Channel status is changed to private.
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-status', 'private-channel'],
+    });
+
+    const clanPage = new ClanPageV2(page);
+    const channelSettingPage = new ChannelSettingPage(page);
+    const channelName = `channel-${generateRandomString(10)}`;
+
+    await AllureReporter.step('Create new public channel', async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
+
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+    await AllureReporter.step('Change channel status to private', async () => {
+      await clanPage.openChannelSettings(channelName);
+      const isChannelStatusChanged = await channelSettingPage.changeChannelStatus();
+      expect(isChannelStatusChanged).toBe(true);
+    });
+
+    await AllureReporter.step('Verify channel status is private', async () => {
+      const isPrivateChannel = await channelSettingPage.verifyChannelStatusIsPrivate(channelName);
+      expect(isPrivateChannel).toBe(true);
+    });
+  });
+
+  test('Verify that i can change private to public channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63377',
+    });
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully change private channel to public channel.
+      
+      **Test Steps:**
+      1. Create new private channel
+      2. Change channel status to public
+      3. Verify channel status is public
+      
+      **Expected Result:** Channel status is changed to public.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-status', 'public-channel'],
+    });
+
+    const clanPage = new ClanPageV2(page);
+    const channelSettingPage = new ChannelSettingPage(page);
+    const channelName = `channel-${generateRandomString(10)}`;
+
+    await AllureReporter.step('Create new private channel', async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Change channel status to public', async () => {
+      await clanPage.openChannelSettings(channelName);
+      const isChannelStatusChanged = await channelSettingPage.changeChannelStatus();
+      expect(isChannelStatusChanged).toBe(true);
+    });
+
+    await AllureReporter.step('Verify channel status is public', async () => {
+      const isPublicChannel = await channelSettingPage.verifyChannelStatusIsPublic(channelName);
+      expect(isPublicChannel).toBe(true);
+    });
   });
 });
