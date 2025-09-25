@@ -1,14 +1,22 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { getImageHash } from '@/utils/images';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
-import { expect, test } from '@playwright/test';
+import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
+import { expect, Locator, test } from '@playwright/test';
 
 test.describe('User Profile - Clan Profiles', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanUrl: string;
   let clanName: string;
+
+  test.use({ storageState: 'playwright/.auth/account6.json' });
 
   test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
@@ -177,45 +185,6 @@ test.describe('User Profile - Clan Profiles', () => {
     await AllureReporter.attachScreenshot(page, 'Clan Nickname Changed Successfully');
   });
 
-  test.use({ storageState: 'playwright/.auth/account6.json' });
-
-  // test.skip('Remove avatar clan', async ({ page }) => {
-  //   const profilePage = new ProfilePage(page);
-  //   await AllureReporter.addTestParameters({
-  //     testType: AllureConfig.TestTypes.E2E,
-  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
-  //     severity: AllureConfig.Severity.NORMAL,
-  //   });
-
-  //   await AllureReporter.step('Navigate to profile tab', async () => {
-  //     await profilePage.openProfileTab();
-  //   });
-
-  //   await AllureReporter.step('Navigate to clan profile tab', async () => {
-  //     await profilePage.openClanProfileTab();
-  //   });
-
-  //   await AllureReporter.addDescription(`
-  //     **Test Objective:** Verify that a user can successfully remove their clan avatar.
-
-  //     **Test Steps:**
-  //     1. Navigate to clan profile settings
-  //     2. Locate the remove/delete avatar option
-  //     3. Remove the current avatar
-  //     4. Verify the avatar has been removed
-
-  //     **Expected Result:** The clan avatar should be successfully removed.
-
-  //     **Note:** This test is currently skipped pending implementation.
-  //   `);
-
-  //   await AllureReporter.addLabels({
-  //     tag: ['user-profile', 'avatar-removal', 'profile-update', 'clan-profile', 'skipped'],
-  //   });
-
-  //   // Implementation pending
-  // });
-
   test('Edit user profile - button visible', async ({ page }) => {
     const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
@@ -265,100 +234,63 @@ test.describe('User Profile - Clan Profiles', () => {
     );
   });
 
-  // test('Change display name profile', async ({ page }) => {
-  //   const profilePage = new ProfilePage(page);
-  //   await AllureReporter.addTestParameters({
-  //     testType: AllureConfig.TestTypes.E2E,
-  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
-  //     severity: AllureConfig.Severity.CRITICAL,
-  //   });
+  test('Update avatar user profile - button visible', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
+    const directMessagePage = new MessagePage(page);
+    const fileSizeHelpers = new FileSizeTestHelpers(page);
+    let profileAvatar: Locator;
+    let footerAvatar: Locator;
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
 
-  //   await AllureReporter.step('Navigate to profile tab', async () => {
-  //     await profilePage.openProfileTab();
-  //   });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the "Update Avatar" button is visible in the user profile section.
+      
+      **Test Steps:**
+      1. Navigate to user profile settings
+      2. Locate the update avatar button
+      3. Verify the button is visible and accessible
+      
+      **Expected Result:** The "Update Avatar" button should be visible and accessible to the user.
+    `);
 
-  //   await AllureReporter.step('Navigate to user profile tab', async () => {
-  //     await profilePage.openUserProfileTab();
-  //   });
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
 
-  //   await AllureReporter.addDescription(`
-  //     **Test Objective:** Verify that a user can successfully change their display name profile.
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
 
-  //     **Test Steps:**
-  //     1. Locate the display name input field
-  //     2. Clear existing display name and enter new one
-  //     3. Save the changes
-  //     4. Verify the display name has been updated
+    const smallAvatarPath = await fileSizeHelpers.createFileWithSize(
+      'small_avatar',
+      5 * 1024 * 1024,
+      'jpg'
+    );
 
-  //     **Expected Result:** The clan display name should be successfully updated and saved.
-  //   `);
+    await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
+    await profilePage.buttons.applyImageAvatar.click();
+    await profilePage.buttons.saveChangesUserProfile.click();
 
-  //   await AllureReporter.addLabels({
-  //     tag: ['user-profile', 'nickname-change', 'profile-update', 'clan-profile'],
-  //   });
+    profileAvatar = profilePage.userProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const profileSrc = await profileAvatar.getAttribute('src');
+    const profileHash = await getImageHash(profileSrc || '');
 
-  //   const target = `acc.automationtest-${Date.now()}`;
-  //   await AllureReporter.addParameter('newDisplayname', target);
-  //   await AllureReporter.addParameter('platform', process.platform);
+    await profilePage.navigate('/chat/direct/friends');
+    footerAvatar = directMessagePage.footerAvatar;
+    await expect(footerAvatar).toBeVisible({ timeout: 5000 });
+    const footerSrc = await footerAvatar.getAttribute('src');
+    const footerHash = await getImageHash(footerSrc || '');
 
-  //   await AllureReporter.step('Enter new display name', async () => {
-  //     const displayNameInput = profilePage.inputs.displayNameInput;
-  //     await expect(displayNameInput).toBeVisible({ timeout: 5000 });
-  //     await displayNameInput.click();
+    expect(profileHash).not.toBeNull();
+    expect(footerHash).not.toBeNull();
 
-  //     const isMac = process.platform === 'darwin';
-  //     await AllureReporter.addParameter('inputMethod', isMac ? 'Mac shortcuts' : 'PC shortcuts');
-
-  //     let ok = false;
-  //     for (let i = 0; i < 3; i++) {
-  //       await displayNameInput.press(isMac ? 'Meta+A' : 'Control+A');
-  //       await displayNameInput.press('Backspace');
-  //       await page.waitForTimeout(50);
-  //       await displayNameInput.type(target, { delay: 40 });
-  //       await page.waitForTimeout(150);
-  //       const v = await displayNameInput.inputValue();
-  //       if (v === target) {
-  //         ok = true;
-  //         break;
-  //       }
-  //     }
-
-  //     if (!ok) {
-  //       await displayNameInput.evaluate((el: HTMLInputElement, value: string) => {
-  //         el.value = value;
-  //         el.dispatchEvent(new Event('input', { bubbles: true }));
-  //         el.dispatchEvent(new Event('change', { bubbles: true }));
-  //       }, target);
-  //     }
-
-  //     await displayNameInput.evaluate((el: HTMLInputElement) => {
-  //       el.dispatchEvent(new Event('input', { bubbles: true }));
-  //       el.dispatchEvent(new Event('change', { bubbles: true }));
-  //       el.blur();
-  //     });
-
-  //     await page.waitForTimeout(800);
-  //     await expect(displayNameInput).toHaveValue(target, { timeout: 3000 });
-  //     await AllureReporter.addParameter(
-  //       'dispalyNameInputSuccess',
-  //       ok ? 'Direct input' : 'Programmatic input'
-  //     );
-  //   });
-  //   await AllureReporter.step('Save display name', async () => {
-  //     const saveChangesBtn = profilePage.buttons.saveChangesUserProfileButton;
-  //     await saveChangesBtn.scrollIntoViewIfNeeded();
-  //     await expect(saveChangesBtn).toBeVisible({ timeout: 1000 });
-  //     await expect(saveChangesBtn).toBeEnabled({ timeout: 1000 });
-  //     await saveChangesBtn.click();
-  //     await AllureReporter.addParameter('saveButtonClicked', 'Yes');
-  //   });
-
-  //   await AllureReporter.step('Verify display name has been changed successfully', async () => {
-  //     await profilePage.verifyDisplayNameUpdated(target);
-  //   });
-
-  //   await AllureReporter.attachScreenshot(page, 'Display Name Changed Successfully');
-  // });
+    expect(profileHash).toEqual(footerHash);
+  });
 
   test('Update About me status', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
@@ -433,5 +365,421 @@ test.describe('User Profile - Clan Profiles', () => {
     );
 
     await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
+  });
+});
+
+test.describe('User Profile - Update avatar', () => {
+  let clanSetupHelper: ClanSetupHelper;
+  let testClanUrl: string;
+  let clanName: string;
+  let profileHash: string | null = null;
+
+  test.use({ storageState: 'playwright/.auth/account6.json' });
+
+  test.beforeAll(async ({ browser }) => {
+    await TestSetups.authenticationTest({
+      suite: AllureConfig.Suites.USER_MANAGEMENT,
+      subSuite: AllureConfig.SubSuites.USER_PROFILE,
+      story: AllureConfig.Stories.PROFILE_SETUP,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
+    testClanUrl = setupResult.clanUrl;
+    clanName = setupResult.clanName;
+
+    const page = await browser.newPage();
+    await page.goto(testClanUrl);
+    const profilePage = new ProfilePage(page);
+
+    await AllureReporter.step('Open user settings profile', async () => {
+      await profilePage.buttons.userSettingProfile.click();
+    });
+
+    const fileSizeHelpers = new FileSizeTestHelpers(page);
+    let profileAvatar: Locator;
+    let footerAvatar: Locator;
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the "Update Avatar" button is visible in the user profile section.
+      
+      **Test Steps:**
+      1. Navigate to user profile settings
+      2. Locate the update avatar button
+      3. Verify the button is visible and accessible
+      
+      **Expected Result:** The "Update Avatar" button should be visible and accessible to the user.
+    `);
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
+
+    const smallAvatarPath = await fileSizeHelpers.createFileWithSize(
+      'small_avatar',
+      5 * 1024 * 1024,
+      'jpg'
+    );
+
+    await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
+    await profilePage.buttons.applyImageAvatar.click();
+    await profilePage.buttons.saveChangesUserProfile.click();
+
+    profileAvatar = profilePage.userProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const profileSrc = await profileAvatar.getAttribute('src');
+    profileHash = await getImageHash(profileSrc || '');
+  });
+
+  test.afterAll(async () => {
+    if (clanSetupHelper && clanName && testClanUrl) {
+      await clanSetupHelper.cleanupClan(clanName, testClanUrl);
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.step('Navigate to clan chat page', async () => {
+      await page.goto(testClanUrl);
+    });
+  });
+
+  test('Validate footer avatar', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    const profilePage = new ProfilePage(page);
+    const directMessagePage = new MessagePage(page);
+
+    let footerAvatar: Locator;
+
+    await profilePage.navigate('/chat/direct/friends');
+    footerAvatar = directMessagePage.footerAvatar;
+    await expect(footerAvatar).toBeVisible({ timeout: 5000 });
+    const footerSrc = await footerAvatar.getAttribute('src');
+    const footerHash = await getImageHash(footerSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(footerHash).not.toBeNull();
+
+    expect(profileHash).toEqual(footerHash);
+  });
+});
+
+test.describe('Clan Profile - Update avatar', () => {
+  let clanSetupHelper: ClanSetupHelper;
+  let testClanUrl: string;
+  let clanName: string;
+  let profileHash: string | null = null;
+  let profilePage: ProfilePage;
+  const message = `message - ${generateRandomString(10)}`;
+
+  test.use({ storageState: 'playwright/.auth/account6.json' });
+
+  test.beforeAll(async ({ browser }) => {
+    await TestSetups.authenticationTest({
+      suite: AllureConfig.Suites.USER_MANAGEMENT,
+      subSuite: AllureConfig.SubSuites.USER_PROFILE,
+      story: AllureConfig.Stories.PROFILE_SETUP,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
+    testClanUrl = setupResult.clanUrl;
+    clanName = setupResult.clanName;
+
+    const page = await browser.newPage();
+    await page.goto(testClanUrl);
+    profilePage = new ProfilePage(page);
+
+    await AllureReporter.step('Open user settings profile', async () => {
+      await profilePage.buttons.userSettingProfile.click();
+    });
+
+    const fileSizeHelpers = new FileSizeTestHelpers(page);
+    let profileAvatar: Locator;
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the "Update Avatar" button is visible in the user profile section.
+      
+      **Test Steps:**
+      1. Navigate to clan profile settings
+      2. Update avatar
+      3. Verify avatar has been updated
+      
+      **Expected Result:** The avatar should be successfully updated and saved.
+    `);
+
+    await AllureReporter.step('Navigate to clan profile settings', async () => {
+      await profilePage.openProfileTab();
+      await profilePage.openClanProfileTab();
+    });
+
+    const smallAvatarPath = await fileSizeHelpers.createFileWithSize(
+      'small_avatar',
+      7 * 1024 * 1024,
+      'jpg'
+    );
+
+    await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
+    await profilePage.buttons.applyImageAvatar.click();
+    await profilePage.buttons.saveChangesClanProfile.click();
+
+    profileAvatar = profilePage.clanProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const profileSrc = await profileAvatar.getAttribute('src');
+    profileHash = await getImageHash(profileSrc || '');
+  });
+
+  test.afterAll(async () => {
+    if (clanSetupHelper && clanName && testClanUrl) {
+      await clanSetupHelper.cleanupClan(clanName, testClanUrl);
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.step('Navigate to clan chat page', async () => {
+      await page.goto(testClanUrl);
+      await page.waitForTimeout(1000);
+    });
+  });
+
+  test('Validate avatar user in clan profile', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    await page.waitForTimeout(500);
+
+    const profilePage = new ProfilePage(page);
+
+    await profilePage.openUserSettingProfile();
+    await profilePage.openProfileTab();
+    await profilePage.openClanProfileTab();
+    await page.waitForTimeout(500);
+    const avatar = await profilePage.clanProfile.avatar;
+    await expect(avatar).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await avatar.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
+  });
+
+  test('Validate avatar user when send message in clan', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    const messageHelper = new MessageTestHelpers(page);
+
+    await page.waitForTimeout(2000);
+    const messageSended = await messageHelper.sendTextMessageAndGetItem(message);
+    await page.waitForTimeout(1000);
+    const avatar = await messageSended.locator(generateE2eSelector('avatar.image'));
+    await expect(avatar).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await avatar.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
+  });
+
+  test('Validate avatar when click user name', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    const messageHelper = new MessageTestHelpers(page);
+    let messageSended = messageHelper.getMessageItemLocator(message).last();
+
+    if (!(await messageSended.isVisible({ timeout: 2000 }))) {
+      messageSended = await messageHelper.sendTextMessageAndGetItem(message);
+      await page.waitForTimeout(1000);
+    }
+
+    const profileName = await messageSended.locator(
+      generateE2eSelector('base_profile.display_name')
+    );
+    await profileName.click();
+    await page.waitForTimeout(1000);
+    const profileAvatar = profilePage.userProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await profileAvatar.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
+  });
+
+  test('Validate avatar when click mention', async ({ page }) => {
+    const message = `message - ${generateRandomString(10)}`;
+
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    const messageHelper = new MessageTestHelpers(page);
+    const clanPage = new ClanPageV2(page);
+    await page.waitForTimeout(1000);
+    const username = await clanPage.footerProfile.userName.textContent();
+    await page.waitForTimeout(500);
+    await messageHelper.mentionUserAndSend(`@${username}`, [username || '']);
+    await page.waitForTimeout(500);
+    const mentionItem = messageHelper
+      .getMessageItemLocator(`@${username}`)
+      .last()
+      .locator(generateE2eSelector('chat.channel_message.mention_user'));
+    mentionItem.click();
+    await page.waitForTimeout(500);
+    const profileAvatar = profilePage.userProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await profileAvatar.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
+  });
+
+  test('Validate avatar in pin message modal', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    const messageHelper = new MessageTestHelpers(page);
+    await page.waitForTimeout(1000);
+    const messageToPinText = `Message to pin ${Date.now()}`;
+    await messageHelper.sendTextMessage(messageToPinText);
+    const targetMessage = await messageHelper.findLastMessage();
+    await messageHelper.pinMessage(targetMessage);
+    await messageHelper.openPinnedMessagesModal();
+
+    const pinMessageAvt = (await messageHelper.getThePinMessageItem(messageToPinText)).locator(
+      generateE2eSelector('avatar.image')
+    );
+    await expect(pinMessageAvt).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await pinMessageAvt.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
+  });
+
+  test('Validate avatar in member list', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    await page.waitForTimeout(1000);
+    const clanPage = new ClanPageV2(page);
+    await clanPage.openMemberList();
+    const userName = await clanPage.footerProfile.userName.textContent();
+    const memberItem = await clanPage.getMemberFromMemberList(userName || '');
+    const memberAvatar = memberItem.locator(generateE2eSelector('avatar.image'));
+    await expect(memberAvatar).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await memberAvatar.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
+  });
+
+  test('Validate avatar in member list click username', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    await page.waitForTimeout(1000);
+    const clanPage = new ClanPageV2(page);
+    await clanPage.openMemberList();
+    const userName = await clanPage.footerProfile.userName.textContent();
+    const memberItem = await clanPage.getMemberFromMemberList(userName || '');
+    memberItem.click();
+    const profileAvatar = profilePage.userProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await profileAvatar.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
+  });
+
+  test('Validate avatar in member list right click and click profile', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    await page.waitForTimeout(1000);
+    const clanPage = new ClanPageV2(page);
+    await clanPage.openMemberList();
+    const userName = await clanPage.footerProfile.userName.textContent();
+    const memberItem = await clanPage.getMemberFromMemberList(userName || '');
+    await memberItem.click({ button: 'right' });
+    page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions.view_profile'))
+      .click();
+    const profileAvatar = profilePage.userProfile.avatar;
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await profileAvatar.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
+  });
+
+  test('Validate avatar in member settings page', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    await page.waitForTimeout(1000);
+    const clanPage = new ClanPageV2(page);
+    await clanPage.openMemberListSetting();
+
+    const profileAvatar = clanPage.memberSettings.usersInfo.locator(
+      generateE2eSelector('avatar.image')
+    );
+    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+    const avatarSrc = await profileAvatar.getAttribute('src');
+    const avatarHash = await getImageHash(avatarSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(avatarHash).not.toBeNull();
+
+    expect(profileHash).toEqual(avatarHash);
   });
 });

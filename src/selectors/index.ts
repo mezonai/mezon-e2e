@@ -14,6 +14,10 @@ export const DATA_E2E_IDENTIFIER = {
   avatar: {
     image: '',
   },
+  footer_profile: {
+    avatar: '',
+    name: '',
+  },
   button: {
     base: '',
   },
@@ -91,7 +95,11 @@ export const DATA_E2E_IDENTIFIER = {
         add_clan: '',
         add_channel: '',
         events: '',
+        members: '',
       },
+    },
+    member_list: {
+      user_info: '',
     },
     modal: {
       create_category: {
@@ -153,6 +161,9 @@ export const DATA_E2E_IDENTIFIER = {
       },
     },
     settings: {
+      button: {
+        exit: '',
+      },
       integrations: {
         create_clan_webhook_button: '',
         new_clan_webhook_button: '',
@@ -222,6 +233,9 @@ export const DATA_E2E_IDENTIFIER = {
       },
       panel: {
         item: '',
+      },
+      settings: {
+        overview: '',
       },
     },
   },
@@ -298,7 +312,10 @@ export const DATA_E2E_IDENTIFIER = {
           file: '',
           mute: '',
           inbox: '',
-          pin: '',
+          member: '',
+          pin: {
+            pin_badge: '',
+          },
           canvas: '',
           thread: {
             modal: {
@@ -333,6 +350,14 @@ export const DATA_E2E_IDENTIFIER = {
           private_thread: '',
         },
       },
+      mention_user: '',
+      member_list: {
+        item: {
+          actions: {
+            view_profile: '',
+          },
+        },
+      },
     },
     message_action_modal: {
       button: {
@@ -346,6 +371,14 @@ export const DATA_E2E_IDENTIFIER = {
       },
     },
     suggest_item: '',
+    system_message: {
+      pin_message: {
+        button: {
+          jump_to_message: '',
+          see_all_pinned: '',
+        },
+      },
+    },
   },
   onboarding: {
     chat: {
@@ -365,6 +398,9 @@ export const DATA_E2E_IDENTIFIER = {
       button_setting: '',
       tab_profile: '',
       user_profile: {
+        preview: {
+          avatar: '',
+        },
         input: {
           display_name: '',
           about_me: '',
@@ -378,6 +414,9 @@ export const DATA_E2E_IDENTIFIER = {
         },
         upload: {
           direct_message_icon_input: '',
+          avatar_input: {
+            apply_button: '',
+          },
         },
       },
       clan_profile: {
@@ -398,7 +437,12 @@ export const DATA_E2E_IDENTIFIER = {
     item_pin_message: {
       username: '',
     },
-    pin_message: '',
+    pin_message: {
+      button: {
+        jump: '',
+        remove_pin: '',
+      },
+    },
   },
   modal: {
     too_many_upload: '',

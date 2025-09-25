@@ -1,17 +1,48 @@
-import { Locator, Page } from '@playwright/test';
+import { MessagePage } from '@/pages/MessagePage';
+import { expect, Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
-import { MessgaePage } from '@/pages/MessagePage';
 
 export class MessageTestHelpers {
   private page: Page;
-  readonly message: Locator;
+  readonly messages: Locator;
+  readonly systemMessages: Locator;
+  readonly pinMessageButton: Locator;
+  readonly confirmPinMessageButton: Locator;
+  readonly jumpToPinnedMessageButtonFromSystemMessage: Locator;
+  readonly pinBadge: Locator;
+  readonly listPinButton: Locator;
+  readonly pinnedMessages: Locator;
+  readonly jumpToPinnedMessageButtonFromPinnedList: Locator;
+
+  message: string = '';
 
   constructor(page: Page) {
     this.page = page;
-    this.message = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
+    this.messages = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
+    this.systemMessages = this.page.locator(generateE2eSelector('chat.system_message'));
+    this.pinMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Pin message' });
+    this.confirmPinMessageButton = page.locator(
+      generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
+      { hasText: 'Oh yeah. Pin it' }
+    );
+    this.jumpToPinnedMessageButtonFromSystemMessage = page.locator(
+      generateE2eSelector('chat.system_message.pin_message.button.jump_to_message')
+    );
+    this.pinBadge = page.locator(
+      generateE2eSelector('chat.channel_message.header.button.pin.pin_badge')
+    );
+    this.listPinButton = page.locator(
+      generateE2eSelector('chat.channel_message.header.button.pin')
+    );
+    this.pinnedMessages = page.locator(generateE2eSelector('common.pin_message'));
+    this.jumpToPinnedMessageButtonFromPinnedList = page.locator(
+      generateE2eSelector('common.pin_message.button.jump')
+    );
   }
 
-  private getMessageItemLocator(textContains?: string): Locator {
+  public getMessageItemLocator(textContains?: string): Locator {
     const selector = generateE2eSelector('chat.direct_message.message.item');
     const base = this.page.locator(selector);
     return textContains ? base.filter({ hasText: textContains }) : base;
@@ -683,7 +714,7 @@ export class MessageTestHelpers {
   }
 
   async handleDeleteConfirmation(): Promise<void> {
-    const messagePage = new MessgaePage(this.page);
+    const messagePage = new MessagePage(this.page);
 
     const element = messagePage.confirmDeleteMessageButton;
     try {
@@ -1067,6 +1098,14 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(2000);
   }
 
+  async getThePinMessageItem(message: string): Promise<Locator> {
+    const pinMessage = this.page.locator(generateE2eSelector('common.pin_message'), {
+      hasText: message,
+    });
+    await pinMessage.waitFor({ state: 'visible', timeout: 8000 });
+    return pinMessage;
+  }
+
   async verifyMessageInPinnedModal(messageText: string): Promise<boolean> {
     await this.page.waitForTimeout(3000);
 
@@ -1412,7 +1451,7 @@ export class MessageTestHelpers {
 
     const bodyText = (await this.page.textContent('body')) || '';
     return (
-      expectedNames && expectedNames.some(n => bodyText.toLowerCase().includes(n.toLowerCase()))
+      !!expectedNames && expectedNames.some(n => bodyText.toLowerCase().includes(n.toLowerCase()))
     );
   }
 
@@ -2611,6 +2650,51 @@ export class MessageTestHelpers {
 
   async findMessageItemByText(messageText: string) {
     return this.getMessageItemLocator(messageText).last();
+  }
+
+  async pinLastMessage() {
+    const lastMessage = this.messages.last();
+    await lastMessage.waitFor({ state: 'visible', timeout: 10000 });
+    await lastMessage.click({ button: 'right' });
+    await this.pinMessageButton.click();
+    await this.confirmPinMessageButton.click();
+  }
+
+  async isLastMessageSystemType(type: number): Promise<boolean> {
+    const lastMessage = this.systemMessages.last();
+    await lastMessage.waitFor({ state: 'visible', timeout: 10000 });
+    const identityDiv = lastMessage.locator('div[data-e2e^="chat-system_message-"]');
+    const e2eAttr = await identityDiv.getAttribute('data-e2e');
+
+    return (
+      `[data-e2e="${e2eAttr}"]` === generateE2eSelector('chat.system_message', type.toString())
+    );
+  }
+
+  async clickJumpToPinMessageFromSystemMessage() {
+    await this.jumpToPinnedMessageButtonFromSystemMessage.click();
+  }
+
+  async getMessageByIdentity(identity: string) {
+    const message = this.messages.filter({ hasText: identity });
+    await message.waitFor({ state: 'visible', timeout: 5000 });
+
+    return message;
+  }
+
+  async verifyRedDotIsDisplay(): Promise<void> {
+    await expect(this.pinBadge).toBeVisible({ timeout: 5000 });
+  }
+
+  async verifyMessagePinnedOnList(indentityMessage: string): Promise<void> {
+    await this.listPinButton.click();
+    const pinnedMessage = this.pinnedMessages.last().filter({ hasText: indentityMessage });
+    await expect(pinnedMessage).toHaveCount(1);
+  }
+
+  async clickJumpToPinMessageFromPinnedMessage() {
+    await this.pinnedMessages.last().hover();
+    await this.jumpToPinnedMessageButtonFromPinnedList.click();
   }
 }
 

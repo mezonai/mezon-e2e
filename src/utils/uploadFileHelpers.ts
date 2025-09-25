@@ -18,6 +18,7 @@ export type UploadVerificationResult = {
 };
 
 export enum UploadType {
+  USER_PROFILE_AVATAR = 'userProfileAvatar',
   STICKER = 'sticker',
   VOICE_STICKER = 'voiceSticker',
   CLAN_WEBHOOK_AVATAR = 'clanWebhookAvatar',
@@ -38,6 +39,9 @@ type UploadConfig = {
 };
 
 const UPLOAD_CONFIGS: Record<UploadType, UploadConfig> = {
+  [UploadType.USER_PROFILE_AVATAR]: {
+    selector: `'#preview_img'`,
+  },
   [UploadType.STICKER]: {
     selector: `${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[accept*=".jpg"], input[accept*=".jpeg"], input[accept*=".png"], input[accept*=".gif"], input[accept*="image"]`,
   },
@@ -364,6 +368,10 @@ export class FileSizeTestHelpers {
   ): Promise<UploadVerificationResult> {
     await this.setFileOnBestInput(filePath);
     return await this.verifyUpload(filePath, expectedSuccess);
+  }
+
+  async uploadFileDefault(filePath: string): Promise<void> {
+    await this.setFileOnBestInput(filePath);
   }
 
   // Mapping-based approach for all upload types - more maintainable

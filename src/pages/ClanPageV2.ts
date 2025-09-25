@@ -1,7 +1,7 @@
 import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { DirectMessageHelper } from './../utils/directMessageHelper';
 import { BasePage } from './BasePage';
 import { CategoryPage } from './CategoryPage';
@@ -15,9 +15,9 @@ export class ClanPageV2 extends BasePage {
   readonly buttons = {
     createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
     clanName: this.page.locator(`${generateE2eSelector('clan_page.header.title.clan_name')} p`),
-    invitePeople: this.page.locator(
-      generateE2eSelector('clan_page.header.modal_panel.invite_people')
-    ),
+    // invitePeople: this.page.locator(
+    //   generateE2eSelector('clan_page.header.modal_panel.invite_people')
+    // ),
     createChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
     createClanCancel: this.page.locator(
       `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
@@ -36,6 +36,17 @@ export class ClanPageV2 extends BasePage {
     ),
     closeInviteModal: this.page.locator(generateE2eSelector('button.base'), { hasText: '×' }),
     eventButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.events')),
+    saveChanges: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save Changes' }),
+    exitSettings: this.page.locator(generateE2eSelector('clan_page.settings.button.exit')),
+    memberListButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.members')),
+  };
+
+  readonly memberSettings = {
+    usersInfo: this.page.locator(generateE2eSelector('clan_page.member_list.user_info')),
+  };
+
+  readonly footerProfile = {
+    userName: this.page.locator(generateE2eSelector('footer_profile.name')),
   };
 
   readonly eventModal = {
@@ -96,6 +107,9 @@ export class ClanPageV2 extends BasePage {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
     urlInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.url_invite')),
     delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
+    channelName: this.page.locator(
+      `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
+    ),
   };
 
   private settings = {
@@ -127,6 +141,8 @@ export class ClanPageV2 extends BasePage {
           'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
         )
       ),
+      member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
+      pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
     },
   };
 
@@ -266,6 +282,11 @@ export class ClanPageV2 extends BasePage {
     await this.page.waitForTimeout(500);
   }
 
+  async openMemberListSetting(): Promise<void> {
+    await this.buttons.memberListButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
@@ -322,6 +343,20 @@ export class ClanPageV2 extends BasePage {
     await this.threadBox.threadInputMention.fill(threadName);
     await this.threadBox.threadInputMention.press('Enter');
     await this.page.waitForLoadState('networkidle');
+  }
+
+  async openMemberList(): Promise<void> {
+    await this.header.button.member.nth(0).click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async getMemberFromMemberList(memberName: string): Promise<Locator> {
+    const memberLocator = this.page.locator(
+      `${generateE2eSelector('chat.channel_message.member_list.item')}`,
+      { hasText: memberName }
+    );
+    await memberLocator.waitFor({ state: 'visible', timeout: 5000 });
+    return memberLocator;
   }
 
   async isNewThreadPresent(threadName: string): Promise<boolean> {
@@ -414,5 +449,17 @@ export class ClanPageV2 extends BasePage {
     await expect(lastMessage).toBeVisible();
 
     return (await lastMessage.innerText()).trim();
+  }
+
+  async editChannelName(channelName: string, newChannelName: string): Promise<void> {
+    await this.openChannelSettings(channelName);
+    const input = this.page.locator(
+      `${generateE2eSelector('clan_page.channel_list.settings.overview')} input[value="${channelName}"]`
+    );
+
+    await input.fill(newChannelName);
+    await this.buttons.saveChanges.click();
+    await this.buttons.exitSettings.click();
+    await this.page.waitForLoadState('networkidle');
   }
 }
