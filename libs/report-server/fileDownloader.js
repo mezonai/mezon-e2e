@@ -7,14 +7,15 @@ const bucketName = 'mezon-auto';
 
 class FileDownloader {
   constructor() {
-    const [ACCOUNT_ID, ACCESS_KEY_ID, SECRET_ACCESS_KEY] = 'key'.split(':');
+    const [ACCESS_KEY_ID, SECRET_ACCESS_KEY] = 'key'.split(':');
 
     this.s3 = new AWS.S3({
-      endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      endpoint: `https://storage.dungxbuif.com`,
       accessKeyId: ACCESS_KEY_ID,
       secretAccessKey: SECRET_ACCESS_KEY,
       signatureVersion: 'v4',
-      region: 'auto',
+      region: 'us-east-1',
+      s3ForcePathStyle: true,
     });
   }
 
