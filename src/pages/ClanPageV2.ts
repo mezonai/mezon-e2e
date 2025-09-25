@@ -26,6 +26,8 @@ export class ClanPageV2 extends BasePage {
       { hasText: 'Create' }
     ),
     eventButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.events')),
+    saveChanges: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save Changes' }),
+    exitSettings: this.page.locator(generateE2eSelector('clan_page.settings.button.exit')),
     memberListButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.members')),
   };
 
@@ -94,6 +96,9 @@ export class ClanPageV2 extends BasePage {
   private input = {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
     delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
+    channelName: this.page.locator(
+      `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
+    ),
   };
 
   private settings = {
@@ -364,5 +369,17 @@ export class ClanPageV2 extends BasePage {
     } catch {
       return false;
     }
+  }
+
+  async editChannelName(channelName: string, newChannelName: string): Promise<void> {
+    await this.openChannelSettings(channelName);
+    const input = this.page.locator(
+      `${generateE2eSelector('clan_page.channel_list.settings.overview')} input[value="${channelName}"]`
+    );
+
+    await input.fill(newChannelName);
+    await this.buttons.saveChanges.click();
+    await this.buttons.exitSettings.click();
+    await this.page.waitForLoadState('networkidle');
   }
 }
