@@ -42,20 +42,20 @@ export class ReportExporter {
     this.webhookUrl = webhookUrl || process.env.WEBHOOK_URL || `${REPORT_SERVER_URL}/webhook`;
 
     const AUTO_EXPORT_CREDENTIALS = process.env.AUTO_EXPORT_CREDENTIALS || '';
-    const [ACCOUNT_ID, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME] =
-      AUTO_EXPORT_CREDENTIALS.split(':');
-    if (!ACCOUNT_ID || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY || !BUCKET_NAME) {
+    const [ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME] = AUTO_EXPORT_CREDENTIALS.split(':');
+    if (!ACCESS_KEY_ID || !SECRET_ACCESS_KEY || !BUCKET_NAME) {
       this.enabled = false;
       return;
     }
     this.bucketName = BUCKET_NAME;
     this.s3Client = new S3Client(
       new AWS.S3({
-        endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        endpoint: `https://storage.dungxbuif.com`,
         accessKeyId: ACCESS_KEY_ID,
         secretAccessKey: SECRET_ACCESS_KEY,
         signatureVersion: 'v4',
-        region: 'auto',
+        region: 'us-east-1',
+        s3ForcePathStyle: true,
       })
     );
   }
