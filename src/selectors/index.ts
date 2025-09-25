@@ -150,6 +150,15 @@ export const DATA_E2E_IDENTIFIER = {
           image_cover_input: '',
         },
       },
+      invite_people: {
+        search_input: '',
+        user_item: {
+          username: '',
+          button: { invite: '' },
+        },
+        url_invite: '',
+        container: '',
+      },
     },
     settings: {
       button: {

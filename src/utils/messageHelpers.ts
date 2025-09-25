@@ -1,6 +1,6 @@
-import { generateE2eSelector } from './generateE2eSelector';
 import { MessagePage } from '@/pages/MessagePage';
 import { expect, Locator, Page } from '@playwright/test';
+import { generateE2eSelector } from './generateE2eSelector';
 
 export class MessageTestHelpers {
   private page: Page;
