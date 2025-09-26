@@ -6,6 +6,7 @@ export class MessagePage {
   private helpers: DirectMessageHelper;
   readonly page: Page;
   readonly user: Locator;
+  readonly listDMItems: Locator;
   readonly addUserButton: Locator;
   readonly userItem: Locator;
   readonly friendItems: Locator;
@@ -41,6 +42,7 @@ export class MessagePage {
   readonly pinnedMessages: Locator;
   readonly welcomeDM: Locator;
   readonly welcomeDMAvatar: Locator;
+  readonly headerDMAvatar: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -61,6 +63,7 @@ export class MessagePage {
       .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
       .first();
     this.addUserButton = page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
+    this.listDMItems = page.locator(generateE2eSelector('chat.direct_message.chat_list'));
     this.userItem = page
       .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
       .first();
@@ -144,6 +147,9 @@ export class MessagePage {
     this.pinnedMessages = page.locator(generateE2eSelector('common.pin_message'));
     this.welcomeDM = page.locator(generateE2eSelector('chat_welcome'));
     this.welcomeDMAvatar = this.welcomeDM.locator(generateE2eSelector('avatar.image'));
+    this.headerDMAvatar = this.page.locator(
+      `${generateE2eSelector('chat.direct_message.header.left_container')} ${generateE2eSelector('avatar.image')}`
+    );
   }
 
   async createDM(): Promise<void> {
@@ -305,6 +311,11 @@ export class MessagePage {
     await this.page.waitForTimeout(500);
   }
 
+  getFriendItemFromListDM(friendName: string): Locator {
+    const dmItem = this.listDMItems;
+    return dmItem.filter({ hasText: friendName }).first();
+  }
+
   async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
     await this.page.waitForTimeout(3000);
 
@@ -316,6 +327,13 @@ export class MessagePage {
   async sendMessage(message: string): Promise<void> {
     this.message = message;
     await this.firstUserAddDM.click();
+    await this.helpers.textarea.click();
+    await this.helpers.textarea.fill(message);
+    await this.helpers.textarea.press('Enter');
+  }
+
+  async sendMessageWhenInDM(message: string): Promise<void> {
+    this.message = message;
     await this.helpers.textarea.click();
     await this.helpers.textarea.fill(message);
     await this.helpers.textarea.press('Enter');

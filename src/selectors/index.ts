@@ -248,7 +248,11 @@ export const DATA_E2E_IDENTIFIER = {
   },
   chat: {
     direct_message: {
+      header: {
+        left_container: '',
+      },
       chat_list: '',
+
       chat_item: {
         username: '',
         close_dm_button: '',
