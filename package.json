@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx playwright test --project Chrome",
+    "test:standalone": "npx playwright test --project Chrome-Standalone",
     "test:setup": "npx playwright test --project setup && echo '\nTo open last HTML report run:\n\n\\033[32mnpm run report\\033[0m\n'",
     "test:debug": "npx playwright test --debug",
     "test:dual": "npx playwright test --project Chrome --ui",
@@ -64,6 +65,7 @@
     "@faker-js/faker": "^9.0.0",
     "archiver": "^7.0.1",
     "aws-sdk": "^2.1692.0",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.5"
   },
   "lint-staged": {
