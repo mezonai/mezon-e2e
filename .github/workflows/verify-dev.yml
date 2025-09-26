@@ -30,6 +30,7 @@ jobs:
           cat > .env << EOF
           BASE_URL=https://dev-mezon.nccsoft.vn
           WORKERS=6
+          CI=true
           EOF
 
       - name: Run automation tests

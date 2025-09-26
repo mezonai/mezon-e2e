@@ -12,7 +12,6 @@ setup('prepare all mezon auth states', async ({ browser }) => {
       const page = await context.newPage();
 
       await page.goto(WEBSITE_CONFIGS.MEZON.baseURL as string);
-      await page.waitForLoadState('networkidle');
 
       // Set mezon session
       const mezonSession = {
@@ -51,7 +50,6 @@ setup('prepare all mezon auth states', async ({ browser }) => {
       );
 
       await page.reload();
-      await page.waitForLoadState('networkidle');
 
       try {
         await clickOpenMezonButton(page);
@@ -63,8 +61,6 @@ setup('prepare all mezon auth states', async ({ browser }) => {
       await context.storageState({ path: accountAuthFile });
 
       console.log(`Authentication state saved for ${accountName} to ${accountAuthFile}`);
-
-      await context.close();
     } catch (error) {
       console.error(`Error setting up auth state for ${accountName}:`, error);
     }
