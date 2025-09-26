@@ -5,8 +5,13 @@ on:
     inputs:
       mezon_repo:
         description: 'Mezon repository to use (mezonai/mezon.git or kientrinh-dev/mezon.git)'
-        required: false
+        required: true
         default: 'kientrinh-dev/mezon.git'
+        type: choice
+        options:
+          - 'kientrinh-dev/mezon.git'
+          - 'mezonai/mezon.git'
+
   pull_request:
     branches: [develop, main]
     types: [opened, synchronize, reopened]
