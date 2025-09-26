@@ -382,6 +382,12 @@ export class MessagePage {
     await this.confirmPinMessageButton.click();
   }
 
+  async pinSpecificMessage(messageItem: Locator) {
+    await messageItem.click({ button: 'right' });
+    await this.pinMessageButton.click();
+    await this.confirmPinMessageButton.click();
+  }
+
   async getLastMessageWithProfileName(profileName: string): Promise<Locator> {
     return this.messages.filter({ hasText: profileName }).last();
   }

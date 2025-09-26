@@ -977,6 +977,33 @@ test.describe('User Profile - Update avatar', () => {
     expect(profileHash).toEqual(accountHash);
   });
 
+  test('TC08: Direct Message _ Dual Chat _ Pinned Message list', async ({ page }) => {
+    await updateSessionLocalStorage(page, 'account6-1');
+
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63364',
+    });
+
+    const profilePage = new ProfilePage(page);
+    const messagePage = new MessagePage(page);
+    await profilePage.navigate('/chat/direct/friends');
+    await messagePage.createDMWithFriendName(profileName || '');
+    const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
+      profileName || ''
+    );
+    await messagePage.pinSpecificMessage(messageItemWithProfileName);
+    await page.waitForTimeout(500);
+    const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
+    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+    const accountSrc = await accountAvatar.getAttribute('src');
+    const accountHash = await getImageHash(accountSrc || '');
+
+    expect(profileHash).not.toBeNull();
+    expect(accountHash).not.toBeNull();
+
+    expect(profileHash).toEqual(accountHash);
+  });
+
   test('TC: Direct Message _ Dual Chat _ Welcome message', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63364',
