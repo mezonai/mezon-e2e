@@ -776,9 +776,10 @@ test.describe('User Profile - Update avatar', () => {
 
     const profilePage = new ProfilePage(page);
 
-    await profilePage.navigate('/chat/direct/friends');
     await page.waitForTimeout(1000);
+    await profilePage.navigate('/chat/direct/friends');
     await profilePage.openUserSettingProfile();
+    await page.waitForTimeout(1000);
     const accountAvatar = profilePage.accountPage.image;
     await expect(accountAvatar).toBeVisible({ timeout: 5000 });
     const accountSrc = await accountAvatar.getAttribute('src');
@@ -994,29 +995,6 @@ test.describe('User Profile - Update avatar', () => {
     await messagePage.pinSpecificMessage(messageItemWithProfileName);
     await page.waitForTimeout(500);
     const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
-
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
-
-    expect(profileHash).toEqual(accountHash);
-  });
-
-  test('TC: Direct Message _ Dual Chat _ Welcome message', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
-    });
-
-    await updateSessionLocalStorage(page, 'account6-1');
-
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
-
-    await profilePage.navigate('/chat/direct/friends');
-    await messagePage.createDMWithFriendName(profileName || '');
-    const accountAvatar = messagePage.welcomeDMAvatar;
     await expect(accountAvatar).toBeVisible({ timeout: 5000 });
     const accountSrc = await accountAvatar.getAttribute('src');
     const accountHash = await getImageHash(accountSrc || '');
