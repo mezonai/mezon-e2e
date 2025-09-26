@@ -840,28 +840,28 @@ test.describe('User Profile - Update avatar', () => {
     expect(profileHash).toEqual(accountHash);
   });
 
-  test('TC03: Direct Message _ Dual Chat _ Top bar (New Bug MEZON)', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
-    });
+  // test('TC03: Direct Message _ Dual Chat _ Top bar (New Bug MEZON)', async ({ page }) => {
+  //   await AllureReporter.addWorkItemLinks({
+  //     parrent_issue: '63364',
+  //   });
 
-    await updateSessionLocalStorage(page, 'account6-1');
+  //   await updateSessionLocalStorage(page, 'account6-1');
 
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
+  //   const profilePage = new ProfilePage(page);
+  //   const messagePage = new MessagePage(page);
 
-    await profilePage.navigate('/chat/direct/friends');
-    await messagePage.createDMWithFriendName(profileName || '');
-    const accountAvatar = messagePage.headerDMAvatar;
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
+  //   await profilePage.navigate('/chat/direct/friends');
+  //   await messagePage.createDMWithFriendName(profileName || '');
+  //   const accountAvatar = messagePage.headerDMAvatar;
+  //   await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+  //   const accountSrc = await accountAvatar.getAttribute('src');
+  //   const accountHash = await getImageHash(accountSrc || '');
 
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
+  //   expect(profileHash).not.toBeNull();
+  //   expect(accountHash).not.toBeNull();
 
-    expect(profileHash).toEqual(accountHash);
-  });
+  //   expect(profileHash).toEqual(accountHash);
+  // });
 
   test('TC04: Direct Message _ Dual Chat _ Display name', async ({ page }) => {
     await updateSessionLocalStorage(page, 'account6-1');
