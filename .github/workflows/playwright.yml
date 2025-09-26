@@ -6,7 +6,7 @@ on:
       mezon_repo:
         description: 'Mezon repository to use (mezonai/mezon.git or kientrinh-dev/mezon.git)'
         required: true
-        default: 'kientrinh-dev/mezon.git'
+        default: 'mezonai/mezon.git'
         type: choice
         options:
           - 'kientrinh-dev/mezon.git'
