@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
 
 export class DirectMessageHelper {
@@ -7,6 +7,7 @@ export class DirectMessageHelper {
   readonly groupList: Locator;
   readonly groupName: Locator;
   readonly group: Locator;
+  readonly userNamesInDM: Locator;
 
   constructor(private page: Page) {
     this.textarea = page.locator(generateE2eSelector('mention.input'));
@@ -20,6 +21,9 @@ export class DirectMessageHelper {
       .filter({ has: this.page.locator('p', { hasText: 'Members' }) })
       .first();
     this.groupName = page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+    this.userNamesInDM = page.locator(
+      generateE2eSelector('chat.direct_message.chat_item.username')
+    );
   }
 
   async countGroups(): Promise<number> {

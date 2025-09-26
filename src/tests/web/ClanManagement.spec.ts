@@ -1,10 +1,14 @@
 import { AllureConfig } from '@/config/allure.config';
+import { GLOBAL_CONFIG } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ROUTES } from '@/selectors';
+import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import joinUrlPaths from '@/utils/joinUrlPaths';
 import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 import { CategoryPage } from '../../pages/CategoryPage';
-import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('Create Clan', () => {
   let clanUrl: string;
@@ -210,5 +214,159 @@ test.describe('Create Category', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Public Category Created - ${categoryPublicName}`);
+  });
+});
+
+test.describe('Invite People', () => {
+  let clanSetupHelper: ClanSetupHelper;
+  let clanName: string;
+  let clanUrl: string;
+
+  test.use({ storageState: 'playwright/.auth/account3.json' });
+
+  test.beforeAll(async ({ browser }) => {
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
+
+    clanName = setupResult.clanName;
+    clanUrl = setupResult.clanUrl;
+  });
+
+  test.afterAll(async ({ browser }) => {
+    if (clanSetupHelper && clanName && clanUrl) {
+      await clanSetupHelper.cleanupClan(clanName, clanUrl);
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63123',
+    });
+
+    await AllureReporter.step('Navigate to test clan', async () => {
+      await page.goto(clanUrl);
+      await page.waitForLoadState('domcontentloaded');
+    });
+
+    await AllureReporter.addParameter('clanName', clanName);
+  });
+
+  test('Verify that I can invite people to a clan from sidebar', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63379',
+    });
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully invite people to a clan from sidebar.
+
+    **Test Steps:**
+    1. Open invite people dialog
+    2. Pick first user on list
+    3. Send invitation
+    4. Verify invitation is sent
+
+    **Expected Result:** Invitation is successfully sent to the user.
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['invite-people', 'user-invitations'],
+    });
+
+    const clanPage = new ClanPageV2(page);
+
+    await AllureReporter.step('Open invite people dialog', async () => {
+      await clanPage.clickButtonInvitePeopleFromMenu();
+    });
+
+    const inviteResult = await AllureReporter.step('Send invitation via modal', async () => {
+      return await clanPage.sendInviteOnModal();
+    });
+
+    expect(inviteResult.success).toBeTruthy();
+
+    await AllureReporter.step('Navigate to direct friends page', async () => {
+      await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
+    });
+
+    await AllureReporter.step(`Open DM with invited user`, async () => {
+      await clanPage.openDirectMessageWithUser(inviteResult.username!);
+    });
+
+    await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
+      const lastMessage = await clanPage.getLastMessageInChat();
+      const isMatch = lastMessage.includes(inviteResult.urlInvite ?? '');
+      expect(isMatch).toBeTruthy();
+      return isMatch;
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Invite People Sent');
+  });
+
+  test('Verify that I can invite people to a clan from channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63380',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully invite people to a clan from a channel.
+    **Test Steps:**
+    1. create a channel in clan
+    2. Open invite people dialog from channel
+    3. Pick first user on list
+    4. Send invitation
+    5. Verify invitation is sent
+    **Expected Result:** Invitation is successfully sent to the user.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['invite-people', 'user-invitations'],
+    });
+
+    const unique = Date.now().toString(36).slice(-6);
+    const channelName = `tc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPageV2(page);
+
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.TEXT);
+    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step(`Create new public text channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
+    });
+
+    await AllureReporter.step('Verify channel is present in channel list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Open invite people dialog from channel', async () => {
+      await clanPage.clickButtonInvitePeopleFromChannel();
+    });
+    const inviteResult = await AllureReporter.step('Send invitation via modal', async () => {
+      return await clanPage.sendInviteOnModal();
+    });
+    expect(inviteResult.success).toBeTruthy();
+    await AllureReporter.step('Navigate to direct friends page', async () => {
+      await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
+    });
+    await AllureReporter.step(`Open DM with invited user`, async () => {
+      await clanPage.openDirectMessageWithUser(inviteResult.username!);
+    });
+    await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
+      const lastMessage = await clanPage.getLastMessageInChat();
+      const isMatch = lastMessage.includes(inviteResult.urlInvite ?? '');
+      expect(isMatch).toBeTruthy();
+      return isMatch;
+    });
   });
 });

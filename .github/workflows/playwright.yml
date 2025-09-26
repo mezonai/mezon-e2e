@@ -2,6 +2,16 @@ name: Verify Automation Test Results
 
 on:
   workflow_dispatch:
+    inputs:
+      mezon_repo:
+        description: 'Mezon repository to use (mezonai/mezon.git or kientrinh-dev/mezon.git)'
+        required: true
+        default: 'mezonai/mezon.git'
+        type: choice
+        options:
+          - 'kientrinh-dev/mezon.git'
+          - 'mezonai/mezon.git'
+
   pull_request:
     branches: [develop, main]
     types: [opened, synchronize, reopened]
@@ -17,7 +27,7 @@ jobs:
       - name: Checkout mezon repository
         uses: actions/checkout@v4
         with:
-          repository: kientrinh-dev/mezon.git
+          repository: ${{ github.event.inputs.mezon_repo || 'kientrinh-dev/mezon.git' }}
           ref: develop
           path: mezon
 
