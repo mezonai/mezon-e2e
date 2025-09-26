@@ -122,8 +122,11 @@ export class ClanPageV2 extends BasePage {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.item.name')),
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
+      iconHashtagLock: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon.hashtag_lock')),
+      iconHashtag: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon.hashtag')),
     },
     threadItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
@@ -162,6 +165,10 @@ export class ClanPageV2 extends BasePage {
     limitCreation: {
       title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
     },
+  };
+
+  readonly secondarySideBar = {
+    member: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
   };
 
   private modalInvite = {
