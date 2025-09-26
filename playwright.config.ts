@@ -89,13 +89,7 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
-      timeout: 120 * 1000, // Increased timeout for CI stability
-      use: {
-        ...getBrowserConfig(),
-        // Additional setup-specific options for better CI stability
-        actionTimeout: 15 * 1000,
-        navigationTimeout: 45 * 1000,
-      },
+      timeout: 60 * 1000,
     },
     {
       name: 'chromium-dual-user',

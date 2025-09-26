@@ -329,22 +329,7 @@ export const getBrowserConfig = () => ({
   headless: ENV_CONFIG.browser.headless,
   slowMo: ENV_CONFIG.browser.slowMo,
   args: isCI()
-    ? [
-        '--disable-dev-shm-usage',
-        '--no-sandbox',
-        '--disable-gpu',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-extensions',
-        '--disable-plugins',
-        '--disable-default-apps',
-        '--no-first-run',
-        '--no-default-browser-check',
-        '--disable-background-networking',
-      ]
+    ? ['--disable-dev-shm-usage', '--no-sandbox']
     : [
         '--disable-clipboard-read-write',
         '--disable-permissions-api',
