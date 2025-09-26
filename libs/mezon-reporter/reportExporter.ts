@@ -37,22 +37,15 @@ export class ReportExporter {
   private webhookUrl?: string;
   private enabled: boolean = true;
   private s3Client!: S3Client;
-  private bucketName = '';
+  private bucketName = 'mezon-auto';
   constructor(webhookUrl?: string) {
     this.webhookUrl = webhookUrl || process.env.WEBHOOK_URL || `${REPORT_SERVER_URL}/webhook`;
 
-    const AUTO_EXPORT_CREDENTIALS = process.env.AUTO_EXPORT_CREDENTIALS || '';
-    const [ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME] = AUTO_EXPORT_CREDENTIALS.split(':');
-    if (!ACCESS_KEY_ID || !SECRET_ACCESS_KEY || !BUCKET_NAME) {
-      this.enabled = false;
-      return;
-    }
-    this.bucketName = BUCKET_NAME;
     this.s3Client = new S3Client(
       new AWS.S3({
         endpoint: `https://storage.dungxbuif.com`,
-        accessKeyId: ACCESS_KEY_ID,
-        secretAccessKey: SECRET_ACCESS_KEY,
+        accessKeyId: '2z6YQm4SMLcjGCizgDL8',
+        secretAccessKey: 'NLnUX7SbTVy8eIMCzf0eB1Up7FpDJSuM5tvyogKz',
         signatureVersion: 'v4',
         region: 'us-east-1',
         s3ForcePathStyle: true,
