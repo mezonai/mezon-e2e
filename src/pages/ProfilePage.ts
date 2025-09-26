@@ -31,6 +31,13 @@ export class ProfilePage extends BasePage {
     ),
   };
 
+  readonly accountPage = {
+    info: this.page.locator(generateE2eSelector('user_setting.account.info')),
+    image: this.page.locator(
+      `${generateE2eSelector('user_setting.account.info')} ${generateE2eSelector('avatar.image')}`
+    ),
+  };
+
   readonly tabs = {
     profile: this.page.locator(generateE2eSelector('user_setting.profile.tab_profile')),
     userProfile: this.page.locator(generateE2eSelector('user_setting.profile.user_profile.button')),
@@ -41,6 +48,9 @@ export class ProfilePage extends BasePage {
   readonly userProfile = {
     avatar: this.page.locator(
       `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+    ),
+    displayName: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.display_name')}`
     ),
   };
 
@@ -121,6 +131,10 @@ export class ProfilePage extends BasePage {
   async validateLength(aboutMeStatus: string): Promise<boolean> {
     const currentLength = await this.getAboutMeLength();
     return aboutMeStatus.length === currentLength;
+  }
+
+  async getProfileName(): Promise<string> {
+    return await this.userProfile.displayName.innerText();
   }
 
   async sendMessage(mentionText: string) {

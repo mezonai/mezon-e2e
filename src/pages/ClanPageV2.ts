@@ -6,6 +6,7 @@ import { DirectMessageHelper } from './../utils/directMessageHelper';
 import { BasePage } from './BasePage';
 import { CategoryPage } from './CategoryPage';
 import { CategorySettingPage } from './CategorySettingPage';
+import { profile } from 'console';
 
 export class ClanPageV2 extends BasePage {
   constructor(page: Page) {
@@ -38,6 +39,13 @@ export class ClanPageV2 extends BasePage {
     memberListButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.members')),
     invitePeopleFromChannel: this.page.locator(
       `${generateE2eSelector('onboarding.chat.guide_sections')} div:has-text("Invite your friends")`
+    ),
+  };
+
+  readonly sidebarMemberList = {
+    memberItems: this.page.locator(generateE2eSelector('chat.channel_message.member_list.item')),
+    profileButton: this.page.locator(
+      generateE2eSelector('chat.channel_message.member_list.item.actions.view_profile')
     ),
   };
 
@@ -351,12 +359,16 @@ export class ClanPageV2 extends BasePage {
   }
 
   async getMemberFromMemberList(memberName: string): Promise<Locator> {
-    const memberLocator = this.page.locator(
-      `${generateE2eSelector('chat.channel_message.member_list.item')}`,
-      { hasText: memberName }
-    );
+    const memberLocator = this.sidebarMemberList.memberItems.filter({ hasText: memberName });
     await memberLocator.waitFor({ state: 'visible', timeout: 5000 });
     return memberLocator;
+  }
+
+  async getProfileFromMemberList(memberName: string): Promise<void> {
+    const memberItem = await this.getMemberFromMemberList(memberName);
+    await memberItem.click({ button: 'right' });
+    await this.sidebarMemberList.profileButton.click();
+    await this.page.waitForTimeout(1000);
   }
 
   async isNewThreadPresent(threadName: string): Promise<boolean> {

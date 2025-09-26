@@ -1,4 +1,5 @@
 import { EnvironmentConfig } from '@/config/types';
+import { Page } from '@playwright/test';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -72,6 +73,18 @@ export const persistentAuthConfigs = {
     loadingStatusEmail: '"not loaded"',
     redirectUrl: 'null',
     activeAccount: '"1964953606733959200"',
+    _persist: '{"version":-1,"rehydrated":true}',
+  },
+  'account6-1': {
+    loadingStatus: '"loaded"',
+    session:
+      '{"1971053457024487400":{"created":true,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI5Y2Q1MDU4ZS02MDA2LTQ4Y2EtOTRhNi1kY2NiYTQ3MGU2OGIiLCJ1aWQiOjE5NzEwNTM0NTcwMjQ0ODc0MjQsInVzbiI6ImRhdC5oYXF1b2MrMDYtMSIsImV4cCI6MTc1ODc3MTM4Nn0.PukC1LrTEX8GZNNHq91WMXfVDmg8S2aR9sm9a0C_tUM","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI5Y2Q1MDU4ZS02MDA2LTQ4Y2EtOTRhNi1kY2NiYTQ3MGU2OGIiLCJ1aWQiOjE5NzEwNTM0NTcwMjQ0ODc0MjQsInVzbiI6ImRhdC5oYXF1b2MrMDYtMSIsImV4cCI6MTc1OTM3NTU4Nn0.kBrknLvDh1IjxkUxTGQPsKT5qaUJ5N1ynCP8f3B9rPs","created_at":1758770786,"is_remember":false,"refresh_expires_at":1759375586,"expires_at":1758771386,"username":"dat.haquoc+06-1","user_id":1971053457024487400}}',
+    isLogin: 'true',
+    isRegistering: '"not loaded"',
+    loadingStatusEmail: '"not loaded"',
+    redirectUrl: 'null',
+    activeAccount: '"1971053457024487400"',
+    error: '"Rejected"',
     _persist: '{"version":-1,"rehydrated":true}',
   },
   account7: {
@@ -198,6 +211,59 @@ export const getAuthConfigBySuite = (suiteName: string) => {
 
 // Get available account keys
 export const getAvailableAccounts = () => Object.keys(persistentAuthConfigs);
+
+type AccountKey = keyof typeof persistentAuthConfigs;
+
+export const updateSessionLocalStorage = async (page: Page, accountKey: AccountKey) => {
+  await page.goto(WEBSITE_CONFIGS.MEZON.baseURL as string);
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(2000);
+
+  try {
+    const authConfigResult = getAuthConfig(accountKey);
+    const authConfig =
+      authConfigResult && 'config' in authConfigResult ? authConfigResult.config : authConfigResult;
+
+    if (!authConfig) {
+      throw new Error(`No authentication config found for account: ${accountKey}`);
+    }
+
+    const mezonSession = {
+      host: 'dev-mezon.nccsoft.vn',
+      port: '7305',
+      ssl: true,
+    };
+
+    await page.evaluate(
+      (authData: any) => {
+        localStorage.setItem('mezon_session', JSON.stringify(authData.mezonSession));
+
+        localStorage.setItem('i18nextLng', 'en');
+
+        localStorage.setItem(
+          'persist:auth',
+          JSON.stringify({
+            loadingStatus: authData.persistAuth.loadingStatus,
+            session: authData.persistAuth.session,
+            isLogin: authData.persistAuth.isLogin,
+            isRegistering: authData.persistAuth.isRegistering,
+            loadingStatusEmail: authData.persistAuth.loadingStatusEmail,
+            redirectUrl: authData.persistAuth.redirectUrl,
+            activeAccount: authData.persistAuth.activeAccount,
+            _persist: authData.persistAuth._persist,
+          })
+        );
+      },
+      {
+        mezonSession,
+        persistAuth: authConfig,
+      }
+    );
+  } catch (error) {
+    console.error(`Failed to update session for account ${accountKey}:`, error);
+    throw error;
+  }
+};
 
 /**
  * Global configuration constants
