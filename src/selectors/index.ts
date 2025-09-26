@@ -14,6 +14,10 @@ export const DATA_E2E_IDENTIFIER = {
   avatar: {
     image: '',
   },
+  footer_profile: {
+    avatar: '',
+    name: '',
+  },
   button: {
     base: '',
   },
@@ -37,6 +41,7 @@ export const DATA_E2E_IDENTIFIER = {
       topic: '',
     },
   },
+  chat_welcome: '',
   homepage: {
     header: {
       link: '',
@@ -91,7 +96,11 @@ export const DATA_E2E_IDENTIFIER = {
         add_clan: '',
         add_channel: '',
         events: '',
+        members: '',
       },
+    },
+    member_list: {
+      user_info: '',
     },
     modal: {
       create_category: {
@@ -132,6 +141,9 @@ export const DATA_E2E_IDENTIFIER = {
           cancel: '',
         },
       },
+      limit_creation: {
+        title: '',
+      },
       create_event: {
         button_create: '',
         next: '',
@@ -139,8 +151,20 @@ export const DATA_E2E_IDENTIFIER = {
           image_cover_input: '',
         },
       },
+      invite_people: {
+        search_input: '',
+        user_item: {
+          username: '',
+          button: { invite: '' },
+        },
+        url_invite: '',
+        container: '',
+      },
     },
     settings: {
+      button: {
+        exit: '',
+      },
       integrations: {
         create_clan_webhook_button: '',
         new_clan_webhook_button: '',
@@ -211,6 +235,9 @@ export const DATA_E2E_IDENTIFIER = {
       panel: {
         item: '',
       },
+      settings: {
+        overview: '',
+      },
     },
   },
   channel_setting_page: {
@@ -230,7 +257,14 @@ export const DATA_E2E_IDENTIFIER = {
   },
   chat: {
     direct_message: {
+      header: {
+        left_container: '',
+        right_container: {
+          user_profile: '',
+        },
+      },
       chat_list: '',
+
       chat_item: {
         username: '',
         close_dm_button: '',
@@ -286,7 +320,10 @@ export const DATA_E2E_IDENTIFIER = {
           file: '',
           mute: '',
           inbox: '',
-          pin: '',
+          member: '',
+          pin: {
+            pin_badge: '',
+          },
           canvas: '',
           thread: {
             modal: {
@@ -321,6 +358,14 @@ export const DATA_E2E_IDENTIFIER = {
           private_thread: '',
         },
       },
+      mention_user: '',
+      member_list: {
+        item: {
+          actions: {
+            view_profile: '',
+          },
+        },
+      },
     },
     message_action_modal: {
       button: {
@@ -334,6 +379,14 @@ export const DATA_E2E_IDENTIFIER = {
       },
     },
     suggest_item: '',
+    system_message: {
+      pin_message: {
+        button: {
+          jump_to_message: '',
+          see_all_pinned: '',
+        },
+      },
+    },
   },
   onboarding: {
     chat: {
@@ -348,11 +401,16 @@ export const DATA_E2E_IDENTIFIER = {
       edit_username: '',
       set_password: '',
       tab_account: '',
+      info: '',
     },
     profile: {
       button_setting: '',
       tab_profile: '',
       user_profile: {
+        preview: {
+          avatar: '',
+          display_name: '',
+        },
         input: {
           display_name: '',
           about_me: '',
@@ -366,6 +424,9 @@ export const DATA_E2E_IDENTIFIER = {
         },
         upload: {
           direct_message_icon_input: '',
+          avatar_input: {
+            apply_button: '',
+          },
         },
       },
       clan_profile: {
@@ -386,7 +447,12 @@ export const DATA_E2E_IDENTIFIER = {
     item_pin_message: {
       username: '',
     },
-    pin_message: '',
+    pin_message: {
+      button: {
+        jump: '',
+        remove_pin: '',
+      },
+    },
   },
   modal: {
     too_many_upload: '',

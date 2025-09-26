@@ -36,7 +36,10 @@ export class ClanSetupHelper {
   async setupTestClan(config: ClanSetupConfig = {}): Promise<ClanSetupResult> {
     const { clanNamePrefix = 'TestClan', suiteName = 'Test Suite' } = config;
 
-    const clanName = `${clanNamePrefix}_${generateRandomString(10)}`;
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 30);
+    const timestamp = now.getTime();
+    const clanName = `${clanNamePrefix}_${generateRandomString(10)}_${timestamp}`;
 
     const context = await this.browser.newContext();
     const page = await context.newPage();
@@ -112,7 +115,7 @@ export class ClanSetupHelper {
 
       const clanPage = new ClanPageV2(page);
 
-      await clanPage.deleteClan();
+      await clanPage.deleteClan(false);
     } catch (error) {
       console.log(`Failed to cleanup test clan: ${error}`);
     } finally {
@@ -158,7 +161,7 @@ export class ClanSetupHelper {
           const clanItem = currentClanItems.clanName.nth(i);
 
           await clanItem.click();
-          await clanPage.deleteClan();
+          await clanPage.deleteClan(true);
         } catch (error) {
           console.error(`❌ Failed to delete clan at index ${i}: ${error}`);
           continue;
@@ -242,6 +245,10 @@ export class ClanSetupHelper {
     threadManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ThreadMgmtTest',
       suiteName: 'Thread Management',
+    }),
+    standaloneClanManagement: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'StandaloneClanManagementTest',
+      suiteName: 'Standalone - Clan Management',
     }),
   };
 

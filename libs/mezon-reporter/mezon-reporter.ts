@@ -15,6 +15,7 @@ class MezonReporter implements Reporter {
     passed: 0,
     failed: 0,
     skipped: 0,
+    flaky: 0,
     total: 0,
   };
   private failedTests: Array<{
@@ -23,11 +24,17 @@ class MezonReporter implements Reporter {
     error: string;
     duration: number;
   }> = [];
+  private flakyTests: Array<{
+    title: string;
+    file: string;
+    retryCount: number;
+    finalStatus: string;
+    duration: number;
+  }> = [];
   private testSuites: Set<string> = new Set();
   private testFiles: Set<string> = new Set();
 
   constructor() {
-    // console.log('[Mezon] MezonReporter constructor called');
     this.notifier = new MezonNotifier();
   }
 
@@ -36,74 +43,83 @@ class MezonReporter implements Reporter {
     this.testStats.total = suite.allTests().length;
   }
 
-  async onTestBegin(test: TestCase): Promise<void> {
-    // console.log(`[Mezon] Starting test: ${test.title}`);
-  }
+  async onTestBegin(test: TestCase): Promise<void> {}
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
-    // Collect test suite and file information
     if (test.location?.file) {
       this.testFiles.add(test.location.file);
     }
 
-    // Get test suite name from the parent suite
     const suiteName = test.parent?.title || 'Unknown Suite';
     this.testSuites.add(suiteName);
 
-    // Update statistics
-    switch (result.status) {
-      case 'passed':
-        this.testStats.passed++;
-        break;
-      case 'failed':
-        this.testStats.failed++;
-        // Store failed test details for final report
-        this.failedTests.push({
-          title: test.title,
-          file: test.location?.file || 'Unknown file',
-          error:
-            result.errors.length > 0
-              ? result.errors[0].message || 'Unknown error'
-              : 'Unknown error',
-          duration: result.duration,
-        });
-        break;
-      case 'skipped':
-        this.testStats.skipped++;
-        break;
-    }
+    // Check if test had retries and determine if it's flaky
+    const hadRetries = result.retry > 0;
+    const finallyPassed = result.status === 'passed';
+    const finallyFailed = result.status === 'failed';
 
-    // No individual test notifications - only final report
+    if (hadRetries && finallyPassed) {
+      // Test was flaky but eventually passed
+      this.testStats.flaky++;
+      this.testStats.passed++;
+      this.flakyTests.push({
+        title: test.title,
+        file: test.location?.file || 'Unknown file',
+        retryCount: result.retry,
+        finalStatus: result.status,
+        duration: result.duration,
+      });
+    } else if (finallyFailed) {
+      // Test truly failed (either on first attempt or after all retries)
+      this.testStats.failed++;
+      this.failedTests.push({
+        title: test.title,
+        file: test.location?.file || 'Unknown file',
+        error:
+          result.errors.length > 0 ? result.errors[0].message || 'Unknown error' : 'Unknown error',
+        duration: result.duration,
+      });
+    } else if (result.status === 'passed' && !hadRetries) {
+      // Test passed on first attempt
+      this.testStats.passed++;
+    } else if (result.status === 'skipped') {
+      this.testStats.skipped++;
+    }
   }
 
   async onEnd(result: FullResult): Promise<void> {
-    // console.log('[Mezon] onEnd called - Test suite finished');
     const endTime = new Date();
     const duration = endTime.getTime() - this.startTime.getTime();
-    const success = result.status === 'passed';
+
+    // Only consider as failed if there are truly failed tests (not just flaky)
+    const hasTrulyFailedTests = this.testStats.failed > 0;
+    const success = !hasTrulyFailedTests;
     const emoji = success ? '🎉' : '💥';
 
     const statusMessage = success
       ? 'Test Suite Completed Successfully'
       : 'Test Suite Completed with Issues';
 
-    // Prepare comprehensive final report data
     const reportData = {
-      status: result.status,
+      status: hasTrulyFailedTests ? 'failed' : 'passed',
       totalTests: this.testStats.total,
       passed: this.testStats.passed,
       failed: this.testStats.failed,
       skipped: this.testStats.skipped,
+      flaky: this.testStats.flaky,
       totalDuration: duration,
       successRate:
         this.testStats.total > 0
-          ? Math.round((this.testStats.passed / this.testStats.total) * 100)
+          ? Math.round(
+              ((this.testStats.passed - this.testStats.flaky) / this.testStats.total) * 100
+            )
           : 0,
       startTime: this.startTime.toISOString(),
       endTime: endTime.toISOString(),
       environment: process.env.NODE_ENV || 'development',
       projectName: 'Mezon E2E Automation',
       failedTests: this.failedTests,
+      flakyTests: this.flakyTests,
       // Test Suite Information
       testSuites: Array.from(this.testSuites),
       testFiles: Array.from(this.testFiles).map(file => file.split('/').pop() || file),
@@ -111,35 +127,12 @@ class MezonReporter implements Reporter {
       workers: process.env.WORKERS || '1',
     };
 
-    await this.notifier.send(`${emoji} ${statusMessage}`, reportData);
+    // Only send notification if there are truly failed tests or if all tests passed
+    // Don't send notification for flaky-only scenarios
+    if (hasTrulyFailedTests || (this.testStats.failed === 0 && this.testStats.passed > 0)) {
+      await this.notifier.send(`${emoji} ${statusMessage}`, reportData);
+    }
   }
-
-  // private getStatusEmoji(status: string): string {
-  //   switch (status) {
-  //     case 'passed':
-  //       return '✅';
-  //     case 'failed':
-  //       return '❌';
-  //     case 'skipped':
-  //       return '⏭️';
-  //     case 'timedOut':
-  //       return '⏰';
-  //     default:
-  //       return '❓';
-  //   }
-  // }
-
-  // private shouldNotifyProgress(): boolean {
-  //   const completed = this.testStats.passed + this.testStats.failed + this.testStats.skipped;
-  //   const total = this.testStats.total;
-
-  //   // Notify every 25% completion or for every 10 tests (whichever is smaller)
-  //   const quarterMark = Math.ceil(total * 0.25);
-  //   const tenTestMark = 10;
-  //   const notifyInterval = Math.min(quarterMark, tenTestMark);
-
-  //   return completed > 0 && completed % notifyInterval === 0;
-  // }
 }
 
 export default MezonReporter;
