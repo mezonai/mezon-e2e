@@ -43,6 +43,7 @@ export class MessagePage {
   readonly welcomeDM: Locator;
   readonly welcomeDMAvatar: Locator;
   readonly headerDMAvatar: Locator;
+  readonly headerUserProfileButton: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -97,7 +98,7 @@ export class MessagePage {
     );
     this.firstUserAddDM = this.page
       .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
-      .nth(1);
+      .nth(0);
     this.firstUserNameAddDM = this.page
       .locator(generateE2eSelector('base_profile.display_name'))
       .nth(1);
@@ -149,6 +150,9 @@ export class MessagePage {
     this.welcomeDMAvatar = this.welcomeDM.locator(generateE2eSelector('avatar.image'));
     this.headerDMAvatar = this.page.locator(
       `${generateE2eSelector('chat.direct_message.header.left_container')} ${generateE2eSelector('avatar.image')}`
+    );
+    this.headerUserProfileButton = this.page.locator(
+      `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
     );
   }
 
@@ -311,6 +315,11 @@ export class MessagePage {
     await this.page.waitForTimeout(500);
   }
 
+  async openUserProfile(): Promise<void> {
+    await this.headerUserProfileButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
   getFriendItemFromListDM(friendName: string): Locator {
     const dmItem = this.listDMItems;
     return dmItem.filter({ hasText: friendName }).first();
@@ -330,6 +339,10 @@ export class MessagePage {
     await this.helpers.textarea.click();
     await this.helpers.textarea.fill(message);
     await this.helpers.textarea.press('Enter');
+  }
+
+  async getMessageWithProfileName(profileName: string): Promise<Locator> {
+    return this.messages.filter({ hasText: profileName }).last();
   }
 
   async sendMessageWhenInDM(message: string): Promise<void> {

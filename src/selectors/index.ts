@@ -250,6 +250,9 @@ export const DATA_E2E_IDENTIFIER = {
     direct_message: {
       header: {
         left_container: '',
+        right_container: {
+          user_profile: '',
+        },
       },
       chat_list: '',
 
