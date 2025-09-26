@@ -33,7 +33,7 @@ export const persistentAuthConfigs = {
   account3: {
     loadingStatus: '"loaded"',
     session:
-      '{"1964937944108109800":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJkYWVhOTA5ZS0yMzhiLTQyYTUtOTdhZi0wNzNhMWQ4NTg4MzAiLCJ1aWQiOjE5NjQ5Mzc5NDQxMDgxMDk4MjQsInVzbiI6ImRhdC5oYXF1b2MrMDMiLCJleHAiOjE3NTgzNDE5MDJ9.e-nH5dW53zvJGldUXMCXjSJIu4tgEq6Lzz-MITX7zx4","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJkYWVhOTA5ZS0yMzhiLTQyYTUtOTdhZi0wNzNhMWQ4NTg4MzAiLCJ1aWQiOjE5NjQ5Mzc5NDQxMDgxMDk4MjQsInVzbiI6ImRhdC5oYXF1b2MrMDMiLCJleHAiOjE3NTg4NjAzMDJ9.eIn_LMVhM-sxhpH4GGyBbQHUKoys_Q5DFXkA08TzuX0","created_at":1758255501,"is_remember":false,"refresh_expires_at":1758860302,"expires_at":1758341902,"username":"dat.haquoc+03","user_id":1964937944108109800}}',
+      '{"1964937944108109800":{"created":false,"api_url":"https://dev-mezon.nccsoft.vn:7305","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJhYmEwNjA1Ny05ZTgwLTRiY2MtOTNjNi1kMWU0MWY1NGM2MGEiLCJ1aWQiOjE5NjQ5Mzc5NDQxMDgxMDk4MjQsInVzbiI6ImRhdC5oYXF1b2MrMDMiLCJleHAiOjE3NTg4Njc4MjZ9.Oy9PUQYiUudRiEx8TaHNbeX7W0mrkygHxpuAfzupoCo","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiJhYmEwNjA1Ny05ZTgwLTRiY2MtOTNjNi1kMWU0MWY1NGM2MGEiLCJ1aWQiOjE5NjQ5Mzc5NDQxMDgxMDk4MjQsInVzbiI6ImRhdC5oYXF1b2MrMDMiLCJleHAiOjE3NTk0NzIwMjZ9.opdn2xUhGaKHZooP_1KBi5iLZ59rSrKEGuNWYQJs-WI","created_at":1758867226,"is_remember":false,"refresh_expires_at":1759472026,"expires_at":1758867826,"username":"dat.haquoc+03","user_id":1964937944108109800}}',
     isLogin: 'true',
     isRegistering: '"not loaded"',
     loadingStatusEmail: '"not loaded"',
