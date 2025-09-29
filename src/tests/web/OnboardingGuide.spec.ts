@@ -4,6 +4,7 @@ import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { OnboardingTask } from '@/types/onboarding.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test } from '@playwright/test';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
@@ -12,8 +13,6 @@ test.describe('Onboarding Guide Task Completion', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanName: string;
   let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account5.json' });
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -25,13 +24,22 @@ test.describe('Onboarding Guide Task Completion', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && testClanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(testClanName, clanUrl);
+      await clanSetupHelper.cleanupClan(
+        testClanName,
+        clanUrl,
+        ClanSetupHelper.configs.onboarding.suiteName || ''
+      );
     }
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63452',
+    });
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.onboarding.suiteName || '');
     });
 
     if (clanUrl) {

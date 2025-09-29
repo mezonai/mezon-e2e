@@ -1,5 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test, Browser, Page, BrowserContext, TestInfo } from '@playwright/test';
 import { ClanSettingsPage } from '../../pages/ClanSettingsPage';
@@ -20,8 +21,6 @@ test.describe('File Size Limits Validation', () => {
   let clanName: string;
   let clanUrl: string;
 
-  test.use({ storageState: 'playwright/.auth/account9.json' });
-
   test.beforeAll(async ({ browser }: { browser: Browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
 
@@ -31,7 +30,13 @@ test.describe('File Size Limits Validation', () => {
   });
 
   test.afterAll(async () => {
-    if (clanSetupHelper) await clanSetupHelper.cleanupClan(clanName, clanUrl);
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.uploadFile.suiteName || ''
+      );
+    }
   });
 
   test.beforeEach(
@@ -49,6 +54,11 @@ test.describe('File Size Limits Validation', () => {
       });
 
       await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+
+      // Set authentication for the suite
+      await AllureReporter.step('Setup authentication', async () => {
+        await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.uploadFile.suiteName || '');
+      });
 
       fileSizeHelpers = new FileSizeTestHelpers(page);
       clanSettingsPage = new ClanSettingsPage(page);

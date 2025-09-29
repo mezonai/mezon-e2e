@@ -2,12 +2,16 @@ import { test } from '@playwright/test';
 
 import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 
 test.describe('Manual Cleanup - Account 1', () => {
-  test.use({ storageState: 'playwright/.auth/account1.json' });
-
-  test('Clean all clans from account1', async ({ browser }) => {
+  test('Clean all clans from account1', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(
+      page,
+      ClanSetupHelper.configs.channelManagement.suiteName || ''
+    );
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -33,15 +37,18 @@ test.describe('Manual Cleanup - Account 1', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account1', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Channel Management');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.channelManagement.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 2-1', () => {
-  test.use({ storageState: 'playwright/.auth/account2-1.json' });
-
-  test('Clean all clans from account2-1', async ({ browser }) => {
+  test('Clean all clans from account2-1', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.channelMessage1.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -65,15 +72,18 @@ test.describe('Manual Cleanup - Account 2-1', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account2-1', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Channel Message - Module 1');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.channelMessage1.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 2-2', () => {
-  test.use({ storageState: 'playwright/.auth/account2-2.json' });
-
-  test('Clean all clans from account2-2', async ({ browser }) => {
+  test('Clean all clans from account2-2', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.channelMessage2.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -97,15 +107,18 @@ test.describe('Manual Cleanup - Account 2-2', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account2-2', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Channel Message - Module 2');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.channelMessage2.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 2-3', () => {
-  test.use({ storageState: 'playwright/.auth/account2-3.json' });
-
-  test('Clean all clans from account2-3', async ({ browser }) => {
+  test('Clean all clans from account2-3', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.channelMessage3.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -129,15 +142,18 @@ test.describe('Manual Cleanup - Account 2-3', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account2-3', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Channel Message - Module 3');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.channelMessage3.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 2-4', () => {
-  test.use({ storageState: 'playwright/.auth/account2-4.json' });
-
-  test('Clean all clans from account2-4', async ({ browser }) => {
+  test('Clean all clans from account2-4', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.channelMessage4.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -161,15 +177,18 @@ test.describe('Manual Cleanup - Account 2-4', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account2-4', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Channel Message - Module 4');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.channelMessage4.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 2-5', () => {
-  test.use({ storageState: 'playwright/.auth/account2-5.json' });
-
-  test('Clean all clans from account2-5', async ({ browser }) => {
+  test('Clean all clans from account2-5', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.channelMessage5.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -193,15 +212,18 @@ test.describe('Manual Cleanup - Account 2-5', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account2-5', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Channel Message - Module 5');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.channelMessage5.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 3', () => {
-  test.use({ storageState: 'playwright/.auth/account3.json' });
-
-  test('Clean all clans from account3', async ({ browser }) => {
+  test('Clean all clans from account3', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.clanManagement.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -225,15 +247,18 @@ test.describe('Manual Cleanup - Account 3', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account3', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Clan Management');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.clanManagement.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 4', () => {
-  test.use({ storageState: 'playwright/.auth/account4.json' });
-
-  test('Clean all clans from account4', async ({ browser }) => {
+  test('Clean all clans from account4', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.directMessage.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -257,15 +282,18 @@ test.describe('Manual Cleanup - Account 4', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account4', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Direct Message');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.directMessage.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 5', () => {
-  test.use({ storageState: 'playwright/.auth/account5.json' });
-
-  test('Clean all clans from account5', async ({ browser }) => {
+  test('Clean all clans from account5', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.onboarding.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -289,15 +317,18 @@ test.describe('Manual Cleanup - Account 5', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account5', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Onboarding Guide');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.onboarding.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 6', () => {
-  test.use({ storageState: 'playwright/.auth/account6.json' });
-
-  test('Clean all clans from account6', async ({ browser }) => {
+  test('Clean all clans from account6', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -321,15 +352,21 @@ test.describe('Manual Cleanup - Account 6', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account6', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'User Profile');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.userProfile.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 7', () => {
-  test.use({ storageState: 'playwright/.auth/account7.json' });
-
-  test('Clean all clans from account7', async ({ browser }) => {
+  test('Clean all clans from account7', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(
+      page,
+      ClanSetupHelper.configs.threadManagement.suiteName || ''
+    );
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -353,15 +390,21 @@ test.describe('Manual Cleanup - Account 7', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account7', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Thread Management');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.threadManagement.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 8', () => {
-  test.use({ storageState: 'playwright/.auth/account8.json' });
-
-  test('Clean all clans from account8', async ({ browser }) => {
+  test('Clean all clans from account8', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(
+      page,
+      ClanSetupHelper.configs.standaloneClanManagement.suiteName || ''
+    );
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -385,15 +428,18 @@ test.describe('Manual Cleanup - Account 8', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account8', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Standalone - Clan Management');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.standaloneClanManagement.suiteName || ''
+      );
     });
   });
 });
 
 test.describe('Manual Cleanup - Account 9', () => {
-  test.use({ storageState: 'playwright/.auth/account9.json' });
-
-  test('Clean all clans from account9', async ({ browser }) => {
+  test('Clean all clans from account9', async ({ browser, page }) => {
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.uploadFile.suiteName || '');
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -417,7 +463,10 @@ test.describe('Manual Cleanup - Account 9', () => {
     const clanSetupHelper = new ClanSetupHelper(browser);
 
     await AllureReporter.step('Clean all clans from account9', async () => {
-      await clanSetupHelper.cleanupAllClans(browser, 'Upload File');
+      await clanSetupHelper.cleanupAllClans(
+        browser,
+        ClanSetupHelper.configs.uploadFile.suiteName || ''
+      );
     });
   });
 });

@@ -3,6 +3,7 @@ import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { Browser } from '@playwright/test';
 import generateRandomString from './randomString';
 import sleep from './sleep';
+import { AuthHelper } from './authHelper';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 const MAX_RETRIES = 3;
@@ -45,6 +46,7 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
+      await AuthHelper.setAuthForSuite(page, suiteName);
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
 
@@ -69,7 +71,7 @@ export class ClanSetupHelper {
       const clanUrl = page.url();
 
       const cleanup = async () => {
-        await this.cleanupClan(clanName, clanUrl);
+        await this.cleanupClan(clanName, clanUrl, suiteName);
       };
 
       this.cleanupFunctions.push(cleanup);
@@ -101,7 +103,7 @@ export class ClanSetupHelper {
    * @param clanUrl URL of the clan to navigate to
    * @param suiteName Name of the test suite for authentication
    */
-  async cleanupClan(clanName: string, clanUrl: string): Promise<void> {
+  async cleanupClan(clanName: string, clanUrl: string, suiteName: string): Promise<void> {
     if (!clanName || !clanUrl) {
       return;
     }
@@ -110,6 +112,7 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
+      await AuthHelper.setAuthForSuite(page, suiteName);
       await page.goto(clanUrl);
       await page.waitForLoadState('domcontentloaded');
 
@@ -133,7 +136,7 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      // await AuthHelper.setAuthForSuite(page, suiteName);
+      await AuthHelper.setAuthForSuite(page, suiteName);
 
       await page.goto(MEZON_BASE_URL);
       await page.waitForLoadState('domcontentloaded');
@@ -242,6 +245,12 @@ export class ClanSetupHelper {
       clanNamePrefix: 'ProfileTest',
       suiteName: 'User Profile',
     }),
+
+    userProfile1: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'ProfileTest1',
+      suiteName: 'User Profile - Module 1',
+    }),
+
     threadManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ThreadMgmtTest',
       suiteName: 'Thread Management',
@@ -249,6 +258,11 @@ export class ClanSetupHelper {
     standaloneClanManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'StandaloneClanManagementTest',
       suiteName: 'Standalone - Clan Management',
+    }),
+
+    directMessage: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'DirectMessageTest',
+      suiteName: 'Direct Message',
     }),
   };
 
@@ -273,9 +287,14 @@ export class ClanSetupHelper {
    * @param clanUrl URL of the clan
    * @param suiteName Name of the test suite
    */
-  static async cleanupTestClan(browser: Browser, clanName: string, clanUrl: string): Promise<void> {
+  static async cleanupTestClan(
+    browser: Browser,
+    clanName: string,
+    clanUrl: string,
+    suiteName: string
+  ): Promise<void> {
     const helper = new ClanSetupHelper(browser);
-    return helper.cleanupClan(clanName, clanUrl);
+    return helper.cleanupClan(clanName, clanUrl, suiteName);
   }
 }
 

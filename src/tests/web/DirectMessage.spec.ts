@@ -3,6 +3,7 @@ import { GLOBAL_CONFIG } from '@/config/environment';
 import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
@@ -10,8 +11,6 @@ import { randomInt } from 'crypto';
 import { HomePage } from '../../pages/HomePage';
 
 test.describe('Direct Message', () => {
-  test.use({ storageState: 'playwright/.auth/account4.json' });
-
   test.beforeAll(async () => {
     await TestSetups.chatTest({
       suite: AllureConfig.Suites.CHAT_PLATFORM,
@@ -24,6 +23,11 @@ test.describe('Direct Message', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',
+    });
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(page, 'Direct Message');
     });
 
     const homePage = new HomePage(page);
