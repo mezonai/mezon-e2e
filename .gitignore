@@ -64,7 +64,6 @@ coverage/
 /test-results/
 /playwright-report/
 /playwright/.cache/
-/playwright/.auth/
 results.json
 
 #Ignore vscode AI rules
