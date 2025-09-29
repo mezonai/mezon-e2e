@@ -228,6 +228,13 @@ export const DATA_E2E_IDENTIFIER = {
           stream: '',
         },
         name: '',
+        user_list: {
+          item: '',
+        },
+        user_list_collapsed: {
+          item: '',
+          item_count: '',
+        },
       },
       thread_item: {
         name: '',
@@ -237,6 +244,18 @@ export const DATA_E2E_IDENTIFIER = {
       },
       settings: {
         overview: '',
+      },
+    },
+    secondary_side_bar: {
+      member: {
+        in_voice: '',
+      },
+    },
+    screen: {
+      voice_room: {
+        button: {
+          join_voice: '',
+        },
       },
     },
   },
@@ -460,6 +479,14 @@ export const DATA_E2E_IDENTIFIER = {
       title: '',
       content: '',
     },
+    voice_management: {
+      button: {
+        control_item: '',
+      },
+    },
+  },
+  icon: {
+    end_call: '',
   },
 };
 

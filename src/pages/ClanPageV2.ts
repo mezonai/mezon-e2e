@@ -6,7 +6,6 @@ import { DirectMessageHelper } from './../utils/directMessageHelper';
 import { BasePage } from './BasePage';
 import { CategoryPage } from './CategoryPage';
 import { CategorySettingPage } from './CategorySettingPage';
-import { profile } from 'console';
 
 export class ClanPageV2 extends BasePage {
   constructor(page: Page) {
@@ -130,8 +129,20 @@ export class ClanPageV2 extends BasePage {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.item.name')),
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
+      userList: {
+        item: this.page.locator(generateE2eSelector('clan_page.channel_list.item.user_list.item')),
+      },
+      userListCollapsed: {
+        item: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item')
+        ),
+        itemCount: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item_count')
+        ),
+      },
     },
     threadItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
@@ -170,11 +181,37 @@ export class ClanPageV2 extends BasePage {
     limitCreation: {
       title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
     },
+    voiceManagement: {
+      item: this.page.locator(generateE2eSelector('modal.voice_management')),
+      button: {
+        controlItem: this.page.locator(
+          generateE2eSelector('modal.voice_management.button.control_item')
+        ),
+        endCall: this.page.locator(generateE2eSelector('icon.end_call')),
+      },
+    },
+  };
+
+  readonly secondarySideBar = {
+    member: {
+      item: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
+      inVoice: this.page.locator(
+        generateE2eSelector('clan_page.secondary_side_bar.member.in_voice')
+      ),
+    },
   };
 
   private modalInvite = {
     userInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.user_item')),
     container: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.container')),
+  };
+
+  readonly screen = {
+    voiceRoom: {
+      joinButton: this.page.locator(
+        generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
+      )
+    },
   };
 
   async createNewClan(clanName: string): Promise<boolean> {
@@ -481,6 +518,76 @@ export class ClanPageV2 extends BasePage {
       return true;
     } catch (error) {
       console.error(`Error clicking invite people:`, error);
+      return false;
+    }
+  }
+
+  async joinVoiceChannel(channelName: string): Promise<boolean> {
+    await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+    const joinButtonLocator = this.screen.voiceRoom.joinButton;
+    try {
+      await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await joinButtonLocator.click();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isJoinVoiceChannel(channelName: string): Promise<boolean> {
+    const membersButton = this.header.button.member.nth(0);
+    const generalChannel = this.sidebar.channelItem.name.filter({ hasText: 'general' });
+    const userListLocator = this.sidebar.channelItem.item
+      .filter({ has: this.sidebar.channelItem.name.filter({ hasText: channelName }) })
+      .locator(this.sidebar.channelItem.userList.item);
+    const memberListLocator = this.sidebarMemberList.memberItems;
+
+    try {
+      await userListLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await this.modal.voiceManagement.item.waitFor({ state: 'visible', timeout: 5000 });
+      await generalChannel.click();
+      await membersButton.click();
+      const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
+      await memberInVoice.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async leaveVoiceChannel(channelName: string): Promise<boolean> {
+    await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+    const leaveButtonLocator = this.modal.voiceManagement.button.controlItem.filter({
+      has: this.modal.voiceManagement.button.endCall,
+    });
+    try {
+      await leaveButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await leaveButtonLocator.click();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isLeaveVoiceChannel(channelName: string): Promise<boolean> {
+    await this.page.waitForTimeout(3000);
+    const userListLocator = this.sidebar.channelItem.item
+      .filter({ has: this.sidebar.channelItem.name.filter({ hasText: channelName }) })
+      .locator(this.sidebar.channelItem.userList.item);
+    const generalChannel = this.sidebar.channelItem.name.filter({ hasText: 'general' });
+    const membersButton = this.header.button.member.nth(0);
+    const memberListLocator = this.sidebarMemberList.memberItems;
+
+    try {
+      await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+      await userListLocator.waitFor({ state: 'hidden', timeout: 5000 });
+      await this.modal.voiceManagement.item.waitFor({ state: 'hidden', timeout: 5000 });
+      await generalChannel.click();
+      await membersButton.click();
+      const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
+      await memberInVoice.waitFor({ state: 'hidden', timeout: 5000 });
+      return true;
+    } catch {
       return false;
     }
   }
