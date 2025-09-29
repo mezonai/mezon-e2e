@@ -286,3 +286,100 @@ test.describe('Channel Management', () => {
     await AllureReporter.attachScreenshot(page, `Channel Renamed - ${newChannelName}`);
   });
 });
+
+test.describe('Voice Channel', () => {
+  let clanSetupHelper: ClanSetupHelper;
+  let clanName: string;
+  let clanUrl: string;
+
+  test.use({ storageState: 'playwright/.auth/account1.json' });
+
+  test.beforeAll(async ({ browser }) => {
+    clanSetupHelper = new ClanSetupHelper(browser);
+
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.channelManagement
+    );
+
+    clanName = setupResult.clanName;
+    clanUrl = setupResult.clanUrl;
+  });
+
+  test.afterAll(async () => {
+    if (clanSetupHelper && clanName && clanUrl) {
+      await clanSetupHelper.cleanupClan(clanName, clanUrl);
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63366',
+    });
+
+    // Navigate to the test clan
+    await AllureReporter.step('Navigate to test clan', async () => {
+      await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+    });
+
+    await AllureReporter.addParameter('clanName', clanName);
+  });
+
+  test('Verify that I can join and leave a voice channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63996',
+    });
+    
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully join and leave a voice channel within a clan.
+      
+      **Test Steps:**
+      1. Create new voice channel
+      2. Join voice channel
+      3. Verify user is in voice channel
+      4. Leave voice channel
+      5. Verify user is not in voice channel
+      
+      **Expected Result:** User can successfully join and leave a voice channel.
+    `); 
+
+    await AllureReporter.addLabels({
+      tag: ['voice-channel', 'join-channel', 'leave-channel'],
+    });
+
+    const ran = Math.floor(Math.random() * 999) + 1;
+    const channelName = `voice-channel-${ran}`;
+    const clanPage = new ClanPageV2(page);
+
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.VOICE);
+
+    await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.VOICE, channelName);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Join voice channel', async () => {
+      await clanPage.joinVoiceChannel(channelName);
+      const isUserInVoiceChannel = await clanPage.isJoinVoiceChannel(channelName);
+      expect(isUserInVoiceChannel).toBe(true);
+    });
+
+    await AllureReporter.step('Leave voice channel', async () => {
+      await clanPage.leaveVoiceChannel(channelName);
+      const isLeaveVoiceChannel = await clanPage.isLeaveVoiceChannel(channelName);
+      expect(isLeaveVoiceChannel).toBe(true); 
+      await page.reload();
+      const isLeaveVoiceChannelAfterReload  = await clanPage.isLeaveVoiceChannel(channelName);
+      expect(isLeaveVoiceChannelAfterReload).toBe(true); 
+    });
+
+    await AllureReporter.attachScreenshot(page, `Voice Channel Created - ${channelName}`);
+  });
+});
