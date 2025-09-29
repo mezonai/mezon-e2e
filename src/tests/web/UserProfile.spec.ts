@@ -460,14 +460,14 @@ test.describe('Clan Profile - Update avatar', () => {
       parrent_issue: '63364',
     });
 
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
 
     const profilePage = new ProfilePage(page);
 
     await profilePage.openUserSettingProfile();
     await profilePage.openProfileTab();
     await profilePage.openClanProfileTab();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     const avatar = await profilePage.clanProfile.avatar;
     await expect(avatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await avatar.getAttribute('src');
@@ -538,15 +538,15 @@ test.describe('Clan Profile - Update avatar', () => {
     const clanPage = new ClanPageV2(page);
     await page.waitForTimeout(1000);
     const username = await clanPage.footerProfile.userName.textContent();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     await messageHelper.mentionUserAndSend(`@${username}`, [username || '']);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     const mentionItem = messageHelper
       .getMessageItemLocator(`@${username}`)
       .last()
       .locator(generateE2eSelector('chat.channel_message.mention_user'));
     await mentionItem.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     const profileAvatar = profilePage.userProfile.avatar;
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
@@ -878,7 +878,7 @@ test.describe('User Profile - Update avatar', () => {
     const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
       profileName || ''
     );
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
     await expect(accountAvatar).toBeVisible({ timeout: 5000 });
     const accountSrc = await accountAvatar.getAttribute('src');
@@ -906,7 +906,7 @@ test.describe('User Profile - Update avatar', () => {
     const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
       profileName || ''
     );
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     const displayName = messageItemWithProfileName.locator(
       generateE2eSelector('base_profile.display_name')
     );
@@ -935,9 +935,9 @@ test.describe('User Profile - Update avatar', () => {
     const messageHelper = new MessageTestHelpers(page);
     await profilePage.navigate('/chat/direct/friends');
     await messagePage.createDMWithFriendName(profileName || '');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     await messageHelper.mentionUserAndSend(`@${profileName}`, [profileName || '']);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     const mentionItem = messageHelper
       .getMessageItemLocator(`@${profileName}`)
       .last()
@@ -993,7 +993,7 @@ test.describe('User Profile - Update avatar', () => {
       profileName || ''
     );
     await messagePage.pinSpecificMessage(messageItemWithProfileName);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
     const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
     await expect(accountAvatar).toBeVisible({ timeout: 5000 });
     const accountSrc = await accountAvatar.getAttribute('src');
