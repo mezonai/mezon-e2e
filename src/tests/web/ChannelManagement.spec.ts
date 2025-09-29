@@ -2,6 +2,7 @@ import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import test, { expect } from '@playwright/test';
 
@@ -9,8 +10,6 @@ test.describe('Channel Management', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account1.json' });
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -25,7 +24,11 @@ test.describe('Channel Management', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.channelManagement.suiteName || ''
+      );
     }
   });
 
@@ -36,6 +39,10 @@ test.describe('Channel Management', () => {
 
     // Navigate to the test clan
     await AllureReporter.step('Navigate to test clan', async () => {
+      await AuthHelper.setAuthForSuite(
+        page,
+        ClanSetupHelper.configs.channelManagement.suiteName || ''
+      );
       await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
     });
 
@@ -223,5 +230,66 @@ test.describe('Channel Management', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Stream Channel Created - ${channelName}`);
+  });
+
+  test('Verify that I can edit name for channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63959',
+    });
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully rename for channel within a clan.
+      
+      **Test Steps:**
+      1. Create new channel
+      2. Edit channel name
+      3. Verify channel name is updated in channel list
+      
+      **Expected Result:** Channel display new name after edited.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-creation', 'public-channel', 'text-channel', 'edit-channel'],
+    });
+
+    const unique = Date.now().toString(36).slice(-6);
+    const channelName = `tc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPageV2(page);
+
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.TEXT);
+    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step(`Create new public text channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
+    });
+
+    await AllureReporter.step('Verify channel is present in channel list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    const newChannelName = `${channelName}-ed`.slice(0, 20);
+    await AllureReporter.addParameter('newChannelName', newChannelName);
+    await AllureReporter.step(`Edit channel name to: ${newChannelName}`, async () => {
+      await clanPage.editChannelName(channelName, newChannelName);
+    });
+
+    await page.waitForLoadState('domcontentloaded');
+
+    await AllureReporter.step(
+      'Verify channel is present in channel list with new name',
+      async () => {
+        const isEditedChannelPresent = await clanPage.isNewChannelPresent(newChannelName);
+        expect(isEditedChannelPresent).toBe(true);
+      }
+    );
+    await AllureReporter.attachScreenshot(page, `Channel Renamed - ${newChannelName}`);
   });
 });

@@ -1,5 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test, Browser, Page, BrowserContext, TestInfo } from '@playwright/test';
 import { ClanSettingsPage } from '../../pages/ClanSettingsPage';
@@ -7,20 +8,18 @@ import { ProfilePage } from '../../pages/ProfilePage';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
-import { MessgaePage } from '@/pages/MessagePage';
+import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('File Size Limits Validation', () => {
   let clanSetupHelper: ClanSetupHelper;
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
   let channelSettingPage: ChannelSettingPage;
-  let messagePage: MessgaePage;
+  let messagePage: MessagePage;
   let profilePage: ProfilePage;
   let clanPage: ClanPageV2;
   let clanName: string;
   let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account9.json' });
 
   test.beforeAll(async ({ browser }: { browser: Browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -31,7 +30,13 @@ test.describe('File Size Limits Validation', () => {
   });
 
   test.afterAll(async () => {
-    if (clanSetupHelper) await clanSetupHelper.cleanupClan(clanName, clanUrl);
+    if (clanSetupHelper) {
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.uploadFile.suiteName || ''
+      );
+    }
   });
 
   test.beforeEach(
@@ -50,10 +55,15 @@ test.describe('File Size Limits Validation', () => {
 
       await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
+      // Set authentication for the suite
+      await AllureReporter.step('Setup authentication', async () => {
+        await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.uploadFile.suiteName || '');
+      });
+
       fileSizeHelpers = new FileSizeTestHelpers(page);
       clanSettingsPage = new ClanSettingsPage(page);
       channelSettingPage = new ChannelSettingPage(page);
-      messagePage = new MessgaePage(page);
+      messagePage = new MessagePage(page);
       profilePage = new ProfilePage(page);
       clanPage = new ClanPageV2(page);
 
