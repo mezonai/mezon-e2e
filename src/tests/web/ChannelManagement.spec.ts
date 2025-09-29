@@ -2,6 +2,7 @@ import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import test, { expect } from '@playwright/test';
 
@@ -9,8 +10,6 @@ test.describe('Channel Management', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account1.json' });
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -25,7 +24,11 @@ test.describe('Channel Management', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.channelManagement.suiteName || ''
+      );
     }
   });
 
@@ -36,6 +39,10 @@ test.describe('Channel Management', () => {
 
     // Navigate to the test clan
     await AllureReporter.step('Navigate to test clan', async () => {
+      await AuthHelper.setAuthForSuite(
+        page,
+        ClanSetupHelper.configs.channelManagement.suiteName || ''
+      );
       await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
     });
 

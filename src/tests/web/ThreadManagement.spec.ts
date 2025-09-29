@@ -2,6 +2,7 @@ import { AllureConfig } from '@/config/allure.config';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import test from '@playwright/test';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
@@ -11,8 +12,6 @@ test.describe('Thread in Private Channel', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account7.json' });
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -27,13 +26,25 @@ test.describe('Thread in Private Channel', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.threadManagement.suiteName || ''
+      );
     }
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63519',
+    });
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(
+        page,
+        ClanSetupHelper.configs.threadManagement.suiteName || ''
+      );
     });
 
     await AllureReporter.step('Navigate to test thread', async () => {
@@ -113,8 +124,6 @@ test.describe('Thread in Public Channel', () => {
   let clanName: string;
   let clanUrl: string;
 
-  test.use({ storageState: 'playwright/.auth/account7.json' });
-
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
 
@@ -128,13 +137,25 @@ test.describe('Thread in Public Channel', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.threadManagement.suiteName || ''
+      );
     }
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63519',
+    });
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(
+        page,
+        ClanSetupHelper.configs.threadManagement.suiteName || ''
+      );
     });
 
     await AllureReporter.step('Navigate to test thread', async () => {

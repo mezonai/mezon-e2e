@@ -1,5 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../../config/environment';
@@ -20,8 +21,6 @@ test.describe('Channel Message - Module 1', () => {
   let testClanUrl: string;
   const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 
-  test.use({ storageState: 'playwright/.auth/account2-1.json' });
-
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
 
@@ -33,9 +32,13 @@ test.describe('Channel Message - Module 1', () => {
     testClanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && testClanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(testClanName, testClanUrl);
+      await clanSetupHelper.cleanupClan(
+        testClanName,
+        testClanUrl,
+        ClanSetupHelper.configs.channelMessage1.suiteName || ''
+      );
     }
   });
 
@@ -72,6 +75,14 @@ test.describe('Channel Message - Module 1', () => {
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(
+        page,
+        ClanSetupHelper.configs.channelMessage1.suiteName || ''
+      );
+    });
 
     messageHelpers = new MessageTestHelpers(page);
     const navigationHelpers = createNavigationHelpers(page);

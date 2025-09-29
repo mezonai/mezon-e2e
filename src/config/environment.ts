@@ -193,6 +193,7 @@ export const getAuthConfigBySuite = (suiteName: string) => {
     'Direct Message': 'account4',
     'Onboarding Guide': 'account5',
     'User Profile': 'account6',
+    'User Profile - Module 1': 'account6-1',
     'Thread Management': 'account7',
     'Channel Message - Module 1': 'account2-1',
     'Channel Message - Module 2': 'account2-2',
@@ -401,3 +402,25 @@ export const getBrowserConfig = () => ({
         '--disable-clipboard-sanitization',
       ],
 });
+
+// Function to get auth data for specific account
+export const getLocalAuthData = (accountKey: keyof typeof persistentAuthConfigs) => {
+  return {
+    persist: {
+      key: 'persist:auth',
+      value: getAuthConfig(accountKey),
+    },
+    mezonSession: {
+      key: 'mezon_session',
+      value: JSON.stringify(getSessionConfig()),
+    },
+  };
+};
+
+export const getSessionConfig = () => {
+  return {
+    host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
+    port: process.env.MEZON_SESSION_PORT || '7305',
+    ssl: true,
+  };
+};

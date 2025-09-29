@@ -5,6 +5,7 @@ import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { getImageHash } from '@/utils/images';
@@ -17,8 +18,6 @@ test.describe('User Settings', () => {
   let clanSetupHelper: ClanSetupHelper;
   let testClanUrl: string;
   let clanName: string;
-
-  test.use({ storageState: 'playwright/.auth/account6.json' });
 
   test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
@@ -37,7 +36,11 @@ test.describe('User Settings', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, testClanUrl);
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        testClanUrl,
+        ClanSetupHelper.configs.userProfile.suiteName || ''
+      );
     }
   });
 
@@ -46,6 +49,11 @@ test.describe('User Settings', () => {
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63571',
+    });
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
     });
 
     await AllureReporter.step('Navigate to clan chat page', async () => {
@@ -378,8 +386,6 @@ test.describe('Clan Profile - Update avatar', () => {
   let profilePage: ProfilePage;
   const message = `message - ${generateRandomString(10)}`;
 
-  test.use({ storageState: 'playwright/.auth/account6.json' });
-
   test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
       suite: AllureConfig.Suites.USER_MANAGEMENT,
@@ -395,6 +401,10 @@ test.describe('Clan Profile - Update avatar', () => {
     clanName = setupResult.clanName;
 
     const page = await browser.newPage();
+
+    // Set authentication for the suite
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
+
     await page.goto(testClanUrl);
     profilePage = new ProfilePage(page);
 
@@ -444,11 +454,20 @@ test.describe('Clan Profile - Update avatar', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, testClanUrl);
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        testClanUrl,
+        ClanSetupHelper.configs.userProfile.suiteName || ''
+      );
     }
   });
 
   test.beforeEach(async ({ page }) => {
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
+    });
+
     await AllureReporter.step('Navigate to clan chat page', async () => {
       await page.goto(testClanUrl);
       await page.waitForTimeout(1000);
@@ -680,8 +699,6 @@ test.describe('User Profile - Update avatar', () => {
   let profileName: string | null = null;
   const messageText = `message-text-${generateRandomString(10)}`;
 
-  test.use({ storageState: 'playwright/.auth/account6.json' });
-
   test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
       suite: AllureConfig.Suites.USER_MANAGEMENT,
@@ -691,6 +708,7 @@ test.describe('User Profile - Update avatar', () => {
     });
 
     const page = await browser.newPage();
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
     await page.goto(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'));
     const profilePage = new ProfilePage(page);
     const messagePage = new MessagePage(page);
@@ -746,7 +764,9 @@ test.describe('User Profile - Update avatar', () => {
     await messagePage.sendMessage(messageText);
   });
 
-  test.beforeEach(async ({ page }) => {});
+  test.beforeEach(async ({ page }) => {
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
+  });
 
   test('Validate footer avatar', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
@@ -796,7 +816,7 @@ test.describe('User Profile - Update avatar', () => {
       parrent_issue: '63364',
     });
 
-    await updateSessionLocalStorage(page, 'account6-1');
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
 
     const profilePage = new ProfilePage(page);
     const messagePage = new MessagePage(page);
@@ -821,7 +841,7 @@ test.describe('User Profile - Update avatar', () => {
       parrent_issue: '63364',
     });
 
-    await updateSessionLocalStorage(page, 'account6-1');
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
 
     const profilePage = new ProfilePage(page);
     const messagePage = new MessagePage(page);
@@ -845,7 +865,7 @@ test.describe('User Profile - Update avatar', () => {
   //     parrent_issue: '63364',
   //   });
 
-  //   await updateSessionLocalStorage(page, 'account6-1');
+  //   await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
 
   //   const profilePage = new ProfilePage(page);
   //   const messagePage = new MessagePage(page);
@@ -864,7 +884,7 @@ test.describe('User Profile - Update avatar', () => {
   // });
 
   test('TC04: Direct Message _ Dual Chat _ Display name', async ({ page }) => {
-    await updateSessionLocalStorage(page, 'account6-1');
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63364',
@@ -893,7 +913,7 @@ test.describe('User Profile - Update avatar', () => {
   test('TC05: Direct Message _ Dual Chat _ Short Profile (click on display name)', async ({
     page,
   }) => {
-    await updateSessionLocalStorage(page, 'account6-1');
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63364',
@@ -924,7 +944,7 @@ test.describe('User Profile - Update avatar', () => {
   });
 
   test('TC06: Direct Message _ Dual Chat _ Short Profile (click on mention)', async ({ page }) => {
-    await updateSessionLocalStorage(page, 'account6-1');
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63364',
@@ -955,7 +975,7 @@ test.describe('User Profile - Update avatar', () => {
   });
 
   test('TC07: Direct Message _ Dual Chat _ Side Profile', async ({ page }) => {
-    await updateSessionLocalStorage(page, 'account6-1');
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63364',
@@ -979,7 +999,7 @@ test.describe('User Profile - Update avatar', () => {
   });
 
   test('TC08: Direct Message _ Dual Chat _ Pinned Message list', async ({ page }) => {
-    await updateSessionLocalStorage(page, 'account6-1');
+    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
 
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63364',

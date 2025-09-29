@@ -4,6 +4,7 @@ import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ROUTES } from '@/selectors';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import generateRandomString from '@/utils/randomString';
@@ -15,8 +16,6 @@ test.describe('Create Clan', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanTestName: string;
 
-  test.use({ storageState: 'playwright/.auth/account3.json' });
-
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
   });
@@ -24,6 +23,11 @@ test.describe('Create Clan', () => {
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
+    });
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(page, 'Clan Management');
     });
 
     const clanPage = new ClanPageV2(page);
@@ -91,9 +95,9 @@ test.describe('Create Clan', () => {
     }
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupClan(clanTestName, clanUrl);
+      await clanSetupHelper.cleanupClan(clanTestName, clanUrl, 'Clan Management');
     }
   });
 });
@@ -102,8 +106,6 @@ test.describe('Create Category', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account3.json' });
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
@@ -114,15 +116,27 @@ test.describe('Create Category', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.clanManagement.suiteName || ''
+      );
     }
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63510',
+    });
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(
+        page,
+        ClanSetupHelper.configs.clanManagement.suiteName || ''
+      );
     });
 
     await AllureReporter.step('Navigate to test clan', async () => {
@@ -222,8 +236,6 @@ test.describe('Invite People', () => {
   let clanName: string;
   let clanUrl: string;
 
-  test.use({ storageState: 'playwright/.auth/account3.json' });
-
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
 
@@ -233,15 +245,27 @@ test.describe('Invite People', () => {
     clanUrl = setupResult.clanUrl;
   });
 
-  test.afterAll(async ({ browser }) => {
+  test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
+      await clanSetupHelper.cleanupClan(
+        clanName,
+        clanUrl,
+        ClanSetupHelper.configs.clanManagement.suiteName || ''
+      );
     }
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63123',
+    });
+
+    // Set authentication for the suite
+    await AllureReporter.step('Setup authentication', async () => {
+      await AuthHelper.setAuthForSuite(
+        page,
+        ClanSetupHelper.configs.clanManagement.suiteName || ''
+      );
     });
 
     await AllureReporter.step('Navigate to test clan', async () => {
