@@ -1,4 +1,5 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { AccountCredentials } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
@@ -16,19 +17,26 @@ test.describe('Onboarding Guide Task Completion', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.onboarding);
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1.email,
+      AccountCredentials.account1.password
+    );
+
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.onboarding,
+      credentials
+    );
     testClanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
   });
 
   test.afterAll(async () => {
     if (clanSetupHelper && testClanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        testClanName,
-        clanUrl,
-        ClanSetupHelper.configs.onboarding.suiteName || ''
-      );
+      await clanSetupHelper.cleanupClan(testClanName, clanUrl, AccountCredentials.account1);
     }
   });
 
@@ -37,18 +45,7 @@ test.describe('Onboarding Guide Task Completion', () => {
       tms: '63452',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.onboarding.suiteName || '');
-    });
-
-    if (clanUrl) {
-      await AllureReporter.step('Navigate to test clan', async () => {
-        await page.goto(clanUrl);
-      });
-      await AllureReporter.addParameter('testClanName', testClanName);
-      await AllureReporter.addParameter('clanUrl', clanUrl);
-    }
+    await AuthHelper.prepareBeforeTest(page, clanUrl, testClanName, AccountCredentials.account1);
   });
 
   test('should mark "Send first message" task as done after user sends first message', async ({

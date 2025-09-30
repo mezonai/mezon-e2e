@@ -424,3 +424,10 @@ export const getSessionConfig = () => {
     ssl: true,
   };
 };
+
+export const AccountCredentials = {
+  account1: {
+    email: 'dat.haquoc+01@ncc.asia',
+    password: 'Ncc@08092001',
+  },
+};

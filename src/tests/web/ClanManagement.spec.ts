@@ -1,5 +1,5 @@
 import { AllureConfig } from '@/config/allure.config';
-import { GLOBAL_CONFIG } from '@/config/environment';
+import { AccountCredentials, GLOBAL_CONFIG } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ROUTES } from '@/selectors';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
@@ -25,16 +25,12 @@ test.describe('Create Clan', () => {
       parrent_issue: '63510',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(page, 'Clan Management');
-    });
-
-    const clanPage = new ClanPageV2(page);
-    await AllureReporter.step('Navigate to direct friends page', async () => {
-      await clanPage.navigate('/chat/direct/friends');
-      await page.waitForLoadState('domcontentloaded');
-    });
+    await AuthHelper.prepareBeforeTest(
+      page,
+      'https://mezon.ai/chat/direct/friends',
+      '',
+      AccountCredentials.account1
+    );
   });
 
   test('Verify that I can create a Clan', async ({ page }) => {
@@ -109,8 +105,19 @@ test.describe('Create Category', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1.email,
+      AccountCredentials.account1.password
+    );
+
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.clanManagement,
+      credentials
+    );
 
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
@@ -118,11 +125,7 @@ test.describe('Create Category', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.clanManagement.suiteName || ''
-      );
+      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
     }
   });
 
@@ -131,20 +134,7 @@ test.describe('Create Category', () => {
       tms: '63510',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(
-        page,
-        ClanSetupHelper.configs.clanManagement.suiteName || ''
-      );
-    });
-
-    await AllureReporter.step('Navigate to test clan', async () => {
-      await page.goto(clanUrl);
-      await page.waitForLoadState('domcontentloaded');
-    });
-
-    await AllureReporter.addParameter('clanName', clanName);
+    await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
   });
 
   // test('Verify that I can create a private category', async ({ page }) => {
@@ -238,8 +228,19 @@ test.describe('Invite People', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1.email,
+      AccountCredentials.account1.password
+    );
+
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.clanManagement,
+      credentials
+    );
 
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
@@ -247,11 +248,7 @@ test.describe('Invite People', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.clanManagement.suiteName || ''
-      );
+      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
     }
   });
 
@@ -260,20 +257,7 @@ test.describe('Invite People', () => {
       tms: '63123',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(
-        page,
-        ClanSetupHelper.configs.clanManagement.suiteName || ''
-      );
-    });
-
-    await AllureReporter.step('Navigate to test clan', async () => {
-      await page.goto(clanUrl);
-      await page.waitForLoadState('domcontentloaded');
-    });
-
-    await AllureReporter.addParameter('clanName', clanName);
+    await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
   });
 
   test('Verify that I can invite people to a clan from sidebar', async ({ page }) => {

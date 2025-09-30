@@ -1,5 +1,5 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
-import { GLOBAL_CONFIG } from '@/config/environment';
+import { AccountCredentials, GLOBAL_CONFIG } from '@/config/environment';
 import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -25,18 +25,12 @@ test.describe('Direct Message', () => {
       parrent_issue: '63370',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(page, 'Direct Message');
-    });
-
-    const homePage = new HomePage(page);
-
-    await AllureReporter.step('Navigate to direct friends page', async () => {
-      await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    });
+    await AuthHelper.prepareBeforeTest(
+      page,
+      joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS),
+      '',
+      AccountCredentials.account1
+    );
   });
 
   const now = new Date();

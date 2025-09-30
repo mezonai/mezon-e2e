@@ -1,21 +1,32 @@
 import { AllureConfig } from '@/config/allure.config';
+import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import test, { expect } from '@playwright/test';
+import test, { expect, Page } from '@playwright/test';
 
 test.describe('Channel Management', () => {
   let clanSetupHelper: ClanSetupHelper;
   let clanName: string;
   let clanUrl: string;
+  let page: Page;
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    page = await context.newPage();
+
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      'dat.haquoc+01@ncc.asia',
+      'Ncc@08092001'
+    );
 
     const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.channelManagement
+      ClanSetupHelper.configs.channelManagement,
+      credentials
     );
 
     clanName = setupResult.clanName;
@@ -24,11 +35,7 @@ test.describe('Channel Management', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.channelManagement.suiteName || ''
-      );
+      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
     }
   });
 
@@ -37,14 +44,7 @@ test.describe('Channel Management', () => {
       parrent_issue: '63366',
     });
 
-    // Navigate to the test clan
-    await AllureReporter.step('Navigate to test clan', async () => {
-      await AuthHelper.setAuthForSuite(
-        page,
-        ClanSetupHelper.configs.channelManagement.suiteName || ''
-      );
-      await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
-    });
+    await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
 
     await AllureReporter.addParameter('clanName', clanName);
   });

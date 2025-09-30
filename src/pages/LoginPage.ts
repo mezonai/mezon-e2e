@@ -3,6 +3,7 @@ import { BasePage } from './BasePage';
 import { type MezonTestUser } from '../data/static/TestUsers';
 import { WEBSITE_CONFIGS } from '../config/environment';
 import { joinUrlPaths } from '../utils/joinUrlPaths';
+import { HomePage } from './HomePage';
 
 export class LoginPage extends BasePage {
   private selectors = {
@@ -17,8 +18,7 @@ export class LoginPage extends BasePage {
     loginButton:
       'button[id="sendOtpBtn"], button:has-text("Verify OTP"), button:has-text("Login"), button:has-text("Đăng nhập"), button[type="submit"], button:has-text("Verify"), button:has-text("Xác nhận"), button[aria-label*="Verify OTP"], button[aria-label*="Verify OTP code"], [data-testid="login-btn"]',
 
-    loginWithPasswordLink:
-      'text=Login with Email & Password, text=Đăng nhập bằng mật khẩu, a:has-text("Email"), a:has-text("Password")',
+    loginWithPasswordLink: 'a:has-text("Login with Email and Password")',
     passwordInput: 'input[type="password"]',
 
     qrCodeImage: 'img[alt="QR Code"]',
@@ -185,6 +185,12 @@ export class LoginPage extends BasePage {
   }
 
   async loginWithPassword(email: string, password: string): Promise<void> {
+    const homePage = new HomePage(this.page);
+    await this.page.goto(WEBSITE_CONFIGS.MEZON.baseURL || '');
+    await this.page.waitForLoadState('domcontentloaded');
+
+    await homePage.clickLogin();
+    await this.page.waitForLoadState('domcontentloaded');
     await this.switchToPasswordLogin();
 
     await this.page.locator(this.selectors.emailInput).clear();
@@ -194,6 +200,9 @@ export class LoginPage extends BasePage {
     await this.page.locator(this.selectors.passwordInput).fill(password);
 
     await this.clickLogin();
+    await this.page.waitForLoadState('networkidle');
+    await this.page.reload();
+    await this.page.waitForLoadState('networkidle');
   }
 
   async verifyErrorMessage(expectedMessage?: string): Promise<void> {

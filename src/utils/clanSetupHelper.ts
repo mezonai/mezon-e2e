@@ -34,7 +34,10 @@ export class ClanSetupHelper {
    * @returns Promise<ClanSetupResult> Setup result with clan details and cleanup function
    */
 
-  async setupTestClan(config: ClanSetupConfig = {}): Promise<ClanSetupResult> {
+  async setupTestClan(
+    config: ClanSetupConfig = {},
+    persistAuth: any = null
+  ): Promise<ClanSetupResult> {
     const { clanNamePrefix = 'TestClan', suiteName = 'Test Suite' } = config;
 
     const now = new Date();
@@ -46,14 +49,14 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      await AuthHelper.setAuthForSuite(page, suiteName);
-      await page.goto(MEZON_BASE_URL);
-      await page.waitForLoadState('domcontentloaded');
+      await AuthHelper.setAuthForSuite(page, persistAuth);
+      // await page.goto(MEZON_BASE_URL);
+      // await page.waitForLoadState('domcontentloaded');
 
       const clanPage = new ClanPageV2(page);
 
-      await clanPage.navigate('/chat/direct/friends');
-      await page.waitForLoadState('domcontentloaded');
+      // await clanPage.navigate('/chat/direct/friends');
+      // await page.waitForLoadState('domcontentloaded');
 
       const createClanClicked = await clanPage.clickCreateClanButton();
       if (!createClanClicked) {
@@ -103,7 +106,7 @@ export class ClanSetupHelper {
    * @param clanUrl URL of the clan to navigate to
    * @param suiteName Name of the test suite for authentication
    */
-  async cleanupClan(clanName: string, clanUrl: string, suiteName: string): Promise<void> {
+  async cleanupClan(clanName: string, clanUrl: string, account: any): Promise<void> {
     if (!clanName || !clanUrl) {
       return;
     }
@@ -112,8 +115,8 @@ export class ClanSetupHelper {
     const page = await context.newPage();
 
     try {
-      await AuthHelper.setAuthForSuite(page, suiteName);
-      await page.goto(clanUrl);
+      await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, account);
+
       await page.waitForLoadState('domcontentloaded');
 
       const clanPage = new ClanPageV2(page);

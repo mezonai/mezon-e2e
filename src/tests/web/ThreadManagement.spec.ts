@@ -1,4 +1,5 @@
 import { AllureConfig } from '@/config/allure.config';
+import { AccountCredentials } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -15,9 +16,18 @@ test.describe('Thread in Private Channel', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1.email,
+      AccountCredentials.account1.password
+    );
 
     const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.threadManagement
+      ClanSetupHelper.configs.threadManagement,
+      credentials
     );
 
     clanName = setupResult.clanName;
@@ -26,11 +36,7 @@ test.describe('Thread in Private Channel', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.threadManagement.suiteName || ''
-      );
+      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
     }
   });
 
@@ -39,22 +45,13 @@ test.describe('Thread in Private Channel', () => {
       tms: '63519',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(
-        page,
-        ClanSetupHelper.configs.threadManagement.suiteName || ''
-      );
-    });
+    await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
 
-    await AllureReporter.step('Navigate to test thread', async () => {
-      await page.goto(clanUrl);
+    await AllureReporter.step('Create private channel for thread testing', async () => {
       const clanPage = new ClanPageV2(page);
       const privateChannelName = `private-channel-${generateRandomString(5)}`;
       await clanPage.createNewChannel(ChannelType.TEXT, privateChannelName, ChannelStatus.PRIVATE);
     });
-
-    await AllureReporter.addParameter('clanName', clanName);
   });
 
   test('Verify that I can create a new public thread in a private channel', async ({ page }) => {
@@ -126,9 +123,18 @@ test.describe('Thread in Public Channel', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1.email,
+      AccountCredentials.account1.password
+    );
 
     const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.threadManagement
+      ClanSetupHelper.configs.threadManagement,
+      credentials
     );
 
     clanName = setupResult.clanName;
@@ -137,11 +143,7 @@ test.describe('Thread in Public Channel', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.threadManagement.suiteName || ''
-      );
+      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
     }
   });
 
@@ -150,22 +152,13 @@ test.describe('Thread in Public Channel', () => {
       tms: '63519',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(
-        page,
-        ClanSetupHelper.configs.threadManagement.suiteName || ''
-      );
-    });
+    await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
 
-    await AllureReporter.step('Navigate to test thread', async () => {
-      await page.goto(clanUrl);
+    await AllureReporter.step('Create public channel for thread testing', async () => {
       const clanPage = new ClanPageV2(page);
       const publicChannelName = `public-channel-${generateRandomString(5)}`;
       await clanPage.createNewChannel(ChannelType.TEXT, publicChannelName);
     });
-
-    await AllureReporter.addParameter('clanName', clanName);
   });
 
   test('Verify that I can create a new public thread in a public channel', async ({ page }) => {
