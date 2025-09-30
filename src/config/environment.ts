@@ -427,7 +427,59 @@ export const getSessionConfig = () => {
 
 export const AccountCredentials = {
   account1: {
-    email: 'dat.haquoc+01@ncc.asia',
-    password: 'Ncc@08092001',
+    email: 'thang.thieuquang+01@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account2: {
+    email: 'thang.thieuquang+02@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account3: {
+    email: 'thang.thieuquang+03@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account4: {
+    email: 'thang.thieuquang+04@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account5: {
+    email: 'thang.thieuquang+05@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account6: {
+    email: 'thang.thieuquang+06@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account7: {
+    email: 'thang.thieuquang+07@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account8: {
+    email: 'thang.thieuquang+08@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account9: {
+    email: 'thang.thieuquang+09@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-1': {
+    email: 'thang.thieuquang+02-1@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-2': {
+    email: 'thang.thieuquang+02-2@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-3': {
+    email: 'thang.thieuquang+02-3@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-4': {
+    email: 'thang.thieuquang+02-4@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-5': {
+    email: 'thang.thieuquang+02-5@ncc.asia',
+    password: 'Ncc@1234',
   },
 };
