@@ -30,3 +30,14 @@ export enum TypeMessage {
   Ephemeral = 12,
   UpcomingEvent = 13,
 }
+
+export enum EventType {
+  VOICE = 'VOICE',
+  LOCATION = 'LOCATION',
+  PRIVATE = 'PRIVATE',
+}
+
+export enum ClanStatus {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
+}
