@@ -5,6 +5,8 @@ import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { splitDomainAndPath } from '@/utils/domain';
+import joinUrlPaths from '@/utils/joinUrlPaths';
 import test, { expect, Page } from '@playwright/test';
 
 test.describe('Channel Management', () => {
@@ -12,40 +14,33 @@ test.describe('Channel Management', () => {
   let clanName: string;
   let clanUrl: string;
   let page: Page;
+  let credentials: any;
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
     const context = await browser.newContext();
     page = await context.newPage();
-
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      'dat.haquoc+01@ncc.asia',
-      'Ncc@08092001'
-    );
-
-    const setupResult = await clanSetupHelper.setupTestClan(
+    credentials = await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
+    const { clanName: _clanName, clanUrl: _clanUrl } = await clanSetupHelper.setupTestClan(
       ClanSetupHelper.configs.channelManagement,
-      credentials
+      page
     );
-
-    clanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
+    clanName = _clanName;
+    clanUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(_clanUrl).path);
+    await context.close();
   });
 
   test.afterAll(async () => {
     if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
+      await clanSetupHelper.cleanupClan(clanName, clanUrl, credentials);
     }
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
-
-    await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
-
+    await AuthHelper.prepareBeforeTest(page, clanUrl, credentials);
     await AllureReporter.addParameter('clanName', clanName);
   });
 

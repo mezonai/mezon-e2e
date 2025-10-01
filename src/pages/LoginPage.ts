@@ -1,8 +1,8 @@
 import { type Page, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { MEZON_DEV, WEBSITE_CONFIGS } from '../config/environment';
 import { type MezonTestUser } from '../data/static/TestUsers';
-import { WEBSITE_CONFIGS } from '../config/environment';
 import { joinUrlPaths } from '../utils/joinUrlPaths';
+import { BasePage } from './BasePage';
 import { HomePage } from './HomePage';
 
 export class LoginPage extends BasePage {
@@ -186,7 +186,7 @@ export class LoginPage extends BasePage {
 
   async loginWithPassword(email: string, password: string): Promise<void> {
     const homePage = new HomePage(this.page);
-    await this.page.goto(WEBSITE_CONFIGS.MEZON.baseURL || '');
+    await this.page.goto(MEZON_DEV || '');
     await this.page.waitForLoadState('domcontentloaded');
 
     await homePage.clickLogin();

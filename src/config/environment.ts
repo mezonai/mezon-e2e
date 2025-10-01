@@ -277,7 +277,7 @@ export const GLOBAL_CONFIG = {
  */
 export const WEBSITE_CONFIGS = {
   MEZON: {
-    baseURL: process.env.BASE_URL,
+    baseURL: process.env.BASE_URL || '',
     name: 'Mezon Development',
   },
 } as const;
@@ -483,3 +483,5 @@ export const AccountCredentials = {
     password: 'Ncc@1234',
   },
 };
+
+export const MEZON_DEV = 'https://dev-mezon.nccsoft.vn';

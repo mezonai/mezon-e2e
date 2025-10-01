@@ -1,13 +1,8 @@
-import { HomePage } from './../pages/HomePage';
-import { Page } from '@playwright/test';
-import {
-  getLocalAuthData,
-  getAuthConfigBySuite,
-  persistentAuthConfigs,
-  WEBSITE_CONFIGS,
-} from '@/config/environment';
+import { persistentAuthConfigs, WEBSITE_CONFIGS } from '@/config/environment';
+import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { MezonCredentials } from '@/types';
+import { Page } from '@playwright/test';
 
 export type AccountKey = keyof typeof persistentAuthConfigs;
 
@@ -19,11 +14,12 @@ export class AuthHelper {
    * @returns The account key that was set
    */
   static async setAuthForAccount(page: Page, credentials: any = null) {
-    await page.addInitScript(
+    await page.evaluate(
       ({ credentials }) => {
         localStorage.setItem('persist:auth', credentials.persistAuth);
         localStorage.setItem('mezon_session', credentials.mezonSession);
         localStorage.setItem('mezon_refresh_token', credentials.mezonRefreshToken);
+        localStorage.setItem('mezon_refresh_session', credentials.mezonRefreshSession);
       },
       { credentials }
     );
@@ -36,14 +32,15 @@ export class AuthHelper {
    * @returns The account key that was used
    */
   static async setAuthForSuite(page: Page, credentials: any = null) {
+    const endpoint = WEBSITE_CONFIGS.MEZON.baseURL || '';
+    await page.goto(endpoint);
+    await page.waitForLoadState('domcontentloaded');
+    this.clearAuth(page);
     await this.setAuthForAccount(page, credentials);
     await page.reload();
-    await page.goto(WEBSITE_CONFIGS.MEZON.baseURL || '');
     await page.waitForLoadState('domcontentloaded');
-
-    const clanPage = new ClanPageV2(page);
-
-    await clanPage.navigate('/chat/direct/friends');
+    const homePage = new HomePage(page);
+    await homePage.clickLogin();
     await page.waitForLoadState('domcontentloaded');
   }
 
@@ -52,24 +49,24 @@ export class AuthHelper {
    * @param page Playwright page instance
    */
   static async clearAuth(page: Page) {
-    await page.addInitScript(() => {
+    await page.evaluate(() => {
       localStorage.removeItem('persist:auth');
       localStorage.removeItem('mezon_session');
+      localStorage.removeItem('mezon_refresh_token');
+      localStorage.removeItem('mezon_refresh_session');
     });
   }
 
-  static async setupAuthWithEmailPassword(page: Page, email: string, password: string) {
+  static async setupAuthWithEmailPassword(page: Page, credentials: MezonCredentials) {
     const loginPage = new LoginPage(page);
-    await loginPage.loginWithPassword(email, password);
-
-    const persistAuth = await page.evaluate(() => {
+    await loginPage.loginWithPassword(credentials.email, credentials.password);
+    return await page.evaluate(() => {
       const persistAuth = localStorage.getItem('persist:auth');
       const mezonSession = localStorage.getItem('mezon_session');
       const mezonRefreshToken = localStorage.getItem('mezon_refresh_token');
-      return { persistAuth, mezonSession, mezonRefreshToken };
+      const mezonRefreshSession = localStorage.getItem('mezon_refresh_session');
+      return { persistAuth, mezonSession, mezonRefreshToken, mezonRefreshSession };
     });
-
-    return persistAuth;
   }
 
   /**
@@ -82,23 +79,8 @@ export class AuthHelper {
    * @param suiteName Test suite name
    * @param parentIssue Parent issue for work item links
    */
-  static async prepareBeforeTest(
-    page: Page,
-    clanUrl: string,
-    clanName: string,
-    accCredentials: any
-  ) {
-    // Setup authentication with email and password
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      accCredentials.email,
-      accCredentials.password
-    );
-
-    // Set auth for the suite
+  static async prepareBeforeTest(page: Page, clanUrl: string, credentials: any) {
     await AuthHelper.setAuthForSuite(page, credentials);
-
-    // Navigate to the clan URL
     await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
   }
 }

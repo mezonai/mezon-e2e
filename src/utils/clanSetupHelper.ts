@@ -1,9 +1,9 @@
 import { WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { Browser } from '@playwright/test';
+import { Browser, Page } from '@playwright/test';
+import { AuthHelper } from './authHelper';
 import generateRandomString from './randomString';
 import sleep from './sleep';
-import { AuthHelper } from './authHelper';
 
 const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
 const MAX_RETRIES = 3;
@@ -34,10 +34,7 @@ export class ClanSetupHelper {
    * @returns Promise<ClanSetupResult> Setup result with clan details and cleanup function
    */
 
-  async setupTestClan(
-    config: ClanSetupConfig = {},
-    persistAuth: any = null
-  ): Promise<ClanSetupResult> {
+  async setupTestClan(config: ClanSetupConfig = {}, page: Page): Promise<ClanSetupResult> {
     const { clanNamePrefix = 'TestClan', suiteName = 'Test Suite' } = config;
 
     const now = new Date();
@@ -45,19 +42,8 @@ export class ClanSetupHelper {
     const timestamp = now.getTime();
     const clanName = `${clanNamePrefix}_${generateRandomString(10)}_${timestamp}`;
 
-    const context = await this.browser.newContext();
-    const page = await context.newPage();
-
     try {
-      await AuthHelper.setAuthForSuite(page, persistAuth);
-      // await page.goto(MEZON_BASE_URL);
-      // await page.waitForLoadState('domcontentloaded');
-
       const clanPage = new ClanPageV2(page);
-
-      // await clanPage.navigate('/chat/direct/friends');
-      // await page.waitForLoadState('domcontentloaded');
-
       const createClanClicked = await clanPage.clickCreateClanButton();
       if (!createClanClicked) {
         throw new Error('Failed to click create clan button');
@@ -76,10 +62,7 @@ export class ClanSetupHelper {
       const cleanup = async () => {
         await this.cleanupClan(clanName, clanUrl, suiteName);
       };
-
       this.cleanupFunctions.push(cleanup);
-
-      await context.close();
 
       return {
         clanName,
@@ -87,7 +70,6 @@ export class ClanSetupHelper {
         cleanup,
       };
     } catch (error) {
-      await context.close();
       if (this.retryCount >= MAX_RETRIES) {
         throw new Error(`Failed to setup test clan: ${error}`);
       }
@@ -96,7 +78,7 @@ export class ClanSetupHelper {
         `Waiting ${WAITING_TIME_MS}ms for retrying setup clan with test suite: ${config.suiteName} - (${this.retryCount}/${MAX_RETRIES})...`
       );
       await sleep(WAITING_TIME_MS);
-      return this.setupTestClan(config);
+      return this.setupTestClan(config, page);
     }
   }
 
