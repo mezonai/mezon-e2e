@@ -444,16 +444,27 @@ test.describe('Create Event', () => {
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.VOICE);
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
     await AllureReporter.step(`Create new public voice channel: ${channelName}`, async () => {
       await clanPage.createNewChannel(ChannelType.VOICE, channelName, ChannelStatus.PUBLIC);
     });
+
     await AllureReporter.step('Verify channel is present in channel list', async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
+
+    let res: {
+      eventTopic: string;
+      description?: string;
+      startDate: string;
+      startTime: string;
+    };
+
     await AllureReporter.step(`Create new public voice event in clan: ${channelName}`, async () => {
       await clanPage.addDataOnLocationTab(EventType.VOICE, channelName);
-      const res = await clanPage.addDataOnEventInfoTab();
+      res = await clanPage.addDataOnEventInfoTab();
+
       const data = {
         ...res,
         channelName: channelName,
@@ -464,10 +475,16 @@ test.describe('Create Event', () => {
       await clanPage.waitForModalToBeHidden();
     });
 
-    // await AllureReporter.step('Verify event is present in event list', async () => {
-    //   const isCreatedEvent = await clanPage.isEventPresent(channelName);
-    //   expect(isCreatedEvent).toBeTruthy();
-    // });
+    await AllureReporter.step('Verify event is present in event list', async () => {
+      const isCreatedEvent = await clanPage.verifyLastEventData({
+        eventTopic: res.eventTopic,
+        description: res.description,
+        channelName: channelName,
+        startTime: `${res.startDate} - ${res.startTime}`,
+        type: 'Clan Event',
+      });
+      expect(isCreatedEvent).toBeTruthy();
+    });
 
     await AllureReporter.attachScreenshot(page, `Public Voice Event Created - ${channelName}`);
   });
