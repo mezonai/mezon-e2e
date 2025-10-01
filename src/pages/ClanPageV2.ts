@@ -113,6 +113,7 @@ export class ClanPageV2 extends BasePage {
 
   public createEventModal = {
     modal: this.page.locator(generateE2eSelector('clan_page.modal.create_event')),
+    modalStart: this.page.locator(generateE2eSelector('clan_page.modal.create_event.start_modal')),
     type: {
       voice: this.page.locator(generateE2eSelector('clan_page.modal.create_event.location.type'), {
         hasText: 'Voice Channel',
@@ -176,6 +177,9 @@ export class ClanPageV2 extends BasePage {
     ),
     voiceChannelReview: this.page.locator(
       generateE2eSelector('clan_page.modal.create_event.review.voice_channel')
+    ),
+    eventManagementItem: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.event_management.item')
     ),
   };
 
@@ -692,15 +696,59 @@ export class ClanPageV2 extends BasePage {
     await this.createEventModal.modal.waitFor({ state: 'hidden', timeout: 5000 });
   }
 
-  // async isEventPresent(eventTopic: string): Promise<boolean> {
-  //   const eventLocator = this.page.locator(generateE2eSelector('clan_page.events.sidebar.item'), {
-  //     hasText: eventTopic,
-  //   });
-  //   try {
-  //     await eventLocator.waitFor({ state: 'visible', timeout: 5000 });
-  //     return true;
-  //   } catch {
-  //     return false;
-  //   }
-  // }
+  async getLastEventData() {
+    await this.buttons.eventButton.click();
+    await this.createEventModal.modalStart.waitFor({ state: 'visible', timeout: 5000 });
+
+    const lastEvent = this.createEventModal.eventManagementItem.last();
+    await lastEvent.waitFor({ state: 'visible', timeout: 5000 });
+
+    const startTime = await lastEvent.locator(this.createEventModal.startTimeReview).textContent();
+    const type = await lastEvent.locator(this.createEventModal.typeClanReview).textContent();
+    const topic = await lastEvent.locator(this.createEventModal.eventTopicReview).textContent();
+    const description = await lastEvent
+      .locator(this.createEventModal.descriptionReview)
+      .textContent();
+    const voiceChannel = await lastEvent
+      .locator(this.createEventModal.voiceChannelReview)
+      .textContent();
+
+    return {
+      startTime: startTime?.trim(),
+      type: type?.trim(),
+      topic: topic?.trim(),
+      description: description?.trim(),
+      voiceChannel: voiceChannel?.trim(),
+    };
+  }
+
+  async verifyLastEventData(expected: {
+    eventTopic: string;
+    description?: string;
+    channelName?: string;
+    startTime?: string;
+    type?: string;
+  }): Promise<boolean> {
+    const lastEvent = await this.getLastEventData();
+
+    await expect(lastEvent.topic).toBe(expected.eventTopic);
+
+    if (expected.description) {
+      await expect(lastEvent.description).toBe(expected.description);
+    }
+
+    if (expected.channelName) {
+      await expect(lastEvent.voiceChannel).toBe(expected.channelName);
+    }
+
+    if (expected.startTime) {
+      await expect(lastEvent.startTime).toBe(expected.startTime);
+    }
+
+    if (expected.type) {
+      await expect(lastEvent.type).toBe(expected.type);
+    }
+
+    return true;
+  }
 }

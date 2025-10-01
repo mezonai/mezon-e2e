@@ -163,6 +163,7 @@ export const DATA_E2E_IDENTIFIER = {
         title: '',
       },
       create_event: {
+        start_modal: '',
         button_create: '',
         next: '',
         upload: {
@@ -195,6 +196,9 @@ export const DATA_E2E_IDENTIFIER = {
           event_topic: '',
           description: '',
           voice_channel: '',
+        },
+        event_management: {
+          item: '',
         },
       },
       invite_people: {
