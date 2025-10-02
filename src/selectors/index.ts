@@ -457,6 +457,7 @@ export const DATA_E2E_IDENTIFIER = {
         button_save_changes: '',
       },
     },
+    logout: ''
   },
   common: {
     friend_list: {

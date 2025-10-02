@@ -8,16 +8,14 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import test, { BrowserContext, expect, Page } from '@playwright/test';
+import test, { expect } from '@playwright/test';
 
 test.describe('Channel Management', () => {
-  let page: Page;
-  let context: BrowserContext;
   const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
-    context = await browser.newContext();
-    page = await context.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
     await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
     await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, page);
@@ -25,6 +23,7 @@ test.describe('Channel Management', () => {
     clanFactory.setClanUrl(
       joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
     );
+    await context.close();
   });
 
   test.beforeEach(async ({ page }) => {
@@ -37,6 +36,23 @@ test.describe('Channel Management', () => {
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+  });
+
+  test.afterAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await clanFactory.cleanupClan(page);
+    await AuthHelper.logout(page);
+    await context.close();
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   test('Verify that I can create a new private text channel', async ({ page }) => {

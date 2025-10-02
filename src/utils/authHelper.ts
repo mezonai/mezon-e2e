@@ -1,6 +1,7 @@
 import { persistentAuthConfigs, WEBSITE_CONFIGS } from '@/config/environment';
 import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { MezonCredentials } from '@/types';
 import { Page } from '@playwright/test';
 
@@ -83,5 +84,10 @@ export class AuthHelper {
   static async prepareBeforeTest(page: Page, clanUrl: string, credentials: any) {
     await AuthHelper.setAuthForSuite(page, credentials);
     await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+  }
+
+  static async logout(page: Page) {
+    const profilePage = new ProfilePage(page);
+    await profilePage.clickLogout();
   }
 }
