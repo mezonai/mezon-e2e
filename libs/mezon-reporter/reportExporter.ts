@@ -44,8 +44,8 @@ export class ReportExporter {
     this.s3Client = new S3Client(
       new AWS.S3({
         endpoint: `https://storage.dungxbuif.com`,
-        accessKeyId: '2z6YQm4SMLcjGCizgDL8',
-        secretAccessKey: 'NLnUX7SbTVy8eIMCzf0eB1Up7FpDJSuM5tvyogKz',
+        accessKeyId: 'ptrK29umhrDPPPcByUJ9',
+        secretAccessKey: 'fA6KMSCTn5QhcwkxCvX0CzTxs8wxGZnf96hWDbP0',
         signatureVersion: 'v4',
         region: 'us-east-1',
         s3ForcePathStyle: true,
