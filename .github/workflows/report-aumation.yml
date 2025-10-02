@@ -3,10 +3,6 @@ name: Run Report Mezon Automation Tests
 on:
   workflow_dispatch:
 
-concurrency:
-  group: report-automation-${{ github.workflow }}
-  cancel-in-progress: false
-
 jobs:
   report-automation:
     runs-on: mezon-e2e
