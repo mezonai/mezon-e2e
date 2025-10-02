@@ -36,6 +36,7 @@ export class AuthHelper {
     await page.goto(endpoint);
     await page.waitForLoadState('domcontentloaded');
     this.clearAuth(page);
+    await page.waitForLoadState('networkidle');
     await this.setAuthForAccount(page, credentials);
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
