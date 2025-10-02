@@ -1,4 +1,5 @@
 import { AllureConfig } from '@/config/allure.config';
+import { AccountCredentials } from '@/config/environment';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
@@ -23,19 +24,26 @@ test.describe('File Size Limits Validation', () => {
 
   test.beforeAll(async ({ browser }: { browser: Browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.uploadFile);
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1.email,
+      AccountCredentials.account1.password
+    );
+
+    const setupResult = await clanSetupHelper.setupTestClan(
+      ClanSetupHelper.configs.uploadFile,
+      credentials
+    );
     clanName = setupResult.clanName;
     clanUrl = setupResult.clanUrl;
   });
 
   test.afterAll(async () => {
     if (clanSetupHelper) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.uploadFile.suiteName || ''
-      );
+      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
     }
   });
 
@@ -55,10 +63,7 @@ test.describe('File Size Limits Validation', () => {
 
       await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-      // Set authentication for the suite
-      await AllureReporter.step('Setup authentication', async () => {
-        await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.uploadFile.suiteName || '');
-      });
+      await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
 
       fileSizeHelpers = new FileSizeTestHelpers(page);
       clanSettingsPage = new ClanSettingsPage(page);
@@ -66,12 +71,6 @@ test.describe('File Size Limits Validation', () => {
       messagePage = new MessagePage(page);
       profilePage = new ProfilePage(page);
       clanPage = new ClanPageV2(page);
-
-      await AllureReporter.step('Navigate to test clan', async () => {
-        await page.goto(clanUrl);
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
-      });
     }
   );
 

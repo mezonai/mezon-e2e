@@ -58,7 +58,7 @@ export class HomePage extends BasePage {
     const loginBtn = this.buttons.login;
     await loginBtn.waitFor({ state: 'visible', timeout: 10000 });
     await loginBtn.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async verifyLinkExists(linkText: string): Promise<void> {

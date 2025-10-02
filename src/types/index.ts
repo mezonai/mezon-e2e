@@ -60,3 +60,8 @@ export interface Environment {
     user: User;
   };
 }
+
+export type MezonCredentials = {
+  email: string;
+  password: string;
+};

@@ -5,7 +5,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { expect, test } from '@playwright/test';
 import { randomInt } from 'crypto';
-import { WEBSITE_CONFIGS } from '../../config/environment';
+import { AccountCredentials, WEBSITE_CONFIGS } from '../../config/environment';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { MessageTestHelpers } from '../../utils/messageHelpers';
 
@@ -24,9 +24,18 @@ test.describe('Channel Message - Module 3', () => {
 
   test.beforeAll(async ({ browser }) => {
     clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1.email,
+      AccountCredentials.account1.password
+    );
 
     const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.channelMessage3
+      ClanSetupHelper.configs.channelMessage3,
+      credentials
     );
 
     testClanName = setupResult.clanName;
@@ -35,11 +44,7 @@ test.describe('Channel Message - Module 3', () => {
 
   test.afterAll(async () => {
     if (clanSetupHelper && testClanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(
-        testClanName,
-        testClanUrl,
-        ClanSetupHelper.configs.channelMessage3.suiteName || ''
-      );
+      await clanSetupHelper.cleanupClan(testClanName, testClanUrl, AccountCredentials.account1);
     }
   });
 
@@ -77,20 +82,14 @@ test.describe('Channel Message - Module 3', () => {
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(
-        page,
-        ClanSetupHelper.configs.channelMessage3.suiteName || ''
-      );
-    });
+    await AuthHelper.prepareBeforeTest(
+      page,
+      testClanUrl,
+      testClanName,
+      AccountCredentials.account1
+    );
 
     messageHelpers = new MessageTestHelpers(page);
-    const navigationHelpers = createNavigationHelpers(page);
-
-    await AllureReporter.step('Setup test environment', async () => {
-      await navigationHelpers.navigateToClanChannel();
-    });
   });
 
   test('Delete message', async ({ page, context }) => {

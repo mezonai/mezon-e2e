@@ -11,6 +11,10 @@
  * */
 
 export const DATA_E2E_IDENTIFIER = {
+  input: {
+    base: '',
+    password: '',
+  },
   avatar: {
     image: '',
   },
@@ -42,6 +46,20 @@ export const DATA_E2E_IDENTIFIER = {
     },
   },
   chat_welcome: '',
+  login_page: {
+    buttons: {
+      login_by_otp: '',
+      login_by_email_password: '',
+    },
+    inputs: {
+      email: '',
+      password: '',
+    },
+    form: {
+      email_password: '',
+      otp: '',
+    },
+  },
   homepage: {
     header: {
       link: '',
@@ -145,10 +163,53 @@ export const DATA_E2E_IDENTIFIER = {
         title: '',
       },
       create_event: {
+        start_modal: '',
         button_create: '',
         next: '',
         upload: {
           image_cover_input: '',
+        },
+        location: {
+          type: '',
+          channel: {
+            item: '',
+          },
+        },
+        event_info: {
+          input: {
+            event_topic: '',
+            start_date: '',
+            start_time: '',
+            end_date: '',
+            end_time: '',
+            event_frequency: '',
+            description: '',
+          },
+        },
+        review: {
+          type: {
+            clan: '',
+            channel: '',
+            private: '',
+          },
+          start_time: '',
+          event_topic: '',
+          description: '',
+          voice_channel: '',
+          text_channel: '',
+        },
+        event_management: {
+          item: {
+            modal_detail_item: {
+              start_date_time: '',
+              topic: '',
+              channel_name: '',
+              description: '',
+            },
+            button: {
+              open_detail_modal: '',
+            },
+          },
         },
       },
       invite_people: {
