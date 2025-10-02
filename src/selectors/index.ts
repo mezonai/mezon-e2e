@@ -196,9 +196,20 @@ export const DATA_E2E_IDENTIFIER = {
           event_topic: '',
           description: '',
           voice_channel: '',
+          text_channel: '',
         },
         event_management: {
-          item: '',
+          item: {
+            modal_detail_item: {
+              start_date_time: '',
+              topic: '',
+              channel_name: '',
+              description: '',
+            },
+            button: {
+              open_detail_modal: '',
+            },
+          },
         },
       },
       invite_people: {

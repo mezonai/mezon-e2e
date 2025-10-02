@@ -1,36 +1,45 @@
 import { AllureConfig } from '@/config/allure.config';
-import { AccountCredentials, GLOBAL_CONFIG } from '@/config/environment';
+import { AccountCredentials, GLOBAL_CONFIG, WEBSITE_CONFIGS } from '@/config/environment';
+import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ROUTES } from '@/selectors';
-import { ChannelStatus, ChannelType, EventType } from '@/types/clan-page.types';
+import { ChannelStatus, ChannelType, ClanStatus, EventType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { splitDomainAndPath } from '@/utils/domain';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import generateRandomString from '@/utils/randomString';
-import { expect, test } from '@playwright/test';
+import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { CategoryPage } from '../../pages/CategoryPage';
 
 test.describe('Create Clan', () => {
-  let clanUrl: string;
-  let clanSetupHelper: ClanSetupHelper;
-  let clanTestName: string;
+  let page: Page;
+  let context: BrowserContext;
+  const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
+    context = await browser.newContext();
+    page = await context.newPage();
+
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
+    await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement, page);
+
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
+    );
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
     });
-
-    await AuthHelper.prepareBeforeTest(
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      'https://mezon.ai/chat/direct/friends',
-      '',
       AccountCredentials.account1
     );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
   });
 
   test('Verify that I can create a Clan', async ({ page }) => {
@@ -61,7 +70,6 @@ test.describe('Create Clan', () => {
     });
 
     const clanName = `Mezon E2E Clan ${generateRandomString(10)}`;
-    clanTestName = clanName;
     const clanPage = new ClanPageV2(page);
 
     await AllureReporter.addParameter('clanName', clanName);
@@ -75,66 +83,40 @@ test.describe('Create Clan', () => {
         await clanPage.createNewClan(clanName);
       });
 
-      await AllureReporter.step('Verify clan is present in clan list', async () => {
-        const isClanPresent = await clanPage.isClanPresent(clanName);
-
-        if (isClanPresent) {
-          clanUrl = page.url();
-        } else {
-          console.log(`Could not complete clan creation: ${clanName}`);
-        }
-      });
-
       await AllureReporter.attachScreenshot(page, 'Clan Created Successfully');
     } else {
       await AllureReporter.attachScreenshot(page, 'Failed to Create Clan');
     }
   });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupClan(clanTestName, clanUrl, 'Clan Management');
-    }
-  });
 });
 
 test.describe('Create Category', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let clanName: string;
-  let clanUrl: string;
+  let page: Page;
+  let context: BrowserContext;
+  const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-    const context = await browser.newContext();
-    const page = await context.newPage();
+    context = await browser.newContext();
+    page = await context.newPage();
 
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account1.email,
-      AccountCredentials.account1.password
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
+    await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement, page);
+
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
     );
-
-    const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.clanManagement,
-      credentials
-    );
-
-    clanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
-    }
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63510',
+      parrent_issue: '63510',
     });
-
-    await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
   });
 
   // test('Verify that I can create a private category', async ({ page }) => {
@@ -222,42 +204,32 @@ test.describe('Create Category', () => {
 });
 
 test.describe('Invite People', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let clanName: string;
-  let clanUrl: string;
+  let page: Page;
+  let context: BrowserContext;
+  const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-    const context = await browser.newContext();
-    const page = await context.newPage();
+    context = await browser.newContext();
+    page = await context.newPage();
 
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account1.email,
-      AccountCredentials.account1.password
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
+    await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement, page);
+
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
     );
-
-    const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.clanManagement,
-      credentials
-    );
-
-    clanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl, AccountCredentials.account1);
-    }
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63123',
+      parrent_issue: '63510',
     });
-
-    await AuthHelper.prepareBeforeTest(page, clanUrl, clanName, AccountCredentials.account1);
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account1
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
   });
 
   test('Verify that I can invite people to a clan from sidebar', async ({ page }) => {
@@ -380,42 +352,32 @@ test.describe('Invite People', () => {
 });
 
 test.describe('Create Event', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let clanName: string;
-  let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account3.json' });
+  let page: Page;
+  let context: BrowserContext;
+  const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
+    context = await browser.newContext();
+    page = await context.newPage();
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.clanManagement);
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account3);
+    await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement, page);
 
-    clanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.clanManagement.suiteName || ''
-      );
-    }
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
+    );
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63123',
+      parrent_issue: '63123',
     });
-
-    await AllureReporter.step('Navigate to test clan', async () => {
-      await page.goto(clanUrl);
-      await page.waitForLoadState('domcontentloaded');
-    });
-
-    await AllureReporter.addParameter('clanName', clanName);
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account3
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
   });
 
   test('Verify that I can create a public voice event in a clan', async ({ page }) => {
@@ -461,7 +423,7 @@ test.describe('Create Event', () => {
       startTime: string;
     };
 
-    await AllureReporter.step(`Create new public voice event in clan: ${channelName}`, async () => {
+    await AllureReporter.step(`Create new public voice event in clan:`, async () => {
       await clanPage.addDataOnLocationTab(EventType.VOICE, channelName);
       res = await clanPage.addDataOnEventInfoTab();
 
@@ -479,13 +441,138 @@ test.describe('Create Event', () => {
       const isCreatedEvent = await clanPage.verifyLastEventData({
         eventTopic: res.eventTopic,
         description: res.description,
-        channelName: channelName,
+        voiceChannelName: channelName,
         startTime: `${res.startDate} - ${res.startTime}`,
-        type: 'Clan Event',
+        clanStatus: ClanStatus.PUBLIC,
+        eventType: EventType.VOICE,
       });
       expect(isCreatedEvent).toBeTruthy();
     });
 
+    await AllureReporter.step(
+      'Verify event information is match in event dertail modal',
+      async () => {
+        const isCreatedEvent = await clanPage.verifyInEventDetailModal({
+          eventTopic: res.eventTopic,
+          description: res.description,
+          channelName: channelName,
+          startTime: `${res.startDate} - ${res.startTime}`,
+        });
+        expect(isCreatedEvent).toBeTruthy();
+      }
+    );
+
     await AllureReporter.attachScreenshot(page, `Public Voice Event Created - ${channelName}`);
+  });
+
+  test('Verify that I can create a Private voice event in a clan', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63378',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully create a new Private voice event within a clan.
+    **Test Steps:**
+    1. Create a voice channel in clan
+    2. Create a private text channel in clan
+    3. Create new Private voice event
+    4. Verify event appears in event list
+    **Expected Result:** Private voice event is created and visible in the clan's event list.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['event-creation', 'Private-event', 'voice-event'],
+    });
+    const unique = Date.now().toString(36).slice(-6);
+    const voiceChannelName = `vc-${unique}`.slice(0, 20);
+    const textChannelName = `ptc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPageV2(page);
+    await AllureReporter.addParameter('voiceChannelName', voiceChannelName);
+    await AllureReporter.addParameter('voiceChannelType', ChannelType.VOICE);
+    await AllureReporter.addParameter('voiceChannelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step(`Create new voice channel: ${voiceChannelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.VOICE, voiceChannelName, ChannelStatus.PUBLIC);
+    });
+
+    await AllureReporter.step('Verify channel is present in channel list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(voiceChannelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.addParameter('textChannelName', textChannelName);
+    await AllureReporter.addParameter('textChannelType', ChannelType.TEXT);
+    await AllureReporter.addParameter('textChannelStatus', ChannelStatus.PRIVATE);
+
+    await AllureReporter.step(`Create new private text channel: ${textChannelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, textChannelName, ChannelStatus.PRIVATE);
+    });
+
+    await AllureReporter.step('Verify channel is present in channel list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(textChannelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    let res: {
+      eventTopic: string;
+      description?: string;
+      startDate: string;
+      startTime: string;
+    };
+
+    await AllureReporter.step(`Create new Private voice event in clan:`, async () => {
+      await clanPage.addDataOnLocationTab(
+        EventType.VOICE,
+        voiceChannelName,
+        ClanStatus.PRIVATE,
+        textChannelName
+      );
+      res = await clanPage.addDataOnEventInfoTab();
+
+      const data = {
+        ...res,
+        voiceChannelName,
+        eventType: EventType.VOICE,
+        clanStatus: ClanStatus.PRIVATE,
+        textChannelName,
+      };
+      await clanPage.verifyDataOnReviewTab(data);
+      await clanPage.eventModal.createEventButton.click();
+      await clanPage.waitForModalToBeHidden();
+    });
+
+    await AllureReporter.step('Verify event is present in event list', async () => {
+      const isCreatedEvent = await clanPage.verifyLastEventData({
+        eventTopic: res.eventTopic,
+        description: res.description,
+        voiceChannelName,
+        startTime: `${res.startDate} - ${res.startTime}`,
+        clanStatus: ClanStatus.PRIVATE,
+        eventType: EventType.VOICE,
+        textChannelName,
+      });
+      expect(isCreatedEvent).toBeTruthy();
+    });
+
+    await AllureReporter.step(
+      'Verify event information is match in event dertail modal',
+      async () => {
+        const isCreatedEvent = await clanPage.verifyInEventDetailModal({
+          eventTopic: res.eventTopic,
+          description: res.description,
+          channelName: voiceChannelName,
+          startTime: `${res.startDate} - ${res.startTime}`,
+        });
+        expect(isCreatedEvent).toBeTruthy();
+      }
+    );
+
+    await AllureReporter.attachScreenshot(
+      page,
+      `Private Voice Event Created - ${voiceChannelName}`
+    );
   });
 });
