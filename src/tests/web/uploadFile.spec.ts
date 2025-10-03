@@ -1,42 +1,39 @@
 import { AllureConfig } from '@/config/allure.config';
+import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { expect, test, Browser, Page, BrowserContext, TestInfo } from '@playwright/test';
+import { expect, test, Page, BrowserContext, TestInfo } from '@playwright/test';
 import { ClanSettingsPage } from '../../pages/ClanSettingsPage';
 import { ProfilePage } from '../../pages/ProfilePage';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { MessagePage } from '@/pages/MessagePage';
+import joinUrlPaths from '@/utils/joinUrlPaths';
+import { splitDomainAndPath } from '@/utils/domain';
+import { ClanFactory } from '@/data/factories/ClanFactory';
 
 test.describe('File Size Limits Validation', () => {
-  let clanSetupHelper: ClanSetupHelper;
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
   let channelSettingPage: ChannelSettingPage;
   let messagePage: MessagePage;
   let profilePage: ProfilePage;
   let clanPage: ClanPageV2;
-  let clanName: string;
-  let clanUrl: string;
+  const clanFactory = new ClanFactory();
 
-  test.beforeAll(async ({ browser }: { browser: Browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.uploadFile);
-    clanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
-  });
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account9);
+    await clanFactory.setupClan(ClanSetupHelper.configs.uploadFile, page);
 
-  test.afterAll(async () => {
-    if (clanSetupHelper) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        clanUrl,
-        ClanSetupHelper.configs.uploadFile.suiteName || ''
-      );
-    }
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
+    );
+    await context.close();
   });
 
   test.beforeEach(
@@ -55,10 +52,11 @@ test.describe('File Size Limits Validation', () => {
 
       await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-      // Set authentication for the suite
-      await AllureReporter.step('Setup authentication', async () => {
-        await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.uploadFile.suiteName || '');
-      });
+      const credentials = await AuthHelper.setupAuthWithEmailPassword(
+        page,
+        AccountCredentials.account9
+      );
+      await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
 
       fileSizeHelpers = new FileSizeTestHelpers(page);
       clanSettingsPage = new ClanSettingsPage(page);
@@ -66,14 +64,25 @@ test.describe('File Size Limits Validation', () => {
       messagePage = new MessagePage(page);
       profilePage = new ProfilePage(page);
       clanPage = new ClanPageV2(page);
-
-      await AllureReporter.step('Navigate to test clan', async () => {
-        await page.goto(clanUrl);
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
-      });
     }
   );
+
+  test.afterAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account9
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await clanFactory.cleanupClan(page);
+    await AuthHelper.logout(page);
+    await context.close();
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
+  });
 
   test('Validate image attachment file size limit (50MB)', async () => {
     await AllureReporter.addDescription(`

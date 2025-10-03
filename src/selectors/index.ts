@@ -11,6 +11,10 @@
  * */
 
 export const DATA_E2E_IDENTIFIER = {
+  input: {
+    base: '',
+    password: '',
+  },
   avatar: {
     image: '',
   },
@@ -42,6 +46,20 @@ export const DATA_E2E_IDENTIFIER = {
     },
   },
   chat_welcome: '',
+  login_page: {
+    buttons: {
+      login_by_otp: '',
+      login_by_email_password: '',
+    },
+    inputs: {
+      email: '',
+      password: '',
+    },
+    form: {
+      email_password: '',
+      otp: '',
+    },
+  },
   homepage: {
     header: {
       link: '',
@@ -439,6 +457,7 @@ export const DATA_E2E_IDENTIFIER = {
         button_save_changes: '',
       },
     },
+    logout: ''
   },
   common: {
     friend_list: {

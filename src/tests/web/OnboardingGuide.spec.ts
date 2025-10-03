@@ -1,4 +1,5 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
@@ -6,30 +7,26 @@ import { OnboardingTask } from '@/types/onboarding.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { expect, test } from '@playwright/test';
+import { expect, test, BrowserContext, Page } from '@playwright/test';
 import { OnboardingHelpers } from '../../utils/onboardingHelpers';
+import joinUrlPaths from '@/utils/joinUrlPaths';
+import { splitDomainAndPath } from '@/utils/domain';
+import { ClanFactory } from '@/data/factories/ClanFactory';
 
 test.describe('Onboarding Guide Task Completion', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let testClanName: string;
-  let clanUrl: string;
+  const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.onboarding);
-    testClanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
-  });
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account5);
+    await clanFactory.setupClan(ClanSetupHelper.configs.onboarding, page);
 
-  test.afterAll(async () => {
-    if (clanSetupHelper && testClanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(
-        testClanName,
-        clanUrl,
-        ClanSetupHelper.configs.onboarding.suiteName || ''
-      );
-    }
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
+    );
+    await context.close();
   });
 
   test.beforeEach(async ({ page }) => {
@@ -37,18 +34,29 @@ test.describe('Onboarding Guide Task Completion', () => {
       tms: '63452',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.onboarding.suiteName || '');
-    });
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account5
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+  });
 
-    if (clanUrl) {
-      await AllureReporter.step('Navigate to test clan', async () => {
-        await page.goto(clanUrl);
-      });
-      await AllureReporter.addParameter('testClanName', testClanName);
-      await AllureReporter.addParameter('clanUrl', clanUrl);
-    }
+  test.afterAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account5
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await clanFactory.cleanupClan(page);
+    await AuthHelper.logout(page);
+    await context.close();
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   test('should mark "Send first message" task as done after user sends first message', async ({

@@ -1,25 +1,28 @@
-import { joinUrlPaths } from '@/utils/joinUrlPaths';
 import { AllureConfig, TestSetups } from '@/config/allure.config';
-import { updateSessionLocalStorage, WEBSITE_CONFIGS } from '@/config/environment';
+import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { splitDomainAndPath } from '@/utils/domain';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { getImageHash } from '@/utils/images';
+import { joinUrlPaths } from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
 
 test.describe('User Settings', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let testClanUrl: string;
-  let clanName: string;
+  const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
     await TestSetups.authenticationTest({
       suite: AllureConfig.Suites.USER_MANAGEMENT,
       subSuite: AllureConfig.SubSuites.USER_PROFILE,
@@ -27,44 +30,39 @@ test.describe('User Settings', () => {
       severity: AllureConfig.Severity.CRITICAL,
     });
 
-    clanSetupHelper = new ClanSetupHelper(browser);
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
+    await clanFactory.setupClan(ClanSetupHelper.configs.userProfile, page);
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
-    testClanUrl = setupResult.clanUrl;
-    clanName = setupResult.clanName;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && clanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        testClanUrl,
-        ClanSetupHelper.configs.userProfile.suiteName || ''
-      );
-    }
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
+    );
+    await context.close();
   });
 
   test.beforeEach(async ({ page }) => {
-    const profilePage = new ProfilePage(page);
-
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63571',
     });
 
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
-    });
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account6
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+  });
 
-    await AllureReporter.step('Navigate to clan chat page', async () => {
-      await page.goto(testClanUrl);
-    });
-
-    await AllureReporter.step('Open user settings profile', async () => {
-      await profilePage.buttons.userSettingProfile.click();
-    });
-
-    await AllureReporter.addParameter('clanChatUrl', testClanUrl);
+  test.afterAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account6
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await clanFactory.cleanupClan(page);
+    await AuthHelper.logout(page);
+    await context.close();
   });
 
   test('Change avatar clan - button visible', async ({ page }) => {
@@ -248,8 +246,6 @@ test.describe('User Settings', () => {
     const profilePage = new ProfilePage(page);
     const directMessagePage = new MessagePage(page);
     const fileSizeHelpers = new FileSizeTestHelpers(page);
-    let profileAvatar: Locator;
-    let footerAvatar: Locator;
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -268,6 +264,7 @@ test.describe('User Settings', () => {
     `);
 
     await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
     });
 
@@ -285,13 +282,13 @@ test.describe('User Settings', () => {
     await profilePage.buttons.applyImageAvatar.click();
     await profilePage.buttons.saveChangesUserProfile.click();
 
-    profileAvatar = profilePage.userProfile.avatar;
+    const profileAvatar: Locator = profilePage.userProfile.avatar;
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const profileSrc = await profileAvatar.getAttribute('src');
     const profileHash = await getImageHash(profileSrc || '');
 
     await profilePage.navigate('/chat/direct/friends');
-    footerAvatar = directMessagePage.footerAvatar;
+    const footerAvatar: Locator = directMessagePage.footerAvatar;
     await expect(footerAvatar).toBeVisible({ timeout: 5000 });
     const footerSrc = await footerAvatar.getAttribute('src');
     const footerHash = await getImageHash(footerSrc || '');
@@ -379,12 +376,10 @@ test.describe('User Settings', () => {
 });
 
 test.describe('Clan Profile - Update avatar', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let testClanUrl: string;
-  let clanName: string;
   let profileHash: string | null = null;
   let profilePage: ProfilePage;
   const message = `message - ${generateRandomString(10)}`;
+  const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
     await TestSetups.authenticationTest({
@@ -394,18 +389,18 @@ test.describe('Clan Profile - Update avatar', () => {
       severity: AllureConfig.Severity.CRITICAL,
     });
 
-    clanSetupHelper = new ClanSetupHelper(browser);
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.userProfile);
-    testClanUrl = setupResult.clanUrl;
-    clanName = setupResult.clanName;
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
+    await clanFactory.setupClan(ClanSetupHelper.configs.userProfile, page);
 
-    const page = await browser.newPage();
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
+    );
 
-    // Set authentication for the suite
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
+    await page.goto(clanFactory.getClanUrl());
 
-    await page.goto(testClanUrl);
     profilePage = new ProfilePage(page);
 
     await AllureReporter.step('Open user settings profile', async () => {
@@ -413,7 +408,6 @@ test.describe('Clan Profile - Update avatar', () => {
     });
 
     const fileSizeHelpers = new FileSizeTestHelpers(page);
-    let profileAvatar: Locator;
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -446,32 +440,34 @@ test.describe('Clan Profile - Update avatar', () => {
     await profilePage.buttons.applyImageAvatar.click();
     await profilePage.buttons.saveChangesClanProfile.click();
 
-    profileAvatar = profilePage.clanProfile.avatar;
+    const profileAvatar: Locator = profilePage.clanProfile.avatar;
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const profileSrc = await profileAvatar.getAttribute('src');
     profileHash = await getImageHash(profileSrc || '');
-  });
 
-  test.afterAll(async () => {
-    if (clanSetupHelper && clanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(
-        clanName,
-        testClanUrl,
-        ClanSetupHelper.configs.userProfile.suiteName || ''
-      );
-    }
+    await context.close();
   });
 
   test.beforeEach(async ({ page }) => {
-    // Set authentication for the suite
-    await AllureReporter.step('Setup authentication', async () => {
-      await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
-    });
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account6
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+  });
 
-    await AllureReporter.step('Navigate to clan chat page', async () => {
-      await page.goto(testClanUrl);
-      await page.waitForTimeout(1000);
-    });
+  test.afterAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account6
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await clanFactory.cleanupClan(page);
+    await AuthHelper.logout(page);
+    await context.close();
   });
 
   test('Validate avatar user in clan profile', async ({ page }) => {
@@ -707,8 +703,11 @@ test.describe('User Profile - Update avatar', () => {
       severity: AllureConfig.Severity.CRITICAL,
     });
 
-    const page = await browser.newPage();
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
+
     await page.goto(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'));
     const profilePage = new ProfilePage(page);
     const messagePage = new MessagePage(page);
@@ -718,7 +717,6 @@ test.describe('User Profile - Update avatar', () => {
     });
 
     const fileSizeHelpers = new FileSizeTestHelpers(page);
-    let profileAvatar: Locator;
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
       userType: AllureConfig.UserTypes.AUTHENTICATED,
@@ -754,7 +752,7 @@ test.describe('User Profile - Update avatar', () => {
     await profilePage.buttons.applyImageAvatar.click();
     await profilePage.buttons.saveChangesUserProfile.click();
 
-    profileAvatar = profilePage.userProfile.avatar;
+    const profileAvatar: Locator = profilePage.userProfile.avatar;
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const profileSrc = await profileAvatar.getAttribute('src');
     profileHash = await getImageHash(profileSrc || '');
@@ -765,7 +763,15 @@ test.describe('User Profile - Update avatar', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile.suiteName || '');
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account6
+    );
+    await AuthHelper.prepareBeforeTest(
+      page,
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'),
+      credentials
+    );
   });
 
   test('Validate footer avatar', async ({ page }) => {
