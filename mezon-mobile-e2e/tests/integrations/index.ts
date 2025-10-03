@@ -1,0 +1,1 @@
+export * from "./wdio-allure-reporter/index.js";

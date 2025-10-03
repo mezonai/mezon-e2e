@@ -43,6 +43,7 @@ export class ProfilePage extends BasePage {
     userProfile: this.page.locator(generateE2eSelector('user_setting.profile.user_profile.button')),
     clanProfile: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.button')),
     account: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
+    logout: this.page.locator(generateE2eSelector('user_setting.logout')),
   };
 
   readonly userProfile = {
@@ -145,5 +146,18 @@ export class ProfilePage extends BasePage {
   async verifyAboutMeStatusInShortProfile(aboutMeStatus: string) {
     await this.profiles.displayName.click();
     await expect(this.texts.aboutMeInShortProfile).toHaveText(aboutMeStatus, { timeout: 500 });
+  }
+
+  async clickLogout() {
+    await this.buttons.userSettingProfile.click();
+    await this.tabs.logout.click();
+    const logoutButton = this.page.locator(generateE2eSelector('button.base'), { hasText: 'Log Out' });
+    try {
+      await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+      await logoutButton.click();
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
