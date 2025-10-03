@@ -77,8 +77,6 @@ export default defineConfig({
         /ChannelMessage_3\.spec\.ts/,
         /ChannelMessage_4\.spec\.ts/,
         /ChannelMessage_5\.spec\.ts/,
-        /ClanManagement\.spec\.ts/,
-        /ThreadManagement\.spec\.ts/,
         /UserProfile\.spec\.ts/,
         /uploadFile\.spec\.ts/,
       ],

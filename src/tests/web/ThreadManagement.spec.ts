@@ -20,7 +20,7 @@ test.describe('Thread in Private Channel', () => {
     const page = await context.newPage();
 
     await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account7);
-    await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, page);
+    await clanFactory.setupClan(ClanSetupHelper.configs.threadManagement, page);
 
     clanFactory.setClanUrl(
       joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
@@ -55,13 +55,13 @@ test.describe('Thread in Private Channel', () => {
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await clanFactory.cleanupClan(page);
-    await AuthHelper.logout(page);
+    // await AuthHelper.logout(page);
     await context.close();
   });
 
-  test.afterEach(async ({ page }) => {
-    await AuthHelper.logout(page);
-  });
+  // test.afterEach(async ({ page }) => {
+  //   await AuthHelper.logout(page);
+  // });
 
   test('Verify that I can create a new public thread in a private channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
@@ -133,7 +133,7 @@ test.describe('Thread in Public Channel', () => {
     const page = await context.newPage();
 
     await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account7);
-    await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, page);
+    await clanFactory.setupClan(ClanSetupHelper.configs.threadManagement, page);
 
     clanFactory.setClanUrl(
       joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
@@ -168,13 +168,13 @@ test.describe('Thread in Public Channel', () => {
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await clanFactory.cleanupClan(page);
-    await AuthHelper.logout(page);
+    // await AuthHelper.logout(page);
     await context.close();
   });
 
-  test.afterEach(async ({ page }) => {
-    await AuthHelper.logout(page);
-  });
+  // test.afterEach(async ({ page }) => {
+  //   await AuthHelper.logout(page);
+  // });
 
   test('Verify that I can create a new public thread in a public channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({

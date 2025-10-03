@@ -30,7 +30,7 @@ test.describe('User Settings', () => {
       severity: AllureConfig.Severity.CRITICAL,
     });
 
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
     await clanFactory.setupClan(ClanSetupHelper.configs.userProfile, page);
 
     clanFactory.setClanUrl(
@@ -46,7 +46,7 @@ test.describe('User Settings', () => {
 
     const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      AccountCredentials.account1
+      AccountCredentials.account6
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await AllureReporter.addParameter('clanName', clanFactory.getClanName());
@@ -57,7 +57,7 @@ test.describe('User Settings', () => {
     const page = await context.newPage();
     const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      AccountCredentials.account1
+      AccountCredentials.account6
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await clanFactory.cleanupClan(page);
@@ -392,7 +392,7 @@ test.describe('Clan Profile - Update avatar', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
     await clanFactory.setupClan(ClanSetupHelper.configs.userProfile, page);
 
     clanFactory.setClanUrl(
@@ -451,7 +451,7 @@ test.describe('Clan Profile - Update avatar', () => {
   test.beforeEach(async ({ page }) => {
     const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      AccountCredentials.account1
+      AccountCredentials.account6
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await AllureReporter.addParameter('clanName', clanFactory.getClanName());
@@ -462,7 +462,7 @@ test.describe('Clan Profile - Update avatar', () => {
     const page = await context.newPage();
     const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      AccountCredentials.account1
+      AccountCredentials.account6
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await clanFactory.cleanupClan(page);
@@ -706,7 +706,7 @@ test.describe('User Profile - Update avatar', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
 
     await page.goto(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'));
     const profilePage = new ProfilePage(page);
@@ -765,7 +765,7 @@ test.describe('User Profile - Update avatar', () => {
   test.beforeEach(async ({ page }) => {
     const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      AccountCredentials.account1
+      AccountCredentials.account6
     );
     await AuthHelper.prepareBeforeTest(
       page,
