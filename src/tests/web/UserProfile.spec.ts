@@ -74,6 +74,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
     });
 
@@ -114,6 +115,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
     });
 
@@ -202,6 +204,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Navigate to account tab', async () => {
+      await profilePage.openUserSettingProfile();
       await profilePage.openAccountTab();
     });
 
@@ -320,6 +323,7 @@ test.describe('User Settings', () => {
 
     const profilePage = new ProfilePage(page);
     await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
     });
 
@@ -398,8 +402,6 @@ test.describe('Clan Profile - Update avatar', () => {
     clanFactory.setClanUrl(
       joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
     );
-
-    await page.goto(clanFactory.getClanUrl());
 
     profilePage = new ProfilePage(page);
 
