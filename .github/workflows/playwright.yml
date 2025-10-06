@@ -7,17 +7,30 @@ on:
         description: 'Mezon repository to use (mezonai/mezon.git or kientrinh-dev/mezon.git)'
         required: true
         default: 'mezonai/mezon.git'
+      test_suite:
+        description: 'Test suite to run (choose from list or leave blank for all)'
+        required: false
+        default: 'all'
         type: choice
         options:
-          - 'kientrinh-dev/mezon.git'
-          - 'mezonai/mezon.git'
+          - 'all'
+          - 'standalone'
+          - 'channel-management'
+          - 'channel-message-2'
+          - 'channel-message-3'
+          - 'channel-message-4'
+          - 'channel-message-5'
+          - 'clan-management'
+          - 'direct-message'
+          - 'dual-chat-in-clan'
+          - 'onboarding-guide'
+          - 'thread-management'
+          - 'upload-file'
+          - 'user-profile'
 
-  pull_request:
-    branches: [develop, main]
-    types: [opened, synchronize, reopened]
 jobs:
   verify-automation-tests:
-    runs-on: ubuntu-latest
+    runs-on: mezon-e2e
     steps:
       - name: Checkout mezon-e2e repository
         uses: actions/checkout@v4
@@ -189,26 +202,25 @@ jobs:
           cat > .env << EOF
           BASE_URL=http://localhost:4200/
           SKIP_LOGIN=true
-          WORKERS=6
+          WORKERS=4
           CI=true
-          AUTO_EXPORT_CREDENTIALS=${{ secrets.AUTO_EXPORT_CREDENTIALS }}
           EOF
 
       - name: Run automation tests
         id: run-tests
         working-directory: ./mezon-e2e
         run: |
+
           echo "🧪 Starting automation tests..."
           echo "📊 Environment file content:"
           cat .env
           echo ""
           echo "🚀 Running tests with yarn test..."
 
-          # Run tests and capture exit code
-          set +e  # Don't exit on error
-          xvfb-run yarn test
+          set +e  
+          xvfb-run yarn test:${{ github.event.inputs.test_suite || 'all' }}
           TEST_EXIT_CODE=$?
-          set -e  # Re-enable exit on error
+          set -e 
 
           echo "📊 Test exit code: $TEST_EXIT_CODE"
 

@@ -1,0 +1,15 @@
+export enum SELECTOR {
+    CONTAINER = "~mezonModal.container",
+    TITLE = "~mezonModal.textTitle",
+    CONFIRM = "~mezonModal.confirm",
+    CLOSE = "~mezonModal.buttonHeader",
+    INPUT_CONTAINER = "~mezonInput.container",
+    INPUT_BOX = "~mezonInput.inputBox",
+    INPUT_TEXT = "~mezonInput.input",
+    OPTION_CONTAINER = "~mezonOption.container",
+    OPTION_FOUR_HOURS = "~mezonOption.radioButton.240",
+    OPTION_TODAY = "~mezonOption.radioButton.-1",
+    OPTION_ONE_HOUR = "~mezonOption.radioButton.60",
+    OPTION_THIRTY_MINUTES = "~mezonOption.radioButton.30",
+    OPTION_NEVER = "~mezonOption.radioButton.0",
+}

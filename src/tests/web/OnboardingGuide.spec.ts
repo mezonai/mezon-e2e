@@ -21,7 +21,7 @@ test.describe('Onboarding Guide Task Completion', () => {
     const page = await context.newPage();
 
     await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account5);
-    await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, page);
+    await clanFactory.setupClan(ClanSetupHelper.configs.onboarding, page);
 
     clanFactory.setClanUrl(
       joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
