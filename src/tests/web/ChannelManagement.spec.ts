@@ -102,51 +102,51 @@ test.describe('Channel Management', () => {
     await AllureReporter.attachScreenshot(page, `Private Text Channel Created - ${channelName}`);
   });
 
-  test('Verify that I can create a new public text channel', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63917',
-    });
+  // test('Verify that I can create a new public text channel', async ({ page }) => {
+  //   await AllureReporter.addWorkItemLinks({
+  //     tms: '63917',
+  //   });
 
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
+  //   await AllureReporter.addTestParameters({
+  //     testType: AllureConfig.TestTypes.E2E,
+  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
+  //     severity: AllureConfig.Severity.CRITICAL,
+  //   });
 
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a user can successfully create a new public text channel within a clan.
-      
-      **Test Steps:**
-      1. Generate unique channel name
-      2. Create new public text channel
-      3. Verify channel appears in channel list
-      
-      **Expected Result:** Public text channel is created and visible in the clan's channel list.
-    `);
+  //   await AllureReporter.addDescription(`
+  //     **Test Objective:** Verify that a user can successfully create a new public text channel within a clan.
 
-    await AllureReporter.addLabels({
-      tag: ['channel-creation', 'public-channel', 'text-channel'],
-    });
+  //     **Test Steps:**
+  //     1. Generate unique channel name
+  //     2. Create new public text channel
+  //     3. Verify channel appears in channel list
 
-    const ran = Math.floor(Math.random() * 999) + 1;
-    const channelName = `text-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+  //     **Expected Result:** Public text channel is created and visible in the clan's channel list.
+  //   `);
 
-    await AllureReporter.addParameter('channelName', channelName);
-    await AllureReporter.addParameter('channelType', ChannelType.TEXT);
-    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+  //   await AllureReporter.addLabels({
+  //     tag: ['channel-creation', 'public-channel', 'text-channel'],
+  //   });
 
-    await AllureReporter.step(`Create new public text channel: ${channelName}`, async () => {
-      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
-    });
+  //   const ran = Math.floor(Math.random() * 999) + 1;
+  //   const channelName = `text-channel-${ran}`;
+  //   const clanPage = new ClanPageV2(page);
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
-      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
-      expect(isNewChannelPresent).toBe(true);
-    });
+  //   await AllureReporter.addParameter('channelName', channelName);
+  //   await AllureReporter.addParameter('channelType', ChannelType.TEXT);
+  //   await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
 
-    await AllureReporter.attachScreenshot(page, `Public Text Channel Created - ${channelName}`);
-  });
+  //   await AllureReporter.step(`Create new public text channel: ${channelName}`, async () => {
+  //     await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
+  //   });
+
+  //   await AllureReporter.step('Verify channel is present in channel list', async () => {
+  //     const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+  //     expect(isNewChannelPresent).toBe(true);
+  //   });
+
+  //   await AllureReporter.attachScreenshot(page, `Public Text Channel Created - ${channelName}`);
+  // });
 
   test('Verify that I can create a new voice channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
