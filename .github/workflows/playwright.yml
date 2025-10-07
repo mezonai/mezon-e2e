@@ -127,8 +127,8 @@ jobs:
           echo $SERVER_PID > mezon-dev.pid
           echo "📋 Server PID: $SERVER_PID"
 
-          echo "⏱️ Waiting 10 seconds for initial startup..."
-          sleep 10
+          echo "⏱️ Waiting 60 seconds for initial startup..."
+          sleep 60
 
           echo "📜 Initial server log output:"
           head -50 mezon-dev.log || echo "No log file yet"
