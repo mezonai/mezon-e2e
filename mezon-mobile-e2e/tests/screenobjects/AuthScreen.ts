@@ -9,12 +9,7 @@ export class AuthScreen {
 
     private constructor() {}
 
-    private get rootAuth() {
-        return $("~rootAuth.stack");
-    }
-    private get bottomWrapper() {
-        return $("~bottomNavigatorWrapper");
-    }
+ 
     private get loginScreen() {
         return $("~login.screen");
     }
@@ -34,6 +29,10 @@ export class AuthScreen {
     // States
     async waitForUnauthenticated(timeout = 45000): Promise<void> {
         await this.loginScreen.waitForDisplayed({ timeout });
+    }
+
+    async switchToPasswordLogin(): Promise<void> {
+        await $(`~login.switch.password`).click();
     }
 
     async waitForOtp(timeout = 45000): Promise<void> {

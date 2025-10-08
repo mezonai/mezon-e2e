@@ -58,6 +58,12 @@ export class ManageDrive<
     public withDriverB = <T>(fn: () => Promise<T> | T) =>
         this.runWithSession("driverB", fn);
 
+    public withDriverC = <T>(fn: () => Promise<T> | T) =>
+        this.runWithSession("driverC", fn);
+
+    public withDriverD = <T>(fn: () => Promise<T> | T) =>
+        this.runWithSession("driverD", fn);
+
     public getDriver(name: K) {
         return this.driverMap.get(name);
     }

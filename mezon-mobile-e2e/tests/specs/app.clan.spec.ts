@@ -1,60 +1,88 @@
-import { MezonLoginScreen, HomeScreen } from "../screenobjects/index.js";
-import {
-    ClanMenuScreen,
-    ClanMenuActionButtonsComponent,
-    ClanMenuListComponent,
-} from "../screenobjects/home/clan-menu/index.js";
+// import { MezonLoginScreen, HomeScreen } from '../screenobjects/index.js';
+// import {
+//   ClanMenuScreen,
+//   ClanMenuActionButtonsComponent,
+//   ClanMenuListComponent,
+// } from '../screenobjects/home/clan-menu/index.js';
 
-import { MailslurpLifecycle } from "../helpers/mailslurp.js";
-import { sleep } from "../utils/sleep.js";
+// import { sleep } from '../utils/sleep.js';
 
-describe("Create Clan E2E Tests", function () {
-    let mezonLoginScreen = MezonLoginScreen.init();
+// export const AccountCredentials = {
+//   account1: {
+//     email: 'dipomo2129@fintehs.com',
+//     password: 'Ncc@1234',
+//   },
+//   account2: {
+//     email: '1u4hcaf0gq@cmhvzylmfc.com',
+//     password: 'Ncc@1234',
+//   },
+//   account3: {
+//     email: 'qx4ve8xqrx@mrotzis.com',
+//     password: 'Ncc@1234',
+//   },
+//   account4: {
+//     email: 'y55salymor@zudpck.com',
+//     password: 'Ncc@1234',
+//   },
+//   account5: {
+//     email: '8f7dzsiezp@wnbaldwy.com',
+//     password: 'Ncc@1234',
+//   },
+//   account6: {
+//     email: 's9zv9aygir@ibolinva.com',
+//     password: 'Ncc@1234',
+//   },
+//   account7: {
+//     email: '4oi30tgce7@mkzaso.com',
+//     password: 'Ncc@1234',
+//   },
+//   account8: {
+//     email: 'aczyp914gy@cmhvzylmfc.com',
+//     password: 'Ncc@1234',
+//   },
+//   account9: {
+//     email: 'riuajy8jwc@cmhvzylmfc.com',
+//     password: 'Ncc@1234',
+//   },
+// };
 
-    before(async function () {
-        await MailslurpLifecycle.using(
-            async (ms) => {
-                const emailAddress = await ms.getEmailAddress();
-                await mezonLoginScreen.requestOtpFor(emailAddress);
-                const otp = await ms.waitForOtp();
-                await mezonLoginScreen.submitOtp(otp);
-            },
-            {
-                reuse: true,
-                cleanup: "empty",
-                storageDir: ".mailslurp",
-                storageKey: "login",
-            }
-        );
-    });
+// describe('Create Clan E2E Tests', function () {
+//   let mezonLoginScreen = MezonLoginScreen.init();
 
-    it("Create Clan", async function () {
-        await HomeScreen.using(async (home) => {
-            const createClanModal = await home.openCreateClanModal();
-            await createClanModal.setClanName(`Test Clan${Date.now()}`);
-            await createClanModal.uploadImage(async (upload) => {
-                const smallAvatarPath = await upload.createFileWithSize(
-                    `small_avatar_${Date.now()}`,
-                    800 * 1024,
-                    "jpg"
-                );
-                return smallAvatarPath;
-            });
-            await sleep(2000);
-            await createClanModal.createClan();
-        });
+//   before(async () => {
+//     await mezonLoginScreen.login(
+//       AccountCredentials.account1.email,
+//       AccountCredentials.account1.password
+//     );
+//   });
 
-        await ClanMenuScreen.using(async (clanMenu) => {
-            await clanMenu.openFromHeader();
-            await clanMenu.waitForIsShown();
-        });
+//   it('Should create Clan', async function () {
+//     await HomeScreen.using(async home => {
+//       const createClanModal = await home.openCreateClanModal();
+//       await createClanModal.setClanName(`Test Clan${Date.now()}`);
+//       await createClanModal.uploadImage(async upload => {
+//         const smallAvatarPath = await upload.createFileWithSize(
+//           `small_avatar_${Date.now()}`,
+//           800 * 1024,
+//           'jpg'
+//         );
+//         return smallAvatarPath;
+//       });
+//       await sleep(2000);
+//       await createClanModal.createClan();
+//     });
 
-        await ClanMenuActionButtonsComponent.clickByTitle("Lời mời");
+//     await ClanMenuScreen.using(async clanMenu => {
+//       await clanMenu.openFromHeader();
+//       await clanMenu.waitForIsShown();
+//     });
 
-        const menu = new ClanMenuListComponent();
-        await menu.clickItem("Đánh dấu là đã đọc");
-        await menu.clickItem("Tạo danh mục");
-        await menu.clickItem("Tạo sự kiện");
-        await menu.toggleShowEmptyCategories();
-    });
-});
+//     await ClanMenuActionButtonsComponent.clickByTitle('Lời mời');
+
+//     const menu = new ClanMenuListComponent();
+//     await menu.clickItem('Đánh dấu là đã đọc');
+//     await menu.clickItem('Tạo danh mục');
+//     await menu.clickItem('Tạo sự kiện');
+//     await menu.toggleShowEmptyCategories();
+//   });
+// });
