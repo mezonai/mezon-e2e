@@ -6,12 +6,28 @@ import { DirectMessageHelper } from './../utils/directMessageHelper';
 import { BasePage } from './BasePage';
 import { CategoryPage } from './CategoryPage';
 import { CategorySettingPage } from './CategorySettingPage';
-import { profile } from 'console';
+
+interface SelectorResult {
+  found: boolean;
+  element?: Locator;
+}
 
 export class ClanPageV2 extends BasePage {
   constructor(page: Page) {
     super(page);
   }
+  private readonly messageInputSelectors = [
+    'textarea#editorReactMentionChannel',
+    'textarea[placeholder="Write your thoughts here..."]',
+    'textarea.mentions__input',
+    '[data-testid="message-input"]',
+    'textarea[placeholder*="thoughts" i]',
+    'textarea[placeholder*="message" i]',
+    'input[placeholder*="message" i]',
+    '.message-input',
+    '.chat-input',
+    '[aria-label*="message" i]',
+  ];
 
   readonly buttons = {
     createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
@@ -483,5 +499,47 @@ export class ClanPageV2 extends BasePage {
       console.error(`Error clicking invite people:`, error);
       return false;
     }
+  }
+
+  private async findElementBySelectors(
+    selectors: string[],
+    timeout: number = 3000
+  ): Promise<SelectorResult> {
+    for (const selector of selectors) {
+      try {
+        const element = this.page.locator(selector).first();
+        await element.waitFor({ state: 'visible', timeout });
+        if (await element.isVisible({ timeout })) {
+          return { found: true, element };
+        }
+      } catch {
+        // Ignore errors
+        continue;
+      }
+    }
+    return { found: false };
+  }
+  async sendFirstMessage(message: string): Promise<boolean> {
+    const result = await this.findElementBySelectors(this.messageInputSelectors);
+    if (!result.found || !result.element) {
+      return false;
+    }
+
+    await result.element.fill(message);
+    await result.element.press('Enter');
+
+    return true;
+  }
+
+  async verifyMessageSent(message: string): Promise<boolean> {
+    const messageSelectors = [
+      `div:has-text("${message}")`,
+      `[data-testid="message"]:has-text("${message}")`,
+      `.message:has-text("${message}")`,
+      `.chat-message:has-text("${message}")`,
+    ];
+
+    const result = await this.findElementBySelectors(messageSelectors);
+    return result.found;
   }
 }
