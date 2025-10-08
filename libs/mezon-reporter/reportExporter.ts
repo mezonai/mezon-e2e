@@ -1,6 +1,6 @@
 import generateRandomString from '@/utils/randomString';
 import * as archiver from 'archiver';
-import AWS from 'aws-sdk';
+import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
 import { REPORT_SERVER_URL } from 'libs/mezon-reporter/constant';
 import * as path from 'path';

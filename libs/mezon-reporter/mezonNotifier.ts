@@ -1,4 +1,5 @@
 import { MEZON_THREAD_URL } from 'libs/mezon-reporter/constant';
+import { ReportExporter } from './reportExporter';
 
 interface MezonWebhookPayload {
   type: string;
@@ -58,7 +59,6 @@ export class MezonNotifier {
 
     try {
       const githubInfo = this.getGitHubInfo();
-      const { ReportExporter } = await import('./reportExporter');
       const reportExporter = new ReportExporter();
       const exportResult = await reportExporter.exportPlaywrightReport();
       const enrichedPayload = {

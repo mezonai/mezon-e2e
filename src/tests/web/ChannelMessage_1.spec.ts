@@ -26,15 +26,17 @@ test.describe('Channel Message - Module 1', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account1.email,
-      AccountCredentials.account1.password
-    );
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(page, {
+      email: AccountCredentials.account1.email,
+      password: AccountCredentials.account1.password,
+    });
 
     const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.channelMessage1,
-      credentials
+      {
+        clanNamePrefix: ClanSetupHelper.configs.channelMessage1.clanNamePrefix,
+        suiteName: ClanSetupHelper.configs.channelMessage1.suiteName,
+      },
+      page
     );
 
     testClanName = setupResult.clanName;
@@ -81,12 +83,7 @@ test.describe('Channel Message - Module 1', () => {
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    await AuthHelper.prepareBeforeTest(
-      page,
-      testClanUrl,
-      testClanName,
-      AccountCredentials.account1
-    );
+    await AuthHelper.prepareBeforeTest(page, testClanUrl, AccountCredentials.account1);
 
     messageHelpers = new MessageTestHelpers(page);
   });
