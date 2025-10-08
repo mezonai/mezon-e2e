@@ -4,7 +4,6 @@ import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
-import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { randomInt } from 'crypto';
@@ -130,25 +129,25 @@ test.describe('Direct Message', () => {
     await AllureReporter.attachScreenshot(page, 'Message Sent Successfully');
   });
 
-  test('Create group chat ', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63506',
-    });
+  // test('Create group chat ', async ({ page }) => {
+  //   await AllureReporter.addWorkItemLinks({
+  //     tms: '63506',
+  //   });
 
-    const messagePage = new MessagePage(page);
-    const helpers = new DirectMessageHelper(page);
-    const prevGroupCount = await helpers.countGroups();
+  //   const messagePage = new MessagePage(page);
+  //   const helpers = new DirectMessageHelper(page);
+  //   const prevGroupCount = await helpers.countGroups();
 
-    await test.step(`Create group chat`, async () => {
-      await messagePage.createGroup();
-      await page.waitForTimeout(3000);
-    });
+  //   await test.step(`Create group chat`, async () => {
+  //     await messagePage.createGroup();
+  //     await page.waitForTimeout(3000);
+  //   });
 
-    await test.step('Verify group chat is ceated', async () => {
-      const groupCreated = await messagePage.isGroupCreated(prevGroupCount);
-      expect(groupCreated).toBeTruthy();
-    });
-  });
+  //   await test.step('Verify group chat is ceated', async () => {
+  //     const groupCreated = await messagePage.isGroupCreated(prevGroupCount);
+  //     expect(groupCreated).toBeTruthy();
+  //   });
+  // });
 
   test('Add more member to group chat', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({

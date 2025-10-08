@@ -179,15 +179,9 @@ export class MessageTestHelpers {
   }
 
   async findMessageInput(): Promise<Locator> {
-    const messageInput = this.page.locator(generateE2eSelector('mention.input'));
-
-    if (!(await messageInput.isVisible({ timeout: 5000 }))) {
-      throw new Error(
-        'Could not find message input element with data-e2e="chat-mention-input-mention_clan"'
-      );
-    }
-
-    return messageInput;
+    const selector = generateE2eSelector('mention.input');
+    await this.page.waitForSelector(selector, { state: 'visible', timeout: 10000 });
+    return this.page.locator(selector);
   }
 
   async findModal(): Promise<{ found: boolean; element?: Locator }> {
