@@ -1,3 +1,5 @@
+import { sleep } from "../utils/index.js";
+
 export class MezonLoginScreen {
   static init() {
     return new MezonLoginScreen();
@@ -33,9 +35,9 @@ export class MezonLoginScreen {
   }
 
   async openLoginWithPassword(): Promise<void> {
+    await sleep(2000);
     await this.switchPasswordLink.waitForDisplayed({
       timeout: 45000,
-      reverse: false,
     });
     if (await this.switchPasswordLink.isExisting()) {
       await this.switchPasswordLink.click();
@@ -58,7 +60,6 @@ export class MezonLoginScreen {
   }
 
   async loginWithPassword(email: string, password: string): Promise<void> {
-    await this.waitForIsShown(true);
     await this.openLoginWithPassword();
     await this.setEmail(email);
     await this.setPassword(password);
