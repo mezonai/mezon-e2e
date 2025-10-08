@@ -16,18 +16,6 @@ export class ClanPageV2 extends BasePage {
   constructor(page: Page) {
     super(page);
   }
-  private readonly messageInputSelectors = [
-    'textarea#editorReactMentionChannel',
-    'textarea[placeholder="Write your thoughts here..."]',
-    'textarea.mentions__input',
-    '[data-testid="message-input"]',
-    'textarea[placeholder*="thoughts" i]',
-    'textarea[placeholder*="message" i]',
-    'input[placeholder*="message" i]',
-    '.message-input',
-    '.chat-input',
-    '[aria-label*="message" i]',
-  ];
 
   readonly buttons = {
     createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
@@ -134,6 +122,7 @@ export class ClanPageV2 extends BasePage {
     channelName: this.page.locator(
       `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
     ),
+    mention: this.page.locator(generateE2eSelector('mention.input')),
   };
 
   private settings = {
@@ -228,17 +217,23 @@ export class ClanPageV2 extends BasePage {
     return false;
   }
 
-  async deleteClan(removeAll?: boolean): Promise<boolean> {
+  async deleteClan(removeAll?: boolean, clanItem?: Locator): Promise<boolean> {
     try {
       const categoryPage = new CategoryPage(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
 
-      await categoryPage.text.clanName.click();
-      await categoryPage.buttons.clanSettings.click();
-      const clanName = await this.settings.clanName.inputValue();
+      const clan = await this.sidebar.clanItem.filter({ has: clanItem });
+      let clanName = await clan?.getAttribute('title');
       if (removeAll && !this.shouldDeleteClan(clanName || '')) {
         return false;
       }
+
+      await categoryPage.text.clanName.click();
+      await categoryPage.buttons.clanSettings.click();
+      if (!clan) {
+        clanName = await this.settings.clanName.inputValue();
+      }
+
       await categorySettingPage.buttons.deleteSidebar.click();
       await categorySettingPage.input.delete.fill(clanName || '');
       await categorySettingPage.buttons.confirmDelete.click();
@@ -520,15 +515,13 @@ export class ClanPageV2 extends BasePage {
     return { found: false };
   }
   async sendFirstMessage(message: string): Promise<boolean> {
-    const result = await this.findElementBySelectors(this.messageInputSelectors);
-    if (!result.found || !result.element) {
+    try {
+      await this.input.mention.fill(message);
+      await this.input.mention.press('Enter');
+      return true;
+    } catch {
       return false;
     }
-
-    await result.element.fill(message);
-    await result.element.press('Enter');
-
-    return true;
   }
 
   async verifyMessageSent(message: string): Promise<boolean> {
