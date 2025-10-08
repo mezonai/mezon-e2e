@@ -403,7 +403,6 @@ test.describe('Create Category', () => {
 //   });
 // });
 
-
 test.describe('Create Event', () => {
   let page: Page;
   let context: BrowserContext;
@@ -431,6 +430,23 @@ test.describe('Create Event', () => {
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+  });
+
+  test.afterAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account3
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await clanFactory.cleanupClan(page);
+    await AuthHelper.logout(page);
+    await context.close();
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   test('Verify that I can create a public voice event in a clan', async ({ page }) => {
@@ -512,6 +528,8 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
+        await clanPage.createEventModal.button.closeDetailModal.click();
+        await clanPage.createEventModal.button.closeContainerModal.click();
       }
     );
 
@@ -620,6 +638,8 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
+        await clanPage.createEventModal.button.closeDetailModal.click();
+        await clanPage.createEventModal.button.closeContainerModal.click();
       }
     );
 
@@ -627,5 +647,249 @@ test.describe('Create Event', () => {
       page,
       `Private Voice Event Created - ${voiceChannelName}`
     );
+  });
+
+  test('Verify that I can create a public location event in a clan', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64056',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully create a new public location event within a clan.
+    **Test Steps:**
+      1. Create new public location event
+      2. Verify event appears in event list
+    **Expected Result:**Public Location event is created and visible in the clan's event list.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['event-creation', 'Public-event', 'location-event'],
+    });
+
+    const clanPage = new ClanPageV2(page);
+    const unique = Date.now().toString(36).slice(-6);
+    const locationName = `location name - ${unique}`;
+    let res: {
+      eventTopic: string;
+      description?: string;
+      startDate: string;
+      startTime: string;
+    };
+
+    await AllureReporter.step(`Create new public location event in clan:`, async () => {
+      await clanPage.addDataOnLocationTab(EventType.LOCATION, locationName, ClanStatus.PUBLIC);
+      res = await clanPage.addDataOnEventInfoTab();
+
+      const data = {
+        ...res,
+        locationName,
+        eventType: EventType.LOCATION,
+        clanStatus: ClanStatus.PUBLIC,
+      };
+      await clanPage.verifyDataOnReviewTab(data);
+      await clanPage.eventModal.createEventButton.click();
+      await clanPage.waitForModalToBeHidden();
+    });
+
+    await AllureReporter.step('Verify event is present in event list', async () => {
+      const isCreatedEvent = await clanPage.verifyLastEventData({
+        eventTopic: res.eventTopic,
+        description: res.description,
+        voiceChannelName: locationName,
+        startTime: `${res.startDate} - ${res.startTime}`,
+        clanStatus: ClanStatus.PUBLIC,
+        eventType: EventType.LOCATION,
+      });
+      expect(isCreatedEvent).toBeTruthy();
+    });
+
+    await AllureReporter.step(
+      'Verify event information is match in event dertail modal',
+      async () => {
+        const isCreatedEvent = await clanPage.verifyInEventDetailModal({
+          eventTopic: res.eventTopic,
+          description: res.description,
+          channelName: locationName,
+          startTime: `${res.startDate} - ${res.startTime}`,
+        });
+        expect(isCreatedEvent).toBeTruthy();
+        await clanPage.createEventModal.button.closeDetailModal.click();
+        await clanPage.createEventModal.button.closeContainerModal.click();
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, `Public location Event Created - ${locationName}`);
+  });
+
+  test('Verify that I can create a private location event in a clan', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64056',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully create a new private location event within a clan.
+    **Test Steps:**
+      1. Create a private text channel in clan
+      2. Create new private location event
+      3. Verify event appears in event list
+    **Expected Result:**Private Location event is created and visible in the clan's event list.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['event-creation', 'Private-event', 'location-event'],
+    });
+
+    const clanPage = new ClanPageV2(page);
+    const unique = Date.now().toString(36).slice(-6);
+    const textChannelName = `ptc-${unique}`.slice(0, 20);
+    const locationName = `location name - ${unique}`;
+
+    await AllureReporter.addParameter('textChannelName', textChannelName);
+    await AllureReporter.addParameter('textChannelType', ChannelType.TEXT);
+    await AllureReporter.addParameter('textChannelStatus', ChannelStatus.PRIVATE);
+
+    await AllureReporter.step(`Create new private text channel: ${textChannelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, textChannelName, ChannelStatus.PRIVATE);
+    });
+
+    await AllureReporter.step('Verify channel is present in channel list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(textChannelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    let res: {
+      eventTopic: string;
+      description?: string;
+      startDate: string;
+      startTime: string;
+    };
+
+    await AllureReporter.step(`Create new private location event in clan:`, async () => {
+      await clanPage.addDataOnLocationTab(
+        EventType.LOCATION,
+        locationName,
+        ClanStatus.PRIVATE,
+        textChannelName
+      );
+      res = await clanPage.addDataOnEventInfoTab();
+
+      const data = {
+        ...res,
+        locationName,
+        eventType: EventType.LOCATION,
+        clanStatus: ClanStatus.PRIVATE,
+        textChannelName,
+      };
+      await clanPage.verifyDataOnReviewTab(data);
+      await clanPage.eventModal.createEventButton.click();
+      await clanPage.waitForModalToBeHidden();
+    });
+
+    await AllureReporter.step('Verify event is present in event list', async () => {
+      const isCreatedEvent = await clanPage.verifyLastEventData({
+        eventTopic: res.eventTopic,
+        description: res.description,
+        voiceChannelName: locationName,
+        startTime: `${res.startDate} - ${res.startTime}`,
+        clanStatus: ClanStatus.PRIVATE,
+        eventType: EventType.LOCATION,
+        textChannelName,
+      });
+      expect(isCreatedEvent).toBeTruthy();
+    });
+
+    await AllureReporter.step(
+      'Verify event information is match in event dertail modal',
+      async () => {
+        const isCreatedEvent = await clanPage.verifyInEventDetailModal({
+          eventTopic: res.eventTopic,
+          description: res.description,
+          channelName: locationName,
+          startTime: `${res.startDate} - ${res.startTime}`,
+        });
+        expect(isCreatedEvent).toBeTruthy();
+        await clanPage.createEventModal.button.closeDetailModal.click();
+        await clanPage.createEventModal.button.closeContainerModal.click();
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, `Private location Event Created - ${locationName}`);
+  });
+
+  test('Verify that I can create a private event in a clan', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64056',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully create a new private event within a clan.
+    **Test Steps:**
+      1. Create new private event
+      2. Verify event appears in event list
+    **Expected Result:**Private event is created and visible in the clan's event list.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['event-creation', 'Private-event'],
+    });
+
+    const clanPage = new ClanPageV2(page);
+
+    let res: {
+      eventTopic: string;
+      description?: string;
+      startDate: string;
+      startTime: string;
+    };
+
+    await AllureReporter.step(`Create new private location event in clan:`, async () => {
+      await clanPage.addDataOnLocationTab(EventType.PRIVATE);
+      res = await clanPage.addDataOnEventInfoTab();
+
+      const data = {
+        ...res,
+        eventType: EventType.PRIVATE,
+      };
+      await clanPage.verifyDataOnReviewTab(data);
+      await clanPage.eventModal.createEventButton.click();
+      await clanPage.waitForModalToBeHidden();
+    });
+
+    await AllureReporter.step('Verify event is present in event list', async () => {
+      const isCreatedEvent = await clanPage.verifyLastEventData({
+        eventTopic: res.eventTopic,
+        description: res.description,
+        startTime: `${res.startDate} - ${res.startTime}`,
+        eventType: EventType.PRIVATE,
+      });
+      expect(isCreatedEvent).toBeTruthy();
+    });
+
+    await AllureReporter.step(
+      'Verify event information is match in event dertail modal',
+      async () => {
+        const isCreatedEvent = await clanPage.verifyInEventDetailModal({
+          eventTopic: res.eventTopic,
+          description: res.description,
+          startTime: `${res.startDate} - ${res.startTime}`,
+        });
+        expect(isCreatedEvent).toBeTruthy();
+        await clanPage.createEventModal.button.closeDetailModal.click();
+        await clanPage.createEventModal.button.closeContainerModal.click();
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, `Private Event Created`);
   });
 });
