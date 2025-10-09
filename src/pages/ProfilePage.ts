@@ -29,6 +29,9 @@ export class ProfilePage extends BasePage {
     applyImageAvatar: this.page.locator(
       generateE2eSelector('user_setting.profile.user_profile.upload.avatar_input.apply_button')
     ),
+    closeSettingProfile: this.page.locator(
+      generateE2eSelector('user_setting.account.exit_setting')
+    ),
   };
 
   readonly accountPage = {
