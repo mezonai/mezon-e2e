@@ -56,9 +56,8 @@ test.describe('Direct Message', () => {
       **Test Objective:** Verify that a user can successfully create a new direct message conversation.
 
       **Test Steps:**
-      1. Count existing users before creating DM
-      2. Create a new direct message
-      3. Verify the direct message is created
+      1. Create a new direct message
+      2. Verify the direct message is created
 
       **Expected Result:** Direct message should be successfully created and user count should increase.
     `);
@@ -68,21 +67,13 @@ test.describe('Direct Message', () => {
     });
 
     const messagePage = new MessagePage(page);
-    const helpers = new DirectMessageHelper(page);
 
-    const prevUsersCount = await AllureReporter.step('Get initial user count', async () => {
-      return await helpers.countUsers();
-    });
+    await AllureReporter.step('Verify that i can open a DM', async () => {
+      const firstUser = await messagePage.createDM();
+      await expect(messagePage.groupName).toBeVisible({ timeout: 5000 });
+      const groupNameText = (await messagePage.groupName.innerText()).trim();
 
-    await AllureReporter.addParameter('initialUserCount', prevUsersCount);
-
-    await AllureReporter.step('Create direct message', async () => {
-      await messagePage.createDM();
-    });
-
-    await AllureReporter.step('Verify direct message is created', async () => {
-      const DMCreated = await messagePage.isDMCreated();
-      expect(DMCreated).toBe(true);
+      expect(groupNameText).toBe(firstUser);
     });
 
     await AllureReporter.attachScreenshot(page, 'Direct Message Created');
@@ -191,15 +182,8 @@ test.describe('Direct Message', () => {
       username = firstUser;
       await expect(messagePage.groupName).toBeVisible({ timeout: 5000 });
       const groupNameText = (await messagePage.groupName.innerText()).trim();
-      const normalize = (str: string) =>
-        str
-          .normalize('NFKC')
-          .replace(/\s+/g, ' ')
-          .replace(/\u00A0/g, ' ')
-          .replace(/\u200B/g, '')
-          .trim();
 
-      expect(normalize(groupNameText)).toBe(normalize(firstUser));
+      expect(groupNameText).toBe(firstUser);
     });
 
     await AllureReporter.step(`Close direct message`, async () => {

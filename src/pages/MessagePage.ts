@@ -289,8 +289,6 @@ export class MessagePage {
       })
       .first();
 
-    console.log(user);
-
     await expect(user).toBeVisible({ timeout: 5000 });
     await user.hover();
     const closeBtn = user.locator(
