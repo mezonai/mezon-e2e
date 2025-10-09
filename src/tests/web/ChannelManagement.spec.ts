@@ -55,7 +55,7 @@ test.describe('Channel Management', () => {
     await AuthHelper.logout(page);
   });
 
-  test.only('Verify that I can create a new private text channel', async ({ page }) => {
+  test('Verify that I can create a new private text channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63916',
     });

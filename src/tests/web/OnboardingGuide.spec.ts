@@ -10,6 +10,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import { expect, test } from '@playwright/test';
 
 test.describe('Onboarding Guide Task Completion', () => {
@@ -58,58 +59,58 @@ test.describe('Onboarding Guide Task Completion', () => {
     await AuthHelper.logout(page);
   });
 
-  // test('should mark "Send first message" task as done after user sends first message', async ({
-  //   page,
-  // }) => {
-  //   await AllureReporter.addTestParameters({
-  //     testType: AllureConfig.TestTypes.E2E,
-  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
-  //     severity: AllureConfig.Severity.CRITICAL,
-  //   });
+  test('should mark "Send first message" task as done after user sends first message', async ({
+    page,
+  }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
 
-  //   await AllureReporter.addDescription(`
-  //     **Test Objective:** Verify that the onboarding guide correctly marks the "Send first message" task as completed after a user sends their first message.
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that the onboarding guide correctly marks the "Send first message" task as completed after a user sends their first message.
 
-  //     **Test Steps:**
-  //     1. Ensure onboarding guide is visible
-  //     2. Send a test message in the current channel
-  //     3. Verify the "Send first message" task is marked as done (green tick)
+      **Test Steps:**
+      1. Ensure onboarding guide is visible
+      2. Send a test message in the current channel
+      3. Verify the "Send first message" task is marked as done (green tick)
 
-  //     **Expected Result:** The "Send first message" task should show as completed with a green checkmark after the user sends their first message.
-  //   `);
+      **Expected Result:** The "Send first message" task should show as completed with a green checkmark after the user sends their first message.
+    `);
 
-  //   await AllureReporter.addLabels({
-  //     tag: ['onboarding', 'first-message', 'task-completion', 'user-guidance'],
-  //   });
+    await AllureReporter.addLabels({
+      tag: ['onboarding', 'first-message', 'task-completion', 'user-guidance'],
+    });
 
-  //   const helpers = new OnboardingHelpers(page);
+    const helpers = new OnboardingHelpers(page);
 
-  //   await AllureReporter.step('Ensure onboarding guide is visible', async () => {
-  //     await helpers.ensureOnboardingGuideVisible();
-  //   });
+    await AllureReporter.step('Ensure onboarding guide is visible', async () => {
+      await helpers.ensureOnboardingGuideVisible();
+    });
 
-  //   await AllureReporter.step('Send first message', async () => {
-  //     const { sent } = await helpers.sendTestMessage();
-  //     expect(sent).toBe(true);
-  //     await AllureReporter.addParameter('messageSent', sent);
-  //   });
+    await AllureReporter.step('Send first message', async () => {
+      const { sent } = await helpers.sendTestMessage();
+      expect(sent).toBe(true);
+      await AllureReporter.addParameter('messageSent', sent);
+    });
 
-  //   await AllureReporter.step('Verify "Send first message" task is marked as done', async () => {
-  //     const isTaskMarkedDone = await helpers.waitForTaskCompletion(
-  //       OnboardingTask.SEND_FIRST_MESSAGE
-  //     );
-  //     expect(
-  //       isTaskMarkedDone,
-  //       'The "Send first message" task should be marked as done (green tick) after user sends first message'
-  //     ).toBe(true);
-  //     await AllureReporter.addParameter(
-  //       'taskCompletionStatus',
-  //       isTaskMarkedDone ? 'Completed' : 'Not Completed'
-  //     );
-  //   });
+    await AllureReporter.step('Verify "Send first message" task is marked as done', async () => {
+      const isTaskMarkedDone = await helpers.waitForTaskCompletion(
+        OnboardingTask.SEND_FIRST_MESSAGE
+      );
+      expect(
+        isTaskMarkedDone,
+        'The "Send first message" task should be marked as done (green tick) after user sends first message'
+      ).toBe(true);
+      await AllureReporter.addParameter(
+        'taskCompletionStatus',
+        isTaskMarkedDone ? 'Completed' : 'Not Completed'
+      );
+    });
 
-  //   await AllureReporter.attachScreenshot(page, 'Send First Message Task Completed');
-  // });
+    await AllureReporter.attachScreenshot(page, 'Send First Message Task Completed');
+  });
 
   test('should mark "Create channel" task as done after user creates a channel', async ({
     page,
