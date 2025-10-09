@@ -1,6 +1,6 @@
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 
 export class MessagePage {
   private helpers: DirectMessageHelper;
@@ -17,7 +17,6 @@ export class MessagePage {
   readonly addToGroupButton: Locator;
   readonly sumMember: Locator;
   readonly memberCount: Locator;
-  readonly firsrDMUserName: Locator;
   readonly closeFirstDMButton: Locator;
   readonly firstUserAddDM: Locator;
   readonly firstUserNameAddDM: Locator;
@@ -44,6 +43,7 @@ export class MessagePage {
   readonly welcomeDMAvatar: Locator;
   readonly headerDMAvatar: Locator;
   readonly headerUserProfileButton: Locator;
+  readonly groupName: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -86,9 +86,6 @@ export class MessagePage {
     this.sumMember = page.locator(generateE2eSelector('chat.direct_message.member_list.button'));
     this.memberCount = page.locator(
       generateE2eSelector('chat.direct_message.member_list.member_count')
-    );
-    this.firsrDMUserName = this.user.locator(
-      generateE2eSelector('chat.direct_message.chat_item.username')
     );
     this.closeFirstDMButton = this.user.locator(
       generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
@@ -154,20 +151,19 @@ export class MessagePage {
     this.headerUserProfileButton = this.page.locator(
       `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
     );
+    this.groupName = page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
   }
 
-  async createDM(): Promise<void> {
+  async createDM(): Promise<string> {
     try {
       await this.buttonCreateGroupSidebar.click();
 
-      const firstUser = this.page.locator('.bg-item-theme').first();
-      await firstUser.waitFor({ state: 'visible', timeout: 5000 });
-
-      this.firstUserNameText = (await firstUser.textContent())?.trim().split(/\s+/)[0] ?? '';
-      await firstUser.click();
-      await firstUser.waitFor({ state: 'visible', timeout: 2000 });
-
+      const firstUser = (await this.userNameItem.first().innerText()).trim();
+      await this.userItem.hover();
+      await this.userItem.click();
       await this.createGroupButton.click();
+
+      return firstUser;
     } catch (error) {
       console.error('Error creating DM:', error);
       throw error;
@@ -282,23 +278,48 @@ export class MessagePage {
     return !!this.userNameItemText && names.some(n => n.includes(this.userNameItemText));
   }
 
-  async closeDM(): Promise<void> {
-    await this.user.hover();
-    await this.closeFirstDMButton.click({ force: true });
+  async closeDM(username: string): Promise<void> {
+    const user = await this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+      .filter({
+        hasNot: this.page.locator('p', { hasText: 'Members' }),
+        has: this.page.locator('span', {
+          hasText: username,
+        }),
+      })
+      .first();
+
+    console.log(user);
+
+    await expect(user).toBeVisible({ timeout: 5000 });
+    await user.hover();
+    const closeBtn = user.locator(
+      generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+    );
+    await expect(closeBtn).toBeVisible({ timeout: 3000 });
+    await closeBtn.click({ force: true });
   }
 
-  async isDMClosed(prevUserCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
-
-    const currentUserCount = await this.helpers.countUsers();
-
-    return currentUserCount === 0 || currentUserCount === prevUserCount - 1;
+  async isDMClosed(username: string): Promise<boolean> {
+    const count = await this.userNamesInDM.count();
+    for (let i = 0; i < count; i++) {
+      const text = (await this.userNamesInDM.nth(i).innerText()).trim();
+      if (text === username) {
+        return false;
+      }
+    }
+    return true;
   }
 
-  async leaveGroupByXBtn(): Promise<void> {
+  async leaveGroupByXBtn(): Promise<string> {
+    const rawText = await this.helpers.group.innerText();
+    const groupName = rawText.split('\n')[0].trim();
+
     await this.helpers.group.hover();
     await this.leaveGroupButton.click({ force: true });
     await this.confirmLeaveGroupButton.click();
+
+    return groupName;
   }
 
   async leaveGroupByLeaveGroupBtn(): Promise<void> {
@@ -325,12 +346,15 @@ export class MessagePage {
     return dmItem.filter({ hasText: friendName }).first();
   }
 
-  async isLeavedGroup(prevGroupCount: number): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
-
-    const currentGroupCount = await this.helpers.countGroups();
-
-    return currentGroupCount === prevGroupCount - 1;
+  async isLeavedGroup(groupName: string): Promise<boolean> {
+    const count = await this.userNamesInDM.count();
+    for (let i = 0; i < count; i++) {
+      const text = (await this.userNamesInDM.nth(i).innerText()).trim();
+      if (text === groupName) {
+        return false;
+      }
+    }
+    return true;
   }
 
   async sendMessage(message: string): Promise<void> {
