@@ -1,12 +1,12 @@
-import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
+import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, Locator, Page } from '@playwright/test';
+import { EventType } from './../types/clan-page.types';
 import { DirectMessageHelper } from './../utils/directMessageHelper';
 import { BasePage } from './BasePage';
 import { CategoryPage } from './CategoryPage';
 import { CategorySettingPage } from './CategorySettingPage';
-import { profile } from 'console';
 
 export class ClanPageV2 extends BasePage {
   constructor(page: Page) {
@@ -109,6 +109,128 @@ export class ClanPageV2 extends BasePage {
         generateE2eSelector('clan_page.modal.create_channel.button.cancel')
       ),
     },
+  };
+
+  public createEventModal = {
+    modal: this.page.locator(generateE2eSelector('clan_page.modal.create_event')),
+    modalStart: this.page.locator(generateE2eSelector('clan_page.modal.create_event.start_modal')),
+    type: {
+      voice: this.page.locator(generateE2eSelector('clan_page.modal.create_event.location.type'), {
+        hasText: 'Voice Channel',
+      }),
+      location: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.location.type'),
+        {
+          hasText: 'Somewhere else',
+        }
+      ),
+      private: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.location.type'),
+        {
+          hasText: 'Create Private Event',
+        }
+      ),
+    },
+    input: {
+      eventTopic: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.event_info.input.event_topic')
+      ),
+      startDateInput: this.page.locator(`
+        ${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_date')} 
+        div.react-datepicker-wrapper 
+        div.react-datepicker__input-container 
+        input
+      `),
+      startTime: this.page.locator(
+        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_time')} select`
+      ),
+      endDate: this.page.locator(
+        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_date')} 
+        div.react-datepicker-wrapper 
+        div.react-datepicker__input-container 
+        input`
+      ),
+      endTime: this.page.locator(
+        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_time')} select`
+      ),
+      description: this.page.locator(
+        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.description')} div textarea`
+      ),
+      locationName: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.location.input')
+      ),
+    },
+    selectChannel: this.page.locator(
+      `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select channel")`
+    ),
+    channelItem: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.location.channel.item')
+    ),
+    startTimeReview: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.review.start_time')
+    ),
+    typeClanReview: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.review.type')
+    ),
+    eventTopicReview: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.review.event_topic')
+    ),
+    descriptionReview: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.review.description')
+    ),
+    voiceChannelReview: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.review.voice_channel')
+    ),
+    textChannelReview: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.review.text_channel')
+    ),
+    locationNameReview: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.review.location_name')
+    ),
+    eventManagementItem: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.event_management.item')
+    ),
+    openEventDetailModalButton: this.page.locator(
+      generateE2eSelector(
+        'clan_page.modal.create_event.event_management.item.button.open_detail_modal'
+      )
+    ),
+    button: {
+      closeContainerModal: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.button_close')
+      ),
+      closeDetailModal: this.page.locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.button.close_detail_modal'
+        )
+      ),
+    },
+  };
+
+  public eventDetailModal = {
+    modal: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.event_management.item.modal_detail_item')
+    ),
+    startDateTime: this.page.locator(
+      generateE2eSelector(
+        'clan_page.modal.create_event.event_management.item.modal_detail_item.start_date_time'
+      )
+    ),
+    topic: this.page.locator(
+      generateE2eSelector(
+        'clan_page.modal.create_event.event_management.item.modal_detail_item.topic'
+      )
+    ),
+    channelName: this.page.locator(
+      generateE2eSelector(
+        'clan_page.modal.create_event.event_management.item.modal_detail_item.channel_name'
+      )
+    ),
+    description: this.page.locator(
+      generateE2eSelector(
+        'clan_page.modal.create_event.event_management.item.modal_detail_item.description'
+      )
+    ),
   };
 
   private input = {
@@ -483,5 +605,291 @@ export class ClanPageV2 extends BasePage {
       console.error(`Error clicking invite people:`, error);
       return false;
     }
+  }
+
+  async addDataOnLocationTab(
+    eventType: EventType,
+    voiceChannelName?: string,
+    status?: ClanStatus,
+    textChannelName?: string
+  ): Promise<boolean> {
+    try {
+      await this.buttons.eventButton.click();
+      await this.createEventModal.modalStart.waitFor({ state: 'visible', timeout: 5000 });
+
+      await this.eventModal.createEventButton.click();
+
+      switch (eventType) {
+        case EventType.LOCATION:
+          await this.createEventModal.type.location.click();
+          break;
+        case EventType.VOICE:
+          await this.createEventModal.type.voice.click();
+          break;
+        case EventType.PRIVATE:
+          await this.createEventModal.type.private.click();
+          break;
+      }
+      if (voiceChannelName) {
+        if (eventType === EventType.VOICE) {
+          await this.createEventModal.selectChannel.first().click();
+          const channelItem = this.createEventModal.channelItem.filter({
+            hasText: voiceChannelName,
+          });
+          await channelItem.click();
+        } else if (eventType === EventType.LOCATION) {
+          await this.createEventModal.input.locationName.fill(voiceChannelName);
+        }
+      }
+
+      if (status === ClanStatus.PRIVATE) {
+        await this.createEventModal.selectChannel.last().click({ force: true });
+        const channelItem = this.createEventModal.channelItem.filter({ hasText: textChannelName });
+        await channelItem.click();
+      }
+
+      await this.eventModal.nextButton.click();
+
+      return true;
+    } catch (error) {
+      console.error(`Error creating channel: ${error}`);
+      return false;
+    }
+  }
+
+  async formatDateTimeFromInputs(startDate: string, startTime: string, locale = 'en-US') {
+    const [day, month, year] = startDate.split('/');
+    const [hour, minute] = startTime.split(':');
+
+    const rawDate = new Date(
+      Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute))
+    );
+
+    const dateFormatter = new Intl.DateTimeFormat(locale, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+
+    const timeFormatter = new Intl.DateTimeFormat(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'UTC',
+    });
+
+    const datePart = dateFormatter.format(rawDate);
+    const timePart = timeFormatter.format(rawDate);
+
+    return { formattedDate: datePart, formattedTime: timePart };
+  }
+
+  async addDataOnEventInfoTab(): Promise<{
+    eventTopic: string;
+    description?: string;
+    startDate: string;
+    startTime: string;
+  }> {
+    try {
+      const eventTopic = `E2E event ${Date.now()}`;
+      const description = `This is an event created during E2E tests ${Date.now()}`;
+      const startDate = await this.createEventModal.input.startDateInput.inputValue();
+      const startTime = await this.createEventModal.input.startTime.inputValue();
+
+      const { formattedDate, formattedTime } = await this.formatDateTimeFromInputs(
+        startDate,
+        startTime
+      );
+      await this.createEventModal.input.eventTopic.fill(eventTopic);
+      await this.createEventModal.input.description.fill(description);
+
+      await this.eventModal.nextButton.click();
+
+      return {
+        eventTopic,
+        description,
+        startDate: formattedDate,
+        startTime: formattedTime,
+      };
+    } catch (error) {
+      console.error(`Error adding data on event info tab: ${error}`);
+      return { eventTopic: '', description: '', startDate: '', startTime: '' };
+    }
+  }
+
+  async verifyDataOnReviewTab(data: {
+    eventTopic: string;
+    description?: string;
+    startDate: string;
+    startTime: string;
+    voiceChannelName?: string;
+    eventType?: EventType;
+    clanStatus?: ClanStatus;
+    textChannelName?: string;
+  }): Promise<boolean> {
+    try {
+      const { eventTopic, description, startDate, startTime, voiceChannelName, textChannelName } =
+        data;
+
+      const eventTopicLocator = this.createEventModal.eventTopicReview;
+      await expect(eventTopicLocator).toHaveText(eventTopic);
+
+      if (description) {
+        const descriptionLocator = this.createEventModal.descriptionReview;
+        await expect(descriptionLocator).toHaveText(description);
+      }
+
+      const startDateTime = `${startDate} - ${startTime}`;
+      const startDateTimeLocator = this.createEventModal.startTimeReview;
+      await expect(startDateTimeLocator).toHaveText(startDateTime);
+      const typeClanLocator = this.createEventModal.typeClanReview;
+      if (data.eventType === EventType.VOICE || data.eventType === EventType.LOCATION) {
+        if (data.clanStatus === ClanStatus.PUBLIC) {
+          await expect(typeClanLocator).toHaveText('Clan Event');
+        } else if (data.clanStatus === ClanStatus.PRIVATE) {
+          await expect(typeClanLocator).toHaveText('Channel Event');
+        }
+      } else if (data.eventType === EventType.PRIVATE) {
+        await expect(typeClanLocator).toHaveText('Private Event');
+      }
+
+      if (voiceChannelName) {
+        if (data.eventType === EventType.VOICE) {
+          const voiceChannelLocator = this.createEventModal.voiceChannelReview;
+          await expect(voiceChannelLocator).toHaveText(voiceChannelName);
+        } else if (data.eventType === EventType.LOCATION) {
+          const locationNameLocator = this.createEventModal.locationNameReview;
+          await expect(locationNameLocator).toHaveText(voiceChannelName);
+        }
+      }
+
+      if (data.clanStatus === ClanStatus.PRIVATE && textChannelName) {
+        const textChannelLocator = this.createEventModal.textChannelReview;
+        await expect(textChannelLocator).toHaveText(textChannelName);
+      }
+      return true;
+    } catch (error) {
+      console.error(`Error verifying data on review tab: ${error}`);
+      return false;
+    }
+  }
+
+  async waitForModalToBeHidden(): Promise<void> {
+    await this.createEventModal.modal.waitFor({ state: 'hidden', timeout: 5000 });
+  }
+
+  async getLastEventData(eventType: EventType) {
+    await this.buttons.eventButton.click();
+    await this.createEventModal.modalStart.waitFor({ state: 'visible', timeout: 5000 });
+
+    const lastEvent = this.createEventModal.eventManagementItem.last();
+    await lastEvent.waitFor({ state: 'visible', timeout: 5000 });
+
+    const startTime = await lastEvent.locator(this.createEventModal.startTimeReview).textContent();
+    const type = await lastEvent.locator(this.createEventModal.typeClanReview).textContent();
+    const topic = await lastEvent.locator(this.createEventModal.eventTopicReview).textContent();
+    const description = await lastEvent
+      .locator(this.createEventModal.descriptionReview)
+      .textContent();
+    const voiceChannel =
+      eventType === EventType.VOICE
+        ? ((
+            await lastEvent
+              .locator(this.createEventModal.voiceChannelReview)
+              .textContent()
+              .catch(() => null)
+          )?.trim() ?? '')
+        : eventType === EventType.LOCATION
+          ? ((
+              await lastEvent
+                .locator(this.createEventModal.locationNameReview)
+                .textContent()
+                .catch(() => null)
+            )?.trim() ?? '')
+          : '';
+
+    const textChannelLocator = lastEvent.locator(this.createEventModal.textChannelReview);
+    const hasTextChannel = (await textChannelLocator.count()) > 0;
+
+    const textChannel = hasTextChannel ? (await textChannelLocator.textContent())?.trim() : '';
+
+    return {
+      startTime: startTime?.trim(),
+      type: type?.trim(),
+      topic: topic?.trim(),
+      description: description?.trim(),
+      voiceChannel: voiceChannel?.trim(),
+      textChannel,
+    };
+  }
+
+  async verifyLastEventData(expected: {
+    eventTopic: string;
+    description?: string;
+    voiceChannelName?: string;
+    textChannelName?: string;
+    startTime?: string;
+    clanStatus?: ClanStatus;
+    eventType: EventType;
+  }): Promise<boolean> {
+    const lastEvent = await this.getLastEventData(expected.eventType);
+
+    await expect(lastEvent.topic).toBe(expected.eventTopic);
+
+    if (expected.description) {
+      await expect(lastEvent.description).toBe(expected.description);
+    }
+
+    if (expected.voiceChannelName) {
+      await expect(lastEvent.voiceChannel).toBe(expected.voiceChannelName);
+    }
+
+    if (expected.textChannelName && expected.clanStatus === ClanStatus.PRIVATE) {
+      await expect(lastEvent.textChannel).toBe(expected.textChannelName);
+    }
+
+    if (expected.startTime) {
+      await expect(lastEvent.startTime).toBe(expected.startTime);
+    }
+
+    const typeClanLocator = lastEvent.type;
+    if (expected.eventType === EventType.VOICE || expected.eventType === EventType.LOCATION) {
+      if (expected.clanStatus === ClanStatus.PUBLIC) {
+        await expect(typeClanLocator).toBe('Clan Event');
+      } else if (expected.clanStatus === ClanStatus.PRIVATE) {
+        await expect(typeClanLocator).toBe('Channel Event');
+      }
+    } else if (expected.eventType === EventType.PRIVATE) {
+      await expect(typeClanLocator).toBe('Private Event');
+    }
+
+    return true;
+  }
+  async verifyInEventDetailModal(expected: {
+    eventTopic: string;
+    description?: string;
+    channelName?: string;
+    startTime: string;
+  }): Promise<boolean> {
+    await this.createEventModal.openEventDetailModalButton.last().click();
+    await this.eventDetailModal.modal.waitFor({ state: 'visible', timeout: 5000 });
+
+    const topic = this.eventDetailModal.topic;
+    await expect(topic).toHaveText(expected.eventTopic);
+
+    if (expected.description) {
+      const description = this.eventDetailModal.description;
+      await expect(description).toHaveText(expected.description);
+    }
+
+    if (expected.channelName) {
+      const channelName = this.eventDetailModal.channelName;
+      await expect(channelName).toHaveText(expected.channelName);
+    }
+
+    const startDateTime = this.eventDetailModal.startDateTime;
+    await expect(startDateTime).toHaveText(expected.startTime);
+    return true;
   }
 }

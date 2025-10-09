@@ -163,10 +163,57 @@ export const DATA_E2E_IDENTIFIER = {
         title: '',
       },
       create_event: {
+        start_modal: '',
         button_create: '',
+        button_close: '',
         next: '',
         upload: {
           image_cover_input: '',
+        },
+        location: {
+          type: '',
+          channel: {
+            item: '',
+          },
+          input: '',
+        },
+        event_info: {
+          input: {
+            event_topic: '',
+            start_date: '',
+            start_time: '',
+            end_date: '',
+            end_time: '',
+            event_frequency: '',
+            description: '',
+          },
+        },
+        review: {
+          type: {
+            clan: '',
+            channel: '',
+            private: '',
+          },
+          start_time: '',
+          event_topic: '',
+          description: '',
+          voice_channel: '',
+          text_channel: '',
+          location_name: '',
+        },
+        event_management: {
+          item: {
+            modal_detail_item: {
+              start_date_time: '',
+              topic: '',
+              channel_name: '',
+              description: '',
+            },
+            button: {
+              open_detail_modal: '',
+              close_detail_modal: '',
+            },
+          },
         },
       },
       invite_people: {
@@ -457,7 +504,7 @@ export const DATA_E2E_IDENTIFIER = {
         button_save_changes: '',
       },
     },
-    logout: ''
+    logout: '',
   },
   common: {
     friend_list: {
