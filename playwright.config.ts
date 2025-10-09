@@ -72,12 +72,12 @@ export default defineConfig({
       testIgnore: [
         /dual-users-.*\.spec\.ts/,
         /CleanUp\.spec\.ts/,
-        /ChannelMessage_1\.spec\.ts/,
-        /ChannelMessage_2\.spec\.ts/,
-        /ChannelMessage_3\.spec\.ts/,
-        /ChannelMessage_4\.spec\.ts/,
-        /ChannelMessage_5\.spec\.ts/,
-        /uploadFile\.spec\.ts/,
+        // /ChannelMessage_1\.spec\.ts/,
+        // /ChannelMessage_2\.spec\.ts/,
+        // /ChannelMessage_3\.spec\.ts/,
+        // /ChannelMessage_4\.spec\.ts/,
+        // /ChannelMessage_5\.spec\.ts/,
+        // /uploadFile\.spec\.ts/,
       ],
       use: {
         ...devices['Desktop Chrome'],

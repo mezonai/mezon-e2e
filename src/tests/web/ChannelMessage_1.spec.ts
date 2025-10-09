@@ -2,11 +2,13 @@ import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { expect, test } from '@playwright/test';
+import { expect, test as base, Page } from '@playwright/test';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../config/environment';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
 
 import { MessageTestHelpers } from '../../utils/messageHelpers';
+import { ClanFactory } from '@/data/factories/ClanFactory';
+import { splitDomainAndPath } from '@/utils/domain';
 
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
@@ -14,81 +16,46 @@ interface NavigationHelpers {
   navigateToClanChannel(): Promise<void>;
 }
 
-test.describe('Channel Message - Module 1', () => {
-  let messageHelpers: MessageTestHelpers;
-  let clanSetupHelper: ClanSetupHelper;
-  let testClanName: string;
-  let testClanUrl: string;
-  const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
-
-  test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(page, {
-      email: AccountCredentials.account1.email,
-      password: AccountCredentials.account1.password,
+const test = base.extend<{
+  pageWithClipboard: Page;
+}>({
+  pageWithClipboard: async ({ browser }, use) => {
+    const context = await browser.newContext({
+      permissions: ['clipboard-read', 'clipboard-write'],
+      baseURL: WEBSITE_CONFIGS.MEZON.baseURL,
     });
+    const pageWithClipboard = await context.newPage();
+    await use(pageWithClipboard);
+    await context.close();
+  },
+});
 
-    const setupResult = await clanSetupHelper.setupTestClan(
-      {
-        clanNamePrefix: ClanSetupHelper.configs.channelMessage1.clanNamePrefix,
-        suiteName: ClanSetupHelper.configs.channelMessage1.suiteName,
-      },
-      page
+test.describe('Channel Message - Module 1', () => {
+  let clanPath: string;
+  const clanFactory = new ClanFactory();
+
+  test.beforeEach(async ({ pageWithClipboard }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63366',
+    });
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      pageWithClipboard,
+      AccountCredentials.account2
     );
 
-    testClanName = setupResult.clanName;
-    testClanUrl = setupResult.clanUrl;
-  });
+    if (!clanPath) {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageWithClipboard);
+      clanPath = splitDomainAndPath(clanFactory.getClanUrl()).path;
 
-  test.afterAll(async () => {
-    if (clanSetupHelper && testClanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(testClanName, testClanUrl, AccountCredentials.account1);
+      clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPath));
     }
-  });
+    await AuthHelper.prepareBeforeTest(pageWithClipboard, clanFactory.getClanUrl(), credentials);
 
-  const createNavigationHelpers = (page: any): NavigationHelpers => ({
-    async navigateToHomePage(): Promise<void> {
-      await page.goto(MEZON_BASE_URL);
-      await page.waitForLoadState('domcontentloaded');
-    },
-
-    async navigateToDirectChat(): Promise<void> {
-      const directFriendsUrl = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/friends');
-      await page.goto(directFriendsUrl);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    },
-
-    async navigateToClanChannel(): Promise<void> {
-      // Use the dynamically created clan URL
-      await page.goto(testClanUrl);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    },
-  });
-
-  test.beforeEach(async ({ page, context }, testInfo) => {
-    await AllureReporter.initializeTest(page, testInfo, {
-      story: AllureConfig.Stories.TEXT_MESSAGING,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
-
-    await AllureReporter.addWorkItemLinks({
-      tms: '63368',
-    });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-
-    await AuthHelper.prepareBeforeTest(page, testClanUrl, AccountCredentials.account1);
-
-    messageHelpers = new MessageTestHelpers(page);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
   });
 
   test('Click into an image in the message and copy from detail', async ({ page }) => {
+    const messageHelper = new MessageTestHelpers(page);
     await AllureReporter.addWorkItemLinks({
       tms: '63389',
     });
@@ -117,7 +84,7 @@ test.describe('Channel Message - Module 1', () => {
     });
 
     const initialImageCount = await AllureReporter.step('Count initial images', async () => {
-      return await messageHelpers.countImages();
+      return await messageHelper.countImages();
     });
 
     if (initialImageCount === 0) {
@@ -126,26 +93,26 @@ test.describe('Channel Message - Module 1', () => {
     }
 
     const targetImage = await AllureReporter.step('Find target image', async () => {
-      return await messageHelpers.findImage();
+      return await messageHelper.findImage();
     });
 
     const { imageToRightClick } = await AllureReporter.step(
       'Click image and handle modal',
       async () => {
-        return await messageHelpers.clickImageAndHandleModal(targetImage);
+        return await messageHelper.clickImageAndHandleModal(targetImage);
       }
     );
 
     await AllureReporter.step('Copy image from detail view', async () => {
-      await messageHelpers.copyImage(imageToRightClick);
+      await messageHelper.copyImage(imageToRightClick);
     });
 
     await AllureReporter.step('Close modal', async () => {
-      await messageHelpers.closeModal();
+      await messageHelper.closeModal();
     });
 
     await AllureReporter.step('Paste and send image', async () => {
-      await messageHelpers.pasteAndSendImage();
+      await messageHelper.pasteAndSendImage();
     });
 
     await AllureReporter.step('Verify pasted image is visible', async () => {
@@ -156,83 +123,85 @@ test.describe('Channel Message - Module 1', () => {
   });
 
   test('Copy image from context menu outside the message', async ({ page }) => {
-    const initialImageCount = await messageHelpers.countImages();
+    const messageHelper = new MessageTestHelpers(page);
+    const initialImageCount = await messageHelper.countImages();
     if (initialImageCount === 0) {
       return;
     }
-    const targetImage = await messageHelpers.findImage();
-    await messageHelpers.copyImage(targetImage);
-    await messageHelpers.pasteAndSendImage();
+    const targetImage = await messageHelper.findImage();
+    await messageHelper.copyImage(targetImage);
+    await messageHelper.pasteAndSendImage();
     await expect(page.locator('img[src*="blob:"]').last()).toBeVisible();
   });
 
-  test('Copy message text and send it', async ({ page }) => {
+  test('Copy message text and send it', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63390',
     });
 
+    const messageHelper = new MessageTestHelpers(pageWithClipboard);
+
     const testMessage = `Test message ${Date.now()}`;
-    await messageHelpers.sendTextMessage(testMessage);
+    await messageHelper.sendTextMessage(testMessage);
 
-    const targetMessage = await messageHelpers.findLastMessage();
+    const targetMessage = await messageHelper.findLastMessage();
 
-    const copiedText = await messageHelpers.copyText(targetMessage);
+    const copiedText = await messageHelper.copyText(targetMessage);
     expect(copiedText).toBeTruthy();
     expect(copiedText.trim().length).toBeGreaterThan(0);
     expect(copiedText).toContain('Test message');
 
     const pastedText = copiedText || 'Pasted message from clipboard';
-    await messageHelpers.sendTextMessage(pastedText);
+    await messageHelper.sendTextMessage(pastedText);
 
-    await expect(page.locator(`text="${pastedText}"`).first()).toBeVisible();
+    await expect(pageWithClipboard.locator(`text="${pastedText}"`).first()).toBeVisible();
   });
 
-  test('Create topic discussion thread from message', async ({ page }) => {
+  test('Create topic discussion thread from message', async ({ pageWithClipboard }) => {
+    const messageHelper = new MessageTestHelpers(pageWithClipboard);
     await AllureReporter.addWorkItemLinks({
       tms: '63391',
     });
 
-    messageHelpers = new MessageTestHelpers(page);
-
-    const initialMessageCount = await messageHelpers.countMessages();
+    const initialMessageCount = await messageHelper.countMessages();
 
     const originalMessage = `Original message ${Date.now()}`;
-    await messageHelpers.sendTextMessage(originalMessage);
+    await messageHelper.sendTextMessage(originalMessage);
 
-    const targetMessage = await messageHelpers.findLastMessage();
+    const targetMessage = await messageHelper.findLastMessage();
 
-    await messageHelpers.openTopicDiscussion(targetMessage);
+    await messageHelper.openTopicDiscussion(targetMessage);
 
     const threadMessage = `Thread reply ${Date.now()}`;
-    await messageHelpers.sendMessageInThread(threadMessage);
+    await messageHelper.sendMessageInThread(threadMessage);
 
-    const finalMessageCount = await messageHelpers.countMessages();
+    const finalMessageCount = await messageHelper.countMessages();
     expect(finalMessageCount).toBeGreaterThanOrEqual(initialMessageCount + 1);
   });
 
-  test('Create thread from message and send reply', async ({ page, context }) => {
+  test('Create thread from message and send reply', async ({ pageWithClipboard, context }) => {
+    const messageHelper = new MessageTestHelpers(pageWithClipboard);
     await AllureReporter.addWorkItemLinks({
       tms: '63392',
     });
 
-    messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanUrl);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
-    const initialMessageCount = await messageHelpers.countMessages();
+    await pageWithClipboard.goto(clanPath);
+    await pageWithClipboard.waitForLoadState('networkidle');
+    await pageWithClipboard.waitForTimeout(3000);
+    const initialMessageCount = await messageHelper.countMessages();
 
     const originalMessage = `Thread starter message ${Date.now()}`;
-    await messageHelpers.sendTextMessage(originalMessage);
+    await messageHelper.sendTextMessage(originalMessage);
 
-    const targetMessage = await messageHelpers.findLastMessage();
+    const targetMessage = await messageHelper.findLastMessage();
 
     const threadName = `My Test Thread ${Date.now()}`;
-    await messageHelpers.createThread(targetMessage, threadName);
+    await messageHelper.createThread(targetMessage, threadName);
 
     const threadReply = `Thread reply ${Date.now()}`;
-    await messageHelpers.sendMessageInThread(threadReply, true);
+    await messageHelper.sendMessageInThread(threadReply, true);
 
-    const finalMessageCount = await messageHelpers.countMessages();
+    const finalMessageCount = await messageHelper.countMessages();
     expect(finalMessageCount).toBeGreaterThanOrEqual(initialMessageCount + 1);
   });
 });

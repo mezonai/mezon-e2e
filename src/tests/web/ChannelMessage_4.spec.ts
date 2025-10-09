@@ -2,10 +2,12 @@ import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { expect, test } from '@playwright/test';
+import { expect, test as base, Page } from '@playwright/test';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../config/environment';
 import { MessageTestHelpers } from '../../utils/messageHelpers';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
+import { ClanFactory } from '@/data/factories/ClanFactory';
+import { splitDomainAndPath } from '@/utils/domain';
 
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
@@ -13,91 +15,54 @@ interface NavigationHelpers {
   navigateToClanChannel(): Promise<void>;
 }
 
+const test = base.extend<{
+  pageWithClipboard: Page;
+}>({
+  pageWithClipboard: async ({ browser }, use) => {
+    const context = await browser.newContext({
+      permissions: ['clipboard-read', 'clipboard-write'],
+      baseURL: WEBSITE_CONFIGS.MEZON.baseURL,
+    });
+    const pageWithClipboard = await context.newPage();
+    await use(pageWithClipboard);
+    await context.close();
+  },
+});
+
 test.describe('Channel Message - Module 4', () => {
   let messageHelpers: MessageTestHelpers;
-  let clanSetupHelper: ClanSetupHelper;
-  let testClanName: string;
-  let testClanUrl: string;
-  const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
+  let clanPath: string;
 
-  test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-    const context = await browser.newContext();
-    const page = await context.newPage();
+  const clanFactory = new ClanFactory();
 
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account1.email,
-      AccountCredentials.account1.password
-    );
-
-    const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.channelMessage4,
-      credentials
-    );
-
-    testClanName = setupResult.clanName;
-    testClanUrl = setupResult.clanUrl;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && testClanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(testClanName, testClanUrl, AccountCredentials.account1);
-    }
-  });
-
-  const createNavigationHelpers = (page: any): NavigationHelpers => ({
-    async navigateToHomePage(): Promise<void> {
-      await page.goto(MEZON_BASE_URL);
-      await page.waitForLoadState('domcontentloaded');
-    },
-
-    async navigateToDirectChat(): Promise<void> {
-      const directFriendsUrl = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/friends');
-      await page.goto(directFriendsUrl);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    },
-
-    async navigateToClanChannel(): Promise<void> {
-      // Use the dynamically created clan URL
-      await page.goto(testClanUrl);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    },
-  });
-
-  test.beforeEach(async ({ page, context }, testInfo) => {
-    await AllureReporter.initializeTest(page, testInfo, {
-      story: AllureConfig.Stories.TEXT_MESSAGING,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
-
+  test.beforeEach(async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63368',
+      parrent_issue: '63366',
     });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-
-    await AuthHelper.prepareBeforeTest(
-      page,
-      testClanUrl,
-      testClanName,
-      AccountCredentials.account1
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      pageWithClipboard,
+      AccountCredentials.account2
     );
 
-    messageHelpers = new MessageTestHelpers(page);
+    if (!clanPath) {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageWithClipboard);
+      clanPath = splitDomainAndPath(clanFactory.getClanUrl()).path;
+
+      clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPath));
+    }
+    await AuthHelper.prepareBeforeTest(pageWithClipboard, clanFactory.getClanUrl(), credentials);
+
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
   });
 
-  test('Jump to pinned message and verify in main chat', async ({ page, context }) => {
+  test('Jump to pinned message and verify in main chat', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63397',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    messageHelpers = new MessageTestHelpers(page);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageToPin = `Test jump message ${Date.now()}`;
     await messageHelpers.sendTextMessage(messageToPin);
@@ -115,7 +80,7 @@ test.describe('Channel Message - Module 4', () => {
 
     let modalFound = false;
     for (const selector of modalSelectors) {
-      const modalElement = page.locator(selector).first();
+      const modalElement = pageWithClipboard.locator(selector).first();
       if (await modalElement.isVisible({ timeout: 2000 })) {
         modalFound = true;
         break;
@@ -128,26 +93,23 @@ test.describe('Channel Message - Module 4', () => {
     const isMessageVisible = await messageHelpers.verifyMessageVisibleInMainChat(messageToPin);
     expect(isMessageVisible).toBeTruthy();
 
-    await page.waitForTimeout(2000);
+    await pageWithClipboard.waitForTimeout(2000);
   });
 
-  test('Test hashtag channel functionality', async ({ page, context }) => {
+  test('Test hashtag channel functionality', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63398',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanUrl);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageInput = await messageHelpers.findMessageInput();
     await messageInput.click();
-    await page.waitForTimeout(500);
+    await pageWithClipboard.waitForTimeout(500);
 
     await messageInput.type('#');
-    await page.waitForTimeout(2000);
+    await pageWithClipboard.waitForTimeout(2000);
 
     const channelListVisible = await messageHelpers.verifyHashtagChannelList();
     expect(channelListVisible).toBeTruthy();
@@ -155,63 +117,54 @@ test.describe('Channel Message - Module 4', () => {
     const hasExpectedChannels = await messageHelpers.verifyExpectedChannelsInList();
     expect(hasExpectedChannels).toBeTruthy();
 
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(1000);
+    await pageWithClipboard.keyboard.press('Escape');
+    await pageWithClipboard.waitForTimeout(1000);
   });
 
-  test('Mention user list appears with @', async ({ page, context }) => {
+  test('Mention user list appears with @', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63399',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanUrl);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageInput = await messageHelpers.findMessageInput();
     await messageInput.click();
-    await page.waitForTimeout(300);
+    await pageWithClipboard.waitForTimeout(300);
 
     await messageInput.type('@');
-    await page.waitForTimeout(1500);
+    await pageWithClipboard.waitForTimeout(1500);
 
     const mentionVisible = await messageHelpers.verifyMentionListVisible();
     expect(mentionVisible).toBeTruthy();
 
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
+    await pageWithClipboard.keyboard.press('Escape');
+    await pageWithClipboard.waitForTimeout(500);
   });
 
-  test('Mention specific user and send message', async ({ page, context }) => {
+  test('Mention specific user and send message', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63399',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanUrl);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const candidateNames = ['nguyen.nguyen'];
     await messageHelpers.mentionUserAndSend('@ng', candidateNames);
   });
 
-  test('React to a message with 3 different emojis', async ({ page, context }) => {
+  test('React to a message with 3 different emojis', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63400',
     });
 
-    messageHelpers = new MessageTestHelpers(page);
-    await page.goto(testClanUrl);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const msg = `Reaction test ${Date.now()}`;
     await messageHelpers.sendTextMessage(msg);
-    await page.waitForTimeout(1000);
+    await pageWithClipboard.waitForTimeout(1000);
 
     const target = await messageHelpers.findLastMessage();
     const emojisToAdd = ['😂', '👍', '💯'];
@@ -221,16 +174,16 @@ test.describe('Channel Message - Module 4', () => {
       const emoji = emojisToAdd[i];
 
       const picked = await messageHelpers.reactToMessage(target, [emoji]);
-      await page.waitForTimeout(2000);
+      await pageWithClipboard.waitForTimeout(2000);
 
       if (picked) {
         addedEmojis.push(picked);
       }
 
-      await page.waitForTimeout(500);
+      await pageWithClipboard.waitForTimeout(500);
     }
 
-    await page.waitForTimeout(2000);
+    await pageWithClipboard.waitForTimeout(2000);
 
     const hasAllReactions = await messageHelpers.verifyReactionOnMessage(target, addedEmojis);
     expect(hasAllReactions).toBeTruthy();

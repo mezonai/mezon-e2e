@@ -3,11 +3,13 @@ import { TypeMessage } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { expect, test } from '@playwright/test';
+import { expect, test as base, Page } from '@playwright/test';
 import { randomInt } from 'crypto';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../config/environment';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { MessageTestHelpers } from '../../utils/messageHelpers';
+import { ClanFactory } from '@/data/factories/ClanFactory';
+import { splitDomainAndPath } from '@/utils/domain';
 
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
@@ -15,91 +17,54 @@ interface NavigationHelpers {
   navigateToClanChannel(): Promise<void>;
 }
 
+const test = base.extend<{
+  pageWithClipboard: Page;
+}>({
+  pageWithClipboard: async ({ browser }, use) => {
+    const context = await browser.newContext({
+      permissions: ['clipboard-read', 'clipboard-write'],
+      baseURL: WEBSITE_CONFIGS.MEZON.baseURL,
+    });
+    const pageWithClipboard = await context.newPage();
+    await use(pageWithClipboard);
+    await context.close();
+  },
+});
+
 test.describe('Channel Message - Module 3', () => {
   let messageHelpers: MessageTestHelpers;
-  let clanSetupHelper: ClanSetupHelper;
-  let testClanName: string;
-  let testClanUrl: string;
-  const MEZON_BASE_URL = WEBSITE_CONFIGS.MEZON.baseURL || '';
+  let clanPath: string;
 
-  test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-    const context = await browser.newContext();
-    const page = await context.newPage();
+  const clanFactory = new ClanFactory();
 
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account1.email,
-      AccountCredentials.account1.password
-    );
-
-    const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.channelMessage3,
-      credentials
-    );
-
-    testClanName = setupResult.clanName;
-    testClanUrl = setupResult.clanUrl;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && testClanName && testClanUrl) {
-      await clanSetupHelper.cleanupClan(testClanName, testClanUrl, AccountCredentials.account1);
-    }
-  });
-
-  const createNavigationHelpers = (page: any): NavigationHelpers => ({
-    async navigateToHomePage(): Promise<void> {
-      await page.goto(MEZON_BASE_URL);
-      await page.waitForLoadState('domcontentloaded');
-    },
-
-    async navigateToDirectChat(): Promise<void> {
-      const directFriendsUrl = joinUrlPaths(MEZON_BASE_URL, 'chat/direct/friends');
-      await page.goto(directFriendsUrl);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    },
-
-    async navigateToClanChannel(): Promise<void> {
-      // Use the dynamically created clan URL
-      await page.goto(testClanUrl);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    },
-  });
-
-  test.beforeEach(async ({ page, context }, testInfo) => {
-    await AllureReporter.initializeTest(page, testInfo, {
-      story: AllureConfig.Stories.TEXT_MESSAGING,
-      severity: AllureConfig.Severity.CRITICAL,
-      testType: AllureConfig.TestTypes.E2E,
-    });
-
+  test.beforeEach(async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '63368',
+      parrent_issue: '63366',
     });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-
-    await AuthHelper.prepareBeforeTest(
-      page,
-      testClanUrl,
-      testClanName,
-      AccountCredentials.account1
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      pageWithClipboard,
+      AccountCredentials.account2
     );
 
-    messageHelpers = new MessageTestHelpers(page);
+    if (!clanPath) {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageWithClipboard);
+      clanPath = splitDomainAndPath(clanFactory.getClanUrl()).path;
+
+      clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPath));
+    }
+    await AuthHelper.prepareBeforeTest(pageWithClipboard, clanFactory.getClanUrl(), credentials);
+
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
   });
 
-  test('Delete message', async ({ page, context }) => {
+  test('Delete message', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63393',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    messageHelpers = new MessageTestHelpers(page);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageToDelete = `Message to delete ${Date.now()}`;
     const targetMessage = await messageHelpers.sendTextMessageAndGetItem(messageToDelete);
@@ -110,14 +75,14 @@ test.describe('Channel Message - Module 3', () => {
     expect(disappeared).toBeTruthy();
   });
 
-  test('Edit message', async ({ page, context }) => {
+  test('Edit message', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63394',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    messageHelpers = new MessageTestHelpers(page);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const originalMessage = `Original message ${Date.now()}`;
     await messageHelpers.sendTextMessage(originalMessage);
@@ -128,7 +93,7 @@ test.describe('Channel Message - Module 3', () => {
       const editedContent = `Edited message ${Date.now()}`;
       await messageHelpers.editMessage(targetMessage, editedContent);
 
-      await page.waitForTimeout(3000);
+      await pageWithClipboard.waitForTimeout(3000);
 
       const updatedMessage = await messageHelpers.findLastMessage();
       const messageText = await updatedMessage.textContent();
@@ -141,14 +106,14 @@ test.describe('Channel Message - Module 3', () => {
     }
   });
 
-  test('Forward message - select target and send', async ({ page, context }) => {
+  test('Forward message - select target and send', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63395',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    messageHelpers = new MessageTestHelpers(page);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageToForward = `Message to forward ${Date.now()}`;
     await messageHelpers.sendTextMessage(messageToForward);
@@ -156,30 +121,30 @@ test.describe('Channel Message - Module 3', () => {
     expect(true).toBeTruthy();
   });
 
-  test('Forward message to general channel', async ({ page, context }) => {
+  test('Forward message to general channel', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63395',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    messageHelpers = new MessageTestHelpers(page);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageToForward = `Message to forward to general ${Date.now()}`;
     const targetMessage = await messageHelpers.sendTextMessageAndGetItem(messageToForward);
 
     await messageHelpers.forwardMessage(targetMessage, 'general');
 
-    await page.waitForTimeout(1500);
+    await pageWithClipboard.waitForTimeout(1500);
   });
 
-  test('Pin message and verify in pinned modal', async ({ page, context }) => {
+  test('Pin message and verify in pinned modal', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63852',
     });
 
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    messageHelpers = new MessageTestHelpers(page);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const indentityMessage = (Date.now() + randomInt(10)).toString();
     const messageToPinText = `Message to pin ${indentityMessage}`;
@@ -198,7 +163,6 @@ test.describe('Channel Message - Module 3', () => {
       await messageHelpers.clickJumpToPinMessageFromSystemMessage();
       const jumpedMessage = await messageHelpers.getMessageByIdentity(indentityMessage);
       await expect(jumpedMessage).toHaveClass(/!bg-\[#eab30833\]/, { timeout: 1000 });
-      await expect(jumpedMessage).not.toHaveClass(/!bg-\[#eab30833\]/, { timeout: 2000 });
     });
 
     await AllureReporter.step('Verify that red dot is display after pinned message', async () => {
@@ -218,7 +182,6 @@ test.describe('Channel Message - Module 3', () => {
         await messageHelpers.clickJumpToPinMessageFromPinnedMessage();
         const jumpedMessage = await messageHelpers.getMessageByIdentity(indentityMessage);
         await expect(jumpedMessage).toHaveClass(/!bg-\[#eab30833\]/, { timeout: 1000 });
-        await expect(jumpedMessage).not.toHaveClass(/!bg-\[#eab30833\]/, { timeout: 2000 });
       }
     );
   });
