@@ -70,10 +70,7 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.step('Verify that i can open a DM', async () => {
       const firstUser = await messagePage.createDM();
-      await expect(messagePage.groupName).toBeVisible({ timeout: 5000 });
-      const groupNameText = (await messagePage.groupName.innerText()).trim();
-
-      expect(groupNameText).toBe(firstUser);
+      await expect(messagePage.groupName).toHaveText(firstUser, { timeout: 5000 });
     });
 
     await AllureReporter.attachScreenshot(page, 'Direct Message Created');
@@ -180,10 +177,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.step('Verify that i can open a DM', async () => {
       const firstUser = await messagePage.createDM();
       username = firstUser;
-      await expect(messagePage.groupName).toBeVisible({ timeout: 5000 });
-      const groupNameText = (await messagePage.groupName.innerText()).trim();
-
-      expect(groupNameText).toBe(firstUser);
+      await expect(messagePage.groupName).toHaveText(firstUser, { timeout: 5000 });
     });
 
     await AllureReporter.step(`Close direct message`, async () => {
