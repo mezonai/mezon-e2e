@@ -2,6 +2,7 @@ import { ROUTES } from '@/selectors';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Locator, Page } from '@playwright/test';
+import sleep from '@utils/sleep';
 
 export class MessagePage {
   private helpers: DirectMessageHelper;
@@ -45,6 +46,8 @@ export class MessagePage {
   readonly headerDMAvatar: Locator;
   readonly headerUserProfileButton: Locator;
   readonly groupName: Locator;
+  readonly editMessageButton: Locator;
+  readonly forwardMessageButton: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -133,6 +136,15 @@ export class MessagePage {
     this.deleteMessageButton = page
       .locator(generateE2eSelector('chat.message_action_modal.button.base'))
       .filter({ hasText: 'Delete Message' });
+
+    this.editMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Edit Message' });
+
+    this.forwardMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Forward Message' });
+
     this.confirmDeleteMessageButton = page.locator(
       generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
       { hasText: 'Delete' }
@@ -426,5 +438,20 @@ export class MessagePage {
     await this.displayListPinButton.click();
     const pinnedMessage = this.pinnedMessages.filter({ hasText: messageIdentity });
     return (await pinnedMessage.count()) > 0;
+  }
+
+  async editMessage(messageItem: Locator, newText: string) {
+    await messageItem.click({ button: 'right' });
+    await this.editMessageButton.click();
+    const textarea = this.page.locator('#editorReactMentionChannel');
+    await textarea.fill(newText);
+    await textarea.press('Enter');
+    await sleep(1000);
+    return this.messages.filter({ hasText: newText });
+  }
+
+  async forwardMessage(messageItem: Locator) {
+    await messageItem.click({ button: 'right' });
+    await this.forwardMessageButton.click();
   }
 }
