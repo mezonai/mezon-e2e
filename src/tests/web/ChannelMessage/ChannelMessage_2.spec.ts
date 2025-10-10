@@ -148,22 +148,22 @@ test.describe('Channel Message - Module 2', () => {
     const topicMessages = await messageHelpers.getMessagesFromTopicDrawer();
     expect(emojiMsg).toEqual(topicMessages[topicMessages.length - 1].content);
   });
-  test.skip('Send message from short profile in clan channel', async ({
-    pageWithClipboard,
-    context,
-  }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63403',
-    });
+  // test.skip('Send message from short profile in clan channel', async ({
+  //   pageWithClipboard,
+  //   context,
+  // }) => {
+  //   await AllureReporter.addWorkItemLinks({
+  //     tms: '63403',
+  //   });
 
-    messageHelpers = new MessageTestHelpers(pageWithClipboard);
+  //   messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
-    await messageHelpers.clickMembersButton();
-    await messageHelpers.clickMemberInList('nguyen.nguyen');
+  //   await messageHelpers.clickMembersButton();
+  //   await messageHelpers.clickMemberInList('nguyen.nguyen');
 
-    const testMessage = `Test message from Case 12 short profile 11${Date.now()}`;
-    await messageHelpers.sendMessageFromShortProfile(testMessage);
+  //   const testMessage = `Test message from Case 12 short profile 11${Date.now()}`;
+  //   await messageHelpers.sendMessageFromShortProfile(testMessage);
 
-    await pageWithClipboard.waitForTimeout(2000);
-  });
+  //   await pageWithClipboard.waitForTimeout(2000);
+  // });
 });
