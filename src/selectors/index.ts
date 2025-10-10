@@ -115,6 +115,7 @@ export const DATA_E2E_IDENTIFIER = {
         add_channel: '',
         events: '',
         members: '',
+        channels: '',
       },
     },
     member_list: {
@@ -303,6 +304,10 @@ export const DATA_E2E_IDENTIFIER = {
       settings: {
         overview: '',
       },
+    },
+    channel_management: {
+      total_channels: '',
+      channel_item: '',
     },
   },
   channel_setting_page: {

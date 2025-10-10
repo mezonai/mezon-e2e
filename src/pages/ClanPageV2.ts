@@ -106,10 +106,12 @@ export class ClanPageV2 extends ClanSelector {
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
-      const isOwner = await categorySettingPage.buttons.deleteSidebar.isVisible({
-        timeout: 1000,
-      });
-      if (!isOwner) {
+      try {
+        await categorySettingPage.buttons.deleteSidebar.waitFor({
+          state: 'visible',
+          timeout: 3000,
+        });
+      } catch {
         console.error(`You are not the owner of the clan "${clanName}".`);
         return false;
       }
@@ -698,5 +700,25 @@ export class ClanPageV2 extends ClanSelector {
     const startDateTime = this.eventDetailModal.startDateTime;
     await expect(startDateTime).toHaveText(expected.startTime);
     return true;
+  }
+
+  async closeEventModal() {
+    await this.createEventModal.button.closeDetailModal.click();
+    await this.createEventModal.button.closeContainerModal.click();
+  }
+
+  async countChannelsOnChannelList() {
+    return await this.sidebar.channelsList.count();
+  }
+
+  async getTotalChannels() {
+    await this.buttons.channelManagementButton.click();
+    await this.channelManagement.totalChannels.isVisible({ timeout: 5000 });
+    await this.page.waitForTimeout(2000);
+    const text = await this.channelManagement.totalChannels.innerText();
+    const countChannelItems = await this.channelManagement.channelItem.count();
+
+    const match = text.match(/channel of\s+(\d+)/i);
+    return { totalChannels: match ? Number(match[1]) : null, countChannelItems };
   }
 }

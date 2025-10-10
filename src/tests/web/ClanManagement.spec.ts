@@ -528,8 +528,7 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        // await clanPage.createEventModal.button.closeDetailModal.click();
-        // await clanPage.createEventModal.button.closeContainerModal.click();
+        await clanPage.closeEventModal();
       }
     );
 
@@ -638,8 +637,7 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        // await clanPage.createEventModal.button.closeDetailModal.click();
-        // await clanPage.createEventModal.button.closeContainerModal.click();
+        await clanPage.closeEventModal();
       }
     );
 
@@ -716,8 +714,7 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        // await clanPage.createEventModal.button.closeDetailModal.click();
-        // await clanPage.createEventModal.button.closeContainerModal.click();
+        await clanPage.closeEventModal();
       }
     );
 
@@ -815,8 +812,7 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        // await clanPage.createEventModal.button.closeDetailModal.click();
-        // await clanPage.createEventModal.button.closeContainerModal.click();
+        await clanPage.closeEventModal();
       }
     );
 
@@ -885,11 +881,108 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        // await clanPage.createEventModal.button.closeDetailModal.click();
-        // await clanPage.createEventModal.button.closeContainerModal.click();
+        await clanPage.closeEventModal();
       }
     );
 
     await AllureReporter.attachScreenshot(page, `Private Event Created`);
+  });
+});
+
+test.describe('Channels management', () => {
+  let page: Page;
+  let context: BrowserContext;
+  const clanFactory = new ClanFactory();
+
+  test.beforeAll(async ({ browser }) => {
+    context = await browser.newContext();
+    page = await context.newPage();
+
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account3);
+    await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement, page);
+
+    clanFactory.setClanUrl(
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
+    );
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63123',
+    });
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account3
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+  });
+
+  test.afterAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account3
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+    await clanFactory.cleanupClan(page);
+    await AuthHelper.logout(page);
+    await context.close();
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
+  });
+
+  test('Verify that number of channels is true', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63381',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully create a new public voice event within a clan.
+    **Test Steps:**
+      1. Create channel on clan
+      2. Count number of the channels
+      2. Verify number of channels is match on channel management tab
+    **Expected Result:** Number of channels is true.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['channel_management', 'count_number'],
+    });
+    const unique = Date.now().toString(36).slice(-6);
+    const channelName = `vc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPageV2(page);
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.VOICE);
+    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step(`Create new public voice channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.VOICE, channelName, ChannelStatus.PUBLIC);
+    });
+
+    await AllureReporter.step('Verify channel is present in channel list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step(
+      'Verify number of channels in channels list match in channel management',
+      async () => {
+        await page.reload();
+        await page.waitForTimeout(2000);
+        const countNumbersOfChannels = await clanPage.countChannelsOnChannelList();
+        const res = await clanPage.getTotalChannels();
+        expect(countNumbersOfChannels).toBe(res.totalChannels);
+        expect(countNumbersOfChannels).toBe(res.countChannelItems);
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, `Number of channels is true`);
   });
 });
