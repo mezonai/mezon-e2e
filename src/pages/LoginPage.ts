@@ -114,10 +114,9 @@ export class LoginPage extends BasePage {
     await otpInput.fill(otp);
   }
 
-  async clickLogin(): Promise<void> {
+  private async clickLogin(): Promise<void> {
     const currentUrl = this.page.url();
     if (currentUrl.includes('/login/callback')) {
-      await this.page.waitForLoadState('networkidle');
       await this.page.waitForTimeout(3000);
       return;
     }
@@ -126,7 +125,6 @@ export class LoginPage extends BasePage {
 
     await loginButton.waitFor({ state: 'visible', timeout: 10000 });
     await loginButton.click();
-    await this.page.waitForLoadState('networkidle');
   }
 
   async clickVerifyOtp(): Promise<void> {
@@ -200,9 +198,9 @@ export class LoginPage extends BasePage {
     await this.page.locator(this.selectors.passwordInput).fill(password);
 
     await this.clickLogin();
-    await this.page.waitForLoadState('networkidle');
-    await this.page.reload();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    /* After page loaded. Mezon FE take 1s loading to get the credentials */
+    await this.page.waitForTimeout(3000);
   }
 
   async verifyErrorMessage(expectedMessage?: string): Promise<void> {

@@ -1,6 +1,7 @@
+import { ROUTES } from '@/selectors';
+import { WEBSITE_CONFIGS } from '../../config/environment';
 import { Given, Then, When } from '../../fixtures/page.fixture';
 import { joinUrlPaths } from '../../utils/joinUrlPaths';
-import { WEBSITE_CONFIGS } from '../../config/environment';
 
 Given('I am authenticated with valid session', async ({ page }) => {
   try {
@@ -47,7 +48,7 @@ Given('I navigate to the chat page after authentication', async ({ page }) => {
     console.log('⚠️ Cannot check localStorage at this point');
   }
 
-  const directFriendsUrl = joinUrlPaths(baseUrl, '/chat/direct/friends');
+  const directFriendsUrl = joinUrlPaths(baseUrl, ROUTES.DIRECT_FRIENDS);
   await page.goto(directFriendsUrl);
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(3000);

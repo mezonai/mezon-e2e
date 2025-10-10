@@ -4,33 +4,33 @@ on:
   workflow_dispatch:
     inputs:
       mezon_repo:
-        description: "Mezon repository to use (mezonai/mezon.git or kientrinh-dev/mezon.git)"
+        description: 'Mezon repository to use (mezonai/mezon.git or kientrinh-dev/mezon.git)'
         required: true
-        default: "mezonai/mezon.git"
+        default: 'mezonai/mezon.git'
         options:
-          - "mezonai/mezon.git"
-          - "kientrinh-dev/mezon.git"
+          - 'mezonai/mezon.git'
+          - 'kientrinh-dev/mezon.git'
         type: choice
       test_suite:
-        description: "Test suite to run (choose from list or leave blank for all)"
+        description: 'Test suite to run (choose from list or leave blank for all)'
         required: false
-        default: "all"
+        default: 'all'
         type: choice
         options:
-          - "all"
-          - "standalone"
-          - "channel-management"
-          - "channel-message-2"
-          - "channel-message-3"
-          - "channel-message-4"
-          - "channel-message-5"
-          - "clan-management"
-          - "direct-message"
-          - "dual-chat-in-clan"
-          - "onboarding-guide"
-          - "thread-management"
-          - "upload-file"
-          - "user-profile"
+          - 'all'
+          - 'standalone'
+          - 'channel-management'
+          - 'channel-message-2'
+          - 'channel-message-3'
+          - 'channel-message-4'
+          - 'channel-message-5'
+          - 'clan-management'
+          - 'direct-message'
+          - 'dual-chat-in-clan'
+          - 'onboarding-guide'
+          - 'thread-management'
+          - 'upload-file'
+          - 'user-profile'
 
 jobs:
   verify-automation-tests:
@@ -51,7 +51,7 @@ jobs:
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install Yarn
         run: |
@@ -169,7 +169,7 @@ jobs:
           cat > .env << EOF
           BASE_URL=http://localhost:4200/
           SKIP_LOGIN=true
-          WORKERS=6
+          WORKERS=12
           CI=true
           EOF
 

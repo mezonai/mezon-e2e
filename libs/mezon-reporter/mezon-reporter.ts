@@ -53,13 +53,11 @@ class MezonReporter implements Reporter {
     const suiteName = test.parent?.title || 'Unknown Suite';
     this.testSuites.add(suiteName);
 
-    // Check if test had retries and determine if it's flaky
     const hadRetries = result.retry > 0;
     const finallyPassed = result.status === 'passed';
     const finallyFailed = result.status === 'failed';
 
     if (hadRetries && finallyPassed) {
-      // Test was flaky but eventually passed
       this.testStats.flaky++;
       this.testStats.passed++;
       this.flakyTests.push({
@@ -70,7 +68,6 @@ class MezonReporter implements Reporter {
         duration: result.duration,
       });
     } else if (finallyFailed) {
-      // Test truly failed (either on first attempt or after all retries)
       this.testStats.failed++;
       this.failedTests.push({
         title: test.title,
@@ -91,7 +88,6 @@ class MezonReporter implements Reporter {
     const endTime = new Date();
     const duration = endTime.getTime() - this.startTime.getTime();
 
-    // Only consider as failed if there are truly failed tests (not just flaky)
     const hasTrulyFailedTests = this.testStats.failed > 0;
     const success = !hasTrulyFailedTests;
     const emoji = success ? '🎉' : '💥';
@@ -127,8 +123,6 @@ class MezonReporter implements Reporter {
       workers: process.env.WORKERS || '1',
     };
 
-    // Only send notification if there are truly failed tests or if all tests passed
-    // Don't send notification for flaky-only scenarios
     if (hasTrulyFailedTests || (this.testStats.failed === 0 && this.testStats.passed > 0)) {
       await this.notifier.send(`${emoji} ${statusMessage}`, reportData);
     }

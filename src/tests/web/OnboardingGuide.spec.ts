@@ -1,5 +1,6 @@
-import { AllureConfig, TestSetups } from '@/config/allure.config';
+import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
@@ -7,11 +8,10 @@ import { OnboardingTask } from '@/types/onboarding.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { expect, test, BrowserContext, Page } from '@playwright/test';
-import { OnboardingHelpers } from '../../utils/onboardingHelpers';
-import joinUrlPaths from '@/utils/joinUrlPaths';
 import { splitDomainAndPath } from '@/utils/domain';
-import { ClanFactory } from '@/data/factories/ClanFactory';
+import joinUrlPaths from '@/utils/joinUrlPaths';
+import { OnboardingHelpers } from '@/utils/onboardingHelpers';
+import { expect, test } from '@playwright/test';
 
 test.describe('Onboarding Guide Task Completion', () => {
   const clanFactory = new ClanFactory();
@@ -70,12 +70,12 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that the onboarding guide correctly marks the "Send first message" task as completed after a user sends their first message.
-      
+
       **Test Steps:**
       1. Ensure onboarding guide is visible
       2. Send a test message in the current channel
       3. Verify the "Send first message" task is marked as done (green tick)
-      
+
       **Expected Result:** The "Send first message" task should show as completed with a green checkmark after the user sends their first message.
     `);
 

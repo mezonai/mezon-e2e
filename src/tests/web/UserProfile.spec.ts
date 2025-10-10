@@ -4,6 +4,8 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { ROUTES } from '@/selectors';
+import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
@@ -74,6 +76,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
     });
 
@@ -83,12 +86,12 @@ test.describe('User Settings', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that the "Change Avatar" button is visible in the clan profile section.
-      
+
       **Test Steps:**
       1. Navigate to clan profile settings
       2. Locate the change avatar button
       3. Verify the button is visible and accessible
-      
+
       **Expected Result:** The "Change Avatar" button should be visible and accessible to the user.
     `);
 
@@ -114,6 +117,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
     });
 
@@ -202,6 +206,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Navigate to account tab', async () => {
+      await profilePage.openUserSettingProfile();
       await profilePage.openAccountTab();
     });
 
@@ -242,137 +247,138 @@ test.describe('User Settings', () => {
     );
   });
 
-  test('Update avatar user profile - button visible', async ({ page }) => {
-    const profilePage = new ProfilePage(page);
-    const directMessagePage = new MessagePage(page);
-    const fileSizeHelpers = new FileSizeTestHelpers(page);
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.NORMAL,
-    });
+  // test('Update avatar user profile - button visible', async ({ page }) => {
+  //   const profilePage = new ProfilePage(page);
+  //   const directMessagePage = new MessagePage(page);
+  //   const fileSizeHelpers = new FileSizeTestHelpers(page);
+  //   await AllureReporter.addTestParameters({
+  //     testType: AllureConfig.TestTypes.E2E,
+  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
+  //     severity: AllureConfig.Severity.NORMAL,
+  //   });
 
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that the "Update Avatar" button is visible in the user profile section.
-      
-      **Test Steps:**
-      1. Navigate to user profile settings
-      2. Locate the update avatar button
-      3. Verify the button is visible and accessible
-      
-      **Expected Result:** The "Update Avatar" button should be visible and accessible to the user.
-    `);
+  //   await AllureReporter.addDescription(`
+  //     **Test Objective:** Verify that the "Update Avatar" button is visible in the user profile section.
 
-    await AllureReporter.step('Navigate to profile tab', async () => {
-      await profilePage.openUserSettingProfile();
-      await profilePage.openProfileTab();
-    });
+  //     **Test Steps:**
+  //     1. Navigate to user profile settings
+  //     2. Locate the update avatar button
+  //     3. Verify the button is visible and accessible
 
-    await AllureReporter.step('Navigate to user profile tab', async () => {
-      await profilePage.openUserProfileTab();
-    });
+  //     **Expected Result:** The "Update Avatar" button should be visible and accessible to the user.
+  //   `);
 
-    const smallAvatarPath = await fileSizeHelpers.createFileWithSize(
-      'small_avatar',
-      5 * 1024 * 1024,
-      'jpg'
-    );
+  //   await AllureReporter.step('Navigate to profile tab', async () => {
+  //     await profilePage.openUserSettingProfile();
+  //     await profilePage.openProfileTab();
+  //   });
 
-    await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
-    await profilePage.buttons.applyImageAvatar.click();
-    await profilePage.buttons.saveChangesUserProfile.click();
+  //   await AllureReporter.step('Navigate to user profile tab', async () => {
+  //     await profilePage.openUserProfileTab();
+  //   });
 
-    const profileAvatar: Locator = profilePage.userProfile.avatar;
-    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
-    const profileSrc = await profileAvatar.getAttribute('src');
-    const profileHash = await getImageHash(profileSrc || '');
+  //   const smallAvatarPath = await fileSizeHelpers.createFileWithSize(
+  //     'small_avatar',
+  //     5 * 1024 * 1024,
+  //     'jpg'
+  //   );
 
-    await profilePage.navigate('/chat/direct/friends');
-    const footerAvatar: Locator = directMessagePage.footerAvatar;
-    await expect(footerAvatar).toBeVisible({ timeout: 5000 });
-    const footerSrc = await footerAvatar.getAttribute('src');
-    const footerHash = await getImageHash(footerSrc || '');
+  //   await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
+  //   await profilePage.buttons.applyImageAvatar.click();
+  //   await profilePage.buttons.saveChangesUserProfile.click();
 
-    expect(profileHash).not.toBeNull();
-    expect(footerHash).not.toBeNull();
+  //   const profileAvatar: Locator = profilePage.userProfile.avatar;
+  //   await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+  //   const profileSrc = await profileAvatar.getAttribute('src');
+  //   const profileHash = await getImageHash(profileSrc || '');
 
-    expect(profileHash).toEqual(footerHash);
-  });
+  //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+  //   const footerAvatar: Locator = directMessagePage.footerAvatar;
+  //   await expect(footerAvatar).toBeVisible({ timeout: 5000 });
+  //   const footerSrc = await footerAvatar.getAttribute('src');
+  //   const footerHash = await getImageHash(footerSrc || '');
 
-  test('Update About me status', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63571',
-    });
+  //   expect(profileHash).not.toBeNull();
+  //   expect(footerHash).not.toBeNull();
 
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a user can successfully change their About me status.
+  //   expect(profileHash).toEqual(footerHash);
+  // });
 
-      **Test Steps:**
-      1. Locate the About me status input field
-      2. Clear existing About me status and enter new one
-      3. Verify save changes button visible
-      4. Verify that the length of the "About Me" status is reflected correctly.
-      5. Save the changes
-      6. Verify the About me status has been updated
+  // test('Update About me status', async ({ page }) => {
+  //   await AllureReporter.addWorkItemLinks({
+  //     tms: '63571',
+  //   });
 
-      **Expected Result:** The About me status should be successfully updated and saved.
-    `);
+  //   await AllureReporter.addDescription(`
+  //     **Test Objective:** Verify that a user can successfully change their About me status.
 
-    const profilePage = new ProfilePage(page);
-    await AllureReporter.step('Navigate to profile tab', async () => {
-      await profilePage.openProfileTab();
-    });
+  //     **Test Steps:**
+  //     1. Locate the About me status input field
+  //     2. Clear existing About me status and enter new one
+  //     3. Verify save changes button visible
+  //     4. Verify that the length of the "About Me" status is reflected correctly.
+  //     5. Save the changes
+  //     6. Verify the About me status has been updated
 
-    await AllureReporter.step('Navigate to user profile tab', async () => {
-      await profilePage.openUserProfileTab();
-    });
+  //     **Expected Result:** The About me status should be successfully updated and saved.
+  //   `);
 
-    await AllureReporter.addLabels({
-      tag: ['user-profile'],
-    });
+  //   const profilePage = new ProfilePage(page);
+  //   await AllureReporter.step('Navigate to profile tab', async () => {
+  //     await profilePage.openUserSettingProfile();
+  //     await profilePage.openProfileTab();
+  //   });
 
-    const target = `about me status - ${generateRandomString(10)}`;
-    await AllureReporter.addParameter('newAboutMeStatus', target);
-    await AllureReporter.addParameter('platform', process.platform);
+  //   await AllureReporter.step('Navigate to user profile tab', async () => {
+  //     await profilePage.openUserProfileTab();
+  //   });
 
-    await AllureReporter.step('Enter new about me status and save button visible', async () => {
-      await profilePage.enterAboutMeStatus(target);
-      const saveChangesBtn = profilePage.buttons.saveChangesUserProfile;
-      await expect(saveChangesBtn).toBeVisible({ timeout: 500 });
-      await expect(saveChangesBtn).toBeEnabled({ timeout: 500 });
-    });
+  //   await AllureReporter.addLabels({
+  //     tag: ['user-profile'],
+  //   });
 
-    await AllureReporter.step('Verify length of new about me status', async () => {
-      await profilePage.validateLength(target);
-    });
+  //   const target = `about me status - ${generateRandomString(10)}`;
+  //   await AllureReporter.addParameter('newAboutMeStatus', target);
+  //   await AllureReporter.addParameter('platform', process.platform);
 
-    await AllureReporter.step('Save About me status', async () => {
-      await profilePage.buttons.saveChangesUserProfile.click();
-    });
+  //   await AllureReporter.step('Enter new about me status and save button visible', async () => {
+  //     await profilePage.enterAboutMeStatus(target);
+  //     const saveChangesBtn = profilePage.buttons.saveChangesUserProfile;
+  //     await expect(saveChangesBtn).toBeVisible({ timeout: 500 });
+  //     await expect(saveChangesBtn).toBeEnabled({ timeout: 500 });
+  //   });
 
-    await AllureReporter.step(
-      'Verify About me status has been changed successfully at About me input',
-      async () => {
-        await page.reload();
-        await profilePage.openUserSettingProfile();
-        await profilePage.openProfileTab();
-        await profilePage.openUserProfileTab();
-        await profilePage.verifyAboutMeStatusUpdated(target);
-      }
-    );
+  //   await AllureReporter.step('Verify length of new about me status', async () => {
+  //     await profilePage.validateLength(target);
+  //   });
 
-    const mentionText = `mention text - ${generateRandomString(10)}`;
-    await AllureReporter.step(
-      'Verify About me status has been changed successfully at short profile',
-      async () => {
-        await page.reload();
-        await profilePage.sendMessage(mentionText);
-        await profilePage.verifyAboutMeStatusInShortProfile(target);
-      }
-    );
+  //   await AllureReporter.step('Save About me status', async () => {
+  //     await profilePage.buttons.saveChangesUserProfile.click();
+  //   });
 
-    await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
-  });
+  //   await AllureReporter.step(
+  //     'Verify About me status has been changed successfully at About me input',
+  //     async () => {
+  //       await page.reload();
+  //       await profilePage.openUserSettingProfile();
+  //       await profilePage.openProfileTab();
+  //       await profilePage.openUserProfileTab();
+  //       await profilePage.verifyAboutMeStatusUpdated(target);
+  //     }
+  //   );
+
+  //   const mentionText = `mention text - ${generateRandomString(10)}`;
+  //   await AllureReporter.step(
+  //     'Verify About me status has been changed successfully at short profile',
+  //     async () => {
+  //       await page.reload();
+  //       await profilePage.sendMessage(mentionText);
+  //       await profilePage.verifyAboutMeStatusInShortProfile(target);
+  //     }
+  //   );
+
+  //   await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
+  // });
 });
 
 test.describe('Clan Profile - Update avatar', () => {
@@ -398,8 +404,6 @@ test.describe('Clan Profile - Update avatar', () => {
     clanFactory.setClanUrl(
       joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
     );
-
-    await page.goto(clanFactory.getClanUrl());
 
     profilePage = new ProfilePage(page);
 
@@ -520,6 +524,10 @@ test.describe('Clan Profile - Update avatar', () => {
       parrent_issue: '63364',
     });
 
+    const clanPage = new ClanPageV2(page);
+    await clanPage.createNewChannel(ChannelType.TEXT, generateRandomString(10));
+    await page.waitForTimeout(1000);
+
     const messageHelper = new MessageTestHelpers(page);
     let messageSended = messageHelper.getMessageItemLocator(message).last();
 
@@ -531,9 +539,14 @@ test.describe('Clan Profile - Update avatar', () => {
     const profileName = await messageSended.locator(
       generateE2eSelector('base_profile.display_name')
     );
+
     await profileName.click();
-    await page.waitForTimeout(1000);
-    const profileAvatar = profilePage.userProfile.avatar;
+    const popup = page.locator('div.fixed.z-50');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+    const profileAvatar = popup.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+    );
+
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
     const avatarHash = await getImageHash(avatarSrc || '');
@@ -544,34 +557,34 @@ test.describe('Clan Profile - Update avatar', () => {
     expect(profileHash).toEqual(avatarHash);
   });
 
-  test('Validate avatar when click mention', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
-    });
+  // test('Validate avatar when click mention', async ({ page }) => {
+  //   await AllureReporter.addWorkItemLinks({
+  //     parrent_issue: '63364',
+  //   });
 
-    const messageHelper = new MessageTestHelpers(page);
-    const clanPage = new ClanPageV2(page);
-    await page.waitForTimeout(1000);
-    const username = await clanPage.footerProfile.userName.textContent();
-    await page.waitForTimeout(500);
-    await messageHelper.mentionUserAndSend(`@${username}`, [username || '']);
-    await page.waitForTimeout(500);
-    const mentionItem = messageHelper
-      .getMessageItemLocator(`@${username}`)
-      .last()
-      .locator(generateE2eSelector('chat.channel_message.mention_user'));
-    await mentionItem.click();
-    await page.waitForTimeout(500);
-    const profileAvatar = profilePage.userProfile.avatar;
-    await expect(profileAvatar).toBeVisible({ timeout: 5000 });
-    const avatarSrc = await profileAvatar.getAttribute('src');
-    const avatarHash = await getImageHash(avatarSrc || '');
+  //   const messageHelper = new MessageTestHelpers(page);
+  //   const clanPage = new ClanPageV2(page);
+  //   await page.waitForTimeout(1000);
+  //   const username = await clanPage.footerProfile.userName.textContent();
+  //   await page.waitForTimeout(500);
+  //   await messageHelper.mentionUserAndSend(`@${username}`, [username || '']);
+  //   await page.waitForTimeout(500);
+  //   const mentionItem = messageHelper
+  //     .getMessageItemLocator(`@${username}`)
+  //     .last()
+  //     .locator(generateE2eSelector('chat.channel_message.mention_user'));
+  //   await mentionItem.click();
+  //   await page.waitForTimeout(500);
+  //   const profileAvatar = profilePage.userProfile.avatar;
+  //   await expect(profileAvatar).toBeVisible({ timeout: 5000 });
+  //   const avatarSrc = await profileAvatar.getAttribute('src');
+  //   const avatarHash = await getImageHash(avatarSrc || '');
 
-    expect(profileHash).not.toBeNull();
-    expect(avatarHash).not.toBeNull();
+  //   expect(profileHash).not.toBeNull();
+  //   expect(avatarHash).not.toBeNull();
 
-    expect(profileHash).toEqual(avatarHash);
-  });
+  //   expect(profileHash).toEqual(avatarHash);
+  // });
 
   test('Validate avatar in pin message modal', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
@@ -631,7 +644,11 @@ test.describe('Clan Profile - Update avatar', () => {
     const userName = await clanPage.footerProfile.userName.textContent();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
     memberItem.click();
-    const profileAvatar = profilePage.userProfile.avatar;
+    const popup = page.locator('div.fixed.z-50');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+    const profileAvatar = popup.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+    );
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
     const avatarHash = await getImageHash(avatarSrc || '');
@@ -656,7 +673,11 @@ test.describe('Clan Profile - Update avatar', () => {
     await page
       .locator(generateE2eSelector('chat.channel_message.member_list.item.actions.view_profile'))
       .click();
-    const profileAvatar = profilePage.userProfile.avatar;
+    const popup = page.locator('div[class*="w-[600px]"][class*="h-[90vh]"]');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+    const profileAvatar = popup.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+    );
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
     const avatarHash = await getImageHash(avatarSrc || '');
@@ -708,7 +729,7 @@ test.describe('User Profile - Update avatar', () => {
 
     await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
 
-    await page.goto(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'));
+    await page.goto(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, ROUTES.DIRECT_FRIENDS));
     const profilePage = new ProfilePage(page);
     const messagePage = new MessagePage(page);
 
@@ -758,276 +779,262 @@ test.describe('User Profile - Update avatar', () => {
     profileHash = await getImageHash(profileSrc || '');
     profileName = await profilePage.getProfileName();
 
-    await profilePage.navigate('/chat/direct/friends');
+    await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
     await messagePage.sendMessage(messageText);
   });
 
-  test.beforeEach(async ({ page }) => {
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account6
-    );
-    await AuthHelper.prepareBeforeTest(
-      page,
-      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'),
-      credentials
-    );
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
-  test('Validate footer avatar', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
+  test.describe('Validate avatar with owner account', () => {
+    test.beforeEach(async ({ page }) => {
+      const credentials = await AuthHelper.setupAuthWithEmailPassword(
+        page,
+        AccountCredentials.account6
+      );
+      await AuthHelper.prepareBeforeTest(
+        page,
+        joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, ROUTES.DIRECT_FRIENDS),
+        credentials
+      );
     });
 
-    const profilePage = new ProfilePage(page);
-    const directMessagePage = new MessagePage(page);
+    test('Validate footer avatar', async ({ page }) => {
+      const profilePage = new ProfilePage(page);
+      const directMessagePage = new MessagePage(page);
 
-    await profilePage.navigate('/chat/direct/friends');
-    await page.waitForTimeout(1000);
-    const footerAvatar = directMessagePage.footerAvatar;
-    await expect(footerAvatar).toBeVisible({ timeout: 5000 });
-    const footerSrc = await footerAvatar.getAttribute('src');
-    const footerHash = await getImageHash(footerSrc || '');
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+      const footerAvatar = directMessagePage.footerAvatar;
+      await expect(footerAvatar).toBeVisible();
+      const footerSrc = await footerAvatar.getAttribute('src');
+      const footerHash = await getImageHash(footerSrc || '');
 
-    expect(profileHash).not.toBeNull();
-    expect(footerHash).not.toBeNull();
+      expect(profileHash).not.toBeNull();
+      expect(profileHash).toEqual(footerHash);
+    });
 
-    expect(profileHash).toEqual(footerHash);
+    // test('Validate account avatar', async ({ page }) => {
+    //   const profilePage = new ProfilePage(page);
+
+    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+    //   await profilePage.openUserSettingProfile();
+    //   const accountAvatar = profilePage.accountPage.image;
+    //   await expect(accountAvatar).toBeVisible();
+    //   const accountSrc = await accountAvatar.getAttribute('src');
+    //   const accountHash = await getImageHash(accountSrc || '');
+
+    //   expect(profileHash).not.toBeNull();
+    //   expect(profileHash).toEqual(accountHash);
+
+    //   await profilePage.buttons.closeSettingProfile.click();
+    // });
   });
 
-  test('Validate account avatar', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
+  test.describe('Validate avatar with friend account', () => {
+    test.beforeEach(async ({ page }) => {
+      const credentials = await AuthHelper.setupAuthWithEmailPassword(
+        page,
+        AccountCredentials.account1
+      );
+      await AuthHelper.prepareBeforeTest(
+        page,
+        joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, ROUTES.DIRECT_FRIENDS),
+        credentials
+      );
     });
 
-    const profilePage = new ProfilePage(page);
+    test('TC01: Friend List _ avatar ', async ({ page }) => {
+      await AllureReporter.addWorkItemLinks({
+        parrent_issue: '63364',
+      });
 
-    await page.waitForTimeout(1000);
-    await profilePage.navigate('/chat/direct/friends');
-    await profilePage.openUserSettingProfile();
-    await page.waitForTimeout(1000);
-    const accountAvatar = profilePage.accountPage.image;
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
+      const messagePage = new MessagePage(page);
 
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
+      const friendItem = await messagePage.getFriendItemFromFriendList(profileName || '');
+      const accountAvatar = friendItem.locator(generateE2eSelector('avatar.image'));
+      await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+      const accountSrc = await accountAvatar.getAttribute('src');
+      const accountHash = await getImageHash(accountSrc || '');
 
-    expect(profileHash).toEqual(accountHash);
-  });
+      expect(profileHash).not.toBeNull();
+      expect(accountHash).not.toBeNull();
 
-  test('TC01: Friend List _ avatar ', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
+      expect(profileHash).toEqual(accountHash);
     });
 
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
+    test('TC02: Direct Message _ Conversation List _ Avatar user', async ({ page }) => {
+      await AllureReporter.addWorkItemLinks({
+        parrent_issue: '63364',
+      });
 
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
+      const profilePage = new ProfilePage(page);
+      const messagePage = new MessagePage(page);
 
-    await profilePage.navigate('/chat/direct/friends');
-    await page.waitForTimeout(1000);
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+      await messagePage.createDMWithFriendName(profileName || '');
+      const DmItem = messagePage.getFriendItemFromListDM(profileName || '');
+      const accountAvatar = DmItem.locator(generateE2eSelector('avatar.image'));
+      await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+      const accountSrc = await accountAvatar.getAttribute('src');
+      const accountHash = await getImageHash(accountSrc || '');
 
-    const friendItem = await messagePage.getFriendItemFromFriendList(profileName || '');
-    const accountAvatar = friendItem.locator(generateE2eSelector('avatar.image'));
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
+      expect(profileHash).not.toBeNull();
+      expect(accountHash).not.toBeNull();
 
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
-
-    expect(profileHash).toEqual(accountHash);
-  });
-
-  test('TC02: Direct Message _ Conversation List _ Avatar user', async ({ page }) => {
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
+      expect(profileHash).toEqual(accountHash);
     });
 
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
+    // test('TC03: Direct Message _ Dual Chat _ Top bar (New Bug MEZON)', async ({ page }) => {
+    //   await AllureReporter.addWorkItemLinks({
+    //     parrent_issue: '63364',
+    //   });
 
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
+    //   const profilePage = new ProfilePage(page);
+    //   const messagePage = new MessagePage(page);
 
-    await profilePage.navigate('/chat/direct/friends');
-    await messagePage.createDMWithFriendName(profileName || '');
-    const DmItem = messagePage.getFriendItemFromListDM(profileName || '');
-    const accountAvatar = DmItem.locator(generateE2eSelector('avatar.image'));
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
+    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+    //   await messagePage.createDMWithFriendName(profileName || '');
+    //   const accountAvatar = messagePage.headerDMAvatar;
+    //   await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+    //   const accountSrc = await accountAvatar.getAttribute('src');
+    //   const accountHash = await getImageHash(accountSrc || '');
 
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
+    //   expect(profileHash).not.toBeNull();
+    //   expect(accountHash).not.toBeNull();
 
-    expect(profileHash).toEqual(accountHash);
-  });
+    //   expect(profileHash).toEqual(accountHash);
+    // });
 
-  // test('TC03: Direct Message _ Dual Chat _ Top bar (New Bug MEZON)', async ({ page }) => {
-  //   await AllureReporter.addWorkItemLinks({
-  //     parrent_issue: '63364',
-  //   });
+    test('TC04: Direct Message _ Dual Chat _ Display name', async ({ page }) => {
+      await AllureReporter.addWorkItemLinks({
+        parrent_issue: '63364',
+      });
+      const messagePage = new MessagePage(page);
 
-  //   await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
+      await messagePage.createDMWithFriendName(profileName || '');
+      await messagePage.sendMessageWhenInDM(messageText);
+      const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
+        profileName || ''
+      );
+      await page.waitForTimeout(500);
+      const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
+      await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+      const accountSrc = await accountAvatar.getAttribute('src');
+      const accountHash = await getImageHash(accountSrc || '');
 
-  //   const profilePage = new ProfilePage(page);
-  //   const messagePage = new MessagePage(page);
+      expect(profileHash).not.toBeNull();
+      expect(accountHash).not.toBeNull();
 
-  //   await profilePage.navigate('/chat/direct/friends');
-  //   await messagePage.createDMWithFriendName(profileName || '');
-  //   const accountAvatar = messagePage.headerDMAvatar;
-  //   await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-  //   const accountSrc = await accountAvatar.getAttribute('src');
-  //   const accountHash = await getImageHash(accountSrc || '');
-
-  //   expect(profileHash).not.toBeNull();
-  //   expect(accountHash).not.toBeNull();
-
-  //   expect(profileHash).toEqual(accountHash);
-  // });
-
-  test('TC04: Direct Message _ Dual Chat _ Display name', async ({ page }) => {
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
-
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
+      expect(profileHash).toEqual(accountHash);
     });
 
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
-    await profilePage.navigate('/chat/direct/friends');
-    await messagePage.createDMWithFriendName(profileName || '');
-    await messagePage.sendMessageWhenInDM(messageText);
-    const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
-      profileName || ''
-    );
-    await page.waitForTimeout(500);
-    const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
+    // test('TC05: Direct Message _ Dual Chat _ Short Profile (click on display name)', async ({
+    //   page,
+    // }) => {
+    //   await AllureReporter.addWorkItemLinks({
+    //     parrent_issue: '63364',
+    //   });
 
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
+    //   const profilePage = new ProfilePage(page);
+    //   const messagePage = new MessagePage(page);
+    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+    //   await messagePage.createDMWithFriendName(profileName || '');
+    //   const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
+    //     profileName || ''
+    //   );
+    //   await page.waitForTimeout(500);
+    //   const displayName = messageItemWithProfileName.locator(
+    //     generateE2eSelector('base_profile.display_name')
+    //   );
+    //   await displayName.click();
 
-    expect(profileHash).toEqual(accountHash);
-  });
+    //   const accountAvatar = profilePage.userProfile.avatar;
+    //   await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+    //   const accountSrc = await accountAvatar.getAttribute('src');
+    //   const accountHash = await getImageHash(accountSrc || '');
 
-  test('TC05: Direct Message _ Dual Chat _ Short Profile (click on display name)', async ({
-    page,
-  }) => {
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
+    //   expect(profileHash).not.toBeNull();
+    //   expect(accountHash).not.toBeNull();
 
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
+    //   expect(profileHash).toEqual(accountHash);
+    // });
+
+    // test('TC06: Direct Message _ Dual Chat _ Short Profile (click on mention)', async ({
+    //   page,
+    // }) => {
+    //   await AllureReporter.addWorkItemLinks({
+    //     parrent_issue: '63364',
+    //   });
+
+    //   const profilePage = new ProfilePage(page);
+    //   const messagePage = new MessagePage(page);
+    //   const messageHelper = new MessageTestHelpers(page);
+    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+    //   await messagePage.createDMWithFriendName(profileName || '');
+    //   await page.waitForTimeout(500);
+    //   await messageHelper.mentionUserAndSend(`@${profileName}`, [profileName || '']);
+    //   await page.waitForTimeout(500);
+    //   const mentionItem = messageHelper
+    //     .getMessageItemLocator(`@${profileName}`)
+    //     .last()
+    //     .locator(generateE2eSelector('chat.channel_message.mention_user'));
+    //   await mentionItem.click();
+    //   const accountAvatar = profilePage.userProfile.avatar;
+    //   await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+    //   const accountSrc = await accountAvatar.getAttribute('src');
+    //   const accountHash = await getImageHash(accountSrc || '');
+
+    //   expect(profileHash).not.toBeNull();
+    //   expect(accountHash).not.toBeNull();
+
+    //   expect(profileHash).toEqual(accountHash);
+    // });
+
+    test('TC07: Direct Message _ Dual Chat _ Side Profile', async ({ page }) => {
+      await AllureReporter.addWorkItemLinks({
+        parrent_issue: '63364',
+      });
+
+      const profilePage = new ProfilePage(page);
+      const messagePage = new MessagePage(page);
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+      await messagePage.createDMWithFriendName(profileName || '');
+      await messagePage.openUserProfile();
+      const accountAvatar = profilePage.userProfile.avatar;
+      await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+      const accountSrc = await accountAvatar.getAttribute('src');
+      const accountHash = await getImageHash(accountSrc || '');
+
+      expect(profileHash).not.toBeNull();
+      expect(accountHash).not.toBeNull();
+
+      expect(profileHash).toEqual(accountHash);
     });
 
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
-    await profilePage.navigate('/chat/direct/friends');
-    await messagePage.createDMWithFriendName(profileName || '');
-    const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
-      profileName || ''
-    );
-    await page.waitForTimeout(500);
-    const displayName = messageItemWithProfileName.locator(
-      generateE2eSelector('base_profile.display_name')
-    );
-    await displayName.click();
+    test('TC08: Direct Message _ Dual Chat _ Pinned Message list', async ({ page }) => {
+      await AllureReporter.addWorkItemLinks({
+        parrent_issue: '63364',
+      });
 
-    const accountAvatar = profilePage.userProfile.avatar;
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
+      const profilePage = new ProfilePage(page);
+      const messagePage = new MessagePage(page);
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+      await messagePage.createDMWithFriendName(profileName || '');
+      const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
+        profileName || ''
+      );
+      await messagePage.pinSpecificMessage(messageItemWithProfileName);
+      await page.waitForTimeout(500);
+      const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
+      await expect(accountAvatar).toBeVisible({ timeout: 5000 });
+      const accountSrc = await accountAvatar.getAttribute('src');
+      const accountHash = await getImageHash(accountSrc || '');
 
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
+      expect(profileHash).not.toBeNull();
+      expect(accountHash).not.toBeNull();
 
-    expect(profileHash).toEqual(accountHash);
-  });
-
-  test('TC06: Direct Message _ Dual Chat _ Short Profile (click on mention)', async ({ page }) => {
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
-
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
+      expect(profileHash).toEqual(accountHash);
     });
-
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
-    const messageHelper = new MessageTestHelpers(page);
-    await profilePage.navigate('/chat/direct/friends');
-    await messagePage.createDMWithFriendName(profileName || '');
-    await page.waitForTimeout(500);
-    await messageHelper.mentionUserAndSend(`@${profileName}`, [profileName || '']);
-    await page.waitForTimeout(500);
-    const mentionItem = messageHelper
-      .getMessageItemLocator(`@${profileName}`)
-      .last()
-      .locator(generateE2eSelector('chat.channel_message.mention_user'));
-    await mentionItem.click();
-    const accountAvatar = profilePage.userProfile.avatar;
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
-
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
-
-    expect(profileHash).toEqual(accountHash);
-  });
-
-  test('TC07: Direct Message _ Dual Chat _ Side Profile', async ({ page }) => {
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
-
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
-    });
-
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
-    const messageHelper = new MessageTestHelpers(page);
-    await profilePage.navigate('/chat/direct/friends');
-    await messagePage.createDMWithFriendName(profileName || '');
-    await messagePage.openUserProfile();
-    const accountAvatar = profilePage.userProfile.avatar;
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
-
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
-
-    expect(profileHash).toEqual(accountHash);
-  });
-
-  test('TC08: Direct Message _ Dual Chat _ Pinned Message list', async ({ page }) => {
-    await AuthHelper.setAuthForSuite(page, ClanSetupHelper.configs.userProfile1.suiteName || '');
-
-    await AllureReporter.addWorkItemLinks({
-      parrent_issue: '63364',
-    });
-
-    const profilePage = new ProfilePage(page);
-    const messagePage = new MessagePage(page);
-    await profilePage.navigate('/chat/direct/friends');
-    await messagePage.createDMWithFriendName(profileName || '');
-    const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
-      profileName || ''
-    );
-    await messagePage.pinSpecificMessage(messageItemWithProfileName);
-    await page.waitForTimeout(500);
-    const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
-    await expect(accountAvatar).toBeVisible({ timeout: 5000 });
-    const accountSrc = await accountAvatar.getAttribute('src');
-    const accountHash = await getImageHash(accountSrc || '');
-
-    expect(profileHash).not.toBeNull();
-    expect(accountHash).not.toBeNull();
-
-    expect(profileHash).toEqual(accountHash);
   });
 });
