@@ -1,14 +1,13 @@
-import { AllureConfig } from '@/config/allure.config';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import test, { expect, test as base, Page } from '@playwright/test';
-import { AccountCredentials, WEBSITE_CONFIGS } from '../../config/environment';
-import { joinUrlPaths } from '../../utils/joinUrlPaths';
+import test, { expect } from '@playwright/test';
+import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
+import { joinUrlPaths } from '../../../utils/joinUrlPaths';
 
-import { MessageTestHelpers } from '../../utils/messageHelpers';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { splitDomainAndPath } from '@/utils/domain';
+import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 test.describe('Channel Message - Module 1', () => {
   const clanFactory = new ClanFactory();

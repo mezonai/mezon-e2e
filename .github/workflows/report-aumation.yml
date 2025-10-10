@@ -24,7 +24,7 @@ jobs:
         run: |
           cat > .env << EOF
           BASE_URL=https://dev-mezon.nccsoft.vn
-          WORKERS=4
+          WORKERS=12
           EOF
 
       - name: Verify dev environment is accessible

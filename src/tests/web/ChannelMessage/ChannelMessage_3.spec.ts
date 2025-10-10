@@ -1,16 +1,13 @@
-import { AllureConfig } from '@/config/allure.config';
-import { TypeMessage } from '@/types/clan-page.types';
+import { ClanFactory } from '@/data/factories/ClanFactory';
+import { MessagePage } from '@/pages/MessagePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { expect, test as base, Page } from '@playwright/test';
-import { randomInt } from 'crypto';
-import { AccountCredentials, WEBSITE_CONFIGS } from '../../config/environment';
-import { joinUrlPaths } from '../../utils/joinUrlPaths';
-import { MessageTestHelpers } from '../../utils/messageHelpers';
-import { ClanFactory } from '@/data/factories/ClanFactory';
 import { splitDomainAndPath } from '@/utils/domain';
-import { MessagePage } from '@/pages/MessagePage';
+import { test as base, expect, Page } from '@playwright/test';
+import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
+import { joinUrlPaths } from '../../../utils/joinUrlPaths';
+import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 interface NavigationHelpers {
   navigateToHomePage(): Promise<void>;
