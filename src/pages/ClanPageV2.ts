@@ -106,12 +106,10 @@ export class ClanPageV2 extends ClanSelector {
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
-      try {
-        await categorySettingPage.buttons.deleteSidebar.waitFor({
-          state: 'visible',
-          timeout: 3000,
-        });
-      } catch {
+      const isOwner = await categorySettingPage.buttons.deleteSidebar.isVisible({
+        timeout: 3000,
+      });
+      if (!isOwner) {
         console.error(`You are not the owner of the clan "${clanName}".`);
         return false;
       }
@@ -364,7 +362,7 @@ export class ClanPageV2 extends ClanSelector {
     await input.fill(newChannelName);
     await this.buttons.saveChanges.click();
     await this.buttons.exitSettings.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async clickButtonInvitePeopleFromChannel(): Promise<boolean> {
