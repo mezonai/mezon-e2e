@@ -8,7 +8,9 @@ import { test } from '@playwright/test';
     test(`Clean up clans for ${accountName}`, async ({ page }) => {
       await AuthHelper.setupAuthWithEmailPassword(page, account);
       const clanPage = new ClanPageV2(page);
-      await clanPage.deleteAllClans({});
+      await clanPage.deleteAllClans({
+        onlyDeleteExpired: true,
+      });
       await AuthHelper.logout(page);
     });
   }
