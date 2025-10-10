@@ -1,303 +1,23 @@
+import ClanSelector from '@/data/selectors/ClanSelector';
+import { CategorySettingPage } from '@/pages/CategorySettingPage';
 import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from './../types/clan-page.types';
 import { DirectMessageHelper } from './../utils/directMessageHelper';
-import { BasePage } from './BasePage';
 import { CategoryPage } from './CategoryPage';
-import { CategorySettingPage } from './CategorySettingPage';
 
-export class ClanPageV2 extends BasePage {
+interface SelectorResult {
+  found: boolean;
+  element?: Locator;
+}
+
+export class ClanPageV2 extends ClanSelector {
   constructor(page: Page) {
     super(page);
   }
-
-  readonly buttons = {
-    createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
-    clanName: this.page.locator(`${generateE2eSelector('clan_page.header.title.clan_name')} p`),
-    createChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
-    createClanCancel: this.page.locator(
-      `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
-      { hasText: 'Cancel' }
-    ),
-    createClanConfirm: this.page.locator(
-      `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
-      { hasText: 'Create' }
-    ),
-    invitePeopleFromHeaderMenu: this.page.locator(
-      generateE2eSelector('clan_page.header.modal_panel.item'),
-      { hasText: 'Invite People' }
-    ),
-    invitePeople: this.page.locator(
-      generateE2eSelector('clan_page.modal.invite_people.user_item.button.invite')
-    ),
-    closeInviteModal: this.page.locator(generateE2eSelector('button.base'), { hasText: '×' }),
-    eventButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.events')),
-    saveChanges: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save Changes' }),
-    exitSettings: this.page.locator(generateE2eSelector('clan_page.settings.button.exit')),
-    memberListButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.members')),
-    invitePeopleFromChannel: this.page.locator(
-      `${generateE2eSelector('onboarding.chat.guide_sections')} div:has-text("Invite your friends")`
-    ),
-  };
-
-  readonly sidebarMemberList = {
-    memberItems: this.page.locator(generateE2eSelector('chat.channel_message.member_list.item')),
-    profileButton: this.page.locator(
-      generateE2eSelector('chat.channel_message.member_list.item.actions.view_profile')
-    ),
-  };
-
-  readonly memberSettings = {
-    usersInfo: this.page.locator(generateE2eSelector('clan_page.member_list.user_info')),
-  };
-
-  readonly footerProfile = {
-    userName: this.page.locator(generateE2eSelector('footer_profile.name')),
-  };
-
-  readonly eventModal = {
-    createEventButton: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.button_create')
-    ),
-    nextButton: this.page.locator(generateE2eSelector('clan_page.modal.create_event.next')),
-  };
-
-  readonly permissionModal = {
-    isVisible: async (): Promise<boolean> => {
-      const permissionModalLocator = this.page.locator(
-        generateE2eSelector('clan_page.settings.modal.permission')
-      );
-      try {
-        await permissionModalLocator.waitFor({ state: 'visible', timeout: 1000 });
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    cancel: this.page.locator(generateE2eSelector('clan_page.settings.modal.permission.cancel')),
-  };
-
-  public createChannelModal = {
-    type: {
-      text: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), {
-        hasText: 'Text',
-      }),
-      voice: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), {
-        hasText: 'Voice',
-      }),
-      stream: this.page.locator(generateE2eSelector('clan_page.modal.create_channel.type'), {
-        hasText: 'Stream',
-      }),
-    },
-    input: {
-      channelName: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_channel.input.channel_name')
-      ),
-    },
-    toggle: {
-      isPrivate: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_channel.toggle.is_private')
-      ),
-    },
-    button: {
-      confirm: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_channel.button.confirm')
-      ),
-      cancel: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_channel.button.cancel')
-      ),
-    },
-  };
-
-  public createEventModal = {
-    modal: this.page.locator(generateE2eSelector('clan_page.modal.create_event')),
-    modalStart: this.page.locator(generateE2eSelector('clan_page.modal.create_event.start_modal')),
-    type: {
-      voice: this.page.locator(generateE2eSelector('clan_page.modal.create_event.location.type'), {
-        hasText: 'Voice Channel',
-      }),
-      location: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_event.location.type'),
-        {
-          hasText: 'Somewhere else',
-        }
-      ),
-      private: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_event.location.type'),
-        {
-          hasText: 'Create Private Event',
-        }
-      ),
-    },
-    input: {
-      eventTopic: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_event.event_info.input.event_topic')
-      ),
-      startDateInput: this.page.locator(`
-        ${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_date')} 
-        div.react-datepicker-wrapper 
-        div.react-datepicker__input-container 
-        input
-      `),
-      startTime: this.page.locator(
-        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_time')} select`
-      ),
-      endDate: this.page.locator(
-        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_date')} 
-        div.react-datepicker-wrapper 
-        div.react-datepicker__input-container 
-        input`
-      ),
-      endTime: this.page.locator(
-        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_time')} select`
-      ),
-      description: this.page.locator(
-        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.description')} div textarea`
-      ),
-      locationName: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_event.location.input')
-      ),
-    },
-    selectChannel: this.page.locator(
-      `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select channel")`
-    ),
-    channelItem: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.location.channel.item')
-    ),
-    startTimeReview: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.review.start_time')
-    ),
-    typeClanReview: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.review.type')
-    ),
-    eventTopicReview: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.review.event_topic')
-    ),
-    descriptionReview: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.review.description')
-    ),
-    voiceChannelReview: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.review.voice_channel')
-    ),
-    textChannelReview: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.review.text_channel')
-    ),
-    locationNameReview: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.review.location_name')
-    ),
-    eventManagementItem: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.event_management.item')
-    ),
-    openEventDetailModalButton: this.page.locator(
-      generateE2eSelector(
-        'clan_page.modal.create_event.event_management.item.button.open_detail_modal'
-      )
-    ),
-    button: {
-      closeContainerModal: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_event.button_close')
-      ),
-      closeDetailModal: this.page.locator(
-        generateE2eSelector(
-          'clan_page.modal.create_event.event_management.item.button.close_detail_modal'
-        )
-      ),
-    },
-  };
-
-  public eventDetailModal = {
-    modal: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.event_management.item.modal_detail_item')
-    ),
-    startDateTime: this.page.locator(
-      generateE2eSelector(
-        'clan_page.modal.create_event.event_management.item.modal_detail_item.start_date_time'
-      )
-    ),
-    topic: this.page.locator(
-      generateE2eSelector(
-        'clan_page.modal.create_event.event_management.item.modal_detail_item.topic'
-      )
-    ),
-    channelName: this.page.locator(
-      generateE2eSelector(
-        'clan_page.modal.create_event.event_management.item.modal_detail_item.channel_name'
-      )
-    ),
-    description: this.page.locator(
-      generateE2eSelector(
-        'clan_page.modal.create_event.event_management.item.modal_detail_item.description'
-      )
-    ),
-  };
-
-  private input = {
-    clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
-    urlInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.url_invite')),
-    delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
-    channelName: this.page.locator(
-      `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
-    ),
-  };
-
-  private settings = {
-    clanName: this.page.locator(generateE2eSelector('clan_page.settings.overview.input.clan_name')),
-  };
-
-  readonly sidebar = {
-    clanItem: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item')),
-    clanItems: {
-      clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
-    },
-    channelItem: {
-      name: this.page.locator(generateE2eSelector('clan_page.channel_list.item.name')),
-      icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
-    },
-    threadItem: {
-      name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
-    },
-    panelItem: {
-      item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
-    },
-  };
-
-  readonly header = {
-    button: {
-      thread: this.page.locator(generateE2eSelector('chat.channel_message.header.button.thread')),
-      createThread: this.page.locator(
-        generateE2eSelector(
-          'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
-        )
-      ),
-      member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
-      pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
-    },
-  };
-
-  readonly threadBox = {
-    threadNameInput: this.page.locator(
-      generateE2eSelector('chat.channel_message.thread_box.input.thread_name')
-    ),
-    threadPrivateCheckbox: this.page.locator(
-      generateE2eSelector('chat.channel_message.thread_box.checkbox.private_thread')
-    ),
-    threadInputMention: this.page.locator(
-      `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`
-    ),
-  };
-
-  readonly modal = {
-    limitCreation: {
-      title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
-    },
-  };
-
-  private modalInvite = {
-    userInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.user_item')),
-    container: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.container')),
-  };
 
   async createNewClan(clanName: string): Promise<boolean> {
     try {
@@ -334,15 +54,63 @@ export class ClanPageV2 extends BasePage {
     return false;
   }
 
-  async deleteClan(removeAll?: boolean): Promise<boolean> {
+  async mapLocator(locator: Locator, callback: (element: Locator) => Promise<any>): Promise<any> {
+    let count = 0;
+    try {
+      await locator.first().waitFor({ state: 'visible', timeout: 5000 });
+      count = await locator.count();
+    } catch {
+      console.warn('No elements found for the provided locator.');
+      return [];
+    }
+    const results = [];
+    for (let i = 0; i < count; i++) {
+      const element = locator.nth(i);
+      try {
+        await element.waitFor({ state: 'attached', timeout: 2000 });
+        const result = await callback(element);
+        results.push(result);
+      } catch (error) {
+        console.log(`Error processing element ${i}:`, error);
+        results.push(null);
+      }
+    }
+    return results;
+  }
+
+  async deleteAllClans({ onlyDeleteExpired }: { onlyDeleteExpired?: boolean }): Promise<boolean> {
+    const clanElements = this.sidebar.clanItem;
+    const clanTitles = await this.mapLocator(clanElements, async element => {
+      return element.getAttribute('title');
+    });
+    for (const clanName of clanTitles) {
+      if (onlyDeleteExpired && clanName && !this.shouldDeleteClan(clanName)) {
+        continue;
+      }
+      await this.deleteClan(clanName || '');
+      await this.page.goto(joinUrlPaths(this.page.url(), '/chat/direct/friends'));
+      await this.page.waitForLoadState('domcontentloaded');
+    }
+    return true;
+  }
+
+  async deleteClan(clanName: string): Promise<boolean> {
     try {
       const categoryPage = new CategoryPage(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
 
+      const clanLocator = await this.findClanByTitle(clanName);
+
+      await clanLocator.click();
+      await this.page.waitForTimeout(1000);
+
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
-      const clanName = await this.settings.clanName.inputValue();
-      if (removeAll && !this.shouldDeleteClan(clanName || '')) {
+      const isOwner = await categorySettingPage.buttons.deleteSidebar.isVisible({
+        timeout: 1000,
+      });
+      if (!isOwner) {
+        console.error(`You are not the owner of the clan "${clanName}".`);
         return false;
       }
       await categorySettingPage.buttons.deleteSidebar.click();
@@ -357,6 +125,21 @@ export class ClanPageV2 extends BasePage {
       console.error(`Error deleting clan: ${error}`);
       return false;
     }
+  }
+
+  /**
+   * Find a clan item by its title attribute
+   * @param clanName The exact title of the clan to find
+   * @returns Promise<Locator> for the clan item with matching title
+   */
+  async findClanByTitle(clanName: string): Promise<Locator> {
+    const locator = this.page.locator(
+      `${generateE2eSelector('clan_page.side_bar.clan_item')}[title="${clanName}"]`
+    );
+
+    // Wait for the specific clan to be visible
+    await locator.waitFor({ state: 'visible', timeout: 5000 });
+    return locator;
   }
 
   /**

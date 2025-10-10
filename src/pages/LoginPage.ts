@@ -126,7 +126,7 @@ export class LoginPage extends BasePage {
 
     await loginButton.waitFor({ state: 'visible', timeout: 10000 });
     await loginButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async clickVerifyOtp(): Promise<void> {
@@ -200,9 +200,7 @@ export class LoginPage extends BasePage {
     await this.page.locator(this.selectors.passwordInput).fill(password);
 
     await this.clickLogin();
-    await this.page.waitForLoadState('networkidle');
-    await this.page.reload();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async verifyErrorMessage(expectedMessage?: string): Promise<void> {

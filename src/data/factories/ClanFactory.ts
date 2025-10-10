@@ -1,7 +1,7 @@
-import { ClanSetupConfig } from '@/utils/clanSetupHelper';
-import { Page } from '@playwright/test';
-import generateRandomString from '@/utils/randomString';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanSetupConfig } from '@/utils/clanSetupHelper';
+import generateRandomString from '@/utils/randomString';
+import { Page } from '@playwright/test';
 
 export class ClanFactory {
   private clanName: string = '';
@@ -52,6 +52,6 @@ export class ClanFactory {
 
   async cleanupClan(page: Page) {
     const clanPage = new ClanPageV2(page);
-    await clanPage.deleteClan(false);
+    await clanPage.deleteClan(this.clanName);
   }
 }
