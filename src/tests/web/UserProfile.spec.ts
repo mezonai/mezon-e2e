@@ -4,6 +4,7 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { ROUTES } from '@/selectors';
 import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -291,7 +292,7 @@ test.describe('User Settings', () => {
   //   const profileSrc = await profileAvatar.getAttribute('src');
   //   const profileHash = await getImageHash(profileSrc || '');
 
-  //   await profilePage.navigate('/chat/direct/friends');
+  //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
   //   const footerAvatar: Locator = directMessagePage.footerAvatar;
   //   await expect(footerAvatar).toBeVisible({ timeout: 5000 });
   //   const footerSrc = await footerAvatar.getAttribute('src');
@@ -728,7 +729,7 @@ test.describe('User Profile - Update avatar', () => {
 
     await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
 
-    await page.goto(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'));
+    await page.goto(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, ROUTES.DIRECT_FRIENDS));
     const profilePage = new ProfilePage(page);
     const messagePage = new MessagePage(page);
 
@@ -778,7 +779,7 @@ test.describe('User Profile - Update avatar', () => {
     profileHash = await getImageHash(profileSrc || '');
     profileName = await profilePage.getProfileName();
 
-    await profilePage.navigate('/chat/direct/friends');
+    await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
     await messagePage.sendMessage(messageText);
   });
 
@@ -794,7 +795,7 @@ test.describe('User Profile - Update avatar', () => {
       );
       await AuthHelper.prepareBeforeTest(
         page,
-        joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'),
+        joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, ROUTES.DIRECT_FRIENDS),
         credentials
       );
     });
@@ -803,7 +804,7 @@ test.describe('User Profile - Update avatar', () => {
       const profilePage = new ProfilePage(page);
       const directMessagePage = new MessagePage(page);
 
-      await profilePage.navigate('/chat/direct/friends');
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
       const footerAvatar = directMessagePage.footerAvatar;
       await expect(footerAvatar).toBeVisible();
       const footerSrc = await footerAvatar.getAttribute('src');
@@ -816,7 +817,7 @@ test.describe('User Profile - Update avatar', () => {
     // test('Validate account avatar', async ({ page }) => {
     //   const profilePage = new ProfilePage(page);
 
-    //   await profilePage.navigate('/chat/direct/friends');
+    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
     //   await profilePage.openUserSettingProfile();
     //   const accountAvatar = profilePage.accountPage.image;
     //   await expect(accountAvatar).toBeVisible();
@@ -838,7 +839,7 @@ test.describe('User Profile - Update avatar', () => {
       );
       await AuthHelper.prepareBeforeTest(
         page,
-        joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, 'chat/direct/friends'),
+        joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL as string, ROUTES.DIRECT_FRIENDS),
         credentials
       );
     });
@@ -870,7 +871,7 @@ test.describe('User Profile - Update avatar', () => {
       const profilePage = new ProfilePage(page);
       const messagePage = new MessagePage(page);
 
-      await profilePage.navigate('/chat/direct/friends');
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
       await messagePage.createDMWithFriendName(profileName || '');
       const DmItem = messagePage.getFriendItemFromListDM(profileName || '');
       const accountAvatar = DmItem.locator(generateE2eSelector('avatar.image'));
@@ -892,7 +893,7 @@ test.describe('User Profile - Update avatar', () => {
     //   const profilePage = new ProfilePage(page);
     //   const messagePage = new MessagePage(page);
 
-    //   await profilePage.navigate('/chat/direct/friends');
+    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
     //   await messagePage.createDMWithFriendName(profileName || '');
     //   const accountAvatar = messagePage.headerDMAvatar;
     //   await expect(accountAvatar).toBeVisible({ timeout: 5000 });
@@ -937,7 +938,7 @@ test.describe('User Profile - Update avatar', () => {
 
     //   const profilePage = new ProfilePage(page);
     //   const messagePage = new MessagePage(page);
-    //   await profilePage.navigate('/chat/direct/friends');
+    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
     //   await messagePage.createDMWithFriendName(profileName || '');
     //   const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
     //     profileName || ''
@@ -969,7 +970,7 @@ test.describe('User Profile - Update avatar', () => {
     //   const profilePage = new ProfilePage(page);
     //   const messagePage = new MessagePage(page);
     //   const messageHelper = new MessageTestHelpers(page);
-    //   await profilePage.navigate('/chat/direct/friends');
+    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
     //   await messagePage.createDMWithFriendName(profileName || '');
     //   await page.waitForTimeout(500);
     //   await messageHelper.mentionUserAndSend(`@${profileName}`, [profileName || '']);
@@ -997,7 +998,7 @@ test.describe('User Profile - Update avatar', () => {
 
       const profilePage = new ProfilePage(page);
       const messagePage = new MessagePage(page);
-      await profilePage.navigate('/chat/direct/friends');
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
       await messagePage.createDMWithFriendName(profileName || '');
       await messagePage.openUserProfile();
       const accountAvatar = profilePage.userProfile.avatar;
@@ -1018,7 +1019,7 @@ test.describe('User Profile - Update avatar', () => {
 
       const profilePage = new ProfilePage(page);
       const messagePage = new MessagePage(page);
-      await profilePage.navigate('/chat/direct/friends');
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
       await messagePage.createDMWithFriendName(profileName || '');
       const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
         profileName || ''

@@ -1,5 +1,6 @@
 import ClanSelector from '@/data/selectors/ClanSelector';
 import { CategorySettingPage } from '@/pages/CategorySettingPage';
+import { ROUTES } from '@/selectors';
 import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import joinUrlPaths from '@/utils/joinUrlPaths';
@@ -88,7 +89,7 @@ export class ClanPageV2 extends ClanSelector {
         continue;
       }
       await this.deleteClan(clanName || '');
-      await this.page.goto(joinUrlPaths(this.page.url(), '/chat/direct/friends'));
+      await this.page.goto(joinUrlPaths(this.page.url(), ROUTES.DIRECT_FRIENDS));
       await this.page.waitForLoadState('domcontentloaded');
     }
     return true;
@@ -107,10 +108,11 @@ export class ClanPageV2 extends ClanSelector {
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
       const isOwner = await categorySettingPage.buttons.deleteSidebar.isVisible({
-        timeout: 3000,
+        timeout: 10000,
       });
       if (!isOwner) {
         console.error(`You are not the owner of the clan "${clanName}".`);
+        await this.page.goto(ROUTES.DIRECT_FRIENDS);
         return false;
       }
       await categorySettingPage.buttons.deleteSidebar.click();

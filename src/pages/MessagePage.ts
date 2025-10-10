@@ -1,3 +1,4 @@
+import { ROUTES } from '@/selectors';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Locator, Page } from '@playwright/test';
@@ -180,7 +181,7 @@ export class MessagePage {
   }
 
   async gotoDMPage(): Promise<void> {
-    await this.page.goto('/chat/direct/friends');
+    await this.page.goto(ROUTES.DIRECT_FRIENDS);
   }
 
   async createGroup(): Promise<void> {

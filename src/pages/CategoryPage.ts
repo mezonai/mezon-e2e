@@ -1,6 +1,6 @@
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 export class CategoryPage extends BasePage {
   constructor(page: Page) {
@@ -38,22 +38,14 @@ export class CategoryPage extends BasePage {
     ),
   };
 
-  async createCategory(name: string, type: 'private' | 'public'): Promise<boolean> {
+  /* Only Support public category */
+  async createCategory(name: string): Promise<boolean> {
     await this.text.clanName.click();
-
     await this.buttons.showEmpty.click();
-
     await this.buttons.createCategory.click();
-
     await this.input.categoryName.waitFor({ state: 'visible', timeout: 5000 });
     await this.input.categoryName.fill(name);
-
-    if (type === 'private') {
-      await this.buttons.private.click();
-    }
-
     await this.buttons.confirmCreateCategory.click();
-
     return true;
   }
 
