@@ -11,16 +11,20 @@ export class AuthHelper {
   /**
    * Set authentication data for a specific account
    * @param page Playwright page instance
-   * @param accountKey The account key to use
+   * @param credentials Object containing all localStorage data
    * @returns The account key that was set
    */
   static async setAuthForAccount(page: Page, credentials: any = null) {
     await page.evaluate(
       ({ credentials }) => {
-        localStorage.setItem('persist:auth', credentials.persistAuth);
-        localStorage.setItem('mezon_session', credentials.mezonSession);
-        localStorage.setItem('mezon_refresh_token', credentials.mezonRefreshToken);
-        localStorage.setItem('mezon_refresh_session', credentials.mezonRefreshSession);
+        // Set all localStorage data dynamically
+        if (credentials && typeof credentials === 'object') {
+          Object.keys(credentials).forEach(key => {
+            if (credentials[key] !== null && credentials[key] !== undefined) {
+              localStorage.setItem(key, credentials[key]);
+            }
+          });
+        }
       },
       { credentials }
     );
@@ -54,7 +58,6 @@ export class AuthHelper {
     await page.evaluate(() => {
       localStorage.removeItem('persist:auth');
       localStorage.removeItem('mezon_session');
-      localStorage.removeItem('mezon_refresh_token');
       localStorage.removeItem('mezon_refresh_session');
     });
   }
@@ -63,11 +66,15 @@ export class AuthHelper {
     const loginPage = new LoginPage(page);
     await loginPage.loginWithPassword(credentials.email, credentials.password);
     return await page.evaluate(() => {
-      const persistAuth = localStorage.getItem('persist:auth');
-      const mezonSession = localStorage.getItem('mezon_session');
-      const mezonRefreshToken = localStorage.getItem('mezon_refresh_token');
-      const mezonRefreshSession = localStorage.getItem('mezon_refresh_session');
-      return { persistAuth, mezonSession, mezonRefreshToken, mezonRefreshSession };
+      // Get all localStorage data
+      const allLocalStorageData: Record<string, string> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          allLocalStorageData[key] = localStorage.getItem(key) || '';
+        }
+      }
+      return allLocalStorageData;
     });
   }
 

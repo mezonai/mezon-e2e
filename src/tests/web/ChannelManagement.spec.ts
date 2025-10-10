@@ -23,6 +23,7 @@ test.describe('Channel Management', () => {
     clanFactory.setClanUrl(
       joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
     );
+    await AuthHelper.logout(page);
     await context.close();
   });
 

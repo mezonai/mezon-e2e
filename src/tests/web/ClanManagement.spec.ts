@@ -528,8 +528,8 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        await clanPage.createEventModal.button.closeDetailModal.click();
-        await clanPage.createEventModal.button.closeContainerModal.click();
+        // await clanPage.createEventModal.button.closeDetailModal.click();
+        // await clanPage.createEventModal.button.closeContainerModal.click();
       }
     );
 
@@ -638,8 +638,8 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        await clanPage.createEventModal.button.closeDetailModal.click();
-        await clanPage.createEventModal.button.closeContainerModal.click();
+        // await clanPage.createEventModal.button.closeDetailModal.click();
+        // await clanPage.createEventModal.button.closeContainerModal.click();
       }
     );
 
@@ -716,8 +716,8 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        await clanPage.createEventModal.button.closeDetailModal.click();
-        await clanPage.createEventModal.button.closeContainerModal.click();
+        // await clanPage.createEventModal.button.closeDetailModal.click();
+        // await clanPage.createEventModal.button.closeContainerModal.click();
       }
     );
 
@@ -815,8 +815,8 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        await clanPage.createEventModal.button.closeDetailModal.click();
-        await clanPage.createEventModal.button.closeContainerModal.click();
+        // await clanPage.createEventModal.button.closeDetailModal.click();
+        // await clanPage.createEventModal.button.closeContainerModal.click();
       }
     );
 
@@ -885,8 +885,8 @@ test.describe('Create Event', () => {
           startTime: `${res.startDate} - ${res.startTime}`,
         });
         expect(isCreatedEvent).toBeTruthy();
-        await clanPage.createEventModal.button.closeDetailModal.click();
-        await clanPage.createEventModal.button.closeContainerModal.click();
+        // await clanPage.createEventModal.button.closeDetailModal.click();
+        // await clanPage.createEventModal.button.closeContainerModal.click();
       }
     );
 

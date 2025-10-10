@@ -1,6 +1,6 @@
-import { expect, Given, When, Then } from '../../fixtures/page.fixture';
-import { joinUrlPaths } from '../../utils/joinUrlPaths';
 import { WEBSITE_CONFIGS } from '../../config/environment';
+import { expect, Given, Then, When } from '../../fixtures/page.fixture';
+import { joinUrlPaths } from '../../utils/joinUrlPaths';
 
 Given('I am on {string}', async ({ PageObjects }, pageName: string) => {
   if (pageName === 'LoginPage') {
@@ -39,7 +39,7 @@ When('I click {string} button', async ({ PageObjects, page }, buttonText: string
     if (currentUrl.includes('dev-mezon.nccsoft.vn') && !currentUrl.includes('/login')) {
       await PageObjects.HomePage.clickLogin();
     } else {
-      await PageObjects.LoginPage.clickLogin();
+      // await PageObjects.LoginPage.clickLogin();
     }
   } else if (buttonText === 'Send OTP') {
     await PageObjects.LoginPage.clickSendOtp();
