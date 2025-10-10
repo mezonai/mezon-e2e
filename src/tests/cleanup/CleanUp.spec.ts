@@ -11,7 +11,7 @@ test.describe.configure({ mode: 'parallel' });
       await AuthHelper.setupAuthWithEmailPassword(page, account);
       const clanPage = new ClanPageV2(page);
       await clanPage.deleteAllClans({
-        onlyDeleteExpired: false,
+        onlyDeleteExpired: true,
       });
       await AuthHelper.logout(page);
     });

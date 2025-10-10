@@ -23,7 +23,7 @@
     "test:user-profile": "npx playwright test src/tests/web/UserProfile.spec.ts --project Chrome",
     "test:debug": "npx playwright test --debug",
     "test:dual": "npx playwright test --project Chrome --ui",
-    "test:cleanup": "npx playwright test --project cleanup --workers=100%",
+    "cleanup": "npx playwright test --project cleanup --workers=100%",
     "test:report": "npx playwright show-report --host=127.0.0.1",
     "report:playwright": "npx playwright show-report",
     "allure:generate": "allure generate allure-results --clean -o allure-report",
