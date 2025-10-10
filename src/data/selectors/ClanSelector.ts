@@ -34,6 +34,9 @@ export default class ClanSelector extends BasePage {
     invitePeopleFromChannel: this.page.locator(
       `${generateE2eSelector('onboarding.chat.guide_sections')} div:has-text("Invite your friends")`
     ),
+    channelManagementButton: this.page.locator(
+      generateE2eSelector('clan_page.side_bar.button.channels')
+    ),
   };
 
   readonly sidebarMemberList = {
@@ -134,6 +137,7 @@ export default class ClanSelector extends BasePage {
     panelItem: {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
+    channelsList: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
   };
 
   readonly header = {
@@ -291,6 +295,15 @@ export default class ClanSelector extends BasePage {
       generateE2eSelector(
         'clan_page.modal.create_event.event_management.item.modal_detail_item.description'
       )
+    ),
+  };
+
+  readonly channelManagement = {
+    totalChannels: this.page.locator(
+      generateE2eSelector('clan_page.channel_management.total_channels')
+    ),
+    channelItem: this.page.locator(
+      generateE2eSelector('clan_page.channel_management.channel_item')
     ),
   };
 
