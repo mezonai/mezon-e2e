@@ -69,16 +69,7 @@ export default defineConfig({
     {
       name: 'Chrome',
       testDir: './src/tests',
-      testIgnore: [
-        /dual-users-.*\.spec\.ts/,
-        /CleanUp\.spec\.ts/,
-        // /ChannelMessage_1\.spec\.ts/,
-        // /ChannelMessage_2\.spec\.ts/,
-        // /ChannelMessage_3\.spec\.ts/,
-        // /ChannelMessage_4\.spec\.ts/,
-        // /ChannelMessage_5\.spec\.ts/,
-        // /uploadFile\.spec\.ts/,
-      ],
+      testIgnore: [/dual-users-.*\.spec\.ts/, /CleanUp\.spec\.ts/, /UploadFile\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
