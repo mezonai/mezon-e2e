@@ -15,7 +15,7 @@ export default defineConfig({
     timeout: 10 * 1000,
   },
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 5 : 0,
+  retries: process.env.CI ? 3 : 0,
   fullyParallel: false,
   workers,
   reporter: [
@@ -69,7 +69,13 @@ export default defineConfig({
     {
       name: 'Chrome',
       testDir: './src/tests',
-      testIgnore: [/dual-users-.*\.spec\.ts/, /CleanUp\.spec\.ts/, /UploadFile\.spec\.ts/],
+      testIgnore: [
+        /dual-users-.*\.spec\.ts/,
+        /CleanUp\.spec\.ts/,
+        /UploadFile\.spec\.ts/,
+        /UploadFile_2\.spec\.ts/,
+        /UploadFile_3\.spec\.ts/,
+      ],
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
@@ -81,7 +87,7 @@ export default defineConfig({
       name: 'cleanup',
       testDir: './src/tests',
       testMatch: /CleanUp\.spec\.ts/,
-      fullyParallel: true,
+      fullyParallel: false,
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),

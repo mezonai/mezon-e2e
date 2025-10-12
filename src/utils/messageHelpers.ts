@@ -1498,9 +1498,9 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(200);
 
     if (!partialOrName.startsWith('@')) {
-      await input.type(`@${partialOrName}`);
+      await input.fill(`@${partialOrName}`);
     } else {
-      await input.type(partialOrName);
+      await input.fill(partialOrName);
     }
     await this.page.waitForTimeout(600);
     await this.selectMentionFromList(partialOrName.replace(/^@/, ''), candidateNames);
