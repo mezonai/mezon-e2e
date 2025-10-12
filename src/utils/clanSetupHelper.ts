@@ -172,9 +172,34 @@ export class ClanSetupHelper {
       suiteName: 'Upload File',
     }),
 
+    uploadFile2: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'UploadFileTest',
+      suiteName: 'Upload File - Module 2',
+    }),
+
+    uploadFile3: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'UploadFileTest',
+      suiteName: 'Upload File - Module 3',
+    }),
+
     userProfile: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ProfileTest',
       suiteName: 'User Profile',
+    }),
+
+    userProfileUserSetting: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'ProfileTest',
+      suiteName: 'User Profile - User Setting',
+    }),
+
+    clanProfile: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'ProfileTest',
+      suiteName: 'Clan Profile',
+    }),
+
+    clanProfile2: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'ProfileTest',
+      suiteName: 'Clan Profile - Module 2',
     }),
 
     userProfile1: ClanSetupHelper.createConfig({

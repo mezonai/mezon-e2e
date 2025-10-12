@@ -107,9 +107,20 @@ export class ClanPageV2 extends ClanSelector {
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
-      const isOwner = await categorySettingPage.buttons.deleteSidebar.isVisible({
-        timeout: 10000,
-      });
+      await this.page.waitForLoadState('domcontentloaded');
+
+      let isOwner = false;
+
+      try {
+        await categorySettingPage.buttons.deleteSidebar.waitFor({
+          state: 'visible',
+          timeout: 5000,
+        });
+        isOwner = true;
+      } catch {
+        isOwner = false;
+      }
+
       if (!isOwner) {
         console.error(`You are not the owner of the clan "${clanName}".`);
         await this.page.goto(ROUTES.DIRECT_FRIENDS);
