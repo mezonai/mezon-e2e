@@ -11,7 +11,7 @@ import { test } from '@playwright/test';
       await AuthHelper.setupAuthWithEmailPassword(page, account);
       const clanPage = new ClanPageV2(page);
       await clanPage.deleteAllClans({
-        onlyDeleteExpired: true,
+        // onlyDeleteExpired: true,
       });
       await AuthHelper.logout(page);
     });

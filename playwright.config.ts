@@ -69,13 +69,7 @@ export default defineConfig({
     {
       name: 'Chrome',
       testDir: './src/tests',
-      testIgnore: [
-        /dual-users-.*\.spec\.ts/,
-        /CleanUp\.spec\.ts/,
-        /UploadFile\.spec\.ts/,
-        /UploadFile_2\.spec\.ts/,
-        /UploadFile_3\.spec\.ts/,
-      ],
+      testIgnore: [/dual-users-.*\.spec\.ts/, /CleanUp\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
@@ -87,7 +81,7 @@ export default defineConfig({
       name: 'cleanup',
       testDir: './src/tests',
       testMatch: /CleanUp\.spec\.ts/,
-      fullyParallel: false,
+      fullyParallel: true,
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
