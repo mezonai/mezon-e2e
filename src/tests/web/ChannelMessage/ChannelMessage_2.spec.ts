@@ -8,12 +8,6 @@ import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment
 import { joinUrlPaths } from '../../../utils/joinUrlPaths';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
-interface NavigationHelpers {
-  navigateToHomePage(): Promise<void>;
-  navigateToDirectChat(): Promise<void>;
-  navigateToClanChannel(): Promise<void>;
-}
-
 const test = base.extend<{
   pageWithClipboard: Page;
 }>({
@@ -148,22 +142,25 @@ test.describe('Channel Message - Module 2', () => {
     const topicMessages = await messageHelpers.getMessagesFromTopicDrawer();
     expect(emojiMsg).toEqual(topicMessages[topicMessages.length - 1].content);
   });
-  // test.skip('Send message from short profile in clan channel', async ({
-  //   pageWithClipboard,
-  //   context,
-  // }) => {
-  //   await AllureReporter.addWorkItemLinks({
-  //     tms: '63403',
-  //   });
-
-  //   messageHelpers = new MessageTestHelpers(pageWithClipboard);
-
-  //   await messageHelpers.clickMembersButton();
-  //   await messageHelpers.clickMemberInList('nguyen.nguyen');
-
-  //   const testMessage = `Test message from Case 12 short profile 11${Date.now()}`;
-  //   await messageHelpers.sendMessageFromShortProfile(testMessage);
-
-  //   await pageWithClipboard.waitForTimeout(2000);
-  // });
+  test('Send message from short profile in clan channel', async ({ pageWithClipboard }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63403',
+    });
+    const clanWithFriendAddedUrl = joinUrlPaths(
+      WEBSITE_CONFIGS.MEZON.baseURL,
+      'chat/clans/1786228934740807680/channels/1786228934753390593'
+    );
+    const addedFriendUsername = 'nguyen.nguyen';
+    await pageWithClipboard.goto(clanWithFriendAddedUrl, { waitUntil: 'domcontentloaded' });
+    await pageWithClipboard.waitForLoadState('networkidle');
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
+    await messageHelpers.clickMembersButton();
+    await messageHelpers.clickMemberInList(addedFriendUsername);
+    const testMessage = `Send Message From Short Profile ${Date.now()}`;
+    await messageHelpers.sendMessageFromShortProfile(testMessage);
+    await pageWithClipboard.waitForTimeout(2000);
+    const messageHelper = new MessageTestHelpers(pageWithClipboard);
+    const lastMessage = await messageHelper.getLastMessageInChat();
+    expect(lastMessage).toContain(testMessage);
+  });
 });

@@ -2690,6 +2690,13 @@ export class MessageTestHelpers {
     await this.pinnedMessages.last().hover();
     await this.jumpToPinnedMessageButtonFromPinnedList.click();
   }
+
+  async getLastMessageInChat(): Promise<string> {
+    const messageHelpers = new MessageTestHelpers(this.page);
+    const lastMessage = await messageHelpers.messages.last();
+    await expect(lastMessage).toBeVisible();
+    return (await lastMessage.innerText()).trim();
+  }
 }
 
 export const LINK_TEST_URLS = [

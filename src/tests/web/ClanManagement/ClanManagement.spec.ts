@@ -9,6 +9,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, test } from '@playwright/test';
 import { CategoryPage } from '../../../pages/CategoryPage';
 
@@ -148,7 +149,8 @@ test.describe('Clan Management', () => {
     });
 
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
-      const lastMessage = await clanPage.getLastMessageInChat();
+      const messageHelper = new MessageTestHelpers(page);
+      const lastMessage = await messageHelper.getLastMessageInChat();
       const isMatch = lastMessage.includes(inviteResult.urlInvite ?? '');
       expect(isMatch).toBeTruthy();
       return isMatch;
@@ -211,7 +213,8 @@ test.describe('Clan Management', () => {
       await clanPage.openDirectMessageWithUser(inviteResult.username!);
     });
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
-      const lastMessage = await clanPage.getLastMessageInChat();
+      const messageHelper = new MessageTestHelpers(page);
+      const lastMessage = await messageHelper.getLastMessageInChat();
       const isMatch = lastMessage.includes(inviteResult.urlInvite ?? '');
       expect(isMatch).toBeTruthy();
       return isMatch;
