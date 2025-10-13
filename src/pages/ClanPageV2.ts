@@ -4,7 +4,6 @@ import { ROUTES } from '@/selectors';
 import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from './../types/clan-page.types';
 import { DirectMessageHelper } from './../utils/directMessageHelper';
@@ -355,15 +354,6 @@ export class ClanPageV2 extends ClanSelector {
     ).toBeVisible();
 
     await directMessageHelpers.userNamesInDM.getByText(username, { exact: true }).click();
-  }
-
-  async getLastMessageInChat(): Promise<string> {
-    const messageHelpers = new MessageTestHelpers(this.page);
-    const lastMessage = await messageHelpers.messages.last();
-
-    await expect(lastMessage).toBeVisible();
-
-    return (await lastMessage.innerText()).trim();
   }
 
   async editChannelName(channelName: string, newChannelName: string): Promise<void> {

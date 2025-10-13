@@ -79,7 +79,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
-        headless: true,
+        headless: false,
       },
       dependencies: ['setup'],
     },
