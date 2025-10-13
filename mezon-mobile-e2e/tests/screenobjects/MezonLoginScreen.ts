@@ -1,109 +1,68 @@
+import { sleep } from "../utils/index.js";
+
 export class MezonLoginScreen {
-    private email: string;
-    static init() {
-        return new MezonLoginScreen();
-    }
+  static init() {
+    return new MezonLoginScreen();
+  }
 
-    static async using<T>(
-        fn: (ms: MezonLoginScreen) => Promise<T>
-    ): Promise<T> {
-        return fn(MezonLoginScreen.init());
-    }
+  static async using<T>(fn: (ms: MezonLoginScreen) => Promise<T>): Promise<T> {
+    return fn(MezonLoginScreen.init());
+  }
 
-    private constructor() {}
+  private constructor() {}
 
-    private get root() {
-        return $("~login.screen");
-    }
-    private get emailInput() {
-        return $("~login.email.input");
-    }
-    private get phoneInput() {
-        return $("~login.phone.input");
-    }
-    private get passwordInput() {
-        return $("~login.password.input");
-    }
-    private get primaryButton() {
-        return $("~login.primary.button");
-    }
-    private get switchSmsLink() {
-        return $("~login.switch.sms");
-    }
-    private get switchPasswordLink() {
-        return $("~login.switch.password");
-    }
-    private get switchOtpLink() {
-        return $("~login.switch.otp");
-    }
-    private get toggleShowPasswordLabel() {
-        return $("~login.toggle.showPassword");
-    }
+  private get emailInput() {
+    return $('~login.email.input');
+  }
 
-    async waitForIsShown(isShown = true): Promise<boolean> {
-        return this.root.waitForDisplayed({
-            timeout: 45000,
-            reverse: !isShown,
-        });
-    }
+  private get passwordInput() {
+    return $('~login.password.input');
+  }
 
-    async openLoginWithOtp(): Promise<void> {
-        if (await this.switchOtpLink.isExisting()) {
-            await this.switchOtpLink.click();
-        }
-    }
+  private get switchPasswordLink() {
+    return $('~login.switch.password');
+  }
 
-    async setEmail(value: string): Promise<void> {
-        await this.emailInput.waitForDisplayed({ timeout: 20000 });
-        await this.emailInput.setValue(value);
-    }
+  private get primaryButton() {
+    return $('~login.primary.button');
+  }
 
-    async setPhone(value: string): Promise<void> {
-        await this.switchSmsLink.click();
-        await this.phoneInput.waitForDisplayed({ timeout: 20000 });
-        await this.phoneInput.setValue(value);
-    }
+  async waitForIsShown(isShown = true): Promise<boolean> {
+    return this.emailInput.waitForDisplayed({
+      timeout: 45000,
+      reverse: !isShown,
+    });
+  }
 
-    async setPassword(value: string): Promise<void> {
-        if (await this.switchPasswordLink.isExisting()) {
-            await this.switchPasswordLink.click();
-        }
-        await this.passwordInput.waitForDisplayed({ timeout: 20000 });
-        await this.passwordInput.setValue(value);
+  async openLoginWithPassword(): Promise<void> {
+    await sleep(2000);
+    await this.switchPasswordLink.waitForDisplayed({
+      timeout: 45000,
+    });
+    if (await this.switchPasswordLink.isExisting()) {
+      await this.switchPasswordLink.click();
     }
+  }
 
-    async toggleShowPassword(): Promise<void> {
-        if (await this.toggleShowPasswordLabel.isExisting()) {
-            await this.toggleShowPasswordLabel.click();
-        }
-    }
+  async setEmail(value: string): Promise<void> {
+    await this.emailInput.waitForDisplayed({ timeout: 20000 });
+    await this.emailInput.setValue(value);
+  }
 
-    async requestOtpFor(email: string): Promise<void> {
-        this.email = email;
-        await this.waitForIsShown(true);
-        await this.setEmail(email);
-        await this.primaryButton.click();
-    }
+  async setPassword(value: string): Promise<void> {
+    await this.passwordInput.waitForDisplayed({ timeout: 20000 });
+    await this.passwordInput.setValue(value);
+  }
 
-    async submitLogin(): Promise<void> {
-        await this.primaryButton.waitForEnabled({ timeout: 20000 });
-        await this.primaryButton.click();
-    }
+  async submitLogin(): Promise<void> {
+    await this.primaryButton.waitForEnabled({ timeout: 20000 });
+    await this.primaryButton.click();
+  }
 
-    async submitOtp(otpCode: string): Promise<void> {
-        const digits = otpCode.split("");
-        await Promise.all(
-            digits.map(async (digit, i) => {
-                const input = await $(`~otp.input.${i}`);
-                await input.setValue(digit);
-            })
-        );
-    }
-
-    async login(email: string, password: string): Promise<void> {
-        await this.waitForIsShown(true);
-        await this.setEmail(email);
-        await this.setPassword(password);
-        await this.submitLogin();
-    }
+  async loginWithPassword(email: string, password: string): Promise<void> {
+    await this.openLoginWithPassword();
+    await this.setEmail(email);
+    await this.setPassword(password);
+    await this.submitLogin();
+  }
 }
