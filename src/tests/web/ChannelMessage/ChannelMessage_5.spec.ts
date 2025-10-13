@@ -8,12 +8,6 @@ import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment
 import { joinUrlPaths } from '../../../utils/joinUrlPaths';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../../utils/messageHelpers';
 
-interface NavigationHelpers {
-  navigateToHomePage(): Promise<void>;
-  navigateToDirectChat(): Promise<void>;
-  navigateToClanChannel(): Promise<void>;
-}
-
 const test = base.extend<{
   pageWithClipboard: Page;
 }>({
