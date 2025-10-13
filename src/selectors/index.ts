@@ -333,6 +333,7 @@ export const DATA_E2E_IDENTIFIER = {
           user_profile: '',
         },
       },
+      chat_list_container: '',
       chat_list: '',
 
       chat_item: {

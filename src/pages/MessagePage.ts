@@ -171,7 +171,7 @@ export class MessagePage {
     try {
       await this.buttonCreateGroupSidebar.click();
 
-      const firstUser = (await this.userNameItem.first().innerText()).trim();
+      const firstUser = (await this.userItem.first().innerText()).trim();
       await this.userItem.hover();
       await this.userItem.click();
       await this.createGroupButton.click();
