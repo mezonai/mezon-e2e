@@ -171,12 +171,15 @@ test.describe('Direct Message', () => {
 
   test('Close direct message', async ({ page }) => {
     const messagePage = new MessagePage(page);
+    const helpers = new DirectMessageHelper(page);
 
     let username: string;
 
     await AllureReporter.step('Verify that i can open a DM', async () => {
       const firstUser = await messagePage.createDM();
       username = firstUser;
+      const isVisible = await helpers.scrollUntilVisible(username);
+      expect(isVisible).toBeTruthy();
       await expect(messagePage.groupName).toHaveText(firstUser, { timeout: 5000 });
     });
 

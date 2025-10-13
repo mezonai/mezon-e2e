@@ -8,6 +8,8 @@ export class DirectMessageHelper {
   readonly groupName: Locator;
   readonly group: Locator;
   readonly userNamesInDM: Locator;
+  readonly chatListContainer: Locator;
+  readonly chatList: Locator;
 
   constructor(private page: Page) {
     this.textarea = page.locator(generateE2eSelector('mention.input'));
@@ -24,6 +26,10 @@ export class DirectMessageHelper {
     this.userNamesInDM = page.locator(
       generateE2eSelector('chat.direct_message.chat_item.username')
     );
+    this.chatListContainer = page.locator(
+      generateE2eSelector('chat.direct_message.chat_list_container')
+    );
+    this.chatList = page.locator(generateE2eSelector('chat.direct_message.chat_list'));
   }
 
   async countGroups(): Promise<number> {
@@ -61,5 +67,41 @@ export class DirectMessageHelper {
       }
     }
     return userCount;
+  }
+
+  async scrollUntilVisible(
+    name: string,
+    options: {
+      scrollStep?: number;
+      maxScroll?: number;
+      waitMs?: number;
+      timeout?: number;
+    } = {}
+  ): Promise<boolean> {
+    const { scrollStep = 400, maxScroll = 10000, waitMs = 300, timeout = 5000 } = options;
+    if (name === '') {
+      return false;
+    }
+
+    const start = Date.now();
+    let scrolled = 0;
+
+    while (Date.now() - start < timeout && scrolled < maxScroll) {
+      const target = this.chatList.filter({
+        has: this.page.locator(`:text-is("${name}")`),
+      });
+
+      if (await target.count()) {
+        await target.first().scrollIntoViewIfNeeded();
+        return true;
+      }
+
+      await this.chatListContainer.evaluate((el, step) => el.scrollBy(0, step), scrollStep);
+      scrolled += scrollStep;
+
+      await this.page.waitForTimeout(waitMs);
+    }
+
+    return false;
   }
 }
