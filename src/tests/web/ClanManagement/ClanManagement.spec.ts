@@ -1,7 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, GLOBAL_CONFIG } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/ClanPage';
 import { ROUTES } from '@/selectors';
 import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType, ClanStatus, EventType } from '@/types/clan-page.types';
@@ -117,7 +117,7 @@ test.describe('Clan Management', () => {
       tag: ['invite-people', 'user-invitations'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.step('Open invite people dialog', async () => {
       await clanPage.clickButtonInvitePeopleFromMenu();
@@ -173,7 +173,7 @@ test.describe('Clan Management', () => {
 
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `tc-${unique}`.slice(0, 20);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.TEXT);
@@ -232,7 +232,7 @@ test.describe('Clan Management', () => {
     });
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `vc-${unique}`.slice(0, 20);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.VOICE);
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
@@ -320,7 +320,7 @@ test.describe('Clan Management', () => {
     const unique = Date.now().toString(36).slice(-6);
     const voiceChannelName = `vc-${unique}`.slice(0, 20);
     const textChannelName = `ptc-${unique}`.slice(0, 20);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await AllureReporter.addParameter('voiceChannelName', voiceChannelName);
     await AllureReporter.addParameter('voiceChannelType', ChannelType.VOICE);
     await AllureReporter.addParameter('voiceChannelStatus', ChannelStatus.PUBLIC);

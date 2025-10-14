@@ -1,7 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/ClanPage';
 import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType, ClanStatus, EventType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -66,7 +66,7 @@ test.describe('Clan Management - Module 2', () => {
       tag: ['event-creation', 'Public-event', 'location-event'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     const unique = Date.now().toString(36).slice(-6);
     const locationName = `location name - ${unique}`;
     let res: {
@@ -142,7 +142,7 @@ test.describe('Clan Management - Module 2', () => {
       tag: ['event-creation', 'Private-event', 'location-event'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     const unique = Date.now().toString(36).slice(-6);
     const textChannelName = `ptc-${unique}`.slice(0, 20);
     const locationName = `location name - ${unique}`;
@@ -239,7 +239,7 @@ test.describe('Clan Management - Module 2', () => {
       tag: ['event-creation', 'Private-event'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     let res: {
       eventTopic: string;
@@ -309,7 +309,7 @@ test.describe('Clan Management - Module 2', () => {
     });
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `vc-${unique}`.slice(0, 20);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.VOICE);
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
@@ -363,7 +363,7 @@ test.describe('Clan Management - Module 2', () => {
     });
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `tc-${unique}`.slice(0, 20);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.TEXT);
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);

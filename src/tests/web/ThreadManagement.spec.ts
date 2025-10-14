@@ -1,7 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/ClanPage';
 import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -33,7 +33,7 @@ test.describe('Thread in Private Channel', () => {
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
 
     await AllureReporter.step('Create private channel for thread testing', async () => {
-      const clanPage = new ClanPageV2(page);
+      const clanPage = new ClanPage(page);
       const privateChannelName = `private-channel-${generateRandomString(5)}`;
       await clanPage.createNewChannel(ChannelType.TEXT, privateChannelName, ChannelStatus.PRIVATE);
     });
@@ -134,7 +134,7 @@ test.describe('Thread in Public Channel', () => {
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
 
     await AllureReporter.step('Create public channel for thread testing', async () => {
-      const clanPage = new ClanPageV2(page);
+      const clanPage = new ClanPage(page);
       const publicChannelName = `public-channel-${generateRandomString(5)}`;
       await clanPage.createNewChannel(ChannelType.TEXT, publicChannelName);
     });

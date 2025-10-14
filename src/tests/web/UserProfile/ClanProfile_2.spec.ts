@@ -1,7 +1,7 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/ClanPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -111,7 +111,7 @@ test.describe('Clan Profile - Module 2', () => {
     });
 
     await page.waitForTimeout(1000);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
     const userName = await clanPage.footerProfile.userName.textContent();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
@@ -132,7 +132,7 @@ test.describe('Clan Profile - Module 2', () => {
     });
 
     await page.waitForTimeout(1000);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
     const userName = await clanPage.footerProfile.userName.textContent();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
@@ -158,7 +158,7 @@ test.describe('Clan Profile - Module 2', () => {
     });
 
     await page.waitForTimeout(1000);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
     const userName = await clanPage.footerProfile.userName.textContent();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
@@ -187,7 +187,7 @@ test.describe('Clan Profile - Module 2', () => {
     });
 
     await page.waitForTimeout(1000);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await clanPage.openMemberListSetting();
 
     const profileAvatar = clanPage.memberSettings.usersInfo.locator(

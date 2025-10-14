@@ -1,7 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/ClanPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -78,7 +78,7 @@ test.describe('Channel Management', () => {
 
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `text-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.TEXT);
@@ -124,7 +124,7 @@ test.describe('Channel Management', () => {
 
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `text-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.TEXT);
@@ -170,7 +170,7 @@ test.describe('Channel Management', () => {
 
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `voice-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.VOICE);
@@ -215,7 +215,7 @@ test.describe('Channel Management', () => {
 
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `text-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.STREAM);
@@ -260,7 +260,7 @@ test.describe('Channel Management', () => {
 
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `tc-${unique}`.slice(0, 20);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.TEXT);

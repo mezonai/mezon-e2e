@@ -15,7 +15,7 @@ interface SelectorResult {
   element?: Locator;
 }
 
-export class ClanPageV2 extends ClanSelector {
+export class ClanPage extends ClanSelector {
   constructor(page: Page) {
     super(page);
   }

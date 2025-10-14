@@ -1,5 +1,5 @@
 import { AccountCredentials } from '@/config/environment';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/ClanPage';
 import { AuthHelper } from '@/utils/authHelper';
 import { test } from '@playwright/test';
 
@@ -7,7 +7,7 @@ import { test } from '@playwright/test';
   for (const [accountName, account] of Object.entries(AccountCredentials)) {
     test(`Clean up clans for ${accountName}`, async ({ page }) => {
       await AuthHelper.setupAuthWithEmailPassword(page, account);
-      const clanPage = new ClanPageV2(page);
+      const clanPage = new ClanPage(page);
       await clanPage.deleteAllClans({
         onlyDeleteExpired: true,
       });

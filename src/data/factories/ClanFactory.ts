@@ -1,4 +1,4 @@
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/ClanPage';
 import { ClanSetupConfig } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
 import { Page } from '@playwright/test';
@@ -33,7 +33,7 @@ export class ClanFactory {
     const timestamp = now.getTime();
     const clanName = `${clanNamePrefix}_${generateRandomString(10)}_${timestamp}`;
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     const createClanClicked = await clanPage.clickCreateClanButton();
     if (!createClanClicked) {
       throw new Error('Failed to click create clan button');
@@ -51,7 +51,7 @@ export class ClanFactory {
   }
 
   async cleanupClan(page: Page) {
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await clanPage.deleteClan(this.clanName);
   }
 }

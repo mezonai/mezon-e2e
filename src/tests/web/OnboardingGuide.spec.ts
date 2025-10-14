@@ -1,7 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/ClanPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { OnboardingTask } from '@/types/onboarding.types';
@@ -125,7 +125,7 @@ test.describe('Onboarding Guide Task Completion', () => {
       tag: ['onboarding', 'channel-creation', 'task-completion', 'clan-management'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     const onboardingPage = new OnboardingPage(page);
     const testChannelName = `test-channel-${Date.now()}`;
 
