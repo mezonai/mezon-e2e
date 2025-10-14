@@ -144,17 +144,21 @@ export class ProfilePage extends BasePage {
   async sendMessage(mentionText: string) {
     await this.inputs.mention.fill(mentionText);
     await this.inputs.mention.press('Enter');
+    await this.page.waitForTimeout(500);
   }
 
   async verifyAboutMeStatusInShortProfile(aboutMeStatus: string) {
     await this.profiles.displayName.click();
-    await expect(this.texts.aboutMeInShortProfile).toHaveText(aboutMeStatus, { timeout: 500 });
+    const userAboutMe = await this.texts.aboutMeInShortProfile.first();
+    await expect(userAboutMe).toHaveText(aboutMeStatus, { timeout: 500 });
   }
 
   async clickLogout() {
     await this.buttons.userSettingProfile.click();
     await this.tabs.logout.click();
-    const logoutButton = this.page.locator(generateE2eSelector('button.base'), { hasText: 'Log Out' });
+    const logoutButton = this.page.locator(generateE2eSelector('button.base'), {
+      hasText: 'Log Out',
+    });
     try {
       await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
       await logoutButton.click();
