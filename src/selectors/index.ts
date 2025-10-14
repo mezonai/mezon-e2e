@@ -536,6 +536,30 @@ export const DATA_E2E_IDENTIFIER = {
       content: '',
     },
   },
+  friend_page: {
+    tab: {
+      all: '',
+      online: '',
+      pending: '',
+      block: '',
+    },
+    button: {
+      add_friend: '',
+      send_friend_request: '',
+      accept_friend_request: '',
+      reject_friend_request: '',
+      cancel_friend_request: '',
+    },
+    input: {
+      search: '',
+      add_friend: '',
+    },
+    request_failed_popup: {
+      button: {
+        okay: '',
+      },
+    },
+  },
 };
 
 export const ROUTES = {
