@@ -367,7 +367,9 @@ test.describe('User Settings', () => {
     await AllureReporter.step(
       'Verify About me status has been changed successfully at short profile',
       async () => {
-        await page.reload();
+        await page.reload({
+          waitUntil: 'domcontentloaded',
+        });
         await profilePage.sendMessage(mentionText);
         await profilePage.verifyAboutMeStatusInShortProfile(target);
       }
