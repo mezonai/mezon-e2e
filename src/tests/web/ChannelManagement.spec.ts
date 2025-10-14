@@ -1,55 +1,48 @@
 import { AllureConfig } from '@/config/allure.config';
-import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { splitDomainAndPath } from '@/utils/domain';
-import joinUrlPaths from '@/utils/joinUrlPaths';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
 test.describe('Channel Management', () => {
+  const CHANNEL_CREATION_TAG = 'channel-creation';
+  const TEXT_CHANNEL_TAG = 'text-channel';
+  const VERIFY_CHANNEL_STEP = 'Verify channel is present in channel list';
+
   const clanFactory = new ClanFactory();
+  const credentials = AccountCredentials['account1'];
 
   test.beforeAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account1);
-    await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, page);
-
-    clanFactory.setClanUrl(
-      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
-    );
-    await AuthHelper.logout(page);
-    await context.close();
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.channelManagement,
+      credentials,
+    });
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+    await TestSuiteHelper.setupBeforeEach({
       page,
-      AccountCredentials.account1
-    );
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
-    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+      clanFactory,
+      credentials,
+    });
   });
 
   test.afterAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account1
-    );
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
-    await clanFactory.cleanupClan(page);
-    await AuthHelper.logout(page);
-    await context.close();
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
   });
 
   test.afterEach(async ({ page }) => {
@@ -80,7 +73,7 @@ test.describe('Channel Management', () => {
     `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-creation', 'private-channel', 'text-channel'],
+      tag: [CHANNEL_CREATION_TAG, 'private-channel', TEXT_CHANNEL_TAG],
     });
 
     const ran = Math.floor(Math.random() * 999) + 1;
@@ -95,7 +88,7 @@ test.describe('Channel Management', () => {
       await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });

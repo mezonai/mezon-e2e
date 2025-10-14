@@ -81,7 +81,6 @@ export class MessageTestHelpers {
 
     const replyBtn = await this.messageActionModalItems.filter({ hasText: 'Reply' }).first();
     await replyBtn.click();
-    console.log('Clicked reply option', replyBtn);
     const input = await this.findMessageInput();
     await input.click();
     await input.waitFor({ state: 'attached' });

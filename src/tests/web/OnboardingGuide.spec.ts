@@ -1,5 +1,5 @@
 import { AllureConfig } from '@/config/allure.config';
-import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
 import { OnboardingPage } from '@/pages/OnboardingPage';
@@ -8,51 +8,40 @@ import { OnboardingTask } from '@/types/onboarding.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { splitDomainAndPath } from '@/utils/domain';
-import joinUrlPaths from '@/utils/joinUrlPaths';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
 test.describe('Onboarding Guide Task Completion', () => {
   const clanFactory = new ClanFactory();
+  const credentials = AccountCredentials.account5;
 
   test.beforeAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account5);
-    await clanFactory.setupClan(ClanSetupHelper.configs.onboarding, page);
-
-    clanFactory.setClanUrl(
-      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
-    );
-    await context.close();
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.onboarding,
+      credentials,
+    });
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63452',
     });
-
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+    await TestSuiteHelper.setupBeforeEach({
       page,
-      AccountCredentials.account5
-    );
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
-    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+      clanFactory,
+      credentials,
+    });
   });
 
   test.afterAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account5
-    );
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
-    await clanFactory.cleanupClan(page);
-    await AuthHelper.logout(page);
-    await context.close();
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
   });
 
   test.afterEach(async ({ page }) => {

@@ -1,58 +1,45 @@
 import { AllureConfig } from '@/config/allure.config';
-import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType, ClanStatus, EventType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { splitDomainAndPath } from '@/utils/domain';
-import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
 test.describe('Clan Management - Module 2', () => {
   const clanFactory = new ClanFactory();
-
+  const credentials: MezonCredentials = AccountCredentials.account3;
   test.beforeAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account3);
-    await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, page);
-
-    clanFactory.setClanUrl(
-      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
-    );
-    await AuthHelper.logout(page);
-    await context.close();
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.clanManagement2,
+      credentials,
+    });
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63510',
     });
-
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+    await TestSuiteHelper.setupBeforeEach({
       page,
-      AccountCredentials.account3
-    );
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
-    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+      clanFactory,
+      credentials,
+    });
   });
 
   test.afterAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    ``;
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account3
-    );
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
-    await clanFactory.cleanupClan(page);
-    await AuthHelper.logout(page);
-    await context.close();
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
   });
 
   test.afterEach(async ({ page }) => {
@@ -215,7 +202,7 @@ test.describe('Clan Management - Module 2', () => {
     });
 
     await AllureReporter.step(
-      'Verify event information is match in event dertail modal',
+      'Verify event information is match in event detail modal',
       async () => {
         const isCreatedEvent = await clanPage.verifyInEventDetailModal({
           eventTopic: res.eventTopic,
