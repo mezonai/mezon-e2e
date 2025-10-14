@@ -305,6 +305,12 @@ export default class ClanSelector extends BasePage {
     channelItem: this.page.locator(
       generateE2eSelector('clan_page.channel_management.channel_item')
     ),
+    messagesCount: this.page.locator(
+      generateE2eSelector('clan_page.channel_management.channel_item.messages_count')
+    ),
+    channelName: this.page.locator(
+      generateE2eSelector('clan_page.channel_management.channel_item.channel_name')
+    ),
   };
 
   /**
@@ -315,6 +321,21 @@ export default class ClanSelector extends BasePage {
   async findClanByTitle(clanName: string): Promise<Locator> {
     return this.page.locator(
       `${generateE2eSelector('clan_page.side_bar.clan_item')}[title="${clanName}"]`
+    );
+  }
+
+  getChannelItemByNameOnCMTab(channelName: string): Locator {
+    return this.page.locator(generateE2eSelector('clan_page.channel_management.channel_item'), {
+      has: this.page.locator(
+        generateE2eSelector('clan_page.channel_management.channel_item.channel_name'),
+        { hasText: channelName }
+      ),
+    });
+  }
+
+  getMessageCountByNameOnCMTab(channelItem: Locator): Locator {
+    return channelItem.locator(
+      generateE2eSelector('clan_page.channel_management.channel_item.messages_count')
     );
   }
 }

@@ -8,6 +8,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from './../types/clan-page.types';
 import { DirectMessageHelper } from './../utils/directMessageHelper';
 import { CategoryPage } from './CategoryPage';
+import { MessagePage } from './MessagePage';
 
 interface SelectorResult {
   found: boolean;
@@ -721,5 +722,23 @@ export class ClanPageV2 extends ClanSelector {
 
     const match = text.match(/channel of\s+(\d+)/i);
     return { totalChannels: match ? Number(match[1]) : null, countChannelItems };
+  }
+
+  async countMessagesOnChannel() {
+    const messagePage = new MessagePage(this.page);
+    return (await messagePage.messages.count()) + 1;
+  }
+
+  async getTotalMessages(channelName: string) {
+    await this.buttons.channelManagementButton.click();
+    await this.page.waitForTimeout(2000);
+    const channelItem = this.getChannelItemByNameOnCMTab(channelName);
+    await expect(channelItem).toBeVisible({ timeout: 5000 });
+
+    const messageCountLocator = this.getMessageCountByNameOnCMTab(channelItem);
+    await expect(messageCountLocator).toBeVisible({ timeout: 5000 });
+
+    const countText = (await messageCountLocator.textContent())?.trim() ?? '0';
+    return parseInt(countText, 10);
   }
 }

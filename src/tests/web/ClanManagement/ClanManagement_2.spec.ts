@@ -8,6 +8,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, test } from '@playwright/test';
 
 test.describe('Clan Management - Module 2', () => {
@@ -309,7 +310,7 @@ test.describe('Clan Management - Module 2', () => {
       severity: AllureConfig.Severity.CRITICAL,
     });
     await AllureReporter.addDescription(`
-    **Test Objective:** Verify that a user can successfully create a new public voice event within a clan.
+    **Test Objective:** Verify that total channels is true on channel management tab.
     **Test Steps:**
       1. Create channel on clan
       2. Count number of the channels
@@ -348,5 +349,68 @@ test.describe('Clan Management - Module 2', () => {
     );
 
     await AllureReporter.attachScreenshot(page, `Number of channels is true`);
+  });
+
+  test('Verify number of messages is true for each channel on channel management tab', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63381',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that number of messages is true for each channel on channel management tab.
+    **Test Steps:**
+      1. Create text channel on clan
+      2. Send message
+      3. Count number of the message
+      2. Verify number of messages is match for each channel on channel management tab
+    **Expected Result:** Number of messages is true.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['channel_management', 'messages_count'],
+    });
+    const unique = Date.now().toString(36).slice(-6);
+    const channelName = `tc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPageV2(page);
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.TEXT);
+    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step(`Create new public text channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
+    });
+
+    await AllureReporter.step('Verify channel is present in channel list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Send messages on channel', async () => {
+      const messageHelper = new MessageTestHelpers(page);
+      const messageCount = Math.floor(Math.random() * 5) + 1;
+
+      for (let i = 0; i < messageCount; i++) {
+        const testMessage = `Test message ${i + 1} - ${Date.now()}`;
+        await messageHelper.sendTextMessage(testMessage);
+      }
+    });
+
+    await AllureReporter.step(
+      'Verify number of messages in channel is match in channel management',
+      async () => {
+        await page.reload();
+        await page.waitForTimeout(2000);
+        const countNumbersOfMessages = await clanPage.countMessagesOnChannel();
+        const totalMessages = await clanPage.getTotalMessages(channelName);
+        expect(countNumbersOfMessages).toBe(totalMessages);
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, `Number of messages is true`);
   });
 });
