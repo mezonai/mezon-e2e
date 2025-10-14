@@ -732,22 +732,12 @@ export class ClanPageV2 extends ClanSelector {
   async getTotalMessages(channelName: string) {
     await this.buttons.channelManagementButton.click();
     await this.page.waitForTimeout(2000);
-    const channelItem = this.page.locator(
-      generateE2eSelector('clan_page.channel_management.channel_item'),
-      {
-        has: this.page.locator(
-          generateE2eSelector('clan_page.channel_management.channel_item.channel_name'),
-          { hasText: channelName }
-        ),
-      }
-    );
-
+    const channelItem = this.getChannelItemByNameOnCMTab(channelName);
     await expect(channelItem).toBeVisible({ timeout: 5000 });
-    const messageCountLocator = channelItem.locator(
-      generateE2eSelector('clan_page.channel_management.channel_item.messages_count')
-    );
 
+    const messageCountLocator = this.getMessageCountByNameOnCMTab(channelItem);
     await expect(messageCountLocator).toBeVisible({ timeout: 5000 });
+
     const countText = (await messageCountLocator.textContent())?.trim() ?? '0';
     return parseInt(countText, 10);
   }
