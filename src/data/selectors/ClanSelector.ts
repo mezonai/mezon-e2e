@@ -305,6 +305,12 @@ export default class ClanSelector extends BasePage {
     channelItem: this.page.locator(
       generateE2eSelector('clan_page.channel_management.channel_item')
     ),
+    messagesCount: this.page.locator(
+      generateE2eSelector('clan_page.channel_management.channel_item.messages_count')
+    ),
+    channelName: this.page.locator(
+      generateE2eSelector('clan_page.channel_management.channel_item.channel_name')
+    ),
   };
 
   /**

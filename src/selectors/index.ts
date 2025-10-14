@@ -307,7 +307,10 @@ export const DATA_E2E_IDENTIFIER = {
     },
     channel_management: {
       total_channels: '',
-      channel_item: '',
+      channel_item: {
+        messages_count: '',
+        channel_name: '',
+      },
     },
   },
   channel_setting_page: {
