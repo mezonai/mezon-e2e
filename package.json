@@ -68,11 +68,12 @@
     "eslint-plugin-sonarjs": "^1.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
+    "mezon-js": "^2.13.16",
     "nodemon": "^3.1.10",
     "playwright-bdd": "^8.3.1",
     "prettier": "^3.3.0",
-    "typescript": "^5.5.0",
-    "stop-only": "^3.1.2"
+    "stop-only": "^3.1.2",
+    "typescript": "^5.5.0"
   },
   "dependencies": {
     "@faker-js/faker": "^9.0.0",
