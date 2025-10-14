@@ -13,6 +13,7 @@ export class MessageTestHelpers {
   readonly listPinButton: Locator;
   readonly pinnedMessages: Locator;
   readonly jumpToPinnedMessageButtonFromPinnedList: Locator;
+  readonly messageActionModalItems: Locator;
 
   message: string = '';
 
@@ -20,6 +21,9 @@ export class MessageTestHelpers {
     this.page = page;
     this.messages = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
     this.systemMessages = this.page.locator(generateE2eSelector('chat.system_message'));
+    this.messageActionModalItems = page.locator(
+      generateE2eSelector('chat.message_action_modal.button.base')
+    );
     this.pinMessageButton = page
       .locator(generateE2eSelector('chat.message_action_modal.button.base'))
       .filter({ hasText: 'Pin message' });
@@ -48,26 +52,6 @@ export class MessageTestHelpers {
     return textContains ? base.filter({ hasText: textContains }) : base;
   }
 
-  async findReplyOption(): Promise<Locator> {
-    const replySelectors = [
-      'text="Reply"',
-      '[role="menuitem"]:has-text("Reply")',
-      'button:has-text("Reply")',
-      'li:has-text("Reply")',
-      'div:has-text("Reply")',
-      '[aria-label*="Reply" i]',
-      '[title*="Reply" i]',
-    ];
-
-    for (const selector of replySelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 5000 })) {
-        return element;
-      }
-    }
-    throw new Error('Could not find Reply option in context menu');
-  }
-
   async findEditOption(): Promise<Locator> {
     const editSelectors = [
       'text="Edit Message"',
@@ -89,15 +73,15 @@ export class MessageTestHelpers {
     }
     throw new Error('Could not find Edit option in context menu');
   }
-
+  //
   async replyToMessage(messageElement: Locator, replyText: string): Promise<void> {
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
 
-    const replyBtn = await this.findReplyOption();
+    const replyBtn = await this.messageActionModalItems.filter({ hasText: 'Reply' }).first();
     await replyBtn.click();
-
+    console.log('Clicked reply option', replyBtn);
     const input = await this.findMessageInput();
     await input.click();
     await input.waitFor({ state: 'attached' });

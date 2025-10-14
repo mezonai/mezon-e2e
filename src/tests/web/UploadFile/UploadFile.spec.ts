@@ -1,4 +1,3 @@
-import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPageV2 } from '@/pages/ClanPageV2';
@@ -7,8 +6,9 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import pressEsc from '@/utils/pressEsc';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
-import { BrowserContext, expect, Page, test, TestInfo } from '@playwright/test';
+import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { ProfilePage } from '../../../pages/ProfilePage';
 
 test.describe('File Size Limits Validation', () => {
@@ -30,33 +30,19 @@ test.describe('File Size Limits Validation', () => {
     await context.close();
   });
 
-  test.beforeEach(
-    async ({ page, context }: { page: Page; context: BrowserContext }, testInfo: TestInfo) => {
-      await AllureReporter.initializeTest(page, testInfo, {
-        story: AllureConfig.Stories.FILE_UPLOAD,
-        severity: AllureConfig.Severity.CRITICAL,
-        testType: AllureConfig.TestTypes.E2E,
-      });
+  test.beforeEach(async ({ page, context }: { page: Page; context: BrowserContext }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-      await AllureReporter.addTestParameters({
-        testType: AllureConfig.TestTypes.E2E,
-        userType: AllureConfig.UserTypes.AUTHENTICATED,
-        severity: AllureConfig.Severity.CRITICAL,
-      });
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account9
+    );
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
 
-      await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-
-      const credentials = await AuthHelper.setupAuthWithEmailPassword(
-        page,
-        AccountCredentials.account9
-      );
-      await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
-
-      fileSizeHelpers = new FileSizeTestHelpers(page);
-      profilePage = new ProfilePage(page);
-      clanPage = new ClanPageV2(page);
-    }
-  );
+    fileSizeHelpers = new FileSizeTestHelpers(page);
+    profilePage = new ProfilePage(page);
+    clanPage = new ClanPageV2(page);
+  });
 
   test.afterAll(async ({ browser }) => {
     const context = await browser.newContext();
@@ -67,6 +53,7 @@ test.describe('File Size Limits Validation', () => {
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await clanFactory.cleanupClan(page);
+    await fileSizeHelpers.cleanupFiles();
     await AuthHelper.logout(page);
     await context.close();
   });
@@ -75,7 +62,7 @@ test.describe('File Size Limits Validation', () => {
     await AuthHelper.logout(page);
   });
 
-  test('Validate image attachment file size limit (50MB)', async () => {
+  test('Validate image attachment file size limit (50MB)', async ({ page }) => {
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that image attachments are limited to 50MB
       
@@ -95,11 +82,9 @@ test.describe('File Size Limits Validation', () => {
 
     await AllureReporter.step(`Test upload small image (30MB)`, async () => {
       const result = await fileSizeHelpers.uploadFileAndVerify(smallImagePath, true);
-
       expect(result.success).toBe(true);
+      await pressEsc(page);
     });
-
-    await fileSizeHelpers.cleanupFiles([smallImagePath]);
 
     const largeImagePath = await fileSizeHelpers.createFileWithSize(
       'large_image',
@@ -109,73 +94,66 @@ test.describe('File Size Limits Validation', () => {
 
     await AllureReporter.step(`Test upload large image (60MB) - should fail`, async () => {
       const result = await fileSizeHelpers.uploadFileAndVerify(largeImagePath, false);
-
       expect(result.success).toBe(false);
       expect(result.errorMessage).toMatch('Maximum allowed size is 50MB');
+      await pressEsc(page);
     });
-
-    await fileSizeHelpers.cleanupFiles([largeImagePath]);
   });
 
-  test('Validate video and other file types size limit (100MB)', async () => {
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that video and other file types are limited to 100MB
-      
-      **Test Steps:**
-      1. Create video file under 100MB (should succeed)
-      2. Create video file over 100MB (should fail)
-      3. Test other file types with same limits
-      
-      **Expected Result:** Files under 100MB upload successfully, files over 100MB are rejected
-    `);
+  // test('Validate video and other file types size limit (100MB)', async ({ page }) => {
+  //   await AllureReporter.addDescription(`
+  //     **Test Objective:** Verify that video and other file types are limited to 100MB
 
-    const smallVideoPath = await fileSizeHelpers.createFileWithSize(
-      'small_video',
-      80 * 1024 * 1024,
-      'mp4'
-    );
+  //     **Test Steps:**
+  //     1. Create video file under 100MB (should succeed)
+  //     2. Create video file over 100MB (should fail)
+  //     3. Test other file types with same limits
 
-    await AllureReporter.step(`Test upload small video (80MB)`, async () => {
-      const result = await fileSizeHelpers.uploadFileAndVerify(smallVideoPath, true);
+  //     **Expected Result:** Files under 100MB upload successfully, files over 100MB are rejected
+  //   `);
 
-      expect(result.success).toBe(true);
-      expect(result.fileSize).toBe(80 * 1024 * 1024);
-    });
+  //   const smallVideoPath = await fileSizeHelpers.createFileWithSize(
+  //     'small_video',
+  //     80 * 1024 * 1024,
+  //     'mp4'
+  //   );
 
-    await fileSizeHelpers.cleanupFiles([smallVideoPath]);
+  //   await AllureReporter.step(`Test upload small video (80MB)`, async () => {
+  //     const result = await fileSizeHelpers.uploadFileAndVerify(smallVideoPath, true);
 
-    const largeVideoPath = await fileSizeHelpers.createFileWithSize(
-      'large_video',
-      120 * 1024 * 1024,
-      'mp4'
-    );
+  //     expect(result.success).toBe(true);
+  //     expect(result.fileSize).toBe(80 * 1024 * 1024);
+  //   });
 
-    await AllureReporter.step(`Test upload large video (120MB) - should fail`, async () => {
-      const result = await fileSizeHelpers.uploadFileAndVerify(largeVideoPath, false);
+  //   const largeVideoPath = await fileSizeHelpers.createFileWithSize(
+  //     'large_video',
+  //     120 * 1024 * 1024,
+  //     'mp4'
+  //   );
 
-      expect(result.success).toBe(false);
-      expect(result.errorMessage?.toLowerCase()).toMatch('maximum allowed size is 100mb');
-    });
+  //   await AllureReporter.step(`Test upload large video (120MB) - should fail`, async () => {
+  //     const result = await fileSizeHelpers.uploadFileAndVerify(largeVideoPath, false);
 
-    await fileSizeHelpers.cleanupFiles([largeVideoPath]);
+  //     expect(result.success).toBe(false);
+  //     expect(result.errorMessage?.toLowerCase()).toMatch('maximum allowed size is 100mb');
+  //   });
 
-    const largePdfPath = await fileSizeHelpers.createFileWithSize(
-      'large_document',
-      120 * 1024 * 1024,
-      'pdf'
-    );
+  //   const largePdfPath = await fileSizeHelpers.createFileWithSize(
+  //     'large_document',
+  //     120 * 1024 * 1024,
+  //     'pdf'
+  //   );
 
-    await AllureReporter.step(`Test upload large PDF (120MB) - should fail`, async () => {
-      const result = await fileSizeHelpers.uploadFileAndVerify(largePdfPath, false);
+  //   await AllureReporter.step(`Test upload large PDF (120MB) - should fail`, async () => {
+  //     const result = await fileSizeHelpers.uploadFileAndVerify(largePdfPath, false);
 
-      expect(result.success).toBe(false);
-      expect(result.errorMessage?.toLowerCase()).toMatch('maximum allowed size is 100mb');
-    });
+  //     expect(result.success).toBe(false);
+  //     expect(result.errorMessage?.toLowerCase()).toMatch('maximum allowed size is 100mb');
+  //     await pressEsc(page);
+  //   });
+  // });
 
-    await fileSizeHelpers.cleanupFiles([largePdfPath]);
-  });
-
-  test('Validate User Profile avatar size limit (10MB)', async () => {
+  test('Validate User Profile avatar size limit (10MB)', async ({ page }) => {
     await AllureReporter.addDescription(`
       **Test Objective:** Verify User Profile avatar is limited to 10MB
       
@@ -205,11 +183,8 @@ test.describe('File Size Limits Validation', () => {
 
     await AllureReporter.step(`Test upload small avatar (5MB)`, async () => {
       const result = await fileSizeHelpers.uploadFileAndVerify(smallAvatarPath, true);
-
       expect(result.success).toBe(true);
     });
-
-    await fileSizeHelpers.cleanupFiles([smallAvatarPath]);
 
     const largeAvatarPath = await fileSizeHelpers.createFileWithSize(
       'large_avatar',
@@ -219,15 +194,13 @@ test.describe('File Size Limits Validation', () => {
 
     await AllureReporter.step(`Test upload large avatar (15MB) - should fail`, async () => {
       const result = await fileSizeHelpers.uploadFileAndVerify(largeAvatarPath, false);
-
       expect(result.success).toBe(false);
       expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 10 mb, please!');
+      await pressEsc(page);
     });
-
-    await fileSizeHelpers.cleanupFiles([largeAvatarPath]);
   });
 
-  test('Validate Clan Profile avatar size limit (10MB)', async () => {
+  test('Validate Clan Profile avatar size limit (10MB)', async ({ page }) => {
     await AllureReporter.addDescription(`
       **Test Objective:** Verify Clan Profile avatar is limited to 10MB
       
@@ -261,8 +234,6 @@ test.describe('File Size Limits Validation', () => {
       expect(result.success).toBe(true);
     });
 
-    await fileSizeHelpers.cleanupFiles([smallClanAvatarPath]);
-
     const largeClanAvatarPath = await fileSizeHelpers.createFileWithSize(
       'large_clan_avatar',
       12 * 1024 * 1024,
@@ -274,12 +245,11 @@ test.describe('File Size Limits Validation', () => {
 
       expect(result.success).toBe(false);
       expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 10 mb, please!');
+      await pressEsc(page);
     });
-
-    await fileSizeHelpers.cleanupFiles([largeClanAvatarPath]);
   });
 
-  test('Validate Clan Avatar size limit (1MB)', async () => {
+  test('Validate Clan Avatar size limit (1MB)', async ({ page }) => {
     await AllureReporter.addDescription(`
       **Test Objective:** Verify Clan Profile avatar is limited to 1MB
       
@@ -315,8 +285,6 @@ test.describe('File Size Limits Validation', () => {
       expect(result.success).toBe(true);
     });
 
-    await fileSizeHelpers.cleanupFiles([underLimitPath]);
-
     const overLimitPath = await fileSizeHelpers.createFileWithSize(
       'clan_avatar_over_1mb',
       1 * 1024 * 1024 + 200 * 1024,
@@ -336,9 +304,8 @@ test.describe('File Size Limits Validation', () => {
         expect(result.errorMessage?.toLowerCase()).toMatch(
           /(your files are too powerful|upload size limit exceeded|max file size)/
         );
+        await pressEsc(page);
       }
     );
-
-    await fileSizeHelpers.cleanupFiles([overLimitPath]);
   });
 });

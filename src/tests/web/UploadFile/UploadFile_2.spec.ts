@@ -7,6 +7,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import pressEsc from '@/utils/pressEsc';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { BrowserContext, expect, Page, test, TestInfo } from '@playwright/test';
 import { ClanSettingsPage } from '../../../pages/ClanSettingsPage';
@@ -70,6 +71,7 @@ test.describe('File Size Limits Validation - Module 2', () => {
     );
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await clanFactory.cleanupClan(page);
+    await fileSizeHelpers.cleanupFiles();
     await AuthHelper.logout(page);
     await context.close();
   });
@@ -78,15 +80,15 @@ test.describe('File Size Limits Validation - Module 2', () => {
     await AuthHelper.logout(page);
   });
 
-  test('Validate Clan Avatar size limit (1MB) when creating a new clan', async () => {
+  test('Validate Clan Avatar size limit (1MB) when creating a new clan', async ({ page }) => {
     await AllureReporter.addDescription(`
         **Test Objective:** Verify Clan Profile avatar is limited to 1MB
-        
+
         **Test Steps:**
         1. Click Create Clan from sidebar to open modal create clan
         2. Attempt to upload clan avatar under 1MB (should succeed)
         3. Attempt to upload clan avatar over 1MB (should fail)
-        
+
         **Expected Result:** Clan avatar under 1MB uploads successfully, over 1MB is rejected
       `);
 
@@ -113,8 +115,6 @@ test.describe('File Size Limits Validation - Module 2', () => {
       expect(result.success).toBe(true);
     });
 
-    await fileSizeHelpers.cleanupFiles([underLimitPath]);
-
     const overLimitPath = await fileSizeHelpers.createFileWithSize(
       'clan_avatar_over_1mb',
       1 * 1024 * 1024 + 200 * 1024,
@@ -132,13 +132,16 @@ test.describe('File Size Limits Validation - Module 2', () => {
 
         expect(result.success).toBe(false);
         expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 1 mb, please!');
+        await page.reload({
+          waitUntil: 'domcontentloaded',
+        });
       }
     );
-
-    await fileSizeHelpers.cleanupFiles([overLimitPath]);
   });
 
-  test('Validate Clan Settings Banner Background size limit (10MB) @ClanBannerBackground', async () => {
+  test('Validate Clan Settings Banner Background size limit (10MB) @ClanBannerBackground', async ({
+    page,
+  }) => {
     await AllureReporter.addDescription(`
         **Test Objective:** Verify Clan Settings Banner Background is limited to 10MB
         
@@ -169,8 +172,6 @@ test.describe('File Size Limits Validation - Module 2', () => {
       expect(result.success).toBe(true);
     });
 
-    await fileSizeHelpers.cleanupFiles([smallBannerPath]);
-
     const largeBannerPath = await fileSizeHelpers.createFileWithSize(
       'clan_banner_large',
       12 * 1024 * 1024,
@@ -187,12 +188,11 @@ test.describe('File Size Limits Validation - Module 2', () => {
       expect(result.errorMessage?.toLowerCase()).toMatch(
         /(your files are too powerful|max file size.*10\s*mb|upload size limit exceeded)/
       );
+      await pressEsc(page);
     });
-
-    await fileSizeHelpers.cleanupFiles([largeBannerPath]);
   });
 
-  test('Validate Clan Settings Emoji upload size limit (256KB) @EmojiUpload', async () => {
+  test('Validate Clan Settings Emoji upload size limit (256KB) @EmojiUpload', async ({ page }) => {
     await AllureReporter.addDescription(`
         **Test Objective:** Verify that Emoji uploads are limited to 256KB (UI guideline) and enforced by app (≈250KB)
         
@@ -225,8 +225,6 @@ test.describe('File Size Limits Validation - Module 2', () => {
       expect(result.success).toBe(true);
     });
 
-    await fileSizeHelpers.cleanupFiles([smallEmojiPath]);
-
     const largeEmojiPath = await fileSizeHelpers.createFileWithSize(
       'emoji_large',
       300 * 1024,
@@ -241,12 +239,11 @@ test.describe('File Size Limits Validation - Module 2', () => {
       );
       expect(result.success).toBe(false);
       expect(result.errorMessage).toMatch(`Max file size is 256 KB, please!`);
+      await page.reload({ waitUntil: 'domcontentloaded' });
     });
-
-    await fileSizeHelpers.cleanupFiles([largeEmojiPath]);
   });
 
-  test('Validate Canvas paste file size limit (50MB)', async () => {
+  test('Validate Canvas paste file size limit (50MB)', async ({ page }) => {
     await AllureReporter.addDescription(`
         **Test Objective:** Verify Copy/Paste into Canvas is limited to 50MB (same as image limit)
         
@@ -270,8 +267,6 @@ test.describe('File Size Limits Validation - Module 2', () => {
       expect(result.success).toBe(true);
     });
 
-    await fileSizeHelpers.cleanupFiles([smallCanvasFilePath]);
-
     const largeCanvasFilePath = await fileSizeHelpers.createFileWithSize(
       'canvas_large',
       60 * 1024 * 1024,
@@ -284,13 +279,14 @@ test.describe('File Size Limits Validation - Module 2', () => {
         const result = await fileSizeHelpers.uploadFileAndVerify(largeCanvasFilePath, false);
         expect(result.success).toBe(false);
         expect(result.errorMessage?.toLowerCase()).toMatch('maximum allowed size is 50mb');
+        await page.reload({ waitUntil: 'domcontentloaded' });
       }
     );
-
-    await fileSizeHelpers.cleanupFiles([largeCanvasFilePath]);
   });
 
-  test('Validate Clan Settings Voice Stickers upload size limit (1MB) @VoiceStickers', async () => {
+  test('Validate Clan Settings Voice Stickers upload size limit (1MB) @VoiceStickers', async ({
+    page,
+  }) => {
     await AllureReporter.addDescription(`
         **Test Objective:** Verify Voice Stickers upload size limit is 1MB
         
@@ -326,8 +322,6 @@ test.describe('File Size Limits Validation - Module 2', () => {
       expect(result.success).toBe(true);
     });
 
-    await fileSizeHelpers.cleanupFiles([smallSoundPath]);
-
     const largeSoundPath = await fileSizeHelpers.createFileWithSize(
       'voice_large',
       1 * 1024 * 1024 + 200 * 1024,
@@ -342,8 +336,7 @@ test.describe('File Size Limits Validation - Module 2', () => {
       );
       expect(result.success).toBe(false);
       expect(result.errorMessage).toMatch('File too big, max 1MB');
+      await page.reload({ waitUntil: 'domcontentloaded' });
     });
-
-    await fileSizeHelpers.cleanupFiles([largeSoundPath]);
   });
 });
