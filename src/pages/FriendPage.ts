@@ -1,8 +1,8 @@
-import { Page, expect } from '@playwright/test';
 import { ROUTES } from '@/selectors';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { BasePage } from './BasePage';
 import sleep from '@/utils/sleep';
+import { Page, expect } from '@playwright/test';
+import { BasePage } from './BasePage';
 
 export class FriendPage extends BasePage {
   constructor(page: Page) {
@@ -11,13 +11,10 @@ export class FriendPage extends BasePage {
 
   readonly tabs = {
     all: this.page.locator(generateE2eSelector('friend_page.tab')).filter({ hasText: 'All' }),
-
     online: this.page.locator(generateE2eSelector('friend_page.tab')).filter({ hasText: 'Online' }),
-
     pending: this.page
       .locator(generateE2eSelector('friend_page.tab'))
       .filter({ hasText: 'Pending' }),
-
     block: this.page.locator(generateE2eSelector('friend_page.tab')).filter({ hasText: 'Block' }),
   };
 
@@ -30,9 +27,15 @@ export class FriendPage extends BasePage {
       .locator(generateE2eSelector('button.base'))
       .filter({ hasText: 'Send Friend Request' }),
 
-    acceptFriendRequest: this.page.locator('[data-e2e="accept-friend-request-button"]'),
-    rejectFriendRequest: this.page.locator('[data-e2e="reject-friend-request-button"]'),
-    cancelFriendRequest: this.page.locator('[data-e2e="cancel-friend-request-button"]'),
+    acceptFriendRequest: this.page.locator(
+      generateE2eSelector('friend_page.button.accept_friend_request')
+    ),
+    rejectFriendRequest: this.page.locator(
+      generateE2eSelector('friend_page.button.reject_friend_request')
+    ),
+    cancelFriendRequest: this.page.locator(
+      generateE2eSelector('friend_page.button.cancel_friend_request')
+    ),
     requestFailedOkay: this.page.locator(
       generateE2eSelector('friend_page.request_failed_popup.button.okay')
     ),
@@ -49,6 +52,10 @@ export class FriendPage extends BasePage {
 
   async getFriend(username: string) {
     return this.lists.friendAll.filter({ hasText: username }).first();
+  }
+
+  async getFriends(username: string) {
+    return this.lists.friendAll.filter({ hasText: username });
   }
 
   async friendExistsInTab(username: string, tab: 'all' | 'online' | 'pending' | 'block' = 'all') {
@@ -105,20 +112,26 @@ export class FriendPage extends BasePage {
   async acceptFriendRequestFromUser(username: string): Promise<void> {
     const friendItem = await this.friendExistsInTab(username, 'pending');
     await friendItem.waitFor({ state: 'visible' });
-    await friendItem.locator('[data-e2e="accept-friend-request-button"]').click();
+    await friendItem
+      .locator(generateE2eSelector('friend_page.button.accept_friend_request'))
+      .click();
   }
 
   async rejectFriendRequest(username: string): Promise<void> {
     const friendItem = await this.friendExistsInTab(username, 'pending');
     await friendItem.waitFor({ state: 'visible' });
-    await friendItem.locator('[data-e2e="reject-friend-request-button"]').click();
+    await friendItem
+      .locator(generateE2eSelector('friend_page.button.reject_friend_request'))
+      .click();
     await this.page.waitForTimeout(500);
   }
 
   async cancelFriendRequest(username: string): Promise<void> {
     const friendItem = await this.friendExistsInTab(username, 'pending');
     await friendItem.waitFor({ state: 'visible' });
-    await friendItem.locator('[data-e2e="cancel-friend-request-button"]').click();
+    await friendItem
+      .locator(generateE2eSelector('friend_page.button.cancel_friend_request'))
+      .click();
     await this.page.waitForTimeout(500);
   }
 
@@ -151,9 +164,45 @@ export class FriendPage extends BasePage {
   }
 
   async removeFriend(username: string): Promise<void> {
+    const existFriend = await this.checkFriendExists(username);
+    if (!existFriend) {
+      return;
+    }
     await this.openMoreMenuForFriend(username);
     await this.page.getByRole('button', { name: /remove/i }).click();
     await this.page.waitForTimeout(500);
+  }
+
+  async removeFriendRequest(username: string): Promise<void> {
+    const existFriend = await this.checkFriendRequestExists(username);
+    if (!existFriend) {
+      return;
+    }
+    await this.tabs.pending.click();
+    await this.page.waitForTimeout(500);
+    const friendItems = await this.getFriends(username);
+    const friendItemsCount = await friendItems.count();
+    for (let i = 0; i < friendItemsCount; i++) {
+      const friendItem = friendItems.nth(i);
+      const cancelButton = friendItem.locator(
+        generateE2eSelector('friend_page.button.cancel_friend_request')
+      );
+      const cancelButtonCount = await cancelButton.count();
+      if (cancelButtonCount > 0) {
+        await cancelButton.click();
+        await this.page.waitForTimeout(500);
+        return;
+      }
+      const rejectButton = friendItem.locator(
+        generateE2eSelector('friend_page.button.reject_friend_request')
+      );
+      const rejectButtonCount = await rejectButton.count();
+      if (rejectButtonCount > 0) {
+        await rejectButton.click();
+        await this.page.waitForTimeout(500);
+        return;
+      }
+    }
   }
 
   async assertAllFriend(username: string): Promise<void> {
@@ -180,6 +229,12 @@ export class FriendPage extends BasePage {
   async checkFriendExists(username: string): Promise<boolean> {
     await this.page.waitForTimeout(300);
     const friend = await this.friendExistsInTab(username, 'all');
+    const count = await friend.count();
+    return count > 0;
+  }
+  async checkFriendRequestExists(username: string): Promise<boolean> {
+    await this.page.waitForTimeout(300);
+    const friend = await this.friendExistsInTab(username, 'pending');
     const count = await friend.count();
     return count > 0;
   }

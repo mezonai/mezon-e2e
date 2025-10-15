@@ -1,21 +1,14 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { FriendPage } from '@/pages/FriendPage';
+import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
-import { expect } from '@playwright/test';
-import { test } from '../../../fixtures/dual.fixture';
-import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { ClanFactory } from '@/data/factories/ClanFactory';
-import { splitDomainAndPath } from '@/utils/domain';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-test.describe('Friend Management', () => {});
+import { expect } from '@playwright/test';
+import { test } from '../../fixtures/dual.fixture';
 
-test.describe.only('Friend Management', () => {
-  let clanPathA: string;
-  let clanPathB: string;
-  let clanUrlA: string;
-  let clanUrlB: string;
+test.describe('Friend Management', () => {
   const accountA = AccountCredentials['account8'];
   const accountB = AccountCredentials['account9'];
 
@@ -23,27 +16,21 @@ test.describe.only('Friend Management', () => {
     await dual.parallel({
       A: async () => {
         const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        if (!clanPathA) {
-          const clanFactory = new ClanFactory();
 
-          await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, dual.pageA);
-          clanPathA = splitDomainAndPath(clanFactory.getClanUrl()).path;
-          clanUrlA = clanFactory.getClanUrl();
-
-          clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPathA));
-        }
-        await AuthHelper.prepareBeforeTest(dual.pageA, clanUrlA, credentials);
+        await AuthHelper.prepareBeforeTest(
+          dual.pageA,
+          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
+          credentials
+        );
       },
       B: async () => {
         const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        const clanFactory = new ClanFactory();
-        if (!clanPathB) {
-          await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, dual.pageB);
-          clanPathB = splitDomainAndPath(clanFactory.getClanUrl()).path;
-          clanUrlB = clanFactory.getClanUrl();
-          clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPathB));
-        }
-        await AuthHelper.prepareBeforeTest(dual.pageB, clanUrlB, credentials);
+
+        await AuthHelper.prepareBeforeTest(
+          dual.pageB,
+          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
+          credentials
+        );
       },
     });
   });
@@ -52,11 +39,6 @@ test.describe.only('Friend Management', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can successfully send a friend request to another user.
@@ -74,22 +56,73 @@ test.describe.only('Friend Management', () => {
     const userNameA = accountA.email.split('@')[0];
     const userNameB = accountB.email.split('@')[0];
 
-    const existFriend = await friendPageA.checkFriendExists(userNameB);
-
-    if (existFriend) {
+    await test.step('Clean up existing friend relationships', async () => {
       await friendPageA.removeFriend(userNameB);
-    }
+      await pageA.screenshot({
+        path: `test-results/remove-friend-user-a-${Date.now()}.png`,
+        fullPage: true,
+      });
+      await friendPageA.removeFriendRequest(userNameB);
+      await pageA.screenshot({
+        path: `test-results/remove-friend-request-user-a-${Date.now()}.png`,
+        fullPage: true,
+      });
+      await friendPageB.removeFriend(userNameA);
+      await pageB.screenshot({
+        path: `test-results/remove-friend-user-b-${Date.now()}.png`,
+        fullPage: true,
+      });
+      await friendPageB.removeFriendRequest(userNameA);
+      await pageB.screenshot({
+        path: `test-results/remove-friend-request-user-b-${Date.now()}.png`,
+        fullPage: true,
+      });
+    });
 
-    await friendPageA.sendFriendRequestToUser(userNameB);
-    await friendPageB.acceptFirstFriendRequest();
+    await test.step('User A sends friend request to User B', async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await pageA.screenshot({
+        path: `test-results/friend-request-sent-${Date.now()}.png`,
+        fullPage: true,
+      });
+    });
 
-    // Assert both see each other under All tab
+    await test.step('User B accepts the friend request', async () => {
+      await pageB.screenshot({
+        path: `test-results/request-friend-toast-${Date.now()}.png`,
+        fullPage: true,
+      });
+      await friendPageB.acceptFirstFriendRequest();
+      await pageB.screenshot({
+        path: `test-results/friend-request-accepted-${Date.now()}.png`,
+        fullPage: true,
+      });
+    });
 
-    await friendPageA.assertAllFriend(userNameB);
+    await test.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
 
-    await friendPageB.assertAllFriend(userNameA);
+      // Take screenshots of both users' friend lists
+      await pageA.screenshot({
+        path: `test-results/user-a-friends-list-${Date.now()}.png`,
+        fullPage: true,
+      });
+      await pageB.screenshot({
+        path: `test-results/user-b-friends-list-${Date.now()}.png`,
+        fullPage: true,
+      });
+    });
 
-    await friendPageA.removeFriend(userNameB);
+    await test.step('Clean up - remove friend relationship', async () => {
+      await friendPageA.removeFriend(userNameB);
+
+      // Take screenshot after cleanup
+      await pageA.screenshot({
+        path: `test-results/final-cleanup-${Date.now()}.png`,
+        fullPage: true,
+      });
+    });
   });
 
   test('Verify that a user can send and the receiver can reject a friend request', async ({
