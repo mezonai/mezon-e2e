@@ -225,6 +225,11 @@ export class ClanSetupHelper {
       clanNamePrefix: 'DirectMessageTest',
       suiteName: 'Direct Message',
     }),
+
+    topicMessage: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'TopicMessageTest',
+      suiteName: 'Topic Message',
+    }),
   };
 }
 

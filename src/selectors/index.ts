@@ -461,6 +461,18 @@ export const DATA_E2E_IDENTIFIER = {
         },
       },
     },
+    hover_message_actions: {
+      button: {
+        base: '',
+      },
+    },
+    topic: {
+      header: {
+        button: {
+          close: '',
+        },
+      },
+    },
   },
   onboarding: {
     chat: {
