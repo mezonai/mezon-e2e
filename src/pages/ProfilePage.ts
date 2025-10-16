@@ -167,4 +167,24 @@ export class ProfilePage extends BasePage {
       return false;
     }
   }
+
+  async updateClanNickname(name: string) {
+    await this.openUserSettingProfile();
+    await this.openProfileTab();
+    await this.openClanProfileTab();
+    const nicknameInput = this.inputs.nickname;
+    await expect(nicknameInput).toBeVisible({ timeout: 2000 });
+    await nicknameInput.waitFor({ state: 'attached' });
+
+    await nicknameInput.focus();
+    await this.page.waitForTimeout(1000);
+
+    await nicknameInput.press('Control+A');
+    await nicknameInput.press('Backspace');
+    await this.page.keyboard.type(name, { delay: 120 });
+
+    const saveChangesBtn = this.buttons.saveChangesClanProfile;
+    await saveChangesBtn.click();
+    await this.buttons.closeSettingProfile.click();
+  }
 }

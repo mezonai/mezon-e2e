@@ -20,6 +20,10 @@ export class MessageTestHelpers {
   readonly hoverEditMessageButton: Locator;
   readonly editMessageButton: Locator;
   readonly topicMessages: Locator;
+  readonly displayNameOnMessageChannel: Locator;
+  readonly viewTopicButoon: Locator;
+  readonly displayNameOnMessageTopic: Locator;
+  readonly deleteMessageButton: Locator;
 
   message: string = '';
 
@@ -71,12 +75,37 @@ export class MessageTestHelpers {
     this.topicMessages = this.page.locator(
       `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('chat.direct_message.message.item')}`
     );
+
+    this.displayNameOnMessageChannel = this.page.locator(
+      `${generateE2eSelector('chat.direct_message.message.item')} ${generateE2eSelector('base_profile.display_name')}`
+    );
+
+    this.displayNameOnMessageTopic = this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('base_profile.display_name')}`
+    );
+
+    this.viewTopicButoon = this.page.locator(generateE2eSelector('chat.topic.button.view_topic'));
+
+    this.deleteMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Delete Message' });
   }
 
   public getMessageItemLocator(textContains?: string): Locator {
     const selector = generateE2eSelector('chat.direct_message.message.item');
     const base = this.page.locator(selector);
     return textContains ? base.filter({ hasText: textContains }) : base;
+  }
+
+  getTopicMessageItemByText(messageText: string) {
+    return this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('chat.direct_message.message.item')}:has-text("${messageText}")`
+    );
+  }
+
+  getDisplayNameInTopicByMessageText(messageText: string) {
+    const topicMessageItem = this.getTopicMessageItemByText(messageText);
+    return topicMessageItem.locator(generateE2eSelector('base_profile.display_name'));
   }
 
   async findEditOption(): Promise<Locator> {
@@ -2756,6 +2785,37 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(300);
 
     const isVisible = await this.editMessageButton.isVisible();
+    expect(isVisible).toBeFalsy();
+  }
+
+  async verifyNameOnInitTopicMessageIsMatchWithClanSetting(name: string, messageText: string) {
+    const displayNameLocator = this.displayNameOnMessageChannel.last();
+    await expect(displayNameLocator).toBeVisible({ timeout: 3000 });
+    const displayNameText = (await displayNameLocator.innerText()).trim();
+    expect(displayNameText).toBe(name);
+
+    const viewTopicButon = this.viewTopicButoon.last();
+    await expect(viewTopicButon).toBeVisible({ timeout: 3000 });
+    await viewTopicButon.click();
+    await expect(this.topicInput).toBeVisible({ timeout: 2000 });
+
+    await this.page.waitForTimeout(2000);
+    const displayNameOnTopic = await this.getDisplayNameInTopicByMessageText(messageText);
+    await expect(displayNameOnTopic).toHaveText(name);
+
+    await this.closeTopicBoxButton.click();
+    await expect(this.topicInput).toBeHidden({ timeout: 2000 });
+  }
+
+  async verifyDeleteButtonIsHiddenWhenClickRight(message: string) {
+    const messageLocator = this.getMessageItemLocator(message);
+    await expect(messageLocator).toBeVisible({ timeout: 5000 });
+
+    await messageLocator.click({ button: 'right' });
+
+    await this.page.waitForTimeout(300);
+
+    const isVisible = await this.deleteMessageButton.isVisible();
     expect(isVisible).toBeFalsy();
   }
 }
