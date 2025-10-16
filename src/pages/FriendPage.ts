@@ -2,21 +2,27 @@ import { ROUTES } from '@/selectors';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import sleep from '@/utils/sleep';
 import { Page, expect } from '@playwright/test';
+import { ToastSelector } from './../data/selectors/ToastSelectort';
 import { BasePage } from './BasePage';
 
+const SUCCESS_MESSAGE = 'Friend request sent successfully!';
+const ALREADY_SENT_MESSAGE = 'You have already sent a friend request to this user!';
+const ALREADY_FRIEND_MESSAGE = "You're already friends with this user!";
+type Tabs = 'all' | 'online' | 'pending' | 'block';
 export class FriendPage extends BasePage {
   constructor(page: Page) {
     super(page);
+    this.toasts = new ToastSelector(this.page);
   }
+  private readonly baseTab = this.page.locator(generateE2eSelector('friend_page.tab'));
 
   readonly tabs = {
-    all: this.page.locator(generateE2eSelector('friend_page.tab')).filter({ hasText: 'All' }),
-    online: this.page.locator(generateE2eSelector('friend_page.tab')).filter({ hasText: 'Online' }),
-    pending: this.page
-      .locator(generateE2eSelector('friend_page.tab'))
-      .filter({ hasText: 'Pending' }),
-    block: this.page.locator(generateE2eSelector('friend_page.tab')).filter({ hasText: 'Block' }),
+    all: this.baseTab.filter({ hasText: 'All' }),
+    online: this.baseTab.filter({ hasText: 'Online' }),
+    pending: this.baseTab.filter({ hasText: 'Pending' }),
+    block: this.baseTab.filter({ hasText: 'Block' }),
   };
+  readonly toasts;
 
   readonly buttons = {
     addFriend: this.page
@@ -30,20 +36,12 @@ export class FriendPage extends BasePage {
     acceptFriendRequest: this.page.locator(
       generateE2eSelector('friend_page.button.accept_friend_request')
     ),
-    rejectFriendRequest: this.page.locator(
-      generateE2eSelector('friend_page.button.reject_friend_request')
-    ),
-    cancelFriendRequest: this.page.locator(
-      generateE2eSelector('friend_page.button.cancel_friend_request')
-    ),
-    requestFailedOkay: this.page.locator(
-      generateE2eSelector('friend_page.request_failed_popup.button.okay')
-    ),
   };
 
   readonly inputs = {
     search: this.page.locator(generateE2eSelector('friend_page.input.search')),
     addFriend: this.page.locator(generateE2eSelector('friend_page.input.add_friend')),
+    error: this.page.locator(generateE2eSelector('friend_page.input.error')),
   };
 
   readonly lists = {
@@ -58,7 +56,21 @@ export class FriendPage extends BasePage {
     return this.lists.friendAll.filter({ hasText: username });
   }
 
-  async friendExistsInTab(username: string, tab: 'all' | 'online' | 'pending' | 'block' = 'all') {
+  private async baseAssertFriendTab(username: string, tab: Tabs) {
+    const friend = await this.friendExistsInTab(username, tab);
+    await friend.waitFor({ state: 'visible', timeout: 20000 });
+    expect(friend).toHaveCount(1);
+    expect(friend).toBeVisible();
+  }
+
+  private async baseCheckFriendExists(username: string, tab: Tabs): Promise<boolean> {
+    await this.page.waitForTimeout(300);
+    const friend = await this.friendExistsInTab(username, tab);
+    const count = await friend.count();
+    return count > 0;
+  }
+
+  async friendExistsInTab(username: string, tab: Tabs) {
     await this.gotoFriendsPage();
     await this.page.waitForTimeout(500);
     await this.tabs[tab].click();
@@ -87,6 +99,22 @@ export class FriendPage extends BasePage {
     await this.clickAddFriendButton();
     await this.enterUsername(username);
     await this.clickSendFriendRequest();
+  }
+
+  async verifySentRequestToast(): Promise<void> {
+    try {
+      await this.toasts.verifySuccessToast(SUCCESS_MESSAGE);
+    } catch (error) {
+      console.error('Toast Not show:', error);
+    }
+  }
+
+  async verifyReceivedRequestToast(message: string): Promise<void> {
+    try {
+      await this.toasts.verifyInfoToast(message);
+    } catch (error) {
+      console.error('Toast Not show:', error);
+    }
   }
 
   async searchFriend(keyword: string): Promise<void> {
@@ -205,18 +233,32 @@ export class FriendPage extends BasePage {
     }
   }
 
+  async assertAlreadySentRequestError(): Promise<void> {
+    await this.page.waitForTimeout(300);
+    const errorMessage = this.inputs.error;
+    expect(errorMessage).toHaveCount(1);
+    expect(errorMessage).toBeVisible();
+    expect(errorMessage).toHaveText(ALREADY_SENT_MESSAGE);
+  }
+
+  async assertAlreadyFriendError(): Promise<void> {
+    await this.page.waitForTimeout(300);
+    const errorMessage = this.inputs.error;
+    expect(errorMessage).toHaveCount(1);
+    expect(errorMessage).toBeVisible();
+    expect(errorMessage).toHaveText(ALREADY_FRIEND_MESSAGE);
+  }
+
+  async assertFriendRequestExists(username: string): Promise<void> {
+    await this.friendExistsInTab(username, 'pending');
+  }
+
   async assertAllFriend(username: string): Promise<void> {
-    const friend = await this.friendExistsInTab(username, 'all');
-    await friend.waitFor({ state: 'visible', timeout: 20000 });
-    expect(friend).toHaveCount(1);
-    expect(friend).toBeVisible();
+    await this.baseAssertFriendTab(username, 'all');
   }
 
   async assertBlockFriend(username: string): Promise<void> {
-    const friend = await this.friendExistsInTab(username, 'block');
-    await friend.waitFor({ state: 'visible', timeout: 20000 });
-    expect(friend).toHaveCount(1);
-    expect(friend).toBeVisible();
+    await this.baseAssertFriendTab(username, 'block');
   }
 
   async assertBlockFriendNotVisible(username: string): Promise<void> {
@@ -227,16 +269,10 @@ export class FriendPage extends BasePage {
   }
 
   async checkFriendExists(username: string): Promise<boolean> {
-    await this.page.waitForTimeout(300);
-    const friend = await this.friendExistsInTab(username, 'all');
-    const count = await friend.count();
-    return count > 0;
+    return this.baseCheckFriendExists(username, 'all');
   }
   async checkFriendRequestExists(username: string): Promise<boolean> {
-    await this.page.waitForTimeout(300);
-    const friend = await this.friendExistsInTab(username, 'pending');
-    const count = await friend.count();
-    return count > 0;
+    return this.baseCheckFriendExists(username, 'pending');
   }
 
   async assertFriendNotVisibleInCurrentTab(username: string): Promise<void> {
@@ -248,5 +284,10 @@ export class FriendPage extends BasePage {
 
   async clearAddFriendInput(): Promise<void> {
     await this.inputs.addFriend.clear();
+  }
+
+  async cleanupFriendRelationships(otherUsername: string): Promise<void> {
+    await this.removeFriend(otherUsername);
+    await this.removeFriendRequest(otherUsername);
   }
 }
