@@ -565,6 +565,7 @@ export const DATA_E2E_IDENTIFIER = {
     input: {
       search: '',
       add_friend: '',
+      error: '',
     },
     request_failed_popup: {
       button: {
