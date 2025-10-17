@@ -14,6 +14,9 @@ export function installSessionScopedGlobals<
     const origBrowser$ = (global.browser as any)?.$;
     const origBrowser$$ = (global.browser as any)?.$$;
 
+    const hadDriver = Object.prototype.hasOwnProperty.call(globalThis, 'driver');
+    const origDriver = (globalThis as any).driver;
+
     function pickBrowser(): Browser {
         const isMulti = Boolean((global.browser as any)?.isMultiremote);
         if (!isMulti) return global.browser as unknown as Browser;
@@ -40,6 +43,19 @@ export function installSessionScopedGlobals<
             (global.browser as any).$$ = (sel: string) => pickBrowser().$$(sel);
         } catch {}
     }
+  let usedGetter = false;
+  try {
+    Object.defineProperty(globalThis as any, 'driver', {
+      configurable: true,
+      get: () => pickBrowser(),
+    });
+    Object.defineProperty(globalThis as any, 'activeDriver', {
+      configurable: true,
+      get: () => pickBrowser(),
+    });
+    usedGetter = true;
+  } catch {
+  }
 
     return () => {
         global.$ = orig$;
@@ -50,5 +66,17 @@ export function installSessionScopedGlobals<
                 (global.browser as any).$$ = origBrowser$$;
             } catch {}
         }
+        if (usedGetter) {
+            try {
+              if (hadDriver) {
+                Object.defineProperty(globalThis as any, 'driver', { configurable: true, writable: true, value: origDriver });
+              } else {
+                // @ts-ignore
+                delete (globalThis as any).driver;
+              }
+              // @ts-ignore
+              delete (globalThis as any).activeDriver;
+            } catch {}
+          }
     };
 }
