@@ -21,14 +21,14 @@ export class Allure {
     ): Promise<T | void> {
         allureReporter.startStep(name);
         try {
-            const preScreenshot = await browser.takeScreenshot();
+            const preScreenshot = await driver.takeScreenshot();
             this.addAttachment(
                 `pre-screenshot${name}`,
                 Buffer.from(preScreenshot, "base64"),
                 "image/png"
             );
             const result = await fn(this);
-            const postScreenshot = await browser.takeScreenshot();
+            const postScreenshot = await driver.takeScreenshot();
             this.addAttachment(
                 `post-screenshot${name}`,
                 Buffer.from(postScreenshot, "base64"),
@@ -38,7 +38,7 @@ export class Allure {
             return result;
         } catch (error) {
             try {
-                const errorScreenshot = await browser.takeScreenshot();
+                const errorScreenshot = await driver.takeScreenshot();
                 allureReporter.endStep(Status.FAILED);
                 this.addAttachment(
                     `error-screenshot${name}`,
