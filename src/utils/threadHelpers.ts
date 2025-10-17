@@ -1,7 +1,7 @@
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import { ThreadStatus } from '@/types/clan-page.types';
 import { expect, Page } from '@playwright/test';
 import { AllureReporter } from './allureHelpers';
-import { ClanPage } from '@/pages/ClanPage';
-import { ThreadStatus } from '@/types/clan-page.types';
 import generateRandomString from './randomString';
 
 export class ThreadTestHelpers {

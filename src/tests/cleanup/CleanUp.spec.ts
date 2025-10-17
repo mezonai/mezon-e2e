@@ -1,5 +1,5 @@
 import { AccountCredentials } from '@/config/environment';
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { AuthHelper } from '@/utils/authHelper';
 import { test } from '@playwright/test';
 

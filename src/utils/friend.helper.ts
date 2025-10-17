@@ -1,3 +1,5 @@
+import { FriendPage } from '@/pages/FriendPage';
+
 export class FriendHelper {
   static async cleanupMutualFriendRelationships(
     friendPageA: FriendPage,

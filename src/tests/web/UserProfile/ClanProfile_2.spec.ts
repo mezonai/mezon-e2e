@@ -1,7 +1,7 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -164,7 +164,10 @@ test.describe('Clan Profile - Module 2', () => {
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
     await memberItem.click({ button: 'right' });
     await page
-      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions.view_profile'))
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Profile',
+      })
       .click();
     const popup = page.locator('div[class*="w-[600px]"][class*="h-[90vh]"]');
     await expect(popup).toBeVisible({ timeout: 5000 });

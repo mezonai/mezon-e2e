@@ -329,6 +329,11 @@ export const DATA_E2E_IDENTIFIER = {
     },
   },
   chat: {
+    message_box: {
+      input: {
+        no_permission: '',
+      },
+    },
     direct_message: {
       header: {
         left_container: '',
@@ -435,9 +440,7 @@ export const DATA_E2E_IDENTIFIER = {
       mention_user: '',
       member_list: {
         item: {
-          actions: {
-            view_profile: '',
-          },
+          actions: '',
         },
       },
     },

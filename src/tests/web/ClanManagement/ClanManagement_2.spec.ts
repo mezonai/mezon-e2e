@@ -1,7 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType, ClanStatus, EventType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
