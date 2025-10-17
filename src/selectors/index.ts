@@ -472,6 +472,9 @@ export const DATA_E2E_IDENTIFIER = {
           close: '',
         },
       },
+      button: {
+        view_topic: '',
+      },
     },
   },
   onboarding: {
