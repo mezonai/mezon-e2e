@@ -41,9 +41,11 @@ export default class ClanSelector extends BasePage {
 
   readonly sidebarMemberList = {
     memberItems: this.page.locator(generateE2eSelector('chat.channel_message.member_list.item')),
-    profileButton: this.page.locator(
-      generateE2eSelector('chat.channel_message.member_list.item.actions.view_profile')
-    ),
+    profileButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Profile',
+      }),
   };
 
   readonly memberSettings = {

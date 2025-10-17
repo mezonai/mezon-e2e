@@ -230,6 +230,11 @@ export class ClanSetupHelper {
       clanNamePrefix: 'TopicMessageTest',
       suiteName: 'Topic Message',
     }),
+
+    blockUser: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'BlockUserTest',
+      suiteName: 'Block User',
+    }),
   };
 }
 

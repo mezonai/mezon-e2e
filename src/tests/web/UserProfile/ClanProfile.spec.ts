@@ -1,7 +1,7 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';

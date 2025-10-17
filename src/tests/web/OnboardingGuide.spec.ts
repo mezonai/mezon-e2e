@@ -1,7 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { OnboardingTask } from '@/types/onboarding.types';

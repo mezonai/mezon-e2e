@@ -7,12 +7,13 @@ import { AuthHelper } from '@/utils/authHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
-import { test } from '../../fixtures/dual.fixture';
+import { test } from '../../../fixtures/dual.fixture';
 
 test.describe('Friend Management', () => {
   const accountA = AccountCredentials['account8'];
   const accountB = AccountCredentials['account9'];
-  const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
+  const userNameA = accountA.email.split('@')[0];
+  const userNameB = accountB.email.split('@')[0];
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const VERIFY_REQUEST_EXISTS_STEP_NAME = 'Verify friend request exists on both sides';
   const CANCEL_REQUEST_STEP_NAME = 'User A cancels the friend request';
@@ -38,6 +39,15 @@ test.describe('Friend Management', () => {
         );
       },
     });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await FriendHelper.cleanupMutualFriendRelationships(
+      friendPageA,
+      friendPageB,
+      userNameA,
+      userNameB
+    );
   });
   test.afterEach(async ({ dual }) => {
     await dual.parallel({
@@ -70,18 +80,6 @@ test.describe('Friend Management', () => {
       
       **Expected Result:** The complete friend request flow works successfully with proper toast notifications and UI updates.
     `);
-
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
-
-    await test.step(CLEANUP_STEP_NAME, async () => {
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
 
     await test.step(SEND_REQUEST_STEP_NAME, async () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
@@ -159,15 +157,6 @@ test.describe('Friend Management', () => {
     const [userNameB] = accountB.email.split('@');
     const [userNameA] = accountA.email.split('@');
 
-    await test.step(CLEANUP_STEP_NAME, async () => {
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
     await test.step(SEND_REQUEST_STEP_NAME, async () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
     });
@@ -191,8 +180,6 @@ test.describe('Friend Management', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can cancel a sent friend request.
@@ -208,15 +195,6 @@ test.describe('Friend Management', () => {
       **Expected Result:** The friend request is cancelled successfully.
       The request is not visible in the Pending tab.
     `);
-
-    await test.step(CLEANUP_STEP_NAME, async () => {
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
 
     await test.step(SEND_REQUEST_STEP_NAME, async () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
@@ -241,73 +219,10 @@ test.describe('Friend Management', () => {
     });
   });
 
-  test('Verify that a user can block and unblock a friend', async ({ dual }) => {
-    const { pageA, pageB } = dual;
-    const friendPageA = new FriendPage(pageA);
-    const friendPageB = new FriendPage(pageB);
-
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
-
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a user can block and unblock a friend.
-      
-      **Test Steps:**
-      1. Clean up any existing friend relationships between users
-      2. Establish friendship between users (send and accept friend request)
-      3. User A blocks User B
-      4. Verify that User B appears in the Block tab
-      5. User A unblocks User B
-      6. Verify that User B is no longer in the Block tab
-      7. Verify that the friendship is restored
-
-      **Expected Result:** The friend can be blocked successfully, appears in the Block tab, and can be unblocked to restore the friendship.
-    `);
-
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
-
-    await test.step(CLEANUP_STEP_NAME, async () => {
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
-    await test.step('Establish friendship between users', async () => {
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageB.acceptFirstFriendRequest();
-      await friendPageA.assertAllFriend(userNameB);
-    });
-
-    await test.step('User A blocks User B', async () => {
-      await friendPageA.blockFriend(userNameB);
-    });
-
-    await test.step('Verify User B appears in Block tab', async () => {
-      await friendPageA.assertBlockFriend(userNameB);
-    });
-
-    await test.step('User A unblocks User B', async () => {
-      await friendPageA.unblockFriend(userNameB);
-    });
-
-    await test.step('Verify friendship is restored', async () => {
-      await friendPageA.assertBlockFriendNotVisible(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-    });
-  });
-
   test('Verify friend search filters the list by username or display name', async ({ dual }) => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
     const userNameB = accountB.email.split('@')[0];
 
     await AllureReporter.addTestParameters({
@@ -330,14 +245,6 @@ test.describe('Friend Management', () => {
       **Expected Result:** The search functionality correctly filters the friends list based on username/display name input.
      `);
 
-    await test.step(CLEANUP_STEP_NAME, async () => {
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
     await test.step('Establish friendship between users', async () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
       await friendPageB.acceptFirstFriendRequest();
@@ -397,8 +304,6 @@ test.describe('Friend Management', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
     await AllureReporter.addWorkItemLinks({
       tms: '63461',
     });
@@ -415,14 +320,6 @@ test.describe('Friend Management', () => {
       **Expected Result:** The system prevents duplicate friend requests and shows an error when attempting to send a request to a user who already has a pending request.
      `);
 
-    await test.step(CLEANUP_STEP_NAME, async () => {
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
     await test.step(SEND_REQUEST_STEP_NAME, async () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
     });
@@ -443,8 +340,6 @@ test.describe('Friend Management', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
     await AllureReporter.addWorkItemLinks({
       tms: '63461',
     });
@@ -462,14 +357,6 @@ test.describe('Friend Management', () => {
       **Expected Result:** The system prevents duplicate friend requests and shows an error when attempting to send a request to a user who is already a friend.
      `);
 
-    await test.step(CLEANUP_STEP_NAME, async () => {
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
     await test.step(SEND_REQUEST_STEP_NAME, async () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
     });
@@ -497,8 +384,6 @@ test.describe('Friend Management', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
     await AllureReporter.addWorkItemLinks({
       tms: '63461',
     });
@@ -515,14 +400,6 @@ test.describe('Friend Management', () => {
       **Expected Result:** When both users send friend requests to each other, they automatically become friends without needing to accept manually.
      `);
 
-    await test.step(CLEANUP_STEP_NAME, async () => {
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
     await test.step(SEND_REQUEST_STEP_NAME, async () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
     });

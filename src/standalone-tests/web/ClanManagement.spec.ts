@@ -1,6 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { GLOBAL_CONFIG } from '@/config/environment';
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import joinUrlPaths from '@/utils/joinUrlPaths';
@@ -40,7 +40,6 @@ test.describe('Create Clan', () => {
     const clanPage = new ClanPage(page);
     let createClansCount: number;
     const limit = 50;
-    const createdClans: string[] = [];
     const results: boolean[] = [];
 
     await AllureReporter.addParameter('Limit clans', limit.toString());

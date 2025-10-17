@@ -5,10 +5,10 @@ import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/cl
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, Locator, Page } from '@playwright/test';
-import { EventType } from './../types/clan-page.types';
-import { DirectMessageHelper } from './../utils/directMessageHelper';
-import { CategoryPage } from './CategoryPage';
-import { MessagePage } from './MessagePage';
+import { EventType } from '../../types/clan-page.types';
+import { DirectMessageHelper } from '../../utils/directMessageHelper';
+import { MessagePage } from '../MessagePage';
+import { ClanMenuPanel } from './ClanMenuPanel';
 
 interface SelectorResult {
   found: boolean;
@@ -97,7 +97,7 @@ export class ClanPage extends ClanSelector {
 
   async deleteClan(clanName: string): Promise<boolean> {
     try {
-      const categoryPage = new CategoryPage(this.page);
+      const categoryPage = new ClanMenuPanel(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
 
       const clanLocator = await this.findClanByTitle(clanName);
@@ -169,7 +169,7 @@ export class ClanPage extends ClanSelector {
 
   async openClanSettings(): Promise<boolean> {
     try {
-      const categoryPage = new CategoryPage(this.page);
+      const categoryPage = new ClanMenuPanel(this.page);
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();

@@ -1,7 +1,8 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, GLOBAL_CONFIG } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ROUTES } from '@/selectors';
 import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType, ClanStatus, EventType } from '@/types/clan-page.types';
@@ -12,7 +13,6 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
-import { CategoryPage } from '../../../pages/CategoryPage';
 
 test.describe('Clan Management', () => {
   const clanFactory = new ClanFactory();
@@ -73,7 +73,7 @@ test.describe('Clan Management', () => {
     });
 
     const categoryPublicName = `category-public-${new Date().getTime()}`;
-    const categoryPage = new CategoryPage(page);
+    const categoryPage = new ClanMenuPanel(page);
 
     await AllureReporter.addParameter('categoryName', categoryPublicName);
     await AllureReporter.addParameter('categoryType', 'public');

@@ -1,4 +1,4 @@
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import type { OnboardingTaskType } from '@/types/onboarding.types';
 import { type Page } from '@playwright/test';
 export class OnboardingHelpers {

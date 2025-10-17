@@ -9,6 +9,7 @@ const SUCCESS_MESSAGE = 'Friend request sent successfully!';
 const ALREADY_SENT_MESSAGE = 'You have already sent a friend request to this user!';
 const ALREADY_FRIEND_MESSAGE = "You're already friends with this user!";
 type Tabs = 'all' | 'online' | 'pending' | 'block';
+const dmActivClass = 'text-theme-primary-active';
 export class FriendPage extends BasePage {
   constructor(page: Page) {
     super(page);
@@ -42,10 +43,24 @@ export class FriendPage extends BasePage {
     search: this.page.locator(generateE2eSelector('friend_page.input.search')),
     addFriend: this.page.locator(generateE2eSelector('friend_page.input.add_friend')),
     error: this.page.locator(generateE2eSelector('friend_page.input.error')),
+    permissionDenied: this.page.locator(
+      generateE2eSelector('chat.message_box.input.no_permission')
+    ),
   };
 
   readonly lists = {
     friendAll: this.page.locator(generateE2eSelector('chat.direct_message.friend_list.all_friend')),
+  };
+
+  readonly dm = {
+    items: this.page.locator(generateE2eSelector('chat.direct_message.chat_list')),
+  };
+
+  readonly dmFriendMenu = {
+    item: this.page.locator(generateE2eSelector('chat.channel_message.member_list.item.actions')),
+    blockButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({ hasText: 'Block' }),
   };
 
   async getFriend(username: string) {
@@ -54,6 +69,10 @@ export class FriendPage extends BasePage {
 
   async getFriends(username: string) {
     return this.lists.friendAll.filter({ hasText: username });
+  }
+
+  async getActiveDM() {
+    return this.dm.items.filter({ has: this.page.locator(`.${dmActivClass}`) }).first();
   }
 
   private async baseAssertFriendTab(username: string, tab: Tabs) {
@@ -184,9 +203,20 @@ export class FriendPage extends BasePage {
     await this.page.waitForTimeout(500);
   }
 
+  async blockFriendFromDM(): Promise<void> {
+    const activeDM = await this.getActiveDM();
+    await activeDM.waitFor({ state: 'visible', timeout: 1000 });
+    await activeDM.click({ button: 'right' });
+
+    const blockButton = this.dmFriendMenu.blockButton;
+    await blockButton.waitFor({ state: 'visible', timeout: 1000 });
+    await blockButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async unblockFriend(username: string): Promise<void> {
     const friendItem = await this.friendExistsInTab(username, 'block');
-    await friendItem.waitFor({ state: 'visible', timeout: 20000 });
+    await friendItem.waitFor({ state: 'visible', timeout: 1000 });
     await friendItem.getByRole('button', { name: /unblock/i }).click();
     await this.page.waitForTimeout(500);
   }
@@ -289,5 +319,17 @@ export class FriendPage extends BasePage {
   async cleanupFriendRelationships(otherUsername: string): Promise<void> {
     await this.removeFriend(otherUsername);
     await this.removeFriendRequest(otherUsername);
+  }
+
+  async createDM(username: string) {
+    const friendItem = await this.friendExistsInTab(username, 'all');
+    await friendItem.waitFor({ state: 'visible' });
+    await friendItem.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async isChatDenied(): Promise<boolean> {
+    const permissionDenied = this.inputs.permissionDenied;
+    return (await permissionDenied.count()) > 0;
   }
 }

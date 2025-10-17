@@ -1,4 +1,4 @@
-import { ClanPage } from '@/pages/ClanPage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSetupConfig } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
 import { Page } from '@playwright/test';
