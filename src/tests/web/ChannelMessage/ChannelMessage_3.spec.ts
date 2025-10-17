@@ -123,7 +123,7 @@ test.describe('Channel Message - Module 3', () => {
     await pageWithClipboard.waitForTimeout(1500);
   });
 
-  test('Pin message and verify in pinned modal', async ({ pageWithClipboard, context }) => {
+  test('Pin message and verify in pinned modal', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63852',
     });

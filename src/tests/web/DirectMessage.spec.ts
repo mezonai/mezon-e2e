@@ -252,4 +252,51 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.attachScreenshot(page, 'Pinned Message Removed');
   });
+
+  test('Verify user cannot create duplicate DM ', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user cannot create a duplicate direct message conversation.
+
+      **Test Steps:**
+      1. Create a new direct message
+      2. Try to create a duplicate direct message
+      3. Verify only one direct message is created
+
+      **Expected Result:** Only one direct message should be created.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['direct-message', 'messaging', 'conversation-creation', 'duplicate-dm'],
+    });
+
+    const messagePage = new MessagePage(page);
+    const helpers = new DirectMessageHelper(page);
+    let username: string;
+
+    await AllureReporter.step('Create a direct message', async () => {
+      const firstUser = (await messagePage.firstUserNameAddDM.innerText()).trim();
+      username = firstUser;
+      const isDMExist = await helpers.scrollUntilVisible(username);
+      if (!isDMExist) {
+        await messagePage.createDMByName(username);
+      }
+      await page.waitForTimeout(2000);
+      const isNewDMVisible = await helpers.scrollUntilVisible(username);
+      expect(isNewDMVisible).toBeTruthy();
+    });
+
+    await AllureReporter.step('Verify that i cannot create duplicate DM', async () => {
+      await messagePage.createDMByName(username);
+      const totalCount = await helpers.scrollToCountDMbyName(username);
+      expect(totalCount).toBe(1);
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Direct Message Created');
+  });
 });

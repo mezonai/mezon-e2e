@@ -1,7 +1,7 @@
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import { ThreadStatus } from '@/types/clan-page.types';
 import { expect, Page } from '@playwright/test';
 import { AllureReporter } from './allureHelpers';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
-import { ThreadStatus } from '@/types/clan-page.types';
 import generateRandomString from './randomString';
 
 export class ThreadTestHelpers {
@@ -12,7 +12,7 @@ export class ThreadTestHelpers {
   }
 
   async createAndVerifyThread(threadStatus: ThreadStatus) {
-    const clanPage = new ClanPageV2(this.page);
+    const clanPage = new ClanPage(this.page);
 
     const threadName = `${threadStatus.toLowerCase()}-thread-${generateRandomString(10)}`;
 

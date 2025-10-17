@@ -39,7 +39,7 @@ export class ClanSetupHelper {
   //   const clanName = `${clanNamePrefix}_${generateRandomString(10)}_${timestamp}`;
 
   //   try {
-  //     const clanPage = new ClanPageV2(page);
+  //     const clanPage = new ClanPage(page);
   //     const createClanClicked = await clanPage.clickCreateClanButton();
   //     if (!createClanClicked) {
   //       throw new Error('Failed to click create clan button');
@@ -97,7 +97,7 @@ export class ClanSetupHelper {
 
   //     await page.waitForLoadState('domcontentloaded');
 
-  //     const clanPage = new ClanPageV2(page);
+  //     const clanPage = new ClanPage(page);
 
   //     await clanPage.deleteClan(false);
   //   } catch (error) {
@@ -224,6 +224,16 @@ export class ClanSetupHelper {
     directMessage: ClanSetupHelper.createConfig({
       clanNamePrefix: 'DirectMessageTest',
       suiteName: 'Direct Message',
+    }),
+
+    topicMessage: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'TopicMessageTest',
+      suiteName: 'Topic Message',
+    }),
+
+    blockUser: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'BlockUserTest',
+      suiteName: 'Block User',
     }),
   };
 }

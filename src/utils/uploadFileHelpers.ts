@@ -9,7 +9,6 @@ import { generateE2eSelector } from './generateE2eSelector';
 const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
 const stat = promisify(fs.stat);
-const unlink = promisify(fs.unlink);
 
 export type UploadVerificationResult = {
   success: boolean;

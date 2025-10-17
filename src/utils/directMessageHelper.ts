@@ -75,33 +75,82 @@ export class DirectMessageHelper {
       scrollStep?: number;
       maxScroll?: number;
       waitMs?: number;
-      timeout?: number;
     } = {}
   ): Promise<boolean> {
-    const { scrollStep = 400, maxScroll = 10000, waitMs = 300, timeout = 5000 } = options;
+    const { scrollStep = 400, maxScroll = 10000, waitMs = 300 } = options;
     if (name === '') {
       return false;
     }
 
-    const start = Date.now();
     let scrolled = 0;
 
-    while (Date.now() - start < timeout && scrolled < maxScroll) {
+    while (scrolled < maxScroll) {
       const target = this.chatList.filter({
         has: this.page.locator(`:text-is("${name}")`),
       });
 
+      const reachedEnd = await this.chatListContainer.evaluate((el, step) => {
+        const before = el.scrollTop;
+        el.scrollBy(0, step);
+        return el.scrollTop === before || el.scrollTop + el.clientHeight >= el.scrollHeight;
+      }, scrollStep);
+
+      await this.page.waitForTimeout(waitMs);
       if (await target.count()) {
         await target.first().scrollIntoViewIfNeeded();
         return true;
       }
 
-      await this.chatListContainer.evaluate((el, step) => el.scrollBy(0, step), scrollStep);
-      scrolled += scrollStep;
+      if (reachedEnd) {
+        break;
+      }
 
-      await this.page.waitForTimeout(waitMs);
+      scrolled += scrollStep;
     }
 
     return false;
+  }
+
+  async scrollToCountDMbyName(
+    name: string,
+    options: {
+      scrollStep?: number;
+      maxScroll?: number;
+      waitMs?: number;
+    } = {}
+  ): Promise<number> {
+    const { scrollStep = 400, maxScroll = 10000, waitMs = 300 } = options;
+    if (name === '') {
+      return 0;
+    }
+
+    let scrolled = 0;
+    let count = 0;
+
+    while (scrolled < maxScroll) {
+      const target = this.chatList.filter({
+        has: this.page.locator(`:text-is("${name}")`),
+      });
+
+      const currentCount = await target.count();
+      if (currentCount > count) {
+        count = currentCount;
+      }
+
+      const reachedEnd = await this.chatListContainer.evaluate((el, step) => {
+        const before = el.scrollTop;
+        el.scrollBy(0, step);
+        return el.scrollTop === before || el.scrollTop + el.clientHeight >= el.scrollHeight;
+      }, scrollStep);
+
+      if (reachedEnd) {
+        break;
+      }
+
+      scrolled += scrollStep;
+      await this.page.waitForTimeout(waitMs);
+    }
+
+    return count;
   }
 }

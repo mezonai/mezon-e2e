@@ -1,6 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { GLOBAL_CONFIG } from '@/config/environment';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import joinUrlPaths from '@/utils/joinUrlPaths';
@@ -37,20 +37,19 @@ test.describe('Create Clan', () => {
       tag: ['clan-creation', 'core-functionality', 'limit-modal'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     let createClansCount: number;
     const limit = 50;
-    const createdClans: string[] = [];
     const results: boolean[] = [];
 
     await AllureReporter.addParameter('Limit clans', limit.toString());
 
     await AllureReporter.step('Get all clans', async () => {
-        await page.waitForLoadState('networkidle');
-        const allClansCount = await clanPage.getAllClan();
-        createClansCount = limit - allClansCount;
-        await AllureReporter.addParameter('Clans present', allClansCount.toString());
-        await AllureReporter.addParameter('Clans to create', createClansCount.toString());
+      await page.waitForLoadState('networkidle');
+      const allClansCount = await clanPage.getAllClan();
+      createClansCount = limit - allClansCount;
+      await AllureReporter.addParameter('Clans present', allClansCount.toString());
+      await AllureReporter.addParameter('Clans to create', createClansCount.toString());
     });
 
     await AllureReporter.step('Create 50 clans', async () => {
@@ -62,8 +61,8 @@ test.describe('Create Clan', () => {
           await clanPage.createNewClan(clanName);
         }
         const isClanPresent = await clanPage.isClanPresent(clanName);
-        if(isClanPresent) {
-            createdClans.push(clanName);
+        if (isClanPresent) {
+          createdClans.push(clanName);
         }
         results.push(isClanPresent);
       }
@@ -71,22 +70,22 @@ test.describe('Create Clan', () => {
 
     const allClansCreated = results.every(result => result === true);
     if (!allClansCreated) {
-        await page.waitForLoadState('networkidle');
-        const allClansCount = await clanPage.getAllClan();
-        expect(allClansCount).toBe(limit);
+      await page.waitForLoadState('networkidle');
+      const allClansCount = await clanPage.getAllClan();
+      expect(allClansCount).toBe(limit);
       await AllureReporter.attachScreenshot(page, 'Failed to Create 50 Clans');
     } else {
-        await AllureReporter.step('Verify that show limit modal when create clan 51', async () => {
-            const clanName = `Mezon E2E Clan LIMIT ${generateRandomString(10)}`;
-            const createClanClicked = await clanPage.clickCreateClanButton();
-            if (createClanClicked) {
-                await clanPage.createNewClan(clanName);
-            }
-            const isClanPresent = await clanPage.isClanPresent(clanName);
-            expect(isClanPresent).toBe(false);
-            const isLimitCreationModalPresent = await clanPage.isLimitCreationModalPresent();
-            expect(isLimitCreationModalPresent).toBe(true);
-        });
+      await AllureReporter.step('Verify that show limit modal when create clan 51', async () => {
+        const clanName = `Mezon E2E Clan LIMIT ${generateRandomString(10)}`;
+        const createClanClicked = await clanPage.clickCreateClanButton();
+        if (createClanClicked) {
+          await clanPage.createNewClan(clanName);
+        }
+        const isClanPresent = await clanPage.isClanPresent(clanName);
+        expect(isClanPresent).toBe(false);
+        const isLimitCreationModalPresent = await clanPage.isLimitCreationModalPresent();
+        expect(isLimitCreationModalPresent).toBe(true);
+      });
     }
   });
 });

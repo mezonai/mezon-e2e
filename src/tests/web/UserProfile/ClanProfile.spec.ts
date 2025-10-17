@@ -1,7 +1,7 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -159,7 +159,7 @@ test.describe('Clan Profile', () => {
       parrent_issue: '63364',
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     await clanPage.createNewChannel(ChannelType.TEXT, generateRandomString(10));
     await page.waitForTimeout(1000);
 
@@ -198,7 +198,7 @@ test.describe('Clan Profile', () => {
   //   });
 
   //   const messageHelper = new MessageTestHelpers(page);
-  //   const clanPage = new ClanPageV2(page);
+  //   const clanPage = new ClanPage(page);
   //   await page.waitForTimeout(1000);
   //   const username = await clanPage.footerProfile.userName.textContent();
   //   await page.waitForTimeout(500);

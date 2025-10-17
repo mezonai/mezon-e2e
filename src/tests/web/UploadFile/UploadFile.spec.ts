@@ -1,6 +1,6 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
@@ -14,7 +14,7 @@ import { ProfilePage } from '../../../pages/ProfilePage';
 test.describe('File Size Limits Validation', () => {
   let fileSizeHelpers: FileSizeTestHelpers;
   let profilePage: ProfilePage;
-  let clanPage: ClanPageV2;
+  let clanPage: ClanPage;
   const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
@@ -41,7 +41,7 @@ test.describe('File Size Limits Validation', () => {
 
     fileSizeHelpers = new FileSizeTestHelpers(page);
     profilePage = new ProfilePage(page);
-    clanPage = new ClanPageV2(page);
+    clanPage = new ClanPage(page);
   });
 
   test.afterAll(async ({ browser }) => {

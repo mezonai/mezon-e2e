@@ -2,7 +2,7 @@ import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -17,7 +17,7 @@ test.describe('File Size Limits Validation - Module 3', () => {
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
   let channelSettingPage: ChannelSettingPage;
-  let clanPage: ClanPageV2;
+  let clanPage: ClanPage;
   let profilePage: ProfilePage;
   const clanFactory = new ClanFactory();
 
@@ -59,7 +59,7 @@ test.describe('File Size Limits Validation - Module 3', () => {
       fileSizeHelpers = new FileSizeTestHelpers(page);
       clanSettingsPage = new ClanSettingsPage(page);
       channelSettingPage = new ChannelSettingPage(page);
-      clanPage = new ClanPageV2(page);
+      clanPage = new ClanPage(page);
       profilePage = new ProfilePage(page);
     }
   );
