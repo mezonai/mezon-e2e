@@ -79,3 +79,4 @@ sonar-report.json
 
 # ESLint
 eslint-report.json
+test-files

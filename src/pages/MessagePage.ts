@@ -183,6 +183,19 @@ export class MessagePage {
     }
   }
 
+  async createDMByName(userName: string): Promise<void> {
+    try {
+      await this.buttonCreateGroupSidebar.click();
+
+      await this.userItem.filter({ hasText: userName }).hover();
+      await this.userItem.filter({ hasText: userName }).click();
+      await this.createGroupButton.click();
+    } catch (error) {
+      console.error('Error creating DM:', error);
+      throw error;
+    }
+  }
+
   async isDMCreated(): Promise<boolean> {
     await this.userNamesInDM.first().waitFor({ state: 'visible', timeout: 5000 });
     return (await this.userNamesInDM.allInnerTexts()).some(

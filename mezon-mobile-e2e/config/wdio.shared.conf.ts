@@ -38,7 +38,7 @@ export const config: Options.Testrunner = {
     port: 4727,
     path: "/",
 
-    maxInstances: 2,
+    maxInstances: 1,
     specs: [],
     //
     // ============
