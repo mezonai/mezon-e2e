@@ -3,14 +3,18 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanInviteFriendModal } from '@/pages/Clan/ClanInviteFriendModal';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { FriendPage } from '@/pages/FriendPage';
+import { MessagePage } from '@/pages/MessagePage';
+import { ClanInviteModal } from '@/pages/Modal/ClanInviteModal';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import { test } from '../../../fixtures/dual.fixture';
 import { expect } from './../../../fixtures/dual.fixture';
+import { ForwardMessageModal } from './../../../pages/Modal/ForwarMessageModal';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['account8'];
@@ -259,4 +263,73 @@ test.describe('Friend Management - Block User', () => {
       expect(isChatDeniedB).toBeTruthy();
     });
   });
+
+  test('Should not show blocked user in clan channel forward message list', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63492',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const clanFactory = new ClanFactory();
+    const clanMenuPanelA = new ClanMenuPanel(pageA);
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
+
+    await test.step('User A sends a message in clan channel', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
+      const helpers = new OnboardingHelpers(pageA);
+      const { sent } = await helpers.sendTestMessage();
+      expect(sent).toBe(true);
+    });
+    let inviteLink: string = '';
+    await test.step('User A invite User B to clan', async () => {
+      await clanMenuPanelA.openInvitePeopleModal();
+      const clanInviteFriendModalA = new ClanInviteFriendModal(pageA);
+      inviteLink = await clanInviteFriendModalA.getInviteLink();
+      expect(inviteLink).not.toBe('');
+    });
+
+    await test.step('User A blocks User B', async () => {
+      await friendPageA.blockFriend(userNameB);
+    });
+
+    await test.step('User B joins the clan', async () => {
+      await friendPageB.page.goto(inviteLink, {
+        waitUntil: 'domcontentloaded',
+      });
+      await friendPageA.page.goto(inviteLink, {
+        waitUntil: 'domcontentloaded',
+      });
+      const clanInviteModalA = new ClanInviteModal(pageA);
+      const clanInviteModalB = new ClanInviteModal(pageB);
+      await clanInviteModalA.acceptInvite();
+      await clanInviteModalB.acceptInvite();
+    });
+
+    await test.step('User B should not shown in forward message list', async () => {
+      const firstMessageA = await messagePageA.getFirstMessage();
+      await messagePageA.forwardMessage(firstMessageA);
+      const forwardMessageModalA = new ForwardMessageModal(pageA);
+      const isUserBShown = await forwardMessageModalA.isUserShownInList(userNameB);
+      expect(isUserBShown).toBeFalsy();
+      await pageA.reload({
+        waitUntil: 'domcontentloaded',
+      });
+    });
+
+    await test.step('User A should not shown in forward message list', async () => {
+      const firstMessage = await messagePageB.getFirstMessage();
+      await messagePageB.forwardMessage(firstMessage);
+      const forwardMessageModalB = new ForwardMessageModal(pageB);
+      const isUserBShown = await forwardMessageModalB.isUserShownInList(userNameA);
+      expect(isUserBShown).toBeFalsy();
+    });
+
+    await clanFactory.cleanupClan(pageA);
+  });
+
+  test('Should not show blocked user in clan thread forward message list', async ({ dual }) => {});
+
+  test('Should not show blocked user in DM forward message list', async ({ dual }) => {});
 });

@@ -13,6 +13,20 @@ export class ClanInviteFriendModal extends BasePage {
     item: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.user_item')),
   };
 
+  protected input = {
+    clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
+    urlInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.url_invite')),
+    delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
+    channelName: this.page.locator(
+      `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
+    ),
+    mention: this.page.locator(generateE2eSelector('mention.input')),
+  };
+
+  async getInviteLink(): Promise<string> {
+    return await this.input.urlInvite.inputValue();
+  }
+
   async isFriendShownInList(userName: string): Promise<boolean> {
     const friendItem = this.friends.item.filter({
       has: this.page

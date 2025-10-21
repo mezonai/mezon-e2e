@@ -107,7 +107,7 @@ export class MessagePage {
       generateE2eSelector('chat.direct_message.chat_item.username')
     );
     this.secondClan = this.page.locator('div[title]').nth(1);
-    this.messages = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
+    this.messages = this.page.locator(generateE2eSelector('message.item'));
     this.leaveGroupButton = this.helpers.group.locator(
       generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
     );
@@ -165,6 +165,10 @@ export class MessagePage {
       `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
     );
     this.groupName = page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+  }
+
+  async getFirstMessage(): Promise<Locator> {
+    return this.messages.first();
   }
 
   async createDM(): Promise<string> {
