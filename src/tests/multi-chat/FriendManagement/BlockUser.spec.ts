@@ -12,9 +12,11 @@ import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
-import { test } from '../../../fixtures/dual.fixture';
-import { expect } from './../../../fixtures/dual.fixture';
-import { ForwardMessageModal } from './../../../pages/Modal/ForwarMessageModal';
+import { test, expect } from '../../../fixtures/dual.fixture';
+import { ForwardMessageModal } from '../../../pages/Modal/ForwarMessageModal';
+import { ThreadStatus } from '@/types/clan-page.types';
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import generateRandomString from '@/utils/randomString';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['account8'];
@@ -329,7 +331,85 @@ test.describe('Friend Management - Block User', () => {
     await clanFactory.cleanupClan(pageA);
   });
 
-  test('Should not show blocked user in clan thread forward message list', async ({ dual }) => {});
+  test('Should not show blocked user in thread forward message list', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63492',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const clanFactory = new ClanFactory();
+    const clanMenuPanelA = new ClanMenuPanel(pageA);
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
+
+    await test.step('Setup clan for thread test', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
+    });
+    let inviteLink: string = '';
+    await test.step('User A invite User B to clan', async () => {
+      await clanMenuPanelA.openInvitePeopleModal();
+      const clanInviteFriendModalA = new ClanInviteFriendModal(pageA);
+      inviteLink = await clanInviteFriendModalA.getInviteLink();
+      expect(inviteLink).not.toBe('');
+    });
+
+    await test.step('User A blocks User B', async () => {
+      await friendPageA.blockFriend(userNameB);
+    });
+
+    await test.step('User B joins the clan', async () => {
+      await friendPageB.page.goto(inviteLink, {
+        waitUntil: 'domcontentloaded',
+      });
+      await friendPageA.page.goto(inviteLink, {
+        waitUntil: 'domcontentloaded',
+      });
+      const clanInviteModalA = new ClanInviteModal(pageA);
+      const clanInviteModalB = new ClanInviteModal(pageB);
+      await clanInviteModalA.acceptInvite();
+      await clanInviteModalB.acceptInvite();
+    });
+    const threadName = `${ThreadStatus.PUBLIC.toLowerCase()}-thread-${generateRandomString(10)}`;
+
+    await test.step('User A creates and opens a public thread', async () => {
+      const clanPageA = new ClanPage(pageA);
+      await clanPageA.createThread(threadName, ThreadStatus.PUBLIC);
+      await clanPageA.openThreadByName(threadName);
+    });
+
+    await test.step('User B opens the public thread', async () => {
+      const clanPageB = new ClanPage(pageB);
+      await clanPageB.openThreadByName(threadName);
+    });
+
+    await test.step('User A sends a message in public thread', async () => {
+      const helpers = new OnboardingHelpers(pageA);
+      const { sent } = await helpers.sendTestMessage();
+      expect(sent).toBe(true);
+    });
+
+    await test.step('User B should not shown in forward message list in public thread', async () => {
+      const firstMessageA = await messagePageA.getFirstMessage();
+      await messagePageA.forwardMessage(firstMessageA);
+      const forwardMessageModalA = new ForwardMessageModal(pageA);
+      const isUserBShown = await forwardMessageModalA.isUserShownInList(userNameB);
+      expect(isUserBShown).toBeFalsy();
+      await pageA.reload({
+        waitUntil: 'domcontentloaded',
+      });
+    });
+
+    await test.step('User A should not shown in forward message list in public thread', async () => {
+      const firstMessage = await messagePageB.getFirstMessage();
+      await messagePageB.forwardMessage(firstMessage);
+      const forwardMessageModalB = new ForwardMessageModal(pageB);
+      const isUserBShown = await forwardMessageModalB.isUserShownInList(userNameA);
+      expect(isUserBShown).toBeFalsy();
+    });
+
+    await clanFactory.cleanupClan(pageA);
+  });
 
   test('Should not show blocked user in DM forward message list', async ({ dual }) => {});
 });
