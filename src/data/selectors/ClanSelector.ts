@@ -37,6 +37,15 @@ export default class ClanSelector extends BasePage {
     channelManagementButton: this.page.locator(
       generateE2eSelector('clan_page.side_bar.button.channels')
     ),
+    clanSettings: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Clan Settings',
+    }),
+    closeSettingClan: this.page.locator(generateE2eSelector('user_setting.account.exit_setting')),
+    leaveClan: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Leave Clan',
+    }),
+    cancel: this.page.locator(generateE2eSelector('modal.confirm_modal.button.cancel')),
+    confirm: this.page.locator(generateE2eSelector('modal.confirm_modal.button.confirm')),
   };
 
   readonly sidebarMemberList = {
@@ -120,8 +129,24 @@ export default class ClanSelector extends BasePage {
     mention: this.page.locator(generateE2eSelector('mention.input')),
   };
 
-  protected settings = {
+  protected clanSettings = {
     clanName: this.page.locator(generateE2eSelector('clan_page.settings.overview.input.clan_name')),
+    settings_page: this.page.locator(generateE2eSelector('clan_page.settings')),
+    buttons: {
+      roleSettings: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item'), {
+        hasText: 'Roles',
+      }),
+      createRole: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Create Role' }),
+      displayRoleOption: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_option.display')
+      ),
+    },
+    input: {
+      roleName: this.page.locator(
+        `${generateE2eSelector('clan_page.settings.role.container.name_input')} input`
+      ),
+    },
+    roleContainer: this.page.locator(generateE2eSelector('clan_page.settings.role.container')),
   };
 
   readonly sidebar = {
@@ -176,6 +201,9 @@ export default class ClanSelector extends BasePage {
   protected modalInvite = {
     userInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.user_item')),
     container: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.container')),
+    searchInput: this.page.locator(
+      generateE2eSelector('clan_page.modal.invite_people.search_input')
+    ),
   };
 
   protected createEventModal = {
@@ -338,6 +366,13 @@ export default class ClanSelector extends BasePage {
   getMessageCountByNameOnCMTab(channelItem: Locator): Locator {
     return channelItem.locator(
       generateE2eSelector('clan_page.channel_management.channel_item.messages_count')
+    );
+  }
+
+  getMemberonMemberSettingsbyUsername(username: string) {
+    return this.page.locator(
+      `${generateE2eSelector('clan_page.member_list.user_info')} ${generateE2eSelector('clan_page.member_list.user_info.username')} span`,
+      { hasText: username }
     );
   }
 }
