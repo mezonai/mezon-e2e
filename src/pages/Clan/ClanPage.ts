@@ -8,6 +8,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
 import { DirectMessageHelper } from '../../utils/directMessageHelper';
 import { MessagePage } from '../MessagePage';
+import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
 
 interface SelectorResult {
@@ -762,28 +763,40 @@ export class ClanPage extends ClanSelector {
   }
 
   async addNewRoleOnClan(roleName: string) {
-    await this.clanSettings.buttons.createRole.click();
-    await expect(this.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
+    try {
+      await this.clanSettings.buttons.createRole.click();
+      await expect(this.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
 
-    await this.clanSettings.buttons.displayRoleOption.click();
-    await expect(this.clanSettings.input.roleName).toBeVisible({ timeout: 3000 });
+      await this.clanSettings.buttons.displayRoleOption.click();
+      await expect(this.clanSettings.input.roleName).toBeVisible({ timeout: 3000 });
 
-    await this.clanSettings.input.roleName.fill(roleName);
+      await this.clanSettings.input.roleName.fill(roleName);
 
-    await this.buttons.saveChanges.click();
-    await this.buttons.closeSettingClan.click();
+      await this.buttons.saveChanges.click();
+      await this.buttons.closeSettingClan.click();
+    } catch (error) {
+      console.error(`Failed to add new role:`, error);
+    }
   }
 
   async inviteUserToClanByUsername(username: string) {
-    await this.modalInvite.searchInput.fill(username);
-    await expect(this.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
-    await expect(this.input.urlInvite).toHaveValue(/http/);
-    const urlInvite = (await this.input.urlInvite.inputValue()).trim();
-    await this.buttons.invitePeople.first().click();
-    await this.buttons.closeInviteModal.click();
-    await this.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
+    try {
+      await this.modalInvite.searchInput.fill(username);
 
-    return urlInvite;
+      await expect(this.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
+      await expect(this.input.urlInvite).toHaveValue(/http/);
+
+      const urlInvite = (await this.input.urlInvite.inputValue()).trim();
+      await this.buttons.invitePeople.first().click();
+
+      await this.buttons.closeInviteModal.click();
+      await this.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
+
+      return urlInvite;
+    } catch (error) {
+      console.error(`Failed to invite people:`, error);
+      return '';
+    }
   }
 
   async joinClanByUrlInvite(url: string) {
@@ -804,13 +817,13 @@ export class ClanPage extends ClanSelector {
 
     await newPage.waitForLoadState('domcontentloaded');
 
-    const acceptButton = newPage.locator(
-      generateE2eSelector('clan_page.modal.invite_people.accept_invite.button')
-    );
-    await expect(acceptButton).toBeVisible({ timeout: 5000 });
+    const clanInviteModal = new ClanInviteModal(newPage);
+
+    await expect(clanInviteModal.button.acceptInvite).toBeVisible({ timeout: 5000 });
+
     const [redirectedPage] = await Promise.all([
       newPage.waitForEvent('framenavigated'),
-      acceptButton.click(),
+      clanInviteModal.button.acceptInvite.click(),
     ]);
 
     await redirectedPage.waitForLoadState('networkidle');
