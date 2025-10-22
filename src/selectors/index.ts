@@ -410,9 +410,7 @@ export const DATA_E2E_IDENTIFIER = {
       add_to_group: {
         button: '',
       },
-      message: {
-        item: '',
-      },
+
       menu: {
         leave_group: {
           button: '',
@@ -620,6 +618,17 @@ export const DATA_E2E_IDENTIFIER = {
         okay: '',
       },
     },
+  },
+  message: {
+    item: '',
+  },
+  acceptModal: {
+    button: {
+      acceptInvite: '',
+    },
+  },
+  suggest_item: {
+    username: '',
   },
 };
 

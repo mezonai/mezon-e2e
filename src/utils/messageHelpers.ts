@@ -29,7 +29,7 @@ export class MessageTestHelpers {
 
   constructor(page: Page) {
     this.page = page;
-    this.messages = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
+    this.messages = this.page.locator(generateE2eSelector('message.item'));
     this.systemMessages = this.page.locator(generateE2eSelector('chat.system_message'));
     this.messageActionModalItems = page.locator(
       generateE2eSelector('chat.message_action_modal.button.base')
@@ -73,11 +73,11 @@ export class MessageTestHelpers {
       .filter({ hasText: 'Edit Message' });
 
     this.topicMessages = this.page.locator(
-      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('chat.direct_message.message.item')}`
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('message.item')}`
     );
 
     this.displayNameOnMessageChannel = this.page.locator(
-      `${generateE2eSelector('chat.direct_message.message.item')} ${generateE2eSelector('base_profile.display_name')}`
+      `${generateE2eSelector('message.item')} ${generateE2eSelector('base_profile.display_name')}`
     );
 
     this.displayNameOnMessageTopic = this.page.locator(
@@ -92,14 +92,14 @@ export class MessageTestHelpers {
   }
 
   public getMessageItemLocator(textContains?: string): Locator {
-    const selector = generateE2eSelector('chat.direct_message.message.item');
+    const selector = generateE2eSelector('message.item');
     const base = this.page.locator(selector);
     return textContains ? base.filter({ hasText: textContains }) : base;
   }
 
   getTopicMessageItemByText(messageText: string) {
     return this.page.locator(
-      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('chat.direct_message.message.item')}:has-text("${messageText}")`
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('message.item')}:has-text("${messageText}")`
     );
   }
 
@@ -156,9 +156,7 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(1000);
 
     const mentionInput = this.page
-      .locator(
-        `${generateE2eSelector('chat.direct_message.message.item')} ${generateE2eSelector('mention.input')}`
-      )
+      .locator(`${generateE2eSelector('message.item')} ${generateE2eSelector('mention.input')}`)
       .first();
 
     if (!(await mentionInput.isVisible({ timeout: 3000 }))) {
@@ -610,9 +608,7 @@ export class MessageTestHelpers {
       return [];
     }
 
-    const messageLocators = await topicDrawer
-      .locator(generateE2eSelector('chat.direct_message.message.item'))
-      .all();
+    const messageLocators = await topicDrawer.locator(generateE2eSelector('message.item')).all();
 
     const messages = [];
     for (const itemLocator of messageLocators) {

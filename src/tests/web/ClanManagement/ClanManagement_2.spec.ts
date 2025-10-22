@@ -260,7 +260,6 @@ test.describe('Clan Management - Module 2', () => {
       await clanPage.eventModal.createEventButton.click();
       await clanPage.waitForModalToBeHidden();
     });
-
     await AllureReporter.step('Verify event is present in event list', async () => {
       const isCreatedEvent = await clanPage.verifyLastEventData({
         eventTopic: res.eventTopic,

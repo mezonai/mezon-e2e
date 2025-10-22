@@ -4,11 +4,10 @@ import { TypeMessage } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { splitDomainAndPath } from '@/utils/domain';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test as base, expect, Page } from '@playwright/test';
 import { randomInt } from 'crypto';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
-import { joinUrlPaths } from '../../../utils/joinUrlPaths';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 const test = base.extend<{
@@ -27,37 +26,46 @@ const test = base.extend<{
 
 test.describe('Channel Message - Module 3', () => {
   let messageHelpers: MessageTestHelpers;
-  let clanPath: string;
-
+  const credentials = AccountCredentials.account4;
   const clanFactory = new ClanFactory();
 
-  test.beforeEach(async ({ pageWithClipboard }) => {
+  test.beforeAll(async ({ browser }) => {
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.threadManagement,
+      credentials,
+    });
+  });
+
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      pageWithClipboard,
-      AccountCredentials.account4
-    );
-
-    if (!clanPath) {
-      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageWithClipboard);
-      clanPath = splitDomainAndPath(clanFactory.getClanUrl()).path;
-
-      clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPath));
-    }
-    await AuthHelper.prepareBeforeTest(pageWithClipboard, clanFactory.getClanUrl(), credentials);
-
-    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+    await TestSuiteHelper.setupBeforeEach({
+      page,
+      clanFactory,
+      credentials,
+    });
   });
 
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
+  });
   test('Delete message', async ({ pageWithClipboard, context }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63393',
     });
 
     const messagePage = new MessagePage(pageWithClipboard);
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     const messageToDelete = `Message to delete ${Date.now()}`;
     await messagePage.sendMessageWhenInDM(messageToDelete);
@@ -73,8 +81,6 @@ test.describe('Channel Message - Module 3', () => {
     await AllureReporter.addWorkItemLinks({
       tms: '63394',
     });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     const messagePage = new MessagePage(pageWithClipboard);
 
@@ -96,8 +102,6 @@ test.describe('Channel Message - Module 3', () => {
       tms: '63395',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageToForward = `Message to forward ${Date.now()}`;
@@ -110,8 +114,6 @@ test.describe('Channel Message - Module 3', () => {
     await AllureReporter.addWorkItemLinks({
       tms: '63395',
     });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
