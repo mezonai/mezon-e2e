@@ -344,6 +344,9 @@ export const DATA_E2E_IDENTIFIER = {
         left_container: '',
         right_container: {
           user_profile: '',
+          call: '',
+          add_member: '',
+          video_call: '',
         },
       },
       chat_list_container: '',
