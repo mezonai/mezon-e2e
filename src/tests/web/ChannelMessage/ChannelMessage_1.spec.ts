@@ -10,12 +10,12 @@ import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 test.describe('Channel Message - Module 1', () => {
   const clanFactory = new ClanFactory();
-  const credentials = AccountCredentials['account2-1'];
+  const credentials = AccountCredentials.account1;
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
       clanFactory,
-      configs: ClanSetupHelper.configs.threadManagement,
+      configs: ClanSetupHelper.configs.channelMessage1,
       credentials,
     });
   });

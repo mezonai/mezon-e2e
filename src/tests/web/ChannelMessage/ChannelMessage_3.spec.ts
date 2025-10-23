@@ -26,24 +26,24 @@ const test = base.extend<{
 
 test.describe('Channel Message - Module 3', () => {
   let messageHelpers: MessageTestHelpers;
-  const credentials = AccountCredentials.account4;
+  const credentials = AccountCredentials.account3;
   const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
       clanFactory,
-      configs: ClanSetupHelper.configs.threadManagement,
+      configs: ClanSetupHelper.configs.channelMessage3,
       credentials,
     });
   });
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
     await TestSuiteHelper.setupBeforeEach({
-      page,
+      page: pageWithClipboard,
       clanFactory,
       credentials,
     });
@@ -57,10 +57,11 @@ test.describe('Channel Message - Module 3', () => {
     });
   });
 
-  test.afterEach(async ({ page }) => {
-    await AuthHelper.logout(page);
+  test.afterEach(async ({ pageWithClipboard }) => {
+    await AuthHelper.logout(pageWithClipboard);
   });
-  test('Delete message', async ({ pageWithClipboard, context }) => {
+
+  test('Delete message', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63393',
     });
@@ -77,7 +78,7 @@ test.describe('Channel Message - Module 3', () => {
     expect(targetMessage).not.toBeAttached();
   });
 
-  test('Edit message', async ({ pageWithClipboard, context }) => {
+  test('Edit message', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63394',
     });
@@ -97,7 +98,7 @@ test.describe('Channel Message - Module 3', () => {
     expect(newMessage).toHaveText(editedContent);
   });
 
-  test('Forward message - select target and send', async ({ pageWithClipboard, context }) => {
+  test('Forward message - select target and send', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63395',
     });
@@ -110,7 +111,7 @@ test.describe('Channel Message - Module 3', () => {
     expect(true).toBeTruthy();
   });
 
-  test('Forward message to general channel', async ({ pageWithClipboard, context }) => {
+  test('Forward message to general channel', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63395',
     });
