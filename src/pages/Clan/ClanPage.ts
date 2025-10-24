@@ -8,6 +8,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
 import { DirectMessageHelper } from '../../utils/directMessageHelper';
 import { MessagePage } from '../MessagePage';
+import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
 
 interface SelectorResult {
@@ -194,6 +195,7 @@ export class ClanPage extends ClanSelector {
   }
 
   async openMemberListSetting(): Promise<void> {
+    await expect(this.buttons.memberListButton).toBeVisible({ timeout: 3000 });
     await this.buttons.memberListButton.click();
     await this.page.waitForTimeout(500);
   }
@@ -326,6 +328,7 @@ export class ClanPage extends ClanSelector {
     try {
       await this.buttons.clanName.click();
       await this.buttons.invitePeopleFromHeaderMenu.click();
+      await expect(this.modalInvite.container).toBeVisible({ timeout: 3000 });
       return true;
     } catch (error) {
       console.error(`Error clicking invite people:`, error);
@@ -760,5 +763,189 @@ export class ClanPage extends ClanSelector {
 
     const countText = (await messageCountLocator.textContent())?.trim() ?? '0';
     return parseInt(countText, 10);
+  }
+
+  async openRoleSettingsPage(): Promise<boolean> {
+    try {
+      await this.buttons.clanName.click();
+      await expect(this.buttons.clanSettings).toBeVisible({ timeout: 3000 });
+
+      await this.buttons.clanSettings.click();
+      await expect(this.clanSettings.buttons.roleSettings).toBeVisible({ timeout: 3000 });
+
+      await this.clanSettings.buttons.roleSettings.click();
+      await expect(this.clanSettings.buttons.createRole).toBeVisible({ timeout: 3000 });
+      return true;
+    } catch (error) {
+      console.error(`Error opening Role Settings page:`, error);
+      return false;
+    }
+  }
+
+  async addNewRoleOnClan(roleName: string) {
+    try {
+      await this.clanSettings.buttons.createRole.click();
+      await expect(this.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
+
+      await this.clanSettings.buttons.displayRoleOption.click();
+      await expect(this.clanSettings.input.roleName).toBeVisible({ timeout: 3000 });
+
+      await this.clanSettings.input.roleName.fill(roleName);
+
+      await this.buttons.saveChanges.click();
+      await this.buttons.closeSettingClan.click();
+    } catch (error) {
+      console.error(`Failed to add new role:`, error);
+    }
+  }
+
+  async inviteUserToClanByUsername(username: string) {
+    try {
+      await this.modalInvite.searchInput.fill(username);
+
+      await expect(this.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
+      await expect(this.input.urlInvite).toHaveValue(/http/);
+
+      const urlInvite = (await this.input.urlInvite.inputValue()).trim();
+      await this.buttons.invitePeople.first().click();
+
+      await this.buttons.closeInviteModal.click();
+      await this.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
+
+      return urlInvite;
+    } catch (error) {
+      console.error(`Failed to invite people:`, error);
+      return '';
+    }
+  }
+
+  async joinClanByUrlInvite(url: string) {
+    const messagePage = new MessagePage(this.page);
+    const lastMessageLocator = messagePage.messages.last();
+    await expect(lastMessageLocator).toBeVisible({ timeout: 3000 });
+
+    const text = await lastMessageLocator.innerText();
+
+    if (!text.includes(url)) {
+      throw new Error(`❌ Last message does not contain the invite URL: ${url}`);
+    }
+
+    const [newPage] = await Promise.all([
+      this.page.waitForEvent('popup'),
+      lastMessageLocator.getByText(url, { exact: false }).click(),
+    ]);
+
+    await newPage.waitForLoadState('domcontentloaded');
+
+    const clanInviteModal = new ClanInviteModal(newPage);
+
+    await expect(clanInviteModal.button.acceptInvite).toBeVisible({ timeout: 5000 });
+
+    const [redirectedPage] = await Promise.all([
+      newPage.waitForEvent('framenavigated'),
+      clanInviteModal.button.acceptInvite.click(),
+    ]);
+
+    await redirectedPage.waitForLoadState('networkidle');
+  }
+
+  async addRoleForUserByUsername(username: string, roleName: string) {
+    await this.buttons.memberListButton.click();
+    const userRow = this.page.locator(
+      `${generateE2eSelector('clan_page.member_list')}:has(${generateE2eSelector('clan_page.member_list.user_info.username')}:has-text("${username}"))`
+    );
+    await expect(userRow).toBeVisible({ timeout: 5000 });
+
+    const addRoleButton = userRow.locator(
+      `${generateE2eSelector('clan_page.member_list.role_settings.add_role.button')}`
+    );
+
+    await expect(addRoleButton).toBeVisible({ timeout: 5000 });
+    await addRoleButton.click();
+
+    const tooltip = this.page.locator('.rc-tooltip');
+    await expect(tooltip).toBeVisible({ timeout: 5000 });
+
+    const roleRow = tooltip.locator(
+      `div.flex.gap-2.items-center:has(${generateE2eSelector(
+        'clan_page.member_list.role_settings.add_role.role_name'
+      )}:has-text("${roleName}"))`
+    );
+
+    await expect(roleRow.first()).toBeVisible({ timeout: 5000 });
+    await roleRow.first().click({ force: true });
+    await this.page.waitForTimeout(2000);
+
+    const viewport = this.page.viewportSize();
+    if (viewport) {
+      await this.page.mouse.click(viewport.width - 5, 5);
+    }
+  }
+
+  async verifyUserHasRoleOnMemberSettings(
+    username: string,
+    roleName: string,
+    shouldVisible = true
+  ) {
+    await this.page.reload();
+
+    const userRow = this.page.locator(
+      `${generateE2eSelector('clan_page.member_list')}:has(${generateE2eSelector('clan_page.member_list.user_info.username')}:has-text("${username}"))`
+    );
+    await expect(userRow).toBeVisible({ timeout: 5000 });
+
+    const roleLocator = userRow.locator(
+      `${generateE2eSelector('clan_page.member_list.role_settings.exist_role.role_name')}:has-text("${roleName.slice(0, 6)}")`
+    );
+
+    const isVisible = await roleLocator.isVisible();
+
+    if (shouldVisible) {
+      expect(
+        isVisible,
+        `❌ Expected role "${roleName}" to be visible for user "${username}", but it is not.`
+      ).toBeTruthy();
+    } else {
+      expect(
+        isVisible,
+        `❌ Expected role "${roleName}" to NOT be visible for user "${username}", but it is visible.`
+      ).toBeFalsy();
+    }
+  }
+
+  async leaveClan() {
+    await this.buttons.clanName.click();
+    await expect(this.buttons.leaveClan).toBeVisible({ timeout: 3000 });
+    await this.buttons.leaveClan.click();
+    await expect(this.buttons.confirm).toBeVisible({ timeout: 3000 });
+    await this.buttons.confirm.click();
+  }
+
+  async verifyUserHasRoleOnChannel(username: string, roleName: string, shouldVisible = true) {
+    await this.sidebar.channelsList.first().click();
+    await expect(this.header.button.member).toBeVisible({ timeout: 5000 });
+    await this.header.button.member.click();
+
+    const memberRow = this.page.locator(
+      `${generateE2eSelector('chat.channel_message.member_list.item')}:has-text("${username}"))`
+    );
+    await expect(memberRow).toBeVisible({ timeout: 3000 });
+
+    await memberRow.click();
+
+    const popup = this.page.locator('div.fixed.z-50');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+
+    const roleLocator = popup.locator(
+      `${generateE2eSelector('clan_page.channel_list.members.role.role_name')}:has-text("${roleName.slice(0, 6)}")`
+    );
+
+    if (shouldVisible) {
+      await expect(roleLocator).toBeVisible({ timeout: 3000 });
+    } else {
+      await expect(roleLocator).not.toBeVisible({ timeout: 3000 });
+    }
+
+    await this.page.keyboard.press('Escape');
   }
 }

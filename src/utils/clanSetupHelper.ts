@@ -235,6 +235,11 @@ export class ClanSetupHelper {
       clanNamePrefix: 'BlockUserTest',
       suiteName: 'Block User',
     }),
+
+    memberManagement: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MemberManagementTest',
+      suiteName: 'Member Management',
+    }),
   };
 }
 
