@@ -57,6 +57,14 @@ export default class ClanSelector extends BasePage {
       }),
   };
 
+  readonly sidePanel = {
+    thread: {
+      item: this.page.locator(
+        generateE2eSelector('chat.channel_message.header.button.thread.item')
+      ),
+    },
+  };
+
   readonly memberSettings = {
     usersInfo: this.page.locator(generateE2eSelector('clan_page.member_list.user_info')),
   };
@@ -190,6 +198,11 @@ export default class ClanSelector extends BasePage {
     threadInputMention: this.page.locator(
       `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`
     ),
+    button: {
+      closeCreateThreadModal: this.page.locator(
+        generateE2eSelector('discussion.header.button.close')
+      ),
+    },
   };
 
   readonly modal = {

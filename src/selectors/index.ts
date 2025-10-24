@@ -44,6 +44,11 @@ export const DATA_E2E_IDENTIFIER = {
       thread: '',
       topic: '',
     },
+    header: {
+      button: {
+        close: '',
+      },
+    },
   },
   chat_welcome: '',
   login_page: {
@@ -370,6 +375,9 @@ export const DATA_E2E_IDENTIFIER = {
         left_container: '',
         right_container: {
           user_profile: '',
+          call: '',
+          add_member: '',
+          video_call: '',
         },
       },
       chat_list_container: '',
@@ -441,6 +449,7 @@ export const DATA_E2E_IDENTIFIER = {
                 },
               },
             },
+            item: '',
           },
           chat: '',
         },

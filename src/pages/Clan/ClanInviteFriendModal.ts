@@ -24,6 +24,7 @@ export class ClanInviteFriendModal extends BasePage {
   };
 
   async getInviteLink(): Promise<string> {
+    await this.input.urlInvite.waitFor({ state: 'visible', timeout: 5000 });
     return await this.input.urlInvite.inputValue();
   }
 

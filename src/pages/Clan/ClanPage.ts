@@ -246,6 +246,11 @@ export class ClanPage extends ClanSelector {
     }
   }
 
+  async closeCreateThreadModal(): Promise<void> {
+    await this.threadBox.button.closeCreateThreadModal.waitFor({ state: 'visible', timeout: 5000 });
+    await this.threadBox.button.closeCreateThreadModal.click();
+  }
+
   async createThread(threadName: string, status?: ThreadStatus): Promise<void> {
     await this.header.button.thread.click();
     await this.header.button.createThread.click();
@@ -256,6 +261,14 @@ export class ClanPage extends ClanSelector {
     await this.threadBox.threadInputMention.fill(threadName);
     await this.threadBox.threadInputMention.press('Enter');
     await this.page.waitForLoadState('networkidle');
+  }
+
+  async clickThreadItem(threadName: string): Promise<void> {
+    await this.sidePanel.thread.item
+      .filter({ hasText: threadName })
+      .first()
+      .waitFor({ state: 'visible', timeout: 45000 });
+    await this.sidePanel.thread.item.filter({ hasText: threadName }).first().click();
   }
 
   async openMemberList(): Promise<void> {
@@ -287,6 +300,13 @@ export class ClanPage extends ClanSelector {
     } catch {
       return false;
     }
+  }
+
+  async openThread(threadName: string): Promise<void> {
+    await this.page.reload();
+    await this.header.button.thread.click();
+    await this.clickThreadItem(threadName);
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async getAllClan(): Promise<number> {

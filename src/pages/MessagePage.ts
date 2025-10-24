@@ -48,6 +48,9 @@ export class MessagePage {
   readonly headerDMAvatar: Locator;
   readonly headerUserProfileButton: Locator;
   readonly groupName: Locator;
+  readonly dmHeaderCallAction: Locator;
+  readonly dmHeaderAddMemberAction: Locator;
+  readonly dmHeaderVideoCallAction: Locator;
   readonly editMessageButton: Locator;
   readonly forwardMessageButton: Locator;
   readonly editGroupModal: Locator;
@@ -170,6 +173,16 @@ export class MessagePage {
       `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
     );
     this.groupName = page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+
+    this.dmHeaderCallAction = page.locator(
+      generateE2eSelector('chat.direct_message.header.right_container.call')
+    );
+    this.dmHeaderAddMemberAction = page.locator(
+      generateE2eSelector('chat.direct_message.header.right_container.add_member')
+    );
+    this.dmHeaderVideoCallAction = page.locator(
+      generateE2eSelector('chat.direct_message.header.right_container.video_call')
+    );
     this.editGroupModal = page.locator(generateE2eSelector('chat.direct_message.edit_group'));
   }
 
@@ -476,6 +489,48 @@ export class MessagePage {
   async forwardMessage(messageItem: Locator) {
     await messageItem.click({ button: 'right' });
     await this.forwardMessageButton.click();
+  }
+
+  private async assertVisibleLocators(locator: Locator | Locator[]): Promise<void> {
+    const locators = Array.isArray(locator) ? locator : [locator];
+    const [head, ...tail] = locators;
+    if (!head) return;
+    expect(head).toBeVisible();
+    expect(head).toHaveCount(1);
+    return this.assertVisibleLocators(tail);
+  }
+
+  async assertDMHeaderCallVisible(): Promise<void> {
+    await this.assertVisibleLocators(this.dmHeaderCallAction);
+  }
+
+  async assertDMHeaderVideoCallVisible(): Promise<void> {
+    await this.assertVisibleLocators(this.dmHeaderVideoCallAction);
+  }
+
+  async assertDMHeaderAddMemberVisible(): Promise<void> {
+    await this.assertVisibleLocators(this.dmHeaderAddMemberAction);
+  }
+
+  private async assertNotVisibleLocators(locator: Locator | Locator[]): Promise<void> {
+    const locators = Array.isArray(locator) ? locator : [locator];
+    const [head, ...tail] = locators;
+    if (!head) return;
+    expect(head).not.toBeVisible();
+    expect(head).toHaveCount(0);
+    return this.assertNotVisibleLocators(tail);
+  }
+
+  async assertDMHeaderCallNotVisible(): Promise<void> {
+    await this.assertNotVisibleLocators(this.dmHeaderCallAction);
+  }
+
+  async assertDMHeaderVideoCallNotVisible(): Promise<void> {
+    await this.assertNotVisibleLocators(this.dmHeaderVideoCallAction);
+  }
+
+  async assertDMHeaderAddMemberNotVisible(): Promise<void> {
+    await this.assertNotVisibleLocators(this.dmHeaderAddMemberAction);
   }
 
   async openGroupFromName(name: string) {
