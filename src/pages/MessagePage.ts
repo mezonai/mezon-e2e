@@ -1,6 +1,8 @@
 import { ROUTES } from '@/selectors';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { getImageHash } from '@/utils/images';
+import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { expect, Locator, Page } from '@playwright/test';
 import sleep from '@utils/sleep';
 
@@ -48,6 +50,7 @@ export class MessagePage {
   readonly groupName: Locator;
   readonly editMessageButton: Locator;
   readonly forwardMessageButton: Locator;
+  readonly editGroupModal: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -122,7 +125,9 @@ export class MessagePage {
       generateE2eSelector('chat.direct_message.edit_group.button')
     );
     this.groupNameInput = page.locator('input[placeholder="Enter group name"]');
-    this.saveGroupNameButton = page.locator('button:has-text("Save")');
+    this.saveGroupNameButton = page.locator(generateE2eSelector('button.base'), {
+      hasText: 'Save',
+    });
     this.leaveGroupButtonInPopup = page.locator(
       generateE2eSelector('chat.direct_message.menu.leave_group.button')
     );
@@ -165,6 +170,7 @@ export class MessagePage {
       `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
     );
     this.groupName = page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+    this.editGroupModal = page.locator(generateE2eSelector('chat.direct_message.edit_group'));
   }
 
   async getFirstMessage(): Promise<Locator> {
@@ -470,5 +476,80 @@ export class MessagePage {
   async forwardMessage(messageItem: Locator) {
     await messageItem.click({ button: 'right' });
     await this.forwardMessageButton.click();
+  }
+
+  async openGroupFromName(name: string) {
+    const messagePage = new MessagePage(this.page);
+    const groupLocator = messagePage.userNamesInDM.filter({ hasText: name.slice(0, 15) }).first();
+    await expect(groupLocator).toBeVisible({ timeout: 3000 });
+    await groupLocator.first().click();
+  }
+
+  async updateAvatarForGroup(groupName: string): Promise<void> {
+    const fileSizeHelpers = new FileSizeTestHelpers(this.page);
+
+    await this.helpers.group.click();
+    await this.editGroupButton.click();
+    const groupAvt = await fileSizeHelpers.createFileWithSize(
+      'direct_message_icon',
+      5 * 1024 * 1024,
+      'jpg'
+    );
+
+    const result = await fileSizeHelpers.uploadByTypeAndVerify(
+      groupAvt,
+      UploadType.GROUP_AVATAR,
+      true
+    );
+    expect(result.success).toBe(true);
+    await this.groupNameInput.click();
+    await this.groupNameInput.fill('');
+    await this.groupNameInput.fill(groupName);
+    await expect(this.saveGroupNameButton).toBeVisible({ timeout: 3000 });
+    await this.saveGroupNameButton.click();
+    await expect(this.editGroupModal).toBeHidden({ timeout: 10000 });
+  }
+
+  async getAvatarHashOnDMList(groupName: string): Promise<string> {
+    const avatarLocator = this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_list'), {
+        hasText: groupName.slice(0, 15),
+      })
+      .locator(generateE2eSelector('avatar.image'))
+      .first();
+
+    await expect
+      .poll(
+        async () => {
+          return await avatarLocator.getAttribute('src');
+        },
+        { timeout: 8000 }
+      )
+      .toMatch(/^https?:\/\//);
+
+    const avatarSrc = await avatarLocator.getAttribute('src');
+
+    if (!avatarSrc) {
+      throw new Error('Avatar src is null or undefined');
+    }
+    return (await getImageHash(avatarSrc)) ?? '';
+  }
+
+  async getAvatarHashOnHeaderChat(): Promise<string> {
+    const avatarLocator = this.headerDMAvatar;
+    await expect
+      .poll(
+        async () => {
+          return await avatarLocator.getAttribute('src');
+        },
+        { timeout: 8000 }
+      )
+      .toMatch(/^https?:\/\//);
+    const avatarSrc = await avatarLocator.getAttribute('src');
+
+    if (!avatarSrc) {
+      throw new Error('Avatar src is null or undefined');
+    }
+    return (await getImageHash(avatarSrc)) ?? '';
   }
 }
