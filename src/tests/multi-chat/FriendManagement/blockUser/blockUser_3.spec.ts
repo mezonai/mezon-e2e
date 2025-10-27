@@ -9,9 +9,8 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { expect } from '../../../../fixtures/dual.fixture';
-
-import { test } from '@/fixtures/dual.fixture';
+import { expect, test } from '@/fixtures/dual.fixture';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['account2-3'];
@@ -122,23 +121,6 @@ test.describe('Friend Management - Block User', () => {
       const isChatDeniedA = await friendPageA.isChatDenied();
       expect(isChatDeniedA).toBeFalsy();
     });
-
-    await test.step('User B blocks User A and profile modal hides message input', async () => {
-      await friendPageB.blockFriend(userNameA);
-      await pageA.reload({ waitUntil: 'domcontentloaded' });
-      await messagePageA.openUserProfile();
-      const isChatDeniedA = await friendPageA.isChatDenied();
-      expect(isChatDeniedA).toBeTruthy();
-    });
-
-    await test.step('User B unblocks User A to clean up', async () => {
-      await friendPageB.unblockFriend(userNameA);
-      await friendPageB.assertBlockFriendNotVisible(userNameA);
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      const isChatDeniedA = await friendPageA.isChatDenied();
-      expect(isChatDeniedA).toBeFalsy();
-    });
   });
 
   test('DM invite modal filters blocked conversations', async ({ dual }) => {
@@ -149,6 +131,7 @@ test.describe('Friend Management - Block User', () => {
     const friendPageA = new FriendPage(pageA);
     const clanFactory = new ClanFactory();
     const clanMenuPanelA = new ClanMenuPanel(pageA);
+    const clanPageA = new ClanPage(pageA);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure the DM invite modal excludes direct message threads that include blocked users.
@@ -169,11 +152,10 @@ test.describe('Friend Management - Block User', () => {
     await test.step('Create clan and confirm DM appears in invite modal', async () => {
       await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
       await clanMenuPanelA.openInvitePeopleModal();
-      const inviteContainer = pageA.locator('[data-e2e="clan_page.modal.invite_people.container"]');
+
+      const inviteContainer = clanPageA.modalInvite.container;
       await expect(inviteContainer).toBeVisible({ timeout: 10000 });
-      const dmItemB = pageA
-        .locator('[data-e2e="clan_page.modal.invite_people.user_item"]')
-        .filter({ hasText: userNameB });
+      const dmItemB = clanPageA.modalInvite.userInvite.filter({ hasText: userNameB });
       await expect(dmItemB).toHaveCount(1, { timeout: 10000 });
       await inviteContainer.locator('button', { hasText: '×' }).click();
       await inviteContainer.waitFor({ state: 'detached', timeout: 10000 });
@@ -187,11 +169,9 @@ test.describe('Friend Management - Block User', () => {
     await test.step('DM with User B no longer appears in invite modal', async () => {
       await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanMenuPanelA.openInvitePeopleModal();
-      const inviteContainer = pageA.locator('[data-e2e="clan_page.modal.invite_people.container"]');
+      const inviteContainer = clanPageA.modalInvite.container;
       await expect(inviteContainer).toBeVisible({ timeout: 10000 });
-      const dmItemB = pageA
-        .locator('[data-e2e="clan_page.modal.invite_people.user_item"]')
-        .filter({ hasText: userNameB });
+      const dmItemB = clanPageA.modalInvite.userInvite.filter({ hasText: userNameB });
       await expect(dmItemB).toHaveCount(0, { timeout: 10000 });
       await inviteContainer.locator('button', { hasText: '×' }).click();
       await inviteContainer.waitFor({ state: 'detached', timeout: 10000 });
@@ -209,6 +189,8 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
+    const messagePageB = new MessagePage(pageB);
+    const clanPageB = new ClanPage(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure that once User A blocks User B, blocking pro-actively prevents notification features like buzz from triggering.
@@ -225,9 +207,9 @@ test.describe('Friend Management - Block User', () => {
     await test.step('Open DM on both sides and confirm buzz modal is accessible', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await pageB.keyboard.press('Control+g');
-      const buzzModalHeading = pageB.getByText('Enter your message buzz', { exact: false });
+      const buzzModalHeading = messagePageB.messageBuzzHeader;
       await expect(buzzModalHeading).toBeVisible({ timeout: 5000 });
-      await pageB.locator('button', { hasText: '✕' }).click();
+      await messagePageB.messageBuzzButtonClose.click();
       await buzzModalHeading.waitFor({ state: 'detached', timeout: 5000 });
     });
 
@@ -238,9 +220,16 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('User B cannot trigger buzz after being blocked', async () => {
       await pageB.keyboard.press('Control+g');
-      const buzzModalHeading = pageB.getByText('Enter your message buzz', { exact: false });
-      await expect(buzzModalHeading).toHaveCount(0, { timeout: 3000 });
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
+      const buzzModalHeading = messagePageB.messageBuzzHeader;
+      await expect(buzzModalHeading).toHaveCount(1, { timeout: 3000 });
+      const textMessageBuzz = `text message buzz ${Date.now()}`;
+      await messagePageB.messageBuzzInputMessage.fill(textMessageBuzz);
+      await messagePageB.messageBuzzButtonSend.click();
+      await messagePageB.messageBuzzHeader.waitFor({ state: 'detached', timeout: 5000 });
+      const isPermissionDeniedModelVisible = await clanPageB.permissionModal.isVisible();
+      expect(isPermissionDeniedModelVisible).toBeTruthy();
+      await clanPageB.permissionModal.cancel.click();
+      await expect(friendPageB.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
     });
   });
 

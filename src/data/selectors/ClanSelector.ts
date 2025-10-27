@@ -212,7 +212,7 @@ export default class ClanSelector extends BasePage {
     },
   };
 
-  protected modalInvite = {
+  readonly modalInvite = {
     userInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.user_item')),
     container: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.container')),
     searchInput: this.page.locator(

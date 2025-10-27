@@ -390,6 +390,16 @@ export const DATA_E2E_IDENTIFIER = {
         text_area: '',
         namegroup: '',
       },
+      message_buzz: {
+        header: '',
+        button: {
+          close: '',
+          send: '',
+        },
+        input: {
+          message: '',
+        },
+      },
       button: {
         add_user: '',
         create_group: '',

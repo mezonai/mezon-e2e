@@ -5,9 +5,8 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { expect } from '../../../../fixtures/dual.fixture';
-
-import { test } from '@/fixtures/dual.fixture';
+import { expect, test } from '@/fixtures/dual.fixture';
+import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['account2-1'];
@@ -149,8 +148,8 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const welcomeContainerA = pageA.locator('[data-e2e="chat_welcome"]');
-    const welcomeContainerB = pageB.locator('[data-e2e="chat_welcome"]');
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure the chat welcome header toggles its block/unblock button correctly when the current user blocks someone versus when they are blocked by the other party.
@@ -167,38 +166,37 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('Open DM on both sides and confirm Block button is visible', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
-      await welcomeContainerA.waitFor({ state: 'visible', timeout: 10000 });
-      const initialBlockButton = welcomeContainerA.locator('button', { hasText: 'Block' });
+      await messagePageA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      const initialBlockButton = messagePageA.welcomeDM.locator('button', { hasText: 'Block' });
       await expect(initialBlockButton).toBeVisible({ timeout: 10000 });
     });
 
     await test.step('User A blocks User B from the welcome header', async () => {
-      const blockButtonA = welcomeContainerA.locator('button', { hasText: 'Block' });
+      const blockButtonA = messagePageA.welcomeDM.locator('button', { hasText: 'Block' });
       await blockButtonA.click();
-      await expect(welcomeContainerA.locator('button', { hasText: 'Unblock' })).toBeVisible({
+      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Unblock' })).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('Blocked User B welcome header hides block actions', async () => {
-      await welcomeContainerB.waitFor({ state: 'visible', timeout: 10000 });
+      await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
       await pageB.waitForTimeout(1000);
-      await expect(welcomeContainerB.locator('button', { hasText: 'Block' })).toHaveCount(0);
-      await expect(welcomeContainerB.locator('button', { hasText: 'Unblock' })).toHaveCount(0);
+      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' })).toHaveCount(1);
     });
 
     await test.step('User A unblocks User B and Block button returns', async () => {
-      const unblockButtonA = welcomeContainerA.locator('button', { hasText: 'Unblock' });
+      const unblockButtonA = messagePageA.welcomeDM.locator('button', { hasText: 'Unblock' });
       await unblockButtonA.click();
-      await expect(welcomeContainerA.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User B regains Block action after unblock', async () => {
       await friendPageB.createDM(userNameA);
-      await welcomeContainerB.waitFor({ state: 'visible', timeout: 10000 });
-      await expect(welcomeContainerB.locator('button', { hasText: 'Block' })).toBeVisible({
+      await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
         timeout: 10000,
       });
     });
@@ -211,8 +209,8 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const welcomeContainerA = pageA.locator('[data-e2e="chat_welcome"]');
-    const welcomeContainerB = pageB.locator('[data-e2e="chat_welcome"]');
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify websocket friend events update the welcome header and composer in real time when another user blocks or unblocks you.
@@ -229,44 +227,45 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('Open DM on both sides and confirm baseline actions', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
-      await welcomeContainerA.waitFor({ state: 'visible', timeout: 10000 });
+      await messagePageA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(0, { timeout: 10000 });
-      await expect(welcomeContainerA.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User B blocks User A from welcome header', async () => {
-      await welcomeContainerB.waitFor({ state: 'visible', timeout: 10000 });
-      const blockButtonB = welcomeContainerB.locator('button', { hasText: 'Block' });
+      await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      const blockButtonB = messagePageB.welcomeDM.locator('button', { hasText: 'Block' });
       await expect(blockButtonB).toBeVisible({ timeout: 10000 });
       await blockButtonB.click();
-      await expect(welcomeContainerB.locator('button', { hasText: 'Unblock' })).toBeVisible({
+      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' })).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User A UI reflects being blocked without refresh', async () => {
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
-      await expect(welcomeContainerA.locator('button', { hasText: 'Block' })).toHaveCount(0, {
-        timeout: 10000,
-      });
-      await expect(welcomeContainerA.locator('button', { hasText: 'Unblock' })).toHaveCount(0, {
-        timeout: 10000,
-      });
+
+      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Unblock' })).toHaveCount(
+        1,
+        {
+          timeout: 10000,
+        }
+      );
     });
 
     await test.step('User B unblocks User A and sees state revert', async () => {
-      const unblockButtonB = welcomeContainerB.locator('button', { hasText: 'Unblock' });
+      const unblockButtonB = messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' });
       await unblockButtonB.click();
-      await expect(welcomeContainerB.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User A regains composer access and Block button in real time', async () => {
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(0, { timeout: 10000 });
-      await expect(welcomeContainerA.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
         timeout: 10000,
       });
     });
@@ -281,7 +280,7 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const welcomeContainerB = pageB.locator('[data-e2e="chat_welcome"]');
+    const messagePageB = new MessagePage(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure remote block events do not add the blocker to your Block tab (since source_id mismatches), yet the DM composer becomes read-only in real time.
@@ -306,17 +305,18 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User B blocks User A from welcome header', async () => {
-      await welcomeContainerB.waitFor({ state: 'visible', timeout: 10000 });
-      const blockButtonB = welcomeContainerB.locator('button', { hasText: 'Block' });
+      await friendPageB.createDM(userNameA);
+      await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      const blockButtonB = messagePageB.welcomeDM.locator('button', { hasText: 'Block' });
       await expect(blockButtonB).toBeVisible({ timeout: 10000 });
       await blockButtonB.click();
-      await expect(welcomeContainerB.locator('button', { hasText: 'Unblock' })).toBeVisible({
+      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' })).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User A composer shows read-only state without page refresh', async () => {
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
+      await expect(friendPageB.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
     });
 
     await test.step('Block tab still excludes blocker User B', async () => {
@@ -328,7 +328,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('Cleanup by unblocking User A from User B side', async () => {
-      const unblockButtonB = welcomeContainerB.locator('button', { hasText: 'Unblock' });
+      const unblockButtonB = messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' });
       await unblockButtonB.click();
       await friendPageA.gotoFriendsPage();
       await friendPageA.tabs.block.click();

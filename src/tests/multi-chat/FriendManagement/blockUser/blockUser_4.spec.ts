@@ -13,14 +13,11 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
-import { expect } from '../../../../fixtures/dual.fixture';
-import { ForwardMessageModal } from '../../../../pages/Modal/ForwarMessageModal';
+import { expect, test } from '@/fixtures/dual.fixture';
+import { ForwardMessageModal } from '@/pages/Modal/ForwarMessageModal';
 import { ThreadStatus } from '@/types/clan-page.types';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import generateRandomString from '@/utils/randomString';
-
-import { test } from '@/fixtures/dual.fixture';
-import { v } from '@faker-js/faker/dist/airline-CLphikKp';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['account2-5'];
