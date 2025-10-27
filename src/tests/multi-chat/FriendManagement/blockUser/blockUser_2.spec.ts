@@ -297,16 +297,15 @@ test.describe('Friend Management - Block User', () => {
     `);
 
     await test.step('Open DM on both sides and confirm Block tab empty for User A', async () => {
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await friendPageA.gotoFriendsPage();
       await friendPageA.tabs.block.click();
       await expect(friendPageA.lists.friendAll.filter({ hasText: userNameB })).toHaveCount(0, {
         timeout: 10000,
       });
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
 
     await test.step('User B blocks User A from welcome header', async () => {
-      await friendPageB.createDM(userNameA);
       await welcomeContainerB.waitFor({ state: 'visible', timeout: 10000 });
       const blockButtonB = welcomeContainerB.locator('button', { hasText: 'Block' });
       await expect(blockButtonB).toBeVisible({ timeout: 10000 });
