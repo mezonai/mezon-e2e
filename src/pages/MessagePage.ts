@@ -209,9 +209,9 @@ export class MessagePage {
   async createDMByName(userName: string): Promise<void> {
     try {
       await this.buttonCreateGroupSidebar.click();
-
-      await this.userItem.filter({ hasText: userName }).hover();
-      await this.userItem.filter({ hasText: userName }).click();
+      await expect(this.friendItems.filter({ hasText: userName })).toBeVisible({ timeout: 5000 });
+      await this.friendItems.filter({ hasText: userName }).first().hover();
+      await this.friendItems.filter({ hasText: userName }).first().click();
       await this.createGroupButton.click();
     } catch (error) {
       console.error('Error creating DM:', error);
