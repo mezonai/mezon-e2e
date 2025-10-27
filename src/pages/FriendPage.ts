@@ -7,7 +7,7 @@ import { BasePage } from './BasePage';
 
 const SUCCESS_MESSAGE = 'Friend request sent successfully!';
 const ALREADY_SENT_MESSAGE = 'You have already sent a friend request to this user!';
-const ALREADY_FRIEND_MESSAGE = "You're already friends with this user!";
+const ALREADY_FRIEND_MESSAGE = "You're already friends with that user!";
 type Tabs = 'all' | 'online' | 'pending' | 'block';
 const dmActivClass = 'text-theme-primary-active';
 export class FriendPage extends BasePage {
