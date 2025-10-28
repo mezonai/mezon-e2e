@@ -11,6 +11,9 @@ export class ChannelSettingPage extends BasePage {
     integrations: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
       hasText: 'Integrations',
     }),
+    channel_label: this.page.locator(
+      generateE2eSelector('channel_setting_page.side_bar.channel_label')
+    ),
   };
 
   readonly webhook = {

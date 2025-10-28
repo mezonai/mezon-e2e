@@ -7,6 +7,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
 import { DirectMessageHelper } from '../../utils/directMessageHelper';
+import { ChannelSettingPage } from '../ChannelSettingPage';
 import { MessagePage } from '../MessagePage';
 import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
@@ -947,5 +948,28 @@ export class ClanPage extends ClanSelector {
     }
 
     await this.page.keyboard.press('Escape');
+  }
+
+  async verifyChannelNameOverviewWhenEditingChannelName(
+    channelName: string,
+    newChannelName: string
+  ): Promise<void> {
+    const channelSettings = new ChannelSettingPage(this.page);
+    const input = this.page.locator(
+      `${generateE2eSelector('clan_page.channel_list.settings.overview')} input[value="${channelName}"]`
+    );
+
+    await expect(input).toBeVisible({ timeout: 5000 });
+
+    await input.fill(newChannelName);
+
+    await expect(channelSettings.side_bar_buttons.channel_label).toHaveText(newChannelName);
+
+    await this.buttons.reset.click();
+    await expect(this.buttons.reset).toBeHidden({ timeout: 2000 });
+    await expect(input).toHaveValue(channelName);
+    await expect(channelSettings.side_bar_buttons.channel_label).toHaveText(channelName);
+
+    await this.buttons.exitSettings.click();
   }
 }

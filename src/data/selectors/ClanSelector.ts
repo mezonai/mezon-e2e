@@ -46,6 +46,7 @@ export default class ClanSelector extends BasePage {
     }),
     cancel: this.page.locator(generateE2eSelector('modal.confirm_modal.button.cancel')),
     confirm: this.page.locator(generateE2eSelector('modal.confirm_modal.button.confirm')),
+    reset: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Reset' }),
   };
 
   readonly sidebarMemberList = {
