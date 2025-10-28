@@ -435,6 +435,12 @@ export const DATA_E2E_IDENTIFIER = {
           button: '',
         },
       },
+      block: {
+        button: '',
+      },
+      unblock: {
+        button: '',
+      }
     },
     channel_message: {
       header: {

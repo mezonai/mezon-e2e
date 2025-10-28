@@ -218,6 +218,9 @@ export default class ClanSelector extends BasePage {
     searchInput: this.page.locator(
       generateE2eSelector('clan_page.modal.invite_people.search_input')
     ),
+    button: {
+      close: this.page.locator(generateE2eSelector('button.base'), { hasText: '×' }),
+    },
   };
 
   protected createEventModal = {

@@ -60,6 +60,9 @@ export class MessagePage {
   readonly messageBuzzButtonSend: Locator;
   readonly messageBuzzInputMessage: Locator;
 
+  readonly directMessageBlockButton: Locator;
+  readonly directMessageUnblockButton: Locator;
+
   firstUserNameText: string = '';
   secondUserNameText: string = '';
   message: string = '';
@@ -200,6 +203,12 @@ export class MessagePage {
     );
     this.messageBuzzInputMessage = page.locator(
       generateE2eSelector('chat.direct_message.message_buzz.input.message')
+    );
+    this.directMessageBlockButton = page.locator(
+      generateE2eSelector('chat.direct_message.block.button')
+    );
+    this.directMessageUnblockButton = page.locator(
+      generateE2eSelector('chat.direct_message.unblock.button')
     );
   }
 

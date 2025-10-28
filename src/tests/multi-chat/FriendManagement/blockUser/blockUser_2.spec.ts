@@ -102,7 +102,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A blocks User B from DM', async () => {
-      await friendPageA.blockFriendFromDM();
+      await friendPageA.blockFriendFromDM(userNameB);
     });
 
     await test.step('Composer becomes read-only for both users after User A blocks', async () => {
@@ -128,7 +128,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User B blocks User A from DM', async () => {
-      await friendPageB.blockFriendFromDM();
+      await friendPageB.blockFriendFromDM(userNameA);
     });
 
     await test.step('Composer becomes read-only for both users after User B blocks', async () => {
@@ -167,14 +167,14 @@ test.describe('Friend Management - Block User', () => {
     await test.step('Open DM on both sides and confirm Block button is visible', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await messagePageA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      const initialBlockButton = messagePageA.welcomeDM.locator('button', { hasText: 'Block' });
+      const initialBlockButton = messagePageA.directMessageBlockButton;
       await expect(initialBlockButton).toBeVisible({ timeout: 10000 });
     });
 
     await test.step('User A blocks User B from the welcome header', async () => {
-      const blockButtonA = messagePageA.welcomeDM.locator('button', { hasText: 'Block' });
+      const blockButtonA = messagePageA.directMessageBlockButton;
       await blockButtonA.click();
-      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Unblock' })).toBeVisible({
+      await expect(messagePageA.directMessageUnblockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -182,13 +182,13 @@ test.describe('Friend Management - Block User', () => {
     await test.step('Blocked User B welcome header hides block actions', async () => {
       await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
       await pageB.waitForTimeout(1000);
-      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' })).toHaveCount(1);
+      await expect(messagePageB.directMessageUnblockButton).toHaveCount(1);
     });
 
     await test.step('User A unblocks User B and Block button returns', async () => {
-      const unblockButtonA = messagePageA.welcomeDM.locator('button', { hasText: 'Unblock' });
+      const unblockButtonA = messagePageA.directMessageUnblockButton;
       await unblockButtonA.click();
-      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageA.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -196,7 +196,7 @@ test.describe('Friend Management - Block User', () => {
     await test.step('User B regains Block action after unblock', async () => {
       await friendPageB.createDM(userNameA);
       await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageB.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -229,17 +229,17 @@ test.describe('Friend Management - Block User', () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await messagePageA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(0, { timeout: 10000 });
-      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageA.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User B blocks User A from welcome header', async () => {
       await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      const blockButtonB = messagePageB.welcomeDM.locator('button', { hasText: 'Block' });
+      const blockButtonB = messagePageB.directMessageBlockButton;
       await expect(blockButtonB).toBeVisible({ timeout: 10000 });
       await blockButtonB.click();
-      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' })).toBeVisible({
+      await expect(messagePageB.directMessageUnblockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -247,7 +247,7 @@ test.describe('Friend Management - Block User', () => {
     await test.step('User A UI reflects being blocked without refresh', async () => {
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
 
-      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Unblock' })).toHaveCount(
+      await expect(messagePageA.directMessageUnblockButton).toHaveCount(
         1,
         {
           timeout: 10000,
@@ -256,16 +256,16 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User B unblocks User A and sees state revert', async () => {
-      const unblockButtonB = messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' });
+      const unblockButtonB = messagePageB.directMessageUnblockButton;
       await unblockButtonB.click();
-      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageB.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User A regains composer access and Block button in real time', async () => {
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(0, { timeout: 10000 });
-      await expect(messagePageA.welcomeDM.locator('button', { hasText: 'Block' })).toBeVisible({
+      await expect(messagePageA.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -307,10 +307,10 @@ test.describe('Friend Management - Block User', () => {
     await test.step('User B blocks User A from welcome header', async () => {
       await friendPageB.createDM(userNameA);
       await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      const blockButtonB = messagePageB.welcomeDM.locator('button', { hasText: 'Block' });
+      const blockButtonB = messagePageB.directMessageBlockButton;
       await expect(blockButtonB).toBeVisible({ timeout: 10000 });
       await blockButtonB.click();
-      await expect(messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' })).toBeVisible({
+      await expect(messagePageB.directMessageUnblockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -328,7 +328,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('Cleanup by unblocking User A from User B side', async () => {
-      const unblockButtonB = messagePageB.welcomeDM.locator('button', { hasText: 'Unblock' });
+      const unblockButtonB = messagePageB.directMessageUnblockButton;
       await unblockButtonB.click();
       await friendPageA.gotoFriendsPage();
       await friendPageA.tabs.block.click();

@@ -300,7 +300,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A blocks User B from DM', async () => {
-      await friendPageA.blockFriendFromDM();
+      await friendPageA.blockFriendFromDM(userNameB);
       await friendPageA.page.waitForTimeout(1000);
     });
 

@@ -107,7 +107,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A blocks User B and profile modal hides message input', async () => {
-      await friendPageA.blockFriendFromDM();
+      await friendPageA.blockFriendFromDM(userNameB);
       await messagePageA.openUserProfile();
       const isChatDeniedA = await friendPageA.isChatDenied();
       expect(isChatDeniedA).toBeTruthy();
@@ -157,7 +157,7 @@ test.describe('Friend Management - Block User', () => {
       await expect(inviteContainer).toBeVisible({ timeout: 10000 });
       const dmItemB = clanPageA.modalInvite.userInvite.filter({ hasText: userNameB });
       await expect(dmItemB).toHaveCount(1, { timeout: 10000 });
-      await inviteContainer.locator('button', { hasText: '×' }).click();
+      await clanPageA.modalInvite.button.close.click();
       await inviteContainer.waitFor({ state: 'detached', timeout: 10000 });
     });
 
@@ -173,7 +173,7 @@ test.describe('Friend Management - Block User', () => {
       await expect(inviteContainer).toBeVisible({ timeout: 10000 });
       const dmItemB = clanPageA.modalInvite.userInvite.filter({ hasText: userNameB });
       await expect(dmItemB).toHaveCount(0, { timeout: 10000 });
-      await inviteContainer.locator('button', { hasText: '×' }).click();
+      await clanPageA.modalInvite.button.close.click();
       await inviteContainer.waitFor({ state: 'detached', timeout: 10000 });
     });
 
@@ -214,7 +214,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A blocks User B', async () => {
-      await friendPageA.blockFriendFromDM();
+      await friendPageA.blockFriendFromDM(userNameB);
       await friendPageA.assertBlockFriend(userNameB);
     });
 
