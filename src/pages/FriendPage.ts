@@ -71,8 +71,10 @@ export class FriendPage extends BasePage {
     return this.lists.friendAll.filter({ hasText: username });
   }
 
-  async getActiveDM() {
-    return this.dm.items.filter({ has: this.page.locator(`.${dmActivClass}`) }).first();
+  async getActiveDM(username: string) {
+    return this.dm.items
+      .filter({ has: this.page.locator(`.${dmActivClass}`), hasText: username })
+      .first();
   }
 
   private async baseAssertFriendTab(username: string, tab: Tabs) {
@@ -203,8 +205,8 @@ export class FriendPage extends BasePage {
     await this.page.waitForTimeout(500);
   }
 
-  async blockFriendFromDM(): Promise<void> {
-    const activeDM = await this.getActiveDM();
+  async blockFriendFromDM(username: string): Promise<void> {
+    const activeDM = await this.getActiveDM(username);
     await activeDM.waitFor({ state: 'visible', timeout: 1000 });
     await activeDM.click({ button: 'right' });
 

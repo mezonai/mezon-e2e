@@ -55,6 +55,14 @@ export class MessagePage {
   readonly forwardMessageButton: Locator;
   readonly editGroupModal: Locator;
 
+  readonly messageBuzzHeader: Locator;
+  readonly messageBuzzButtonClose: Locator;
+  readonly messageBuzzButtonSend: Locator;
+  readonly messageBuzzInputMessage: Locator;
+
+  readonly directMessageBlockButton: Locator;
+  readonly directMessageUnblockButton: Locator;
+
   firstUserNameText: string = '';
   secondUserNameText: string = '';
   message: string = '';
@@ -184,6 +192,24 @@ export class MessagePage {
       generateE2eSelector('chat.direct_message.header.right_container.video_call')
     );
     this.editGroupModal = page.locator(generateE2eSelector('chat.direct_message.edit_group'));
+    this.messageBuzzHeader = page.locator(
+      generateE2eSelector('chat.direct_message.message_buzz.header')
+    );
+    this.messageBuzzButtonClose = page.locator(
+      generateE2eSelector('chat.direct_message.message_buzz.button.close')
+    );
+    this.messageBuzzButtonSend = page.locator(
+      generateE2eSelector('chat.direct_message.message_buzz.button.send')
+    );
+    this.messageBuzzInputMessage = page.locator(
+      generateE2eSelector('chat.direct_message.message_buzz.input.message')
+    );
+    this.directMessageBlockButton = page.locator(
+      generateE2eSelector('chat.direct_message.block.button')
+    );
+    this.directMessageUnblockButton = page.locator(
+      generateE2eSelector('chat.direct_message.unblock.button')
+    );
   }
 
   async getFirstMessage(): Promise<Locator> {
