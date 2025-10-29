@@ -8,6 +8,8 @@ export class DirectMessageHelper {
   readonly groupName: Locator;
   readonly group: Locator;
   readonly userNamesInDM: Locator;
+  readonly chatListContainer: Locator;
+  readonly chatList: Locator;
 
   constructor(private page: Page) {
     this.textarea = page.locator(generateE2eSelector('mention.input'));
@@ -24,6 +26,10 @@ export class DirectMessageHelper {
     this.userNamesInDM = page.locator(
       generateE2eSelector('chat.direct_message.chat_item.username')
     );
+    this.chatListContainer = page.locator(
+      generateE2eSelector('chat.direct_message.chat_list_container')
+    );
+    this.chatList = page.locator(generateE2eSelector('chat.direct_message.chat_list'));
   }
 
   async countGroups(): Promise<number> {
@@ -61,5 +67,90 @@ export class DirectMessageHelper {
       }
     }
     return userCount;
+  }
+
+  async scrollUntilVisible(
+    name: string,
+    options: {
+      scrollStep?: number;
+      maxScroll?: number;
+      waitMs?: number;
+    } = {}
+  ): Promise<boolean> {
+    const { scrollStep = 400, maxScroll = 10000, waitMs = 300 } = options;
+    if (name === '') {
+      return false;
+    }
+
+    let scrolled = 0;
+
+    while (scrolled < maxScroll) {
+      const target = this.chatList.filter({
+        has: this.page.locator(`:text-is("${name}")`),
+      });
+
+      const reachedEnd = await this.chatListContainer.evaluate((el, step) => {
+        const before = el.scrollTop;
+        el.scrollBy(0, step);
+        return el.scrollTop === before || el.scrollTop + el.clientHeight >= el.scrollHeight;
+      }, scrollStep);
+
+      await this.page.waitForTimeout(waitMs);
+      if (await target.count()) {
+        await target.first().scrollIntoViewIfNeeded();
+        return true;
+      }
+
+      if (reachedEnd) {
+        break;
+      }
+
+      scrolled += scrollStep;
+    }
+
+    return false;
+  }
+
+  async scrollToCountDMbyName(
+    name: string,
+    options: {
+      scrollStep?: number;
+      maxScroll?: number;
+      waitMs?: number;
+    } = {}
+  ): Promise<number> {
+    const { scrollStep = 400, maxScroll = 10000, waitMs = 300 } = options;
+    if (name === '') {
+      return 0;
+    }
+
+    let scrolled = 0;
+    let count = 0;
+
+    while (scrolled < maxScroll) {
+      const target = this.chatList.filter({
+        has: this.page.locator(`:text-is("${name}")`),
+      });
+
+      const currentCount = await target.count();
+      if (currentCount > count) {
+        count = currentCount;
+      }
+
+      const reachedEnd = await this.chatListContainer.evaluate((el, step) => {
+        const before = el.scrollTop;
+        el.scrollBy(0, step);
+        return el.scrollTop === before || el.scrollTop + el.clientHeight >= el.scrollHeight;
+      }, scrollStep);
+
+      if (reachedEnd) {
+        break;
+      }
+
+      scrolled += scrollStep;
+      await this.page.waitForTimeout(waitMs);
+    }
+
+    return count;
   }
 }

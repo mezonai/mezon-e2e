@@ -5,7 +5,7 @@ on:
 
 jobs:
   verify-mezon-dev:
-    runs-on: ubuntu-latest
+    runs-on: mezon-e2e
     steps:
       - name: Checkout mezon-e2e repository
         uses: actions/checkout@v4
@@ -19,17 +19,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "Installing Playwright browsers..."
-          npx playwright install chromium --with-deps
           echo "Installing mezon-e2e dependencies..."
           yarn install
           echo "✅ E2E dependencies and browsers installed"
+          echo "Installing Playwright browsers..."
+          npx playwright install chromium
 
       - name: Create environment file
         run: |
           cat > .env << EOF
           BASE_URL=https://dev-mezon.nccsoft.vn
-          WORKERS=6
+          WORKERS=12
+          CI=true
           EOF
 
       - name: Run automation tests

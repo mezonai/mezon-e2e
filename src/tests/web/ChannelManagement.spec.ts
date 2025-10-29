@@ -1,47 +1,54 @@
 import { AllureConfig } from '@/config/allure.config';
+import { AccountCredentials } from '@/config/environment';
+import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
 test.describe('Channel Management', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let clanName: string;
-  let clanUrl: string;
+  const CHANNEL_CREATION_TAG = 'channel-creation';
+  const TEXT_CHANNEL_TAG = 'text-channel';
+  const VERIFY_CHANNEL_STEP = 'Verify channel is present in channel list';
 
-  test.use({ storageState: 'playwright/.auth/account1.json' });
+  const clanFactory = new ClanFactory();
+  const credentials = AccountCredentials['account1'];
 
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-
-    const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.channelManagement
-    );
-
-    clanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.channelManagement,
+      credentials,
+    });
   });
 
-  test.afterAll(async () => {
-    if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
-    }
-  });
-
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
-
-    // Navigate to the test clan
-    await AllureReporter.step('Navigate to test clan', async () => {
-      await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+    await TestSuiteHelper.setupBeforeEach({
+      page,
+      clanFactory,
+      credentials,
     });
+  });
 
-    await AllureReporter.addParameter('clanName', clanName);
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   test('Verify that I can create a new private text channel', async ({ page }) => {
@@ -58,22 +65,22 @@ test.describe('Channel Management', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can successfully create a new private text channel within a clan.
-      
+
       **Test Steps:**
       1. Generate unique channel name
       2. Create new private text channel
       3. Verify channel appears in channel list
-      
+
       **Expected Result:** Private text channel is created and visible in the clan's channel list.
     `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-creation', 'private-channel', 'text-channel'],
+      tag: [CHANNEL_CREATION_TAG, 'private-channel', TEXT_CHANNEL_TAG],
     });
 
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `text-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.TEXT);
@@ -83,7 +90,7 @@ test.describe('Channel Management', () => {
       await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
@@ -104,12 +111,12 @@ test.describe('Channel Management', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can successfully create a new public text channel within a clan.
-      
+
       **Test Steps:**
       1. Generate unique channel name
       2. Create new public text channel
       3. Verify channel appears in channel list
-      
+
       **Expected Result:** Public text channel is created and visible in the clan's channel list.
     `);
 
@@ -119,7 +126,7 @@ test.describe('Channel Management', () => {
 
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `text-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.TEXT);
@@ -165,7 +172,7 @@ test.describe('Channel Management', () => {
 
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `voice-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.VOICE);
@@ -210,7 +217,7 @@ test.describe('Channel Management', () => {
 
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `text-channel-${ran}`;
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.STREAM);
@@ -255,7 +262,7 @@ test.describe('Channel Management', () => {
 
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `tc-${unique}`.slice(0, 20);
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.TEXT);
@@ -288,6 +295,76 @@ test.describe('Channel Management', () => {
     await AllureReporter.attachScreenshot(page, `Channel Renamed - ${newChannelName}`);
   });
 
+  test('Verify that channel name overview reflect correct when user enter characters or click reset', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63377',
+    });
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that channel name overview reflect correct when user enter characters or click reset.
+      
+      **Test Steps:**
+      1. Create new channel
+      2. Open modal edit channel
+      3. Edit channel name and reset it
+      
+      **Expected Result:** channel name overview reflect correct when user enter characters or click reset.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: [
+        'channel-creation',
+        'public-channel',
+        'text-channel',
+        'edit-channel-name',
+        'reset-edit',
+      ],
+    });
+
+    const unique = Date.now().toString(36).slice(-6);
+    const channelName = `tc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPage(page);
+
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.TEXT);
+    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step(`Create new public text channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
+    });
+
+    await AllureReporter.step('Verify channel is present in channel list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    const newChannelName = `${channelName}-ed`.slice(0, 20);
+
+    await AllureReporter.step(`Open modal edit channel name: ${channelName}`, async () => {
+      await clanPage.openChannelSettings(channelName);
+    });
+
+    await AllureReporter.step(
+      `Verify channel name overview reflect correct: ${newChannelName}`,
+      async () => {
+        await clanPage.verifyChannelNameOverviewWhenEditingChannelName(channelName, newChannelName);
+      }
+    );
+
+    await AllureReporter.attachScreenshot(
+      page,
+      `Channel name overview reflect correct when user enter characters or click reset`
+    );
+  });
+
   test('Verify that i can change public to private channel', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63377',
@@ -315,7 +392,7 @@ test.describe('Channel Management', () => {
       tag: ['channel-status', 'private-channel'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     const channelSettingPage = new ChannelSettingPage(page);
     const channelName = `channel-${generateRandomString(10)}`;
 
@@ -363,7 +440,7 @@ test.describe('Channel Management', () => {
       tag: ['channel-status', 'public-channel'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     const channelSettingPage = new ChannelSettingPage(page);
     const channelName = `channel-${generateRandomString(10)}`;
 

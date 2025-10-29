@@ -68,21 +68,24 @@ export default defineConfig({
   projects: [
     {
       name: 'Chrome',
-      testDir: './src/tests',
-      testIgnore: [/dual-users-.*\.spec\.ts/, /CleanUp\.spec\.ts/],
+      testDir: './src/tests/web',
+      testIgnore: [/CleanUp\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
+        headless: true,
       },
       dependencies: ['setup'],
     },
     {
       name: 'cleanup',
-      testDir: './src/tests',
+      testDir: './src/tests/cleanup',
       testMatch: /CleanUp\.spec\.ts/,
+      fullyParallel: true,
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
+        headless: true,
       },
       dependencies: ['setup'],
     },
@@ -92,20 +95,12 @@ export default defineConfig({
       timeout: 60 * 1000,
     },
     {
-      name: 'chromium-dual-user',
-      testDir: './src/tests',
-      testMatch: /dual-users-.*\.spec\.ts/,
+      name: 'Multi',
+      testDir: './src/tests/multi-chat',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: undefined,
-      },
-    },
-    {
-      name: 'firefox',
-      testDir: './src/tests',
-      use: {
-        ...devices['Desktop Firefox'],
         ...getBrowserConfig(),
+        headless: true,
       },
       dependencies: ['setup'],
     },

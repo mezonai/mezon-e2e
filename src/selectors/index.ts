@@ -11,6 +11,10 @@
  * */
 
 export const DATA_E2E_IDENTIFIER = {
+  input: {
+    base: '',
+    password: '',
+  },
   avatar: {
     image: '',
   },
@@ -39,6 +43,26 @@ export const DATA_E2E_IDENTIFIER = {
     box: {
       thread: '',
       topic: '',
+    },
+    header: {
+      button: {
+        close: '',
+      },
+    },
+  },
+  chat_welcome: '',
+  login_page: {
+    buttons: {
+      login_by_otp: '',
+      login_by_email_password: '',
+    },
+    inputs: {
+      email: '',
+      password: '',
+    },
+    form: {
+      email_password: '',
+      otp: '',
     },
   },
   homepage: {
@@ -96,10 +120,24 @@ export const DATA_E2E_IDENTIFIER = {
         add_channel: '',
         events: '',
         members: '',
+        channels: '',
       },
     },
     member_list: {
-      user_info: '',
+      user_info: {
+        display_name: '',
+        username: '',
+      },
+      role_settings: {
+        add_role: {
+          button: '',
+          role_name: '',
+          choose_role: '',
+        },
+        exist_role: {
+          role_name: '',
+        },
+      },
     },
     modal: {
       create_category: {
@@ -144,10 +182,57 @@ export const DATA_E2E_IDENTIFIER = {
         title: '',
       },
       create_event: {
+        start_modal: '',
         button_create: '',
+        button_close: '',
         next: '',
         upload: {
           image_cover_input: '',
+        },
+        location: {
+          type: '',
+          channel: {
+            item: '',
+          },
+          input: '',
+        },
+        event_info: {
+          input: {
+            event_topic: '',
+            start_date: '',
+            start_time: '',
+            end_date: '',
+            end_time: '',
+            event_frequency: '',
+            description: '',
+          },
+        },
+        review: {
+          type: {
+            clan: '',
+            channel: '',
+            private: '',
+          },
+          start_time: '',
+          event_topic: '',
+          description: '',
+          voice_channel: '',
+          text_channel: '',
+          location_name: '',
+        },
+        event_management: {
+          item: {
+            modal_detail_item: {
+              start_date_time: '',
+              topic: '',
+              channel_name: '',
+              description: '',
+            },
+            button: {
+              open_detail_modal: '',
+              close_detail_modal: '',
+            },
+          },
         },
       },
       invite_people: {
@@ -158,6 +243,9 @@ export const DATA_E2E_IDENTIFIER = {
         },
         url_invite: '',
         container: '',
+        accept_invite: {
+          button: '',
+        },
       },
     },
     settings: {
@@ -218,6 +306,16 @@ export const DATA_E2E_IDENTIFIER = {
           error: '',
         },
       },
+      role: {
+        container: {
+          role_option: {
+            display: '',
+            permissions: '',
+            manage_members: '',
+          },
+          name_input: '',
+        },
+      },
     },
     channel_list: {
       item: {
@@ -238,14 +336,27 @@ export const DATA_E2E_IDENTIFIER = {
       settings: {
         overview: '',
       },
+      members: {
+        role: {
+          role_name: '',
+        },
+      },
+    },
+    channel_management: {
+      total_channels: '',
+      channel_item: {
+        messages_count: '',
+        channel_name: '',
+      },
     },
     secondary_side_bar: {
-			member: ''
-		}
+      member: '',
+    },
   },
   channel_setting_page: {
     side_bar: {
       item: '',
+      channel_label: '',
     },
     permissions: {
       button: {
@@ -283,13 +394,39 @@ export const DATA_E2E_IDENTIFIER = {
     },
   },
   chat: {
+    message_box: {
+      input: {
+        no_permission: '',
+      },
+    },
     direct_message: {
+      header: {
+        left_container: '',
+        right_container: {
+          user_profile: '',
+          call: '',
+          add_member: '',
+          video_call: '',
+        },
+      },
+      chat_list_container: '',
       chat_list: '',
+
       chat_item: {
         username: '',
         close_dm_button: '',
         text_area: '',
         namegroup: '',
+      },
+      message_buzz: {
+        header: '',
+        button: {
+          close: '',
+          send: '',
+        },
+        input: {
+          message: '',
+        },
       },
       button: {
         add_user: '',
@@ -320,13 +457,17 @@ export const DATA_E2E_IDENTIFIER = {
       add_to_group: {
         button: '',
       },
-      message: {
-        item: '',
-      },
+
       menu: {
         leave_group: {
           button: '',
         },
+      },
+      block: {
+        button: '',
+      },
+      unblock: {
+        button: '',
       },
     },
     channel_message: {
@@ -353,6 +494,7 @@ export const DATA_E2E_IDENTIFIER = {
                 },
               },
             },
+            item: '',
           },
           chat: '',
         },
@@ -381,10 +523,11 @@ export const DATA_E2E_IDENTIFIER = {
       mention_user: '',
       member_list: {
         item: {
-          actions: {
-            view_profile: '',
-          },
+          actions: '',
         },
+      },
+      inbox: {
+        mentions: '',
       },
     },
     message_action_modal: {
@@ -407,6 +550,21 @@ export const DATA_E2E_IDENTIFIER = {
         },
       },
     },
+    hover_message_actions: {
+      button: {
+        base: '',
+      },
+    },
+    topic: {
+      header: {
+        button: {
+          close: '',
+        },
+      },
+      button: {
+        view_topic: '',
+      },
+    },
   },
   onboarding: {
     chat: {
@@ -421,6 +579,7 @@ export const DATA_E2E_IDENTIFIER = {
       edit_username: '',
       set_password: '',
       tab_account: '',
+      info: '',
     },
     profile: {
       button_setting: '',
@@ -428,6 +587,7 @@ export const DATA_E2E_IDENTIFIER = {
       user_profile: {
         preview: {
           avatar: '',
+          display_name: '',
         },
         input: {
           display_name: '',
@@ -457,6 +617,7 @@ export const DATA_E2E_IDENTIFIER = {
         button_save_changes: '',
       },
     },
+    logout: '',
   },
   common: {
     friend_list: {
@@ -478,6 +639,53 @@ export const DATA_E2E_IDENTIFIER = {
       title: '',
       content: '',
     },
+    confirm_modal: {
+      button: {
+        confirm: '',
+        cancel: '',
+      },
+    },
+    voice_management: {
+      button: {
+        control_item: '',
+      },
+    },
+  },
+  friend_page: {
+    tab: {
+      all: '',
+      online: '',
+      pending: '',
+      block: '',
+    },
+    button: {
+      add_friend: '',
+      send_friend_request: '',
+      accept_friend_request: '',
+      reject_friend_request: '',
+      cancel_friend_request: '',
+    },
+    input: {
+      search: '',
+      add_friend: '',
+      error: '',
+    },
+    request_failed_popup: {
+      button: {
+        okay: '',
+      },
+    },
+  },
+  message: {
+    item: '',
+  },
+  acceptModal: {
+    button: {
+      acceptInvite: '',
+    },
+  },
+  suggest_item: {
+    username: '',
   },
 };
 

@@ -15,6 +15,9 @@ export class ChannelSettingPage extends BasePage {
     permissions: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
       hasText: 'Permissions',
     }),
+    channel_label: this.page.locator(
+      generateE2eSelector('channel_setting_page.side_bar.channel_label')
+    ),
   };
 
   readonly webhook = {

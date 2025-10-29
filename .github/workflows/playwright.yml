@@ -2,12 +2,39 @@ name: Verify Automation Test Results
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [develop, main]
-    types: [opened, synchronize, reopened]
+    inputs:
+      mezon_repo:
+        description: 'Mezon repository to use (mezonai/mezon.git or kientrinh-dev/mezon.git)'
+        required: true
+        default: 'mezonai/mezon.git'
+        options:
+          - 'mezonai/mezon.git'
+          - 'kientrinh-dev/mezon.git'
+        type: choice
+      test_suite:
+        description: 'Test suite to run (choose from list or leave blank for all)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'standalone'
+          - 'channel-management'
+          - 'channel-message-2'
+          - 'channel-message-3'
+          - 'channel-message-4'
+          - 'channel-message-5'
+          - 'clan-management'
+          - 'direct-message'
+          - 'dual-chat-in-clan'
+          - 'onboarding-guide'
+          - 'thread-management'
+          - 'upload-file'
+          - 'user-profile'
+
 jobs:
   verify-automation-tests:
-    runs-on: ubuntu-latest
+    runs-on: mezon-e2e
     steps:
       - name: Checkout mezon-e2e repository
         uses: actions/checkout@v4
@@ -17,7 +44,7 @@ jobs:
       - name: Checkout mezon repository
         uses: actions/checkout@v4
         with:
-          repository: kientrinh-dev/mezon.git
+          repository: ${{ github.event.inputs.mezon_repo || 'kientrinh-dev/mezon.git' }}
           ref: develop
           path: mezon
 
@@ -25,43 +52,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: |
-            mezon/yarn.lock
-            mezon-e2e/yarn.lock
 
-      - name: Cache system dependencies
-        uses: actions/cache@v4
-        id: system-cache
-        with:
-          path: |
-            /var/cache/apt
-            /var/lib/apt/lists
-          key: ${{ runner.os }}-system-deps-${{ hashFiles('.github/workflows/playwright.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-system-deps-
-
-      - name: Install system dependencies
-        if: steps.system-cache.outputs.cache-hit != 'true'
+      - name: Install Yarn
         run: |
-          echo "🏗️ Installing system dependencies (cache miss)..."
-          # Install system dependencies
-          sudo apt update
-          sudo apt install -y libx11-dev libxss-dev libxext-dev
-          sudo add-apt-repository ppa:deadsnakes/ppa -y
-          sudo apt-get update
-          sudo apt-get install -y python3.9 python3.9-dev python3.9-distutils
-          echo "✅ System dependencies installed"
-
-      - name: Setup Python symlink
-        run: |
-          if [ "${{ steps.system-cache.outputs.cache-hit }}" == "true" ]; then
-            echo "🚀 Using cached system dependencies"
-          fi
-          # Create symlinks for easier access (always needed as they don't persist in cache)
-          sudo ln -sf /usr/bin/python3.9 /usr/local/bin/python3.9
-          echo "Python 3.9 installed at: $(which python3.9)"
-          python3.9 --version
+          echo "📦 Installing Yarn globally..."
+          npm install -g yarn
+          echo "✅ Yarn installed successfully"
+          echo "📋 Yarn version: $(yarn --version)"
 
       - name: Install dependencies in parallel
         run: |
@@ -71,14 +68,7 @@ jobs:
           install_mezon() {
             cd ./mezon
             echo "Installing mezon dependencies..."
-            # Set Python 3.9 for node-gyp (similar to your local setup)
-            export NODE_GYP_FORCE_PYTHON="/usr/bin/python3.9"
-            export python="/usr/bin/python3.9"
-            echo "Using Python: $python"
-            echo "NODE_GYP_FORCE_PYTHON: $NODE_GYP_FORCE_PYTHON"
-            # Verify Python version
-            $python --version
-            # Install dependencies
+            sed -i.bak '/\"mezon-active-windows\":/d' package.json
             yarn install
             echo "✅ Mezon dependencies installed"
           }
@@ -137,8 +127,8 @@ jobs:
           echo $SERVER_PID > mezon-dev.pid
           echo "📋 Server PID: $SERVER_PID"
 
-          echo "⏱️ Waiting 10 seconds for initial startup..."
-          sleep 10
+          echo "⏱️ Waiting 60 seconds for initial startup..."
+          sleep 60
 
           echo "📜 Initial server log output:"
           head -50 mezon-dev.log || echo "No log file yet"
@@ -179,26 +169,25 @@ jobs:
           cat > .env << EOF
           BASE_URL=http://localhost:4200/
           SKIP_LOGIN=true
-          WORKERS=6
+          WORKERS=12
           CI=true
-          AUTO_EXPORT_CREDENTIALS=${{ secrets.AUTO_EXPORT_CREDENTIALS }}
           EOF
 
       - name: Run automation tests
         id: run-tests
         working-directory: ./mezon-e2e
         run: |
+
           echo "🧪 Starting automation tests..."
           echo "📊 Environment file content:"
           cat .env
           echo ""
           echo "🚀 Running tests with yarn test..."
 
-          # Run tests and capture exit code
-          set +e  # Don't exit on error
-          xvfb-run yarn test
+          set +e  
+          xvfb-run yarn test:${{ github.event.inputs.test_suite || 'all' }}
           TEST_EXIT_CODE=$?
-          set -e  # Re-enable exit on error
+          set -e 
 
           echo "📊 Test exit code: $TEST_EXIT_CODE"
 
@@ -220,6 +209,46 @@ jobs:
           name: playwright-report
           path: mezon-e2e/playwright-report/
           retention-days: 7
+
+      - name: Stop mezon dev server
+        if: always()
+        run: |
+          echo "🛑 Stopping mezon dev server..."
+
+          # Kill the server process if PID file exists
+          if [ -f ./mezon/mezon-dev.pid ]; then
+            SERVER_PID=$(cat ./mezon/mezon-dev.pid)
+            echo "📋 Found server PID: $SERVER_PID"
+            
+            if ps -p $SERVER_PID > /dev/null; then
+              echo "🔄 Killing server process..."
+              kill $SERVER_PID
+              sleep 2
+              
+              # Force kill if still running
+              if ps -p $SERVER_PID > /dev/null; then
+                echo "🔨 Force killing server process..."
+                kill -9 $SERVER_PID
+              fi
+              echo "✅ Server process stopped"
+            else
+              echo "ℹ️ Server process already stopped"
+            fi
+            
+            rm -f ./mezon/mezon-dev.pid
+          else
+            echo "ℹ️ No PID file found"
+          fi
+
+          # Also kill any remaining processes on port 4200
+          echo "🔍 Checking for any remaining processes on port 4200..."
+          REMAINING_PIDS=$(lsof -ti:4200 || true)
+          if [ -n "$REMAINING_PIDS" ]; then
+            echo "🔨 Killing remaining processes on port 4200: $REMAINING_PIDS"
+            kill -9 $REMAINING_PIDS || true
+          else
+            echo "✅ No processes found on port 4200"
+          fi
 
       - name: Check test results and fail pipeline if needed
         if: always()
