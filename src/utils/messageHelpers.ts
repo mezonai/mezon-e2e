@@ -24,6 +24,8 @@ export class MessageTestHelpers {
   readonly viewTopicButoon: Locator;
   readonly displayNameOnMessageTopic: Locator;
   readonly deleteMessageButton: Locator;
+  readonly headerInboxButton: Locator;
+  readonly inboxMessages: Locator;
 
   message: string = '';
 
@@ -89,6 +91,14 @@ export class MessageTestHelpers {
     this.deleteMessageButton = page
       .locator(generateE2eSelector('chat.message_action_modal.button.base'))
       .filter({ hasText: 'Delete Message' });
+
+    this.headerInboxButton = this.page.locator(
+      generateE2eSelector('chat.channel_message.header.button.inbox')
+    );
+
+    this.inboxMessages = this.page.locator(
+      `${generateE2eSelector('chat.channel_message.inbox.mentions')} div[class*="w-full"][class*="text-theme-message"]`
+    );
   }
 
   public getMessageItemLocator(textContains?: string): Locator {
@@ -2813,6 +2823,18 @@ export class MessageTestHelpers {
 
     const isVisible = await this.deleteMessageButton.isVisible();
     expect(isVisible).toBeFalsy();
+  }
+
+  async openHeaderInboxButton() {
+    await expect(this.headerInboxButton).toBeVisible({ timeout: 5000 });
+    await this.headerInboxButton.click({ force: true });
+    const tooltip = this.page.locator('.rc-tooltip');
+    await expect(tooltip).toBeVisible({ timeout: 5000 });
+  }
+
+  async assertMessageInInboxByContent(messageContent: string) {
+    const inboxMessage = this.inboxMessages.filter({ hasText: messageContent });
+    await expect(inboxMessage).toBeVisible({ timeout: 5000 });
   }
 }
 

@@ -440,7 +440,7 @@ export const DATA_E2E_IDENTIFIER = {
       },
       unblock: {
         button: '',
-      }
+      },
     },
     channel_message: {
       header: {
@@ -497,6 +497,9 @@ export const DATA_E2E_IDENTIFIER = {
         item: {
           actions: '',
         },
+      },
+      inbox: {
+        mentions: '',
       },
     },
     message_action_modal: {
