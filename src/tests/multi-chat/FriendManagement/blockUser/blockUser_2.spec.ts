@@ -1,12 +1,12 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { expect, test } from '@/fixtures/dual.fixture';
 import { FriendPage } from '@/pages/FriendPage';
+import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { expect, test } from '@/fixtures/dual.fixture';
-import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['account2-1'];
@@ -182,7 +182,7 @@ test.describe('Friend Management - Block User', () => {
     await test.step('Blocked User B welcome header hides block actions', async () => {
       await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
       await pageB.waitForTimeout(1000);
-      await expect(messagePageB.directMessageUnblockButton).toHaveCount(1);
+      await expect(messagePageB.directMessageUnblockButton).toHaveCount(0);
     });
 
     await test.step('User A unblocks User B and Block button returns', async () => {
@@ -247,12 +247,9 @@ test.describe('Friend Management - Block User', () => {
     await test.step('User A UI reflects being blocked without refresh', async () => {
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
 
-      await expect(messagePageA.directMessageUnblockButton).toHaveCount(
-        1,
-        {
-          timeout: 10000,
-        }
-      );
+      await expect(messagePageA.directMessageUnblockButton).toHaveCount(0, {
+        timeout: 10000,
+      });
     });
 
     await test.step('User B unblocks User A and sees state revert', async () => {
