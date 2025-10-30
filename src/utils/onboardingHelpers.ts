@@ -1,5 +1,6 @@
-import { type Page } from '@playwright/test';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import type { OnboardingTaskType } from '@/types/onboarding.types';
+import { type Page } from '@playwright/test';
 export class OnboardingHelpers {
   readonly page: Page;
   constructor(page: Page) {
@@ -7,7 +8,6 @@ export class OnboardingHelpers {
   }
 
   async createTestClan(clanName: string): Promise<{ clicked: boolean; created: boolean }> {
-    const { ClanPage } = await import('../pages/ClanPage');
     const clanPage = new ClanPage(this.page);
 
     const clicked = await clanPage.clickCreateClanButton();
@@ -28,7 +28,6 @@ export class OnboardingHelpers {
   }
 
   async sendTestMessage(): Promise<{ sent: boolean; verified: boolean; message: string }> {
-    const { ClanPage } = await import('../pages/ClanPage');
     const clanPage = new ClanPage(this.page);
 
     const message = `Hello! This is my first message - ${Date.now()}`;

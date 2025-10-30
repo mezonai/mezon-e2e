@@ -1,15 +1,14 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import { promisify } from 'util';
+import generateRandomString from '@/utils/randomString';
 import { Page } from '@playwright/test';
+import fs from 'fs';
 import https from 'https';
+import path from 'path';
+import { promisify } from 'util';
 import { generateE2eSelector } from './generateE2eSelector';
 
 const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
 const stat = promisify(fs.stat);
-const unlink = promisify(fs.unlink);
 
 export type UploadVerificationResult = {
   success: boolean;
@@ -18,6 +17,7 @@ export type UploadVerificationResult = {
 };
 
 export enum UploadType {
+  USER_PROFILE_AVATAR = 'userProfileAvatar',
   STICKER = 'sticker',
   VOICE_STICKER = 'voiceSticker',
   CLAN_WEBHOOK_AVATAR = 'clanWebhookAvatar',
@@ -38,6 +38,9 @@ type UploadConfig = {
 };
 
 const UPLOAD_CONFIGS: Record<UploadType, UploadConfig> = {
+  [UploadType.USER_PROFILE_AVATAR]: {
+    selector: `'#preview_img'`,
+  },
   [UploadType.STICKER]: {
     selector: `${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[accept*=".jpg"], input[accept*=".jpeg"], input[accept*=".png"], input[accept*=".gif"], input[accept*="image"]`,
   },
@@ -98,7 +101,7 @@ export class FileSizeTestHelpers {
 
   constructor(page: Page) {
     this.page = page;
-    this.tmpDir = path.join(os.tmpdir(), 'mezon-e2e-files');
+    this.tmpDir = path.join(process.cwd(), 'test-files', generateRandomString(8));
   }
 
   private async ensureTmpDir(): Promise<void> {
@@ -201,14 +204,16 @@ export class FileSizeTestHelpers {
     return await this.createGenericFileWithSize(name, sizeBytes, ext);
   }
 
-  async cleanupFiles(paths: string[]): Promise<void> {
-    for (const p of paths) {
-      try {
-        await unlink(p);
-      } catch {}
+  async cleanupFiles(): Promise<void> {
+    if (fs.existsSync(this.tmpDir)) {
+      fs.rmSync(this.tmpDir, { recursive: true, force: true });
     }
+    // for (const p of paths) {
+    //   try {
+    //     await unlink(p);
+    //   } catch {}
+    // }
   }
-
   // Generic upload method that can handle any upload type
   private async uploadFile(filePath: string, uploadType: UploadType): Promise<void> {
     const config = UPLOAD_CONFIGS[uploadType];
@@ -225,7 +230,6 @@ export class FileSizeTestHelpers {
     const size = (await stat(filePath)).size;
     let errorMessage: string | undefined;
 
-    // Handle special case for voice sticker
     if (uploadType === UploadType.VOICE_STICKER) {
       const config = UPLOAD_CONFIGS[uploadType];
       if (config.errorSelector) {
@@ -288,7 +292,9 @@ export class FileSizeTestHelpers {
         try {
           await input.setInputFiles(filePath);
           return;
-        } catch {}
+        } catch (e) {
+          console.error(`Failed to set file on input ${sel}: ${(e as Error).message}`);
+        }
       }
     }
 
@@ -363,7 +369,11 @@ export class FileSizeTestHelpers {
     expectedSuccess: boolean
   ): Promise<UploadVerificationResult> {
     await this.setFileOnBestInput(filePath);
-    return await this.verifyUpload(filePath, expectedSuccess);
+    return this.verifyUpload(filePath, expectedSuccess);
+  }
+
+  async uploadFileDefault(filePath: string): Promise<void> {
+    await this.setFileOnBestInput(filePath);
   }
 
   // Mapping-based approach for all upload types - more maintainable

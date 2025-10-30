@@ -37,25 +37,18 @@ export class ReportExporter {
   private webhookUrl?: string;
   private enabled: boolean = true;
   private s3Client!: S3Client;
-  private bucketName = '';
+  private bucketName = 'mezon-auto';
   constructor(webhookUrl?: string) {
     this.webhookUrl = webhookUrl || process.env.WEBHOOK_URL || `${REPORT_SERVER_URL}/webhook`;
 
-    const AUTO_EXPORT_CREDENTIALS = process.env.AUTO_EXPORT_CREDENTIALS || '';
-    const [ACCOUNT_ID, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME] =
-      AUTO_EXPORT_CREDENTIALS.split(':');
-    if (!ACCOUNT_ID || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY || !BUCKET_NAME) {
-      this.enabled = false;
-      return;
-    }
-    this.bucketName = BUCKET_NAME;
     this.s3Client = new S3Client(
       new AWS.S3({
-        endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`,
-        accessKeyId: ACCESS_KEY_ID,
-        secretAccessKey: SECRET_ACCESS_KEY,
+        endpoint: `https://storage.dungxbuif.com`,
+        accessKeyId: 'ptrK29umhrDPPPcByUJ9',
+        secretAccessKey: 'fA6KMSCTn5QhcwkxCvX0CzTxs8wxGZnf96hWDbP0',
         signatureVersion: 'v4',
-        region: 'auto',
+        region: 'us-east-1',
+        s3ForcePathStyle: true,
       })
     );
   }

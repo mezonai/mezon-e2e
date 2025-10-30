@@ -1,46 +1,51 @@
-import { AllureConfig, TestSetups } from '@/config/allure.config';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { AllureConfig } from '@/config/allure.config';
+import { AccountCredentials } from '@/config/environment';
+import { ClanFactory } from '@/data/factories/ClanFactory';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { OnboardingTask } from '@/types/onboarding.types';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { OnboardingHelpers } from '@/utils/onboardingHelpers';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
-import { OnboardingHelpers } from '../../utils/onboardingHelpers';
 
 test.describe('Onboarding Guide Task Completion', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let testClanName: string;
-  let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account5.json' });
+  const clanFactory = new ClanFactory();
+  const credentials = AccountCredentials.account5;
 
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-
-    const setupResult = await clanSetupHelper.setupTestClan(ClanSetupHelper.configs.onboarding);
-    testClanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && testClanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(testClanName, clanUrl);
-    }
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.onboarding,
+      credentials,
+    });
   });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63452',
     });
+    await TestSuiteHelper.setupBeforeEach({
+      page,
+      clanFactory,
+      credentials,
+    });
+  });
 
-    if (clanUrl) {
-      await AllureReporter.step('Navigate to test clan', async () => {
-        await page.goto(clanUrl);
-      });
-      await AllureReporter.addParameter('testClanName', testClanName);
-      await AllureReporter.addParameter('clanUrl', clanUrl);
-    }
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   test('should mark "Send first message" task as done after user sends first message', async ({
@@ -54,12 +59,12 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that the onboarding guide correctly marks the "Send first message" task as completed after a user sends their first message.
-      
+
       **Test Steps:**
       1. Ensure onboarding guide is visible
       2. Send a test message in the current channel
       3. Verify the "Send first message" task is marked as done (green tick)
-      
+
       **Expected Result:** The "Send first message" task should show as completed with a green checkmark after the user sends their first message.
     `);
 
@@ -120,7 +125,7 @@ test.describe('Onboarding Guide Task Completion', () => {
       tag: ['onboarding', 'channel-creation', 'task-completion', 'clan-management'],
     });
 
-    const clanPage = new ClanPageV2(page);
+    const clanPage = new ClanPage(page);
     const onboardingPage = new OnboardingPage(page);
     const testChannelName = `test-channel-${Date.now()}`;
 

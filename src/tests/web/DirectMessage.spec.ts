@@ -1,16 +1,15 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
-import { GLOBAL_CONFIG } from '@/config/environment';
-import { MessgaePage } from '@/pages/MessagePage';
+import { AccountCredentials, GLOBAL_CONFIG } from '@/config/environment';
+import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
-import { HomePage } from '../../pages/HomePage';
+import { randomInt } from 'crypto';
 
 test.describe('Direct Message', () => {
-  test.use({ storageState: 'playwright/.auth/account4.json' });
-
   test.beforeAll(async () => {
     await TestSetups.chatTest({
       suite: AllureConfig.Suites.CHAT_PLATFORM,
@@ -20,18 +19,24 @@ test.describe('Direct Message', () => {
     });
   });
 
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',
     });
 
-    const homePage = new HomePage(page);
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(
+      page,
+      AccountCredentials.account4
+    );
+    await AuthHelper.prepareBeforeTest(
+      page,
+      joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS),
+      credentials
+    );
+  });
 
-    await AllureReporter.step('Navigate to direct friends page', async () => {
-      await page.goto(joinUrlPaths(GLOBAL_CONFIG.LOCAL_BASE_URL, ROUTES.DIRECT_FRIENDS));
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
-    });
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   const now = new Date();
@@ -40,48 +45,36 @@ test.describe('Direct Message', () => {
   const messageText = `message-text-${dateTimeString}`;
   const nameGroupChat = `name-groupchat-${dateTimeString}`;
 
-  // test.skip('Create direct message ', async ({ page }) => {
-  //   await AllureReporter.addTestParameters({
-  //     testType: AllureConfig.TestTypes.E2E,
-  //     userType: AllureConfig.UserTypes.AUTHENTICATED,
-  //     severity: AllureConfig.Severity.CRITICAL,
-  //   });
+  test('Create direct message ', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
 
-  //   await AllureReporter.addDescription(`
-  //     **Test Objective:** Verify that a user can successfully create a new direct message conversation.
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully create a new direct message conversation.
 
-  //     **Test Steps:**
-  //     1. Count existing users before creating DM
-  //     2. Create a new direct message
-  //     3. Verify the direct message is created
+      **Test Steps:**
+      1. Create a new direct message
+      2. Verify the direct message is created
 
-  //     **Expected Result:** Direct message should be successfully created and user count should increase.
-  //   `);
+      **Expected Result:** Direct message should be successfully created and user count should increase.
+    `);
 
-  //   await AllureReporter.addLabels({
-  //     tag: ['direct-message', 'messaging', 'conversation-creation'],
-  //   });
+    await AllureReporter.addLabels({
+      tag: ['direct-message', 'messaging', 'conversation-creation'],
+    });
 
-  //   const messagePage = new MessgaePage(page);
-  //   const helpers = new DirectMessageHelper(page);
+    const messagePage = new MessagePage(page);
 
-  //   const prevUsersCount = await AllureReporter.step('Get initial user count', async () => {
-  //     return await helpers.countUsers();
-  //   });
+    await AllureReporter.step('Verify that i can open a DM', async () => {
+      const firstUser = await messagePage.createDM();
+      await expect(messagePage.groupName).toHaveText(firstUser, { timeout: 5000 });
+    });
 
-  //   await AllureReporter.addParameter('initialUserCount', prevUsersCount);
-
-  //   await AllureReporter.step('Create direct message', async () => {
-  //     await messagePage.createDM();
-  //   });
-
-  //   // await AllureReporter.step('Verify direct message is created', async () => {
-  //   //   const DMCreated = await messagePage.isDMCreated();
-  //   //   expect(DMCreated).toBe(true);
-  //   // });
-
-  //   await AllureReporter.attachScreenshot(page, 'Direct Message Created');
-  // });
+    await AllureReporter.attachScreenshot(page, 'Direct Message Created');
+  });
 
   test('Send a message', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
@@ -108,7 +101,7 @@ test.describe('Direct Message', () => {
       tag: ['messaging', 'send-message', 'direct-message'],
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
 
     await AllureReporter.addParameter('messageText', messageText);
 
@@ -130,7 +123,7 @@ test.describe('Direct Message', () => {
       tms: '63506',
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
     const helpers = new DirectMessageHelper(page);
     const prevGroupCount = await helpers.countGroups();
 
@@ -150,7 +143,7 @@ test.describe('Direct Message', () => {
       tms: '63506',
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
 
     await test.step(`Add more member to group chat`, async () => {
       await messagePage.addMoreMemberToGroup();
@@ -163,7 +156,7 @@ test.describe('Direct Message', () => {
       tms: '63506',
     });
 
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
 
     await test.step(`Update name for group chat DM`, async () => {
       await messagePage.updateNameGroupChatDM(nameGroupChat);
@@ -177,22 +170,26 @@ test.describe('Direct Message', () => {
   });
 
   test('Close direct message', async ({ page }) => {
-    const messagePage = new MessgaePage(page);
+    const messagePage = new MessagePage(page);
     const helpers = new DirectMessageHelper(page);
-    const prevUsersCount = await helpers.countUsers();
 
-    if (prevUsersCount === 0) {
-      await messagePage.createDM();
-      await page.waitForTimeout(3000);
-    }
+    let username: string;
 
-    await test.step(`Close direct message`, async () => {
-      await messagePage.closeDM();
-      await page.waitForTimeout(3000);
+    await AllureReporter.step('Verify that i can open a DM', async () => {
+      const firstUser = await messagePage.createDM();
+      username = firstUser;
+      const isVisible = await helpers.scrollUntilVisible(username);
+      expect(isVisible).toBeTruthy();
+      await expect(messagePage.groupName).toHaveText(firstUser, { timeout: 5000 });
     });
 
-    await test.step('Verify direct message is closed', async () => {
-      const DMClosed = await messagePage.isDMClosed(prevUsersCount);
+    await AllureReporter.step(`Close direct message`, async () => {
+      await messagePage.closeDM(username);
+      await expect(messagePage.groupName).toBeHidden({ timeout: 5000 });
+    });
+
+    await AllureReporter.step('Verify direct message is closed', async () => {
+      const DMClosed = await messagePage.isDMClosed(username);
       expect(DMClosed).toBeTruthy();
     });
   });
@@ -202,17 +199,29 @@ test.describe('Direct Message', () => {
       tms: '63506',
     });
 
-    const messagePage = new MessgaePage(page);
-    const helpers = new DirectMessageHelper(page);
-    const prevGroupCount = await helpers.countGroups();
+    const messagePage = new MessagePage(page);
+    const nameUpdate = `Group updated ${dateTimeString}`;
+    let groupName: string;
 
-    await test.step(`Leave group chat`, async () => {
-      await messagePage.leaveGroupByXBtn();
-      await page.waitForTimeout(4000);
+    await AllureReporter.step('Create group and update an unique name', async () => {
+      await messagePage.createGroup();
+      await expect(messagePage.groupName).toBeVisible({ timeout: 5000 });
+      await messagePage.updateNameGroupChatDM(nameUpdate);
+      await expect(messagePage.groupName).toHaveText(nameUpdate, { timeout: 5000 });
+      const groupNameText = (await messagePage.groupName.innerText()).trim();
+      expect(groupNameText).toBe(nameUpdate);
     });
 
-    await test.step('Verify group chat is left', async () => {
-      const groupLeaved = await messagePage.isLeavedGroup(prevGroupCount);
+    await AllureReporter.step(`Leave group chat`, async () => {
+      const name = await messagePage.leaveGroupByXBtn();
+      groupName = name;
+    });
+
+    await AllureReporter.step('Verify group chat is left', async () => {
+      await expect(messagePage.userNamesInDM.filter({ hasText: groupName })).toHaveCount(0, {
+        timeout: 5000,
+      });
+      const groupLeaved = await messagePage.isLeavedGroup(groupName);
       expect(groupLeaved).toBeTruthy();
     });
   });
@@ -222,14 +231,14 @@ test.describe('Direct Message', () => {
       tms: '63627',
     });
 
-    const messagePage = new MessgaePage(page);
-
-    let pinnedMessageId: string;
+    const messagePage = new MessagePage(page);
+    const indentityMessage = (Date.now() + randomInt(10)).toString();
+    const messageToPinText = `Message to pin ${indentityMessage}`;
 
     await AllureReporter.step('Send a message and pin it', async () => {
-      await messagePage.sendMessage(messageText);
+      await messagePage.sendMessage(messageToPinText);
       await messagePage.messages.last().waitFor({ state: 'visible', timeout: 10000 });
-      pinnedMessageId = await messagePage.pinLastMessage();
+      await messagePage.pinLastMessage();
     });
 
     await AllureReporter.step('Delete the pinned message', async () => {
@@ -237,10 +246,57 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.step('Verify pinned message is removed from list', async () => {
-      const isStillPinned = await messagePage.isMessageStillPinned(pinnedMessageId);
+      const isStillPinned = await messagePage.isMessageStillPinned(indentityMessage);
       expect(isStillPinned).toBe(false);
     });
 
     await AllureReporter.attachScreenshot(page, 'Pinned Message Removed');
+  });
+
+  test('Verify user cannot create duplicate DM ', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user cannot create a duplicate direct message conversation.
+
+      **Test Steps:**
+      1. Create a new direct message
+      2. Try to create a duplicate direct message
+      3. Verify only one direct message is created
+
+      **Expected Result:** Only one direct message should be created.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['direct-message', 'messaging', 'conversation-creation', 'duplicate-dm'],
+    });
+
+    const messagePage = new MessagePage(page);
+    const helpers = new DirectMessageHelper(page);
+    let username: string;
+
+    await AllureReporter.step('Create a direct message', async () => {
+      const firstUser = (await messagePage.firstUserNameAddDM.innerText()).trim();
+      username = firstUser;
+      const isDMExist = await helpers.scrollUntilVisible(username);
+      if (!isDMExist) {
+        await messagePage.createDMByName(username);
+      }
+      await page.waitForTimeout(2000);
+      const isNewDMVisible = await helpers.scrollUntilVisible(username);
+      expect(isNewDMVisible).toBeTruthy();
+    });
+
+    await AllureReporter.step('Verify that i cannot create duplicate DM', async () => {
+      await messagePage.createDMByName(username);
+      const totalCount = await helpers.scrollToCountDMbyName(username);
+      expect(totalCount).toBe(1);
+    });
+
+    await AllureReporter.attachScreenshot(page, 'Direct Message Created');
   });
 });
