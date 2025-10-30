@@ -622,6 +622,18 @@ export const DATA_E2E_IDENTIFIER = {
         control_item: '',
       },
     },
+    forward_message: {
+      button: {
+        cancel: '',
+        send: '',
+      },
+      input: {
+        search: '',
+      },
+    },
+    search: {
+      input: '',
+    },
   },
   friend_page: {
     tab: {
