@@ -131,7 +131,7 @@ export class ChannelSettingPage extends BasePage {
     await membersButton.waitFor({ state: 'visible' });
     await membersButton.click();
 
-    const members = clanPage.secondarySideBar.member;
+    const members = clanPage.secondarySideBar.member.item;
     await members.waitFor({ state: 'visible' });
     const memberCount = await members.count();
     if (memberCount !== 1) return false;

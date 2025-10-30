@@ -1,13 +1,11 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
