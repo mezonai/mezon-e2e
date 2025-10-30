@@ -1,34 +1,27 @@
 import { AllureConfig } from '@/config/allure.config';
-import { ClanPageV2 } from '@/pages/ClanPageV2';
+import { AccountCredentials } from '@/config/environment';
+import { ClanFactory } from '@/data/factories/ClanFactory';
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType, ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
-import test from '@playwright/test';
+import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import { ThreadTestHelpers } from '@/utils/threadHelpers';
+import test from '@playwright/test';
 
 test.describe('Thread in Private Channel', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let clanName: string;
-  let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account7.json' });
-
+  const clanFactory = new ClanFactory();
+  const credentials: MezonCredentials = AccountCredentials.account7;
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-
-    const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.threadManagement
-    );
-
-    clanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
-    }
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.threadManagement,
+      credentials,
+    });
   });
 
   test.beforeEach(async ({ page }) => {
@@ -36,14 +29,26 @@ test.describe('Thread in Private Channel', () => {
       tms: '63519',
     });
 
-    await AllureReporter.step('Navigate to test thread', async () => {
-      await page.goto(clanUrl);
-      const clanPage = new ClanPageV2(page);
+    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
+
+    await AllureReporter.step('Create private channel for thread testing', async () => {
+      const clanPage = new ClanPage(page);
       const privateChannelName = `private-channel-${generateRandomString(5)}`;
       await clanPage.createNewChannel(ChannelType.TEXT, privateChannelName, ChannelStatus.PRIVATE);
     });
+  });
 
-    await AllureReporter.addParameter('clanName', clanName);
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   test('Verify that I can create a new public thread in a private channel', async ({ page }) => {
@@ -60,12 +65,12 @@ test.describe('Thread in Private Channel', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can successfully create a new public thread in a private channel within a clan.
-      
+
       **Test Steps:**
       1. Generate unique thread name
       2. Create new public thread in a private channel
       3. Verify thread appears in thread list
-      
+
       **Expected Result:** Public thread is created and visible in the clan's thread list.
     `);
 
@@ -90,12 +95,12 @@ test.describe('Thread in Private Channel', () => {
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a user can successfully create a new private thread in a private channel within a clan.
-      
+
       **Test Steps:**
       1. Generate unique thread name
       2. Create new private thread in a private channel
       3. Verify thread appears in thread list
-      
+
       **Expected Result:** Private thread is created and visible in the clan's thread list.
     `);
 
@@ -109,27 +114,15 @@ test.describe('Thread in Private Channel', () => {
 });
 
 test.describe('Thread in Public Channel', () => {
-  let clanSetupHelper: ClanSetupHelper;
-  let clanName: string;
-  let clanUrl: string;
-
-  test.use({ storageState: 'playwright/.auth/account7.json' });
-
+  const clanFactory = new ClanFactory();
+  const credentials: MezonCredentials = AccountCredentials.account7;
   test.beforeAll(async ({ browser }) => {
-    clanSetupHelper = new ClanSetupHelper(browser);
-
-    const setupResult = await clanSetupHelper.setupTestClan(
-      ClanSetupHelper.configs.threadManagement
-    );
-
-    clanName = setupResult.clanName;
-    clanUrl = setupResult.clanUrl;
-  });
-
-  test.afterAll(async () => {
-    if (clanSetupHelper && clanName && clanUrl) {
-      await clanSetupHelper.cleanupClan(clanName, clanUrl);
-    }
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.threadManagement,
+      credentials,
+    });
   });
 
   test.beforeEach(async ({ page }) => {
@@ -137,14 +130,26 @@ test.describe('Thread in Public Channel', () => {
       tms: '63519',
     });
 
-    await AllureReporter.step('Navigate to test thread', async () => {
-      await page.goto(clanUrl);
-      const clanPage = new ClanPageV2(page);
+    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
+    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
+
+    await AllureReporter.step('Create public channel for thread testing', async () => {
+      const clanPage = new ClanPage(page);
       const publicChannelName = `public-channel-${generateRandomString(5)}`;
       await clanPage.createNewChannel(ChannelType.TEXT, publicChannelName);
     });
+  });
 
-    await AllureReporter.addParameter('clanName', clanName);
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   test('Verify that I can create a new public thread in a public channel', async ({ page }) => {

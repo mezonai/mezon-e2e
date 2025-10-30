@@ -193,6 +193,7 @@ export const getAuthConfigBySuite = (suiteName: string) => {
     'Direct Message': 'account4',
     'Onboarding Guide': 'account5',
     'User Profile': 'account6',
+    'User Profile - Module 1': 'account6-1',
     'Thread Management': 'account7',
     'Channel Message - Module 1': 'account2-1',
     'Channel Message - Module 2': 'account2-2',
@@ -276,7 +277,7 @@ export const GLOBAL_CONFIG = {
  */
 export const WEBSITE_CONFIGS = {
   MEZON: {
-    baseURL: process.env.BASE_URL,
+    baseURL: process.env.BASE_URL || '',
     name: 'Mezon Development',
   },
 } as const;
@@ -401,3 +402,86 @@ export const getBrowserConfig = () => ({
         '--disable-clipboard-sanitization',
       ],
 });
+
+// Function to get auth data for specific account
+export const getLocalAuthData = (accountKey: keyof typeof persistentAuthConfigs) => {
+  return {
+    persist: {
+      key: 'persist:auth',
+      value: getAuthConfig(accountKey),
+    },
+    mezonSession: {
+      key: 'mezon_session',
+      value: JSON.stringify(getSessionConfig()),
+    },
+  };
+};
+
+export const getSessionConfig = () => {
+  return {
+    host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
+    port: process.env.MEZON_SESSION_PORT || '7305',
+    ssl: true,
+  };
+};
+
+export const AccountCredentials = {
+  account1: {
+    email: 'thang.thieuquang+01@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account2: {
+    email: 'thang.thieuquang+02@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account3: {
+    email: 'thang.thieuquang+03@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account4: {
+    email: 'thang.thieuquang+04@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account5: {
+    email: 'thang.thieuquang+05@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account6: {
+    email: 'thang.thieuquang+06@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account7: {
+    email: 'thang.thieuquang+07@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account8: {
+    email: 'thang.thieuquang+08@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  account9: {
+    email: 'thang.thieuquang+09@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-1': {
+    email: 'thang.thieuquang+02-1@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-2': {
+    email: 'thang.thieuquang+02-2@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-3': {
+    email: 'thang.thieuquang+02-3@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-4': {
+    email: 'thang.thieuquang+02-4@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  'account2-5': {
+    email: 'thang.thieuquang+02-5@ncc.asia',
+    password: 'Ncc@1234',
+  },
+};
+
+export const MEZON_DEV = 'https://dev-mezon.nccsoft.vn';

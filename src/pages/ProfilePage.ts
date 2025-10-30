@@ -29,6 +29,9 @@ export class ProfilePage extends BasePage {
     applyImageAvatar: this.page.locator(
       generateE2eSelector('user_setting.profile.user_profile.upload.avatar_input.apply_button')
     ),
+    closeSettingProfile: this.page.locator(
+      generateE2eSelector('user_setting.account.exit_setting')
+    ),
   };
 
   readonly accountPage = {
@@ -43,6 +46,7 @@ export class ProfilePage extends BasePage {
     userProfile: this.page.locator(generateE2eSelector('user_setting.profile.user_profile.button')),
     clanProfile: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.button')),
     account: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
+    logout: this.page.locator(generateE2eSelector('user_setting.logout')),
   };
 
   readonly userProfile = {
@@ -140,10 +144,47 @@ export class ProfilePage extends BasePage {
   async sendMessage(mentionText: string) {
     await this.inputs.mention.fill(mentionText);
     await this.inputs.mention.press('Enter');
+    await this.page.waitForTimeout(500);
   }
 
   async verifyAboutMeStatusInShortProfile(aboutMeStatus: string) {
     await this.profiles.displayName.click();
-    await expect(this.texts.aboutMeInShortProfile).toHaveText(aboutMeStatus, { timeout: 500 });
+    const userAboutMe = await this.texts.aboutMeInShortProfile.first();
+    await expect(userAboutMe).toHaveText(aboutMeStatus, { timeout: 500 });
+  }
+
+  async clickLogout() {
+    await this.buttons.userSettingProfile.click();
+    await this.tabs.logout.click();
+    const logoutButton = this.page.locator(generateE2eSelector('button.base'), {
+      hasText: 'Log Out',
+    });
+    try {
+      await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+      await logoutButton.click();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async updateClanNickname(name: string) {
+    await this.openUserSettingProfile();
+    await this.openProfileTab();
+    await this.openClanProfileTab();
+    const nicknameInput = this.inputs.nickname;
+    await expect(nicknameInput).toBeVisible({ timeout: 2000 });
+    await nicknameInput.waitFor({ state: 'attached' });
+
+    await nicknameInput.focus();
+    await this.page.waitForTimeout(1000);
+
+    await nicknameInput.press('Control+A');
+    await nicknameInput.press('Backspace');
+    await this.page.keyboard.type(name, { delay: 120 });
+
+    const saveChangesBtn = this.buttons.saveChangesClanProfile;
+    await saveChangesBtn.click();
+    await this.buttons.closeSettingProfile.click();
   }
 }

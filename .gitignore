@@ -64,6 +64,7 @@ coverage/
 /test-results/
 /playwright-report/
 /playwright/.cache/
+/playwright/.auth/
 results.json
 
 #Ignore vscode AI rules
@@ -78,3 +79,4 @@ sonar-report.json
 
 # ESLint
 eslint-report.json
+test-files
