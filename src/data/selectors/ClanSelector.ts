@@ -164,8 +164,11 @@ export default class ClanSelector extends BasePage {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.item.name')),
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
+      iconHashtagLock: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon.hashtag_lock')),
+      iconHashtag: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon.hashtag')),
     },
     threadItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
@@ -221,6 +224,10 @@ export default class ClanSelector extends BasePage {
     button: {
       close: this.page.locator(generateE2eSelector('button.base'), { hasText: '×' }),
     },
+  };
+
+  readonly secondarySideBar = {
+    member: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
   };
 
   protected createEventModal = {

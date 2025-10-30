@@ -1,7 +1,7 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { ClanPageV2 } from './ClanPageV2';
+import { ClanPage } from './Clan/ClanPage';
 
 export class ChannelSettingPage extends BasePage {
   constructor(page: Page) {
@@ -111,7 +111,7 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async verifyChannelStatusIsPrivate(channelName: string): Promise<boolean> {
-    const clanPage = new ClanPageV2(this.page);
+    const clanPage = new ClanPage(this.page);
     await this.page.waitForLoadState('networkidle');
     try {
       await this.permissions.section.member_role_section.waitFor({ state: 'visible' });
@@ -145,7 +145,7 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async verifyChannelStatusIsPublic(channelName: string): Promise<boolean> {
-    const clanPage = new ClanPageV2(this.page);
+    const clanPage = new ClanPage(this.page);
     await this.page.waitForLoadState('networkidle');
     try {
       await this.permissions.section.member_role_section.waitFor({ state: 'hidden' });
