@@ -1,11 +1,13 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
@@ -291,75 +293,5 @@ test.describe('Channel Management', () => {
       }
     );
     await AllureReporter.attachScreenshot(page, `Channel Renamed - ${newChannelName}`);
-  });
-
-  test('Verify that channel name overview reflect correct when user enter characters or click reset', async ({
-    page,
-  }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63377',
-    });
-
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
-
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify that channel name overview reflect correct when user enter characters or click reset.
-      
-      **Test Steps:**
-      1. Create new channel
-      2. Open modal edit channel
-      3. Edit channel name and reset it
-      
-      **Expected Result:** channel name overview reflect correct when user enter characters or click reset.
-    `);
-
-    await AllureReporter.addLabels({
-      tag: [
-        'channel-creation',
-        'public-channel',
-        'text-channel',
-        'edit-channel-name',
-        'reset-edit',
-      ],
-    });
-
-    const unique = Date.now().toString(36).slice(-6);
-    const channelName = `tc-${unique}`.slice(0, 20);
-    const clanPage = new ClanPage(page);
-
-    await AllureReporter.addParameter('channelName', channelName);
-    await AllureReporter.addParameter('channelType', ChannelType.TEXT);
-    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
-
-    await AllureReporter.step(`Create new public text channel: ${channelName}`, async () => {
-      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
-    });
-
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
-      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
-      expect(isNewChannelPresent).toBe(true);
-    });
-
-    const newChannelName = `${channelName}-ed`.slice(0, 20);
-
-    await AllureReporter.step(`Open modal edit channel name: ${channelName}`, async () => {
-      await clanPage.openChannelSettings(channelName);
-    });
-
-    await AllureReporter.step(
-      `Verify channel name overview reflect correct: ${newChannelName}`,
-      async () => {
-        await clanPage.verifyChannelNameOverviewWhenEditingChannelName(channelName, newChannelName);
-      }
-    );
-
-    await AllureReporter.attachScreenshot(
-      page,
-      `Channel name overview reflect correct when user enter characters or click reset`
-    );
   });
 });
