@@ -62,6 +62,12 @@ export class MessagePage {
 
   readonly directMessageBlockButton: Locator;
   readonly directMessageUnblockButton: Locator;
+  readonly modalForwardMessage: Locator;
+  readonly searchUserOnForwardMessageModal: Locator;
+  readonly cancelForwardMessageButton: Locator;
+  readonly searchModal: Locator;
+  readonly searchInput: Locator;
+  readonly searchTriggerButton: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -209,6 +215,18 @@ export class MessagePage {
     );
     this.directMessageUnblockButton = page.locator(
       generateE2eSelector('chat.direct_message.unblock.button')
+    );
+    this.modalForwardMessage = page.locator(generateE2eSelector('modal.forward_message'));
+    this.searchUserOnForwardMessageModal = page.locator(
+      generateE2eSelector('modal.forward_message.input.search')
+    );
+    this.cancelForwardMessageButton = page.locator(
+      generateE2eSelector('modal.forward_message.button.cancel')
+    );
+    this.searchModal = page.locator(generateE2eSelector('modal.search'));
+    this.searchInput = page.locator(`${generateE2eSelector('modal.search.input')} input`);
+    this.searchTriggerButton = page.locator(
+      generateE2eSelector('chat.direct_message.button.search')
     );
   }
 
@@ -625,6 +643,71 @@ export class MessagePage {
         },
         { timeout: 8000 }
       )
+      .toMatch(/^https?:\/\//);
+    const avatarSrc = await avatarLocator.getAttribute('src');
+
+    if (!avatarSrc) {
+      throw new Error('Avatar src is null or undefined');
+    }
+    return (await getImageHash(avatarSrc)) ?? '';
+  }
+
+  async openForwardMessageModal(): Promise<void> {
+    await this.messages.last().click({ button: 'right' });
+    await this.forwardMessageButton.click();
+    await expect(this.modalForwardMessage).toBeVisible({ timeout: 5000 });
+  }
+
+  async getAvatarHashOnForwardPopup(groupName: string): Promise<string> {
+    await expect(this.searchUserOnForwardMessageModal).toBeVisible({ timeout: 5000 });
+    await this.searchUserOnForwardMessageModal.fill(groupName);
+    const groupItemLocator = this.modalForwardMessage.locator(generateE2eSelector('suggest_item'), {
+      hasText: groupName,
+    });
+    await expect(groupItemLocator).toBeVisible({ timeout: 5000 });
+
+    const avatarLocator = groupItemLocator.locator('img').first();
+    await expect
+      .poll(async () => await avatarLocator.getAttribute('src'), {
+        timeout: 8000,
+      })
+      .toMatch(/^https?:\/\//);
+
+    const avatarSrc = await avatarLocator.getAttribute('src');
+
+    if (!avatarSrc) {
+      throw new Error('Avatar src is null or undefined');
+    }
+
+    return (await getImageHash(avatarSrc)) ?? '';
+  }
+
+  async openSearchModalbyPressCtrlK(): Promise<void> {
+    await this.page.keyboard.press('Control+K');
+    await expect(this.searchModal).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
+  async openSearchModalbyClickSearchButton(): Promise<void> {
+    await this.searchTriggerButton.click();
+    await expect(this.searchModal).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
+  async getAvatarHashOnSearchModal(groupName: string): Promise<string> {
+    await expect(this.searchInput).toBeVisible({ timeout: 5000 });
+    await this.searchInput.fill(groupName);
+    const groupItemLocator = this.searchModal.locator(generateE2eSelector('suggest_item'), {
+      hasText: groupName,
+    });
+    await expect(groupItemLocator).toBeVisible({ timeout: 5000 });
+    const avatarLocator = groupItemLocator.locator('img').first();
+    await expect
+      .poll(async () => await avatarLocator.getAttribute('src'), {
+        timeout: 8000,
+      })
       .toMatch(/^https?:\/\//);
     const avatarSrc = await avatarLocator.getAttribute('src');
 
