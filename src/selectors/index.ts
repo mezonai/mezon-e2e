@@ -404,6 +404,7 @@ export const DATA_E2E_IDENTIFIER = {
         add_user: '',
         create_group: '',
         button_plus: '',
+        search: '',
       },
       edit_group: {
         button: '',

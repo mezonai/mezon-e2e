@@ -240,7 +240,17 @@ test.describe('Direct Message', () => {
     await AllureReporter.step(
       'Verify group avatar is updated with user B when search popup (ctrl+k)',
       async () => {
-        await messagePageB.openSearchModal();
+        await messagePageB.openSearchModalbyPressCtrlK();
+        const avtHashOnSearchModalB = await messagePageB.getAvatarHashOnSearchModal(nameGroupChat);
+        expect(avtHashOnSearchModalB).toBe(profileHash);
+        await dual.pageB.keyboard.press('Escape');
+      }
+    );
+
+    await AllureReporter.step(
+      'Verify group avatar is updated with user B when search popup by click search button',
+      async () => {
+        await messagePageB.openSearchModalbyClickSearchButton();
         const avtHashOnSearchModalB = await messagePageB.getAvatarHashOnSearchModal(nameGroupChat);
         expect(avtHashOnSearchModalB).toBe(profileHash);
         await dual.pageB.keyboard.press('Escape');

@@ -67,6 +67,7 @@ export class MessagePage {
   readonly cancelForwardMessageButton: Locator;
   readonly searchModal: Locator;
   readonly searchInput: Locator;
+  readonly searchTriggerButton: Locator;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -224,6 +225,9 @@ export class MessagePage {
     );
     this.searchModal = page.locator(generateE2eSelector('modal.search'));
     this.searchInput = page.locator(`${generateE2eSelector('modal.search.input')} input`);
+    this.searchTriggerButton = page.locator(
+      generateE2eSelector('chat.direct_message.button.search')
+    );
   }
 
   async getFirstMessage(): Promise<Locator> {
@@ -678,8 +682,15 @@ export class MessagePage {
     return (await getImageHash(avatarSrc)) ?? '';
   }
 
-  async openSearchModal(): Promise<void> {
+  async openSearchModalbyPressCtrlK(): Promise<void> {
     await this.page.keyboard.press('Control+K');
+    await expect(this.searchModal).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
+  async openSearchModalbyClickSearchButton(): Promise<void> {
+    await this.searchTriggerButton.click();
     await expect(this.searchModal).toBeVisible({
       timeout: 5000,
     });
