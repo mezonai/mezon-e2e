@@ -173,6 +173,17 @@ export default class ClanSelector extends BasePage {
       iconHashtag: this.page.locator(
         generateE2eSelector('clan_page.channel_list.item.icon.hashtag')
       ),
+      userList: {
+        item: this.page.locator(generateE2eSelector('clan_page.channel_list.item.user_list.item')),
+      },
+      userListCollapsed: {
+        item: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item')
+        ),
+        itemCount: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item_count')
+        ),
+      },
     },
     threadItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
@@ -217,6 +228,15 @@ export default class ClanSelector extends BasePage {
     limitCreation: {
       title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
     },
+    voiceManagement: {
+      item: this.page.locator(generateE2eSelector('modal.voice_management')),
+      button: {
+        controlItem: this.page.locator(
+          generateE2eSelector('modal.voice_management.button.control_item')
+        ),
+        endCall: this.page.locator(generateE2eSelector('icon.end_call')),
+      },
+    },
   };
 
   readonly modalInvite = {
@@ -231,7 +251,20 @@ export default class ClanSelector extends BasePage {
   };
 
   readonly secondarySideBar = {
-    member: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
+    member: {
+      item: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
+      inVoice: this.page.locator(
+        generateE2eSelector('clan_page.secondary_side_bar.member.in_voice')
+      ),
+    },
+  };
+
+  readonly screen = {
+    voiceRoom: {
+      joinButton: this.page.locator(
+        generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
+      )
+    },
   };
 
   protected createEventModal = {

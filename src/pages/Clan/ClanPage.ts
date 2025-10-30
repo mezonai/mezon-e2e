@@ -972,4 +972,74 @@ export class ClanPage extends ClanSelector {
 
     await this.buttons.exitSettings.click();
   }
+
+  async joinVoiceChannel(channelName: string): Promise<boolean> {
+    await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+    const joinButtonLocator = this.screen.voiceRoom.joinButton;
+    try {
+      await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await joinButtonLocator.click();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isJoinVoiceChannel(channelName: string): Promise<boolean> {
+    const membersButton = this.header.button.member.nth(0);
+    const generalChannel = this.sidebar.channelItem.name.filter({ hasText: 'general' });
+    const userListLocator = this.sidebar.channelItem.item
+      .filter({ has: this.sidebar.channelItem.name.filter({ hasText: channelName }) })
+      .locator(this.sidebar.channelItem.userList.item);
+    const memberListLocator = this.sidebarMemberList.memberItems;
+
+    try {
+      await userListLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await this.modal.voiceManagement.item.waitFor({ state: 'visible', timeout: 5000 });
+      await generalChannel.click();
+      await membersButton.click();
+      const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
+      await memberInVoice.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async leaveVoiceChannel(channelName: string): Promise<boolean> {
+    await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+    const leaveButtonLocator = this.modal.voiceManagement.button.controlItem.filter({
+      has: this.modal.voiceManagement.button.endCall,
+    });
+    try {
+      await leaveButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await leaveButtonLocator.click();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isLeaveVoiceChannel(channelName: string): Promise<boolean> {
+    await this.page.waitForTimeout(3000);
+    const userListLocator = this.sidebar.channelItem.item
+      .filter({ has: this.sidebar.channelItem.name.filter({ hasText: channelName }) })
+      .locator(this.sidebar.channelItem.userList.item);
+    const generalChannel = this.sidebar.channelItem.name.filter({ hasText: 'general' });
+    const membersButton = this.header.button.member.nth(0);
+    const memberListLocator = this.sidebarMemberList.memberItems;
+
+    try {
+      await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+      await userListLocator.waitFor({ state: 'hidden', timeout: 5000 });
+      await this.modal.voiceManagement.item.waitFor({ state: 'hidden', timeout: 5000 });
+      await generalChannel.click();
+      await membersButton.click();
+      const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
+      await memberInVoice.waitFor({ state: 'hidden', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
