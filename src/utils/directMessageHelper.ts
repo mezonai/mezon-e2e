@@ -86,8 +86,17 @@ export class DirectMessageHelper {
 
     while (scrolled < maxScroll) {
       const target = this.chatList.filter({
-        has: this.page.locator(`:text-is("${name}")`),
+        has: this.page.locator(
+          `${generateE2eSelector('chat.direct_message.chat_item.username')}:text-is("${name}")`
+        ),
       });
+
+      if (await target.count()) {
+        const item = target.first();
+        await item.scrollIntoViewIfNeeded();
+        await this.page.waitForTimeout(120);
+        return true;
+      }
 
       const reachedEnd = await this.chatListContainer.evaluate((el, step) => {
         const before = el.scrollTop;
@@ -96,15 +105,15 @@ export class DirectMessageHelper {
       }, scrollStep);
 
       await this.page.waitForTimeout(waitMs);
+
       if (await target.count()) {
-        await target.first().scrollIntoViewIfNeeded();
+        await target.scrollIntoViewIfNeeded();
         return true;
       }
 
       if (reachedEnd) {
         break;
       }
-
       scrolled += scrollStep;
     }
 
