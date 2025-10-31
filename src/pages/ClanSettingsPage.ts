@@ -3,6 +3,7 @@ import { BasePage } from './BasePage';
 import { joinUrlPaths } from '../utils/joinUrlPaths';
 import { WEBSITE_CONFIGS } from '../config/environment';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
 
 export class ClanSettingsPage extends BasePage {
   readonly buttons = {
@@ -23,6 +24,24 @@ export class ClanSettingsPage extends BasePage {
     enableCommunity: this.page.locator(
       generateE2eSelector('clan_page.settings.community.button.enable_community')
     ),
+  };
+
+  readonly integrations = {
+    createWebhook: this.page.locator(
+      generateE2eSelector('clan_page.settings.integrations.create_clan_webhook_button')
+    ),
+    newWebhook: this.page.locator(
+      generateE2eSelector('clan_page.settings.integrations.new_clan_webhook_button')
+    ),
+    webhookItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.settings.integrations.webhook_item')),
+      title: this.page.locator(
+        generateE2eSelector('clan_page.settings.integrations.webhook_item.webhook_title')
+      ),
+      description: this.page.locator(
+        generateE2eSelector('clan_page.settings.integrations.webhook_item.webhook_description')
+      ),
+    },
   };
 
   private readonly clanMenuSelectors = [
@@ -1051,6 +1070,28 @@ export class ClanSettingsPage extends BasePage {
         .locator('input[type="file"][accept*="image"], input[type="file"][accept*="image/*"]')
         .first();
       await genericInput.setInputFiles(filePath);
+    }
+  }
+
+  async createWebhook(): Promise<void> {
+    await this.integrations.createWebhook.click();
+    await this.integrations.newWebhook.click();
+  }
+
+  async verifyWebhookCreated(): Promise<boolean> {
+    const webhookItem = this.integrations.webhookItem.item.first();
+    const webhookItemTitle = this.integrations.webhookItem.title;
+    const webhookItemDescription = webhookItem.locator(this.integrations.webhookItem.description);
+    const webhookItemDescriptionText = await webhookItemDescription.innerText();
+    const isSameTime = isWebhookJustCreated(webhookItemDescriptionText || '');
+    try {
+      await expect(webhookItem).toBeVisible();
+      await expect(webhookItemTitle).toBeVisible();
+      await expect(webhookItemDescription).toBeVisible();
+      expect(isSameTime).toBe(true);
+      return true;
+    } catch {
+      return false;
     }
   }
 }
