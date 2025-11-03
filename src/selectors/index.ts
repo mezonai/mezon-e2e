@@ -151,6 +151,7 @@ export const DATA_E2E_IDENTIFIER = {
           confirm: '',
           cancel: '',
         },
+        error_message: '',
       },
       create_clan: {
         input: {

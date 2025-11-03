@@ -1,5 +1,5 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import { BasePage } from '../BasePage';
 
 export class ClanMenuPanel extends BasePage {
@@ -33,6 +33,11 @@ export class ClanMenuPanel extends BasePage {
   readonly links = {};
   readonly text = {
     clanName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
+    createCategory: {
+      errorMessage: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_category.error_message')
+      ),
+    },
   };
 
   readonly input = {
@@ -83,5 +88,63 @@ export class ClanMenuPanel extends BasePage {
     await this.openPanel();
     await this.buttons.invitePeople.click();
     await this.page.waitForTimeout(500);
+  }
+
+  async toggleShowEmptyCategory(): Promise<void> {
+    await this.openPanel();
+    await this.buttons.showEmpty.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async closeCreateCategoryModal(): Promise<void> {
+    await this.buttons.cancelCreateCategory.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async assertCreateCategoryModalVisible(): Promise<void> {
+    await this.openPanel();
+    await this.buttons.createCategory.click();
+    await expect(this.input.categoryName).toBeVisible({ timeout: 5000 });
+    await expect(this.buttons.confirmCreateCategory).toBeVisible();
+    await expect(this.buttons.invitePeople).not.toBeVisible();
+  }
+
+  async assertCreateCategoryModalNotVisible(): Promise<void> {
+    await expect(this.input.categoryName).not.toBeVisible({ timeout: 5000 });
+  }
+
+  async openCreateCategoryModal(): Promise<void> {
+    await this.openPanel();
+    await this.buttons.createCategory.click();
+    await this.input.categoryName.waitFor({ state: 'visible', timeout: 5000 });
+  }
+
+  async fillCreateCategoryModal(name: string): Promise<void> {
+    await this.input.categoryName.waitFor({ state: 'visible', timeout: 5000 });
+    await this.input.categoryName.fill(name);
+    await this.page.waitForTimeout(200);
+  }
+
+  async assertCreateCategoryErrorMessage(errorMessage: string): Promise<void> {
+    await expect(this.text.createCategory.errorMessage).toBeVisible({ timeout: 5000 });
+    await expect(this.text.createCategory.errorMessage).toHaveText(errorMessage);
+    await expect(this.buttons.confirmCreateCategory).toBeDisabled();
+  }
+
+  async assertCreateCategoryErrorMessageDuplicateVisible(): Promise<void> {
+    const duplicateErrorMessage =
+      'The category name already exists in the clan. Please enter another name.';
+    await this.assertCreateCategoryErrorMessage(duplicateErrorMessage);
+  }
+
+  async assertCreateCategoryErrorMessageLengthVisible(): Promise<void> {
+    const lengthErrorMessage =
+      'Please enter a valid category name (max 64 characters, only words, numbers, _ or -).';
+    await this.assertCreateCategoryErrorMessage(lengthErrorMessage);
+  }
+
+  async assertCreateCategoryErrorMessageNotVisible(): Promise<void> {
+    await expect(this.text.createCategory.errorMessage).not.toBeVisible({ timeout: 5000 });
+    await expect(this.buttons.confirmCreateCategory).toBeEnabled();
   }
 }

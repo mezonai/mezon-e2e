@@ -240,6 +240,11 @@ export class ClanSetupHelper {
       clanNamePrefix: 'MemberManagementTest',
       suiteName: 'Member Management',
     }),
+
+     createCategory: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'CreateCategoryTest',
+      suiteName: 'Create Category',
+    }),
   };
 }
 

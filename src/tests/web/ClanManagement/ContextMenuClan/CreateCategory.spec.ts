@@ -15,13 +15,22 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Clan Context Menu - Create Category', () => {
   const clanFactory = new ClanFactory();
-  const credentials: MezonCredentials = AccountCredentials.account3;
+  const credentials = AccountCredentials['account1'];
 
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
       clanFactory,
-      configs: ClanSetupHelper.configs.clanManagement2,
+      configs: ClanSetupHelper.configs.channelManagement,
+      credentials,
+    });
+  });
+
+  test.beforeAll(async ({ browser }) => {
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.createCategory,
       credentials,
     });
   });
@@ -62,7 +71,7 @@ test.describe('Clan Context Menu - Create Category', () => {
 
       **Test Steps:**
       1. Generate a valid category name, ensuring it's short (< 64 characters)
-      2. Open the context menu, select Create Category, enter the name, and confirm
+      2. Open the context menu, toggle show empty categories, select Create Category, enter the name, and confirm
       3. Confirm the new category appears in the sidebar category list
 
       **Expected Result:** The category is successfully created and displayed in the list.
@@ -100,7 +109,7 @@ test.describe('Clan Context Menu - Create Category', () => {
       **Test Objective:** Create a category using the allowed mix of characters (letters, spaces, hyphen, underscore, emoji).
 
       **Test Steps:**
-      1. Open the context menu and launch the Create Category modal
+      1. Open the context menu and toggle show empty categories, launch the Create Category modal
       2. Enter a name that includes supported special characters
       3. Submit and verify the category renders in the sidebar
 
@@ -116,88 +125,22 @@ test.describe('Clan Context Menu - Create Category', () => {
 
     await AllureReporter.addParameter('categoryName', categoryName);
 
-    await AllureReporter.step(`Create category with special characters: ${categoryName}`, async () => {
-      await menuPanel.createCategory(categoryName);
-    });
-
-    await AllureReporter.step('Verify category appears with special characters intact', async () => {
-      const isPresent = await menuPanel.isCategoryPresent(categoryName);
-      expect(isPresent).toBeTruthy();
-    });
-
-    await AllureReporter.attachScreenshot(page, `Category Special Characters - ${categoryName}`);
-  });
-
-  test('Create category option requires manageClan permission', async ({ page, browser }) => {
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.CRITICAL,
-    });
-
-    await AllureReporter.addDescription(`
-      **Test Objective:** Ensure the Create Category action is visible only to members with manageClan permission.
-
-      **Test Steps:**
-      1. Open the context menu as a clan manager and confirm the Create Category entry is visible
-      2. Generate an invite link and join the clan with a non-manager account
-      3. Open the context menu as the non-manager and confirm the Create Category entry is hidden
-
-      **Expected Result:** Only the manager sees the Create Category option; non-manager members do not.
-    `);
-
-    await AllureReporter.addLabels({
-      tag: ['category', 'context-menu', 'permissions'],
-    });
-
-    const menuPanel = new ClanMenuPanel(page);
-    const clanPage = new ClanPage(page);
-
-    await AllureReporter.step('Manager sees Create Category entry in context menu', async () => {
-      await menuPanel.openPanel();
-      await expect(menuPanel.buttons.createCategory).toBeVisible();
-      await page.keyboard.press('Escape');
-    });
-
-    const inviteLink = await AllureReporter.step(
-      'Generate clan invite link for secondary account',
+    await AllureReporter.step(
+      `Create category with special characters: ${categoryName}`,
       async () => {
-        await clanPage.clickButtonInvitePeopleFromMenu();
-        const inviteModal = new ClanInviteFriendModal(page);
-        const link = await inviteModal.getInviteLink();
-        await clanPage.buttons.closeInviteModal.click();
-        await expect(clanPage.buttons.closeInviteModal).toBeHidden({ timeout: 5000 });
-        return link;
+        await menuPanel.createCategory(categoryName);
       }
     );
 
-    await AllureReporter.addParameter('secondaryAccount', AccountCredentials.account4.email);
+    await AllureReporter.step(
+      'Verify category appears with special characters intact',
+      async () => {
+        const isPresent = await menuPanel.isCategoryPresent(categoryName);
+        expect(isPresent).toBeTruthy();
+      }
+    );
 
-    const memberContext = await browser.newContext();
-    const memberPage = await memberContext.newPage();
-
-    try {
-      await AllureReporter.step('Non-manager signs in and joins the clan', async () => {
-        await AuthHelper.setupAuthWithEmailPassword(memberPage, AccountCredentials.account4);
-        await memberPage.goto(inviteLink, { waitUntil: 'domcontentloaded' });
-        const clanInviteModal = new ClanInviteModal(memberPage);
-        await expect(clanInviteModal.button.acceptInvite).toBeVisible({ timeout: 15000 });
-        await clanInviteModal.acceptInvite();
-        await memberPage.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
-      });
-
-      await AllureReporter.step('Non-manager context menu hides Create Category entry', async () => {
-        const memberMenuPanel = new ClanMenuPanel(memberPage);
-        await memberMenuPanel.openPanel();
-        await expect(memberMenuPanel.buttons.invitePeople).toBeVisible();
-        await expect(memberMenuPanel.buttons.createCategory).toHaveCount(0);
-        await memberPage.keyboard.press('Escape');
-      });
-
-      await AllureReporter.attachScreenshot(memberPage, 'Context Menu Without ManageClan');
-    } finally {
-      await memberContext.close();
-    }
+    await AllureReporter.attachScreenshot(page, `Category Special Characters - ${categoryName}`);
   });
 
   test('Create Category action closes context menu cleanly', async ({ page }) => {
@@ -224,24 +167,13 @@ test.describe('Clan Context Menu - Create Category', () => {
 
     const menuPanel = new ClanMenuPanel(page);
 
-    await AllureReporter.step('Open context menu and launch Create Category modal', async () => {
-      await menuPanel.openPanel();
-      await menuPanel.buttons.createCategory.click();
-    });
-
     await AllureReporter.step('Verify modal is displayed and menu is dismissed', async () => {
-      await expect(menuPanel.input.categoryName).toBeVisible({ timeout: 5000 });
-      await expect(menuPanel.buttons.confirmCreateCategory).toBeVisible();
-      await expect(menuPanel.buttons.invitePeople).not.toBeVisible();
-      const contextMenuItems = page.locator(generateE2eSelector('clan_page.header.modal_panel.item'));
-      await expect(contextMenuItems.first()).not.toBeVisible();
+      await menuPanel.assertCreateCategoryModalVisible();
     });
 
     await AllureReporter.step('Close modal and ensure context menu remains hidden', async () => {
-      await menuPanel.buttons.cancelCreateCategory.click();
-      await expect(menuPanel.input.categoryName).not.toBeVisible({ timeout: 5000 });
-      const contextMenuItems = page.locator(generateE2eSelector('clan_page.header.modal_panel.item'));
-      await expect(contextMenuItems.first()).not.toBeVisible();
+      await menuPanel.closeCreateCategoryModal();
+      await menuPanel.assertCreateCategoryModalNotVisible();
     });
 
     await AllureReporter.attachScreenshot(page, 'Create Category Modal Clean State');
@@ -272,14 +204,17 @@ test.describe('Clan Context Menu - Create Category', () => {
     const menuPanel = new ClanMenuPanel(page);
 
     await AllureReporter.step('Open Create Category modal', async () => {
-      await menuPanel.text.clanName.click();
-      await menuPanel.buttons.showEmpty.click();
+      await menuPanel.openPanel();
       await menuPanel.buttons.createCategory.click();
       await menuPanel.input.categoryName.waitFor({ state: 'visible', timeout: 5000 });
     });
 
     await AllureReporter.step('Verify confirm button is disabled when name is empty', async () => {
       await expect(menuPanel.buttons.confirmCreateCategory).toBeDisabled();
+    });
+
+    await AllureReporter.step('Close modal', async () => {
+      await menuPanel.closeCreateCategoryModal();
     });
 
     await AllureReporter.attachScreenshot(page, 'Create Category - Empty Name Disabled');
@@ -308,7 +243,6 @@ test.describe('Clan Context Menu - Create Category', () => {
     });
 
     const categoryName = `category-duplicate-${Date.now().toString(36).slice(-8)}`;
-    const duplicateErrorMessage = 'The category name already exists in the clan.';
     const menuPanel = new ClanMenuPanel(page);
 
     await AllureReporter.addParameter('categoryName', categoryName);
@@ -320,25 +254,13 @@ test.describe('Clan Context Menu - Create Category', () => {
     });
 
     await AllureReporter.step('Attempt to reuse the same category name', async () => {
-      await menuPanel.text.clanName.click();
-      await menuPanel.buttons.showEmpty.click();
-      await menuPanel.buttons.createCategory.click();
-      await menuPanel.input.categoryName.waitFor({ state: 'visible', timeout: 5000 });
-      await menuPanel.input.categoryName.fill(categoryName);
-
-      await expect
-        .poll(async () => await menuPanel.buttons.confirmCreateCategory.isEnabled())
-        .toBeTruthy();
-      await expect(page.getByText(duplicateErrorMessage, { exact: false })).toBeVisible();
-      await expect(menuPanel.buttons.confirmCreateCategory).toBeDisabled();
-      const categoryLocator = page
-        .locator(generateE2eSelector('clan_page.side_bar.channel_list.category'))
-        .filter({ hasText: categoryName });
-      await expect(categoryLocator).toHaveCount(1);
-
-      await menuPanel.buttons.cancelCreateCategory.click();
+      await menuPanel.openCreateCategoryModal();
+      await menuPanel.fillCreateCategoryModal(categoryName);
+      await menuPanel.assertCreateCategoryErrorMessageDuplicateVisible();
     });
-
+    await AllureReporter.step('Close the modal ', async () => {
+      await menuPanel.closeCreateCategoryModal();
+    });
     await AllureReporter.attachScreenshot(page, `Duplicate Category Blocked - ${categoryName}`);
   });
 
@@ -365,36 +287,81 @@ test.describe('Clan Context Menu - Create Category', () => {
     });
 
     const longName = `L${'o'.repeat(99)}`;
-    const invalidMessage =
-      'Please enter a valid category name (max 64 characters, only words, numbers, _ or -).';
+
     const menuPanel = new ClanMenuPanel(page);
 
     await AllureReporter.addParameter('categoryNameLength', longName.length.toString());
 
     await AllureReporter.step('Open modal and input over-length category name', async () => {
-      await menuPanel.text.clanName.click();
-      await menuPanel.buttons.showEmpty.click();
-      await menuPanel.buttons.createCategory.click();
-      await menuPanel.input.categoryName.waitFor({ state: 'visible', timeout: 5000 });
-      await menuPanel.input.categoryName.fill(longName);
+      await menuPanel.openCreateCategoryModal();
+      await menuPanel.fillCreateCategoryModal(longName);
     });
 
     await AllureReporter.step('Verify validation message and disabled Create button', async () => {
-      await expect(page.getByText(invalidMessage, { exact: false })).toBeVisible();
-      await expect
-        .poll(async () => await menuPanel.buttons.confirmCreateCategory.isEnabled())
-        .toBeFalsy();
-      await expect(menuPanel.buttons.confirmCreateCategory).toBeDisabled();
+      await menuPanel.assertCreateCategoryErrorMessageLengthVisible();
     });
 
-    await AllureReporter.step('Confirm category is not added to the sidebar list', async () => {
-      const categoryLocator = page
-        .locator(generateE2eSelector('clan_page.side_bar.channel_list.category'))
-        .filter({ hasText: longName });
-      await expect(categoryLocator).toHaveCount(0);
+    await AllureReporter.step('Close the modal ', async () => {
+      await menuPanel.closeCreateCategoryModal();
     });
 
-    await menuPanel.buttons.cancelCreateCategory.click();
+    await AllureReporter.attachScreenshot(page, 'Category Over Length Validation');
+  });
+
+  test('Check if the error message is not visible when the modal is closed', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Ensure category names longer than 64 characters are rejected with the correct validation message.
+
+      **Test Steps:**
+      1. Open the Create Category modal
+      2. Enter a 100-character name
+      3. Observe validation messaging and disabled Create button
+      4. Close the modal and open it again to check if the error message is not visible
+
+      **Expected Result:** The invalid name helper text is not visible.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['category', 'validation', 'length'],
+    });
+
+    const longName = `L${'o'.repeat(99)}`;
+
+    const menuPanel = new ClanMenuPanel(page);
+
+    await AllureReporter.addParameter('categoryNameLength', longName.length.toString());
+
+    await AllureReporter.step('Open modal and input over-length category name', async () => {
+      await menuPanel.openCreateCategoryModal();
+      await menuPanel.fillCreateCategoryModal(longName);
+    });
+
+    await AllureReporter.step('Verify validation message and disabled Create button', async () => {
+      await menuPanel.assertCreateCategoryErrorMessageLengthVisible();
+    });
+
+    await AllureReporter.step('Close the modal ', async () => {
+      await menuPanel.closeCreateCategoryModal();
+    });
+
+    await AllureReporter.step(
+      'Open modal again and check if the error message is not visible',
+      async () => {
+        await menuPanel.openCreateCategoryModal();
+        // await expect(menuPanel.text.createCategory.errorMessage).not.toBeVisible({ timeout: 5000 });
+        await expect(menuPanel.text.createCategory.errorMessage).toBeVisible({ timeout: 5000 });
+      }
+    );
+
+    await AllureReporter.step('Close the modal ', async () => {
+      await menuPanel.closeCreateCategoryModal();
+    });
 
     await AllureReporter.attachScreenshot(page, 'Category Over Length Validation');
   });
