@@ -26,6 +26,7 @@ export class MessageTestHelpers {
   readonly deleteMessageButton: Locator;
   readonly headerInboxButton: Locator;
   readonly inboxMessages: Locator;
+  readonly topicNumberReplies: Locator;
 
   message: string = '';
 
@@ -99,6 +100,8 @@ export class MessageTestHelpers {
     this.inboxMessages = this.page.locator(
       `${generateE2eSelector('chat.channel_message.inbox.mentions')} div[class*="w-full"][class*="text-theme-message"]`
     );
+
+    this.topicNumberReplies = this.page.locator(generateE2eSelector('chat.topic.number_replies'));
   }
 
   public getMessageItemLocator(textContains?: string): Locator {
@@ -2767,8 +2770,7 @@ export class MessageTestHelpers {
       timeout: 5000,
     });
 
-    await this.closeTopicBoxButton.click();
-    await expect(this.topicInput).toBeHidden({ timeout: 2000 });
+    await this.page.reload();
   }
 
   async verifyEditButtonIsHiddenWhenHover(message: string) {
@@ -2835,6 +2837,48 @@ export class MessageTestHelpers {
   async assertMessageInInboxByContent(messageContent: string) {
     const inboxMessage = this.inboxMessages.filter({ hasText: messageContent });
     await expect(inboxMessage).toBeVisible({ timeout: 5000 });
+  }
+
+  async openTopicBoxByMessage(message: string) {
+    const messageLocator = this.getMessageItemLocator(message);
+    await expect(messageLocator).toBeVisible({ timeout: 5000 });
+
+    const viewTopicLocator = messageLocator.locator(
+      generateE2eSelector('chat.topic.button.view_topic')
+    );
+    await expect(viewTopicLocator).toBeVisible({ timeout: 2000 });
+    await viewTopicLocator.click();
+    await expect(this.topicInput).toBeVisible({ timeout: 2000 });
+  }
+
+  async closeTopicBox() {
+    await expect(this.closeTopicBoxButton).toBeVisible({ timeout: 5000 });
+    await this.closeTopicBoxButton.click();
+    await expect(this.topicInput).toBeHidden({ timeout: 5000 });
+  }
+
+  async sendMessageInTopicBox(topicMessage: string) {
+    await expect(this.topicInput).toBeVisible({ timeout: 2000 });
+    await this.topicInput.fill(topicMessage);
+    await this.topicInput.press('Enter');
+    await this.page.waitForLoadState('networkidle', { timeout: 5000 });
+
+    const newTopicMessageLocator = this.topicMessages.filter({
+      hasText: topicMessage,
+    });
+    await expect(newTopicMessageLocator).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
+  async getTotalTopicMessages(message: string): Promise<number> {
+    const messageLocator = this.getMessageItemLocator(message);
+    await expect(messageLocator).toBeVisible({ timeout: 5000 });
+    const replyLocator = messageLocator.locator(generateE2eSelector('chat.topic.number_replies'));
+    await expect(replyLocator).toBeVisible({ timeout: 2000 });
+    const text = await replyLocator.innerText();
+    const cleaned = text.replace(/\D+/g, '');
+    return Number(cleaned);
   }
 }
 

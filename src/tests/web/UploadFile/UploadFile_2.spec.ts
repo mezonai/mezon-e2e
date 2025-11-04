@@ -302,7 +302,7 @@ test.describe('File Size Limits Validation - Module 2', () => {
       'Open Clan Settings (Voice Stickers) and open upload modal',
       async () => {
         await clanPage.openClanSettings();
-        await clanSettingsPage.clickSettingClanSection('Voice Stickers');
+        await clanSettingsPage.clickSettingClanSection('Sound Effect');
         await clanSettingsPage.clickUploadVoiceStickers();
       }
     );
