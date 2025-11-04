@@ -18,10 +18,10 @@ export const isWebhookJustCreated = (dataString: string): boolean => {
   );
 
   return (
-    parsed.getFullYear() === now.getFullYear() &&
-    parsed.getMonth() === now.getMonth() &&
-    parsed.getDate() === now.getDate() &&
-    parsed.getHours() === now.getHours() &&
-    (parsed.getMinutes() === now.getMinutes() || parsed.getMinutes() === now.getMinutes() - 1)
+    parsed.getFullYear() === now.getUTCFullYear() &&
+    parsed.getMonth() === now.getUTCMonth() &&
+    parsed.getDate() === now.getUTCDate() &&
+    parsed.getHours() === now.getUTCHours() &&
+    (parsed.getMinutes() === now.getUTCMinutes() || parsed.getMinutes() === now.getUTCMinutes() - 1)
   );
 };

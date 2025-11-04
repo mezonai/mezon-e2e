@@ -4,6 +4,7 @@ import { joinUrlPaths } from '../utils/joinUrlPaths';
 import { WEBSITE_CONFIGS } from '../config/environment';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
+import { ClanPage } from './Clan/ClanPage';
 
 export class ClanSettingsPage extends BasePage {
   readonly buttons = {
@@ -1079,17 +1080,17 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async verifyWebhookCreated(): Promise<boolean> {
-    const webhookItem = this.integrations.webhookItem.item.first();
-    const webhookItemTitle = this.integrations.webhookItem.title;
-    const webhookItemDescription = webhookItem.locator(this.integrations.webhookItem.description);
-    const webhookItemDescriptionText = await webhookItemDescription.innerText();
-    const isSameTime = isWebhookJustCreated(webhookItemDescriptionText || '');
+    const clanPage = new ClanPage(this.page);
+    const webhookItem = await this.integrations.webhookItem.item.first();
+    const webhookItemTitle = await webhookItem.locator(this.integrations.webhookItem.title);
+    const webhookItemDescription = await webhookItem.locator(this.integrations.webhookItem.description);
     try {
       await expect(webhookItem).toBeVisible();
       await expect(webhookItemTitle).toBeVisible();
       await expect(webhookItemDescription).toBeVisible();
-      expect(isSameTime).toBe(true);
-      return true;
+      await clanPage.buttons.closeSettingClan.click();
+      const webhookItemDescriptionText = await webhookItemDescription.innerText();
+      return isWebhookJustCreated(webhookItemDescriptionText);
     } catch {
       return false;
     }
