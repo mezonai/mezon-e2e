@@ -9,8 +9,8 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 
 test.describe('Friend Management - Block User', () => {
-  const accountA = AccountCredentials['account2-1'];
-  const accountB = AccountCredentials['account2-2'];
+  const accountA = AccountCredentials['accountKien4'];
+  const accountB = AccountCredentials['accountKien5'];
   const userNameA = accountA.email.split('@')[0];
   const userNameB = accountB.email.split('@')[0];
   test.beforeEach(async ({ dual }) => {

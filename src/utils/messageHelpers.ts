@@ -27,6 +27,7 @@ export class MessageTestHelpers {
   readonly headerInboxButton: Locator;
   readonly inboxMessages: Locator;
   readonly topicNumberReplies: Locator;
+  readonly messageInput: Locator;
 
   message: string = '';
 
@@ -102,6 +103,7 @@ export class MessageTestHelpers {
     );
 
     this.topicNumberReplies = this.page.locator(generateE2eSelector('chat.topic.number_replies'));
+    this.messageInput = this.page.locator(generateE2eSelector('mention.input'));
   }
 
   public getMessageItemLocator(textContains?: string): Locator {
@@ -2879,6 +2881,31 @@ export class MessageTestHelpers {
     const text = await replyLocator.innerText();
     const cleaned = text.replace(/\D+/g, '');
     return Number(cleaned);
+  }
+
+  async verifyFlashMessageOnMessageInput(command: string, contentMessage: string) {
+    const message = `/${command}`;
+    await expect(this.messageInput).toBeVisible({ timeout: 3000 });
+    await this.messageInput.fill(message);
+
+    const popup = this.page.locator('div.mention-popover-container');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+
+    const commandLocator = popup.locator(
+      `${generateE2eSelector('suggest_item')}:has-text("${command}")`
+    );
+
+    await expect(commandLocator).toBeVisible({ timeout: 3000 });
+
+    const contentMessageLocator = popup.locator(
+      `${generateE2eSelector('suggest_item.username')}:has-text("${contentMessage}")`
+    );
+
+    await expect(contentMessageLocator).toBeVisible({ timeout: 3000 });
+
+    await commandLocator.click();
+
+    await expect(this.messageInput).toHaveText(contentMessage, { timeout: 3000 });
   }
 }
 

@@ -1,27 +1,27 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { expect, test } from '@/fixtures/dual.fixture';
 import { ClanInviteFriendModal } from '@/pages/Clan/ClanInviteFriendModal';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
 import { ClanInviteModal } from '@/pages/Modal/ClanInviteModal';
+import { ForwardMessageModal } from '@/pages/Modal/ForwarMessageModal';
 import { ROUTES } from '@/selectors';
+import { ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
-import { expect, test } from '@/fixtures/dual.fixture';
-import { ForwardMessageModal } from '@/pages/Modal/ForwarMessageModal';
-import { ThreadStatus } from '@/types/clan-page.types';
-import { ClanPage } from '@/pages/Clan/ClanPage';
+import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import generateRandomString from '@/utils/randomString';
 
 test.describe('Friend Management - Block User', () => {
-  const accountA = AccountCredentials['account2-5'];
-  const accountB = AccountCredentials['account3'];
+  const accountA = AccountCredentials['accountKien8'];
+  const accountB = AccountCredentials['accountKien9'];
   const userNameA = accountA.email.split('@')[0];
   const userNameB = accountB.email.split('@')[0];
   test.beforeEach(async ({ dual }) => {

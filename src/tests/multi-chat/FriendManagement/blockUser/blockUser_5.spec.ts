@@ -11,8 +11,8 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { test } from '@/fixtures/dual.fixture';
 
 test.describe('Friend Management - Block User', () => {
-  const accountA = AccountCredentials['account4'];
-  const accountB = AccountCredentials['account5'];
+  const accountA = AccountCredentials['accountKien10'];
+  const accountB = AccountCredentials['accountKien1'];
   const userNameA = accountA.email.split('@')[0];
   const userNameB = accountB.email.split('@')[0];
   test.beforeEach(async ({ dual }) => {
