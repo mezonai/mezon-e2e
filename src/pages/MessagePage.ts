@@ -509,8 +509,11 @@ export class MessagePage {
 
   async deleteLastMessage() {
     const lastMessage = this.messages.last();
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
     await lastMessage.click({ button: 'right' });
+    await this.page.waitForTimeout(1000);
     await this.deleteMessageButton.click();
+    await this.page.waitForTimeout(1000);
     await this.confirmDeleteMessageButton.click();
   }
 
