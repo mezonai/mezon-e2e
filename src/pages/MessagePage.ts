@@ -5,6 +5,7 @@ import { getImageHash } from '@/utils/images';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { expect, Locator, Page } from '@playwright/test';
 import sleep from '@utils/sleep';
+import { ProfilePage } from './ProfilePage';
 
 export class MessagePage {
   private helpers: DirectMessageHelper;
@@ -718,5 +719,69 @@ export class MessagePage {
       throw new Error('Avatar src is null or undefined');
     }
     return (await getImageHash(avatarSrc)) ?? '';
+  }
+
+  async leaveAllGroup() {
+    const profilePage = new ProfilePage(this.page);
+    await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+
+    const chatList = this.page.locator(generateE2eSelector('chat.direct_message.chat_list'));
+    await expect(chatList.first()).toBeVisible({ timeout: 10000 });
+
+    while (true) {
+      const group = chatList
+        .filter({
+          has: this.page.locator('p', { hasText: 'Members' }),
+        })
+        .first();
+
+      const groupCount = await group.count();
+      if (groupCount === 0) {
+        console.log('✅ No more groups to leave.');
+        break;
+      }
+
+      await group.hover();
+      const leaveGroupButton = group.locator(
+        generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+      );
+
+      await leaveGroupButton.click({ force: true });
+      const confirmLeaveGroupButton = this.page.locator(
+        generateE2eSelector('chat.direct_message.leave_group.button')
+      );
+      await confirmLeaveGroupButton.click();
+
+      await this.page.waitForTimeout(400);
+      await expect(confirmLeaveGroupButton).toBeHidden({ timeout: 3000 });
+    }
+  }
+
+  async leaveGroupByName(groupName: string) {
+    const group = await this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+      .filter({
+        has: this.page.locator('p', { hasText: 'Members' }),
+      })
+      .filter({
+        has: this.page.locator('span', {
+          hasText: groupName,
+        }),
+      })
+      .first();
+    await expect(group).toBeVisible({ timeout: 3000 });
+    await group.hover();
+    const leaveGroupButton = group.locator(
+      generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+    );
+
+    await leaveGroupButton.click({ force: true });
+    const confirmLeaveGroupButton = this.page.locator(
+      generateE2eSelector('chat.direct_message.leave_group.button')
+    );
+    await confirmLeaveGroupButton.click();
+
+    await this.page.waitForTimeout(400);
+    await expect(confirmLeaveGroupButton).toBeHidden({ timeout: 3000 });
   }
 }
