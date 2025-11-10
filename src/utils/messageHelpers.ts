@@ -165,9 +165,7 @@ export class MessageTestHelpers {
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
-
-    const editBtn = await this.findEditOption();
-    await editBtn.click();
+    await this.editMessageButton.click();
     await this.page.waitForTimeout(1000);
 
     const mentionInput = this.page
