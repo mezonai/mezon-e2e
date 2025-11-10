@@ -273,7 +273,9 @@ test.describe('Channel Management - Module 2', () => {
     await AllureReporter.attachScreenshot(page, `Voice Channel Created - ${channelName}`);
   });
 
-  test('verify that I can delete a channel', async ({ page }) => {
+  test('verify that I can delete a channel, deleted channel not in channels list and channel management ', async ({
+    page,
+  }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64609',
     });
@@ -291,6 +293,7 @@ test.describe('Channel Management - Module 2', () => {
       1. Create a text channel
       2. Delete channel
       3. Verify channel not visible on channels list
+      4. Verify channel not visible on channel management
       
       **Expected Result:** User can can successfully delete a channel.
     `);
@@ -321,6 +324,13 @@ test.describe('Channel Management - Module 2', () => {
     await AllureReporter.step('Verify that deleted channel is not in channels list', async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(false);
+    });
+
+    await AllureReporter.step('Verify that deleted channel is not in channels tab', async () => {
+      await clanPage.openChannelsListSetting();
+      const isNewChannelPresentOnTab =
+        await clanPage.isChannelPresentOnChannelManagement(channelName);
+      expect(isNewChannelPresentOnTab).toBe(false);
     });
 
     await AllureReporter.attachScreenshot(page, `Text Channel deleted - ${channelName}`);
