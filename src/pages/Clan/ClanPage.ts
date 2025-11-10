@@ -201,6 +201,12 @@ export class ClanPage extends ClanSelector {
     await this.page.waitForTimeout(500);
   }
 
+  async openChannelsListSetting(): Promise<void> {
+    await expect(this.buttons.channelManagementButton).toBeVisible({ timeout: 3000 });
+    await this.buttons.channelManagementButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
@@ -1037,6 +1043,20 @@ export class ClanPage extends ClanSelector {
       await membersButton.click();
       const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
       await memberInVoice.waitFor({ state: 'hidden', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isChannelPresentOnChannelManagement(channelName: string) {
+    const channelLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_management.channel_item.channel_name'),
+      { hasText: channelName }
+    );
+
+    try {
+      await channelLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
       return false;

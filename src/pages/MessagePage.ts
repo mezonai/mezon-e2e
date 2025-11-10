@@ -665,6 +665,7 @@ export class MessagePage {
   async getAvatarHashOnForwardPopup(groupName: string): Promise<string> {
     await expect(this.searchUserOnForwardMessageModal).toBeVisible({ timeout: 5000 });
     await this.searchUserOnForwardMessageModal.fill(groupName);
+    await this.page.waitForTimeout(3000);
     const groupItemLocator = this.modalForwardMessage.locator(generateE2eSelector('suggest_item'), {
       hasText: groupName,
     });
@@ -703,6 +704,7 @@ export class MessagePage {
   async getAvatarHashOnSearchModal(groupName: string): Promise<string> {
     await expect(this.searchInput).toBeVisible({ timeout: 5000 });
     await this.searchInput.fill(groupName);
+    await this.page.waitForTimeout(3000);
     const groupItemLocator = this.searchModal.locator(generateE2eSelector('suggest_item'), {
       hasText: groupName,
     });
