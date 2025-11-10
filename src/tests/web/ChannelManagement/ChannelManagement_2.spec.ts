@@ -12,10 +12,6 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
 test.describe('Channel Management - Module 2', () => {
-  const CHANNEL_CREATION_TAG = 'channel-creation';
-  const TEXT_CHANNEL_TAG = 'text-channel';
-  const VERIFY_CHANNEL_STEP = 'Verify channel is present in channel list';
-
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials['account1'];
 
@@ -275,5 +271,58 @@ test.describe('Channel Management - Module 2', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Voice Channel Created - ${channelName}`);
+  });
+
+  test('verify that I can delete a channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully delete a channel.
+      
+      **Test Steps:**
+      1. Create a text channel
+      2. Delete channel
+      3. Verify channel not visible on channels list
+      
+      **Expected Result:** User can can successfully delete a channel.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['text-channel', 'delete-channel'],
+    });
+
+    const unique = Date.now().toString(36).slice(-6);
+    const channelName = `tc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPage(page);
+    const channelSettings = new ChannelSettingPage(page);
+
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.TEXT);
+
+    await AllureReporter.step(`Create new text channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Delete channel by name', async () => {
+      await clanPage.openChannelSettings(channelName);
+      await channelSettings.deleteChannel();
+    });
+
+    await AllureReporter.step('Verify that deleted channel is not in channels list', async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(false);
+    });
+
+    await AllureReporter.attachScreenshot(page, `Text Channel deleted - ${channelName}`);
   });
 });
