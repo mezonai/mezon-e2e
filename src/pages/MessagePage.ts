@@ -55,12 +55,12 @@ export class MessagePage {
   readonly editMessageButton: Locator;
   readonly forwardMessageButton: Locator;
   readonly editGroupModal: Locator;
-
+  readonly messageInput: Locator;
   readonly messageBuzzHeader: Locator;
   readonly messageBuzzButtonClose: Locator;
   readonly messageBuzzButtonSend: Locator;
   readonly messageBuzzInputMessage: Locator;
-
+  readonly inboxMessages: Locator;
   readonly directMessageBlockButton: Locator;
   readonly directMessageUnblockButton: Locator;
   readonly modalForwardMessage: Locator;
@@ -69,6 +69,24 @@ export class MessagePage {
   readonly searchModal: Locator;
   readonly searchInput: Locator;
   readonly searchTriggerButton: Locator;
+  readonly topicInput: Locator;
+  readonly topicMessages: Locator;
+  readonly hoverEditMessageButton: Locator;
+  readonly viewTopicButoon: Locator;
+  readonly closeTopicBoxButton: Locator;
+  readonly pinBadge: Locator;
+  readonly jumpToPinnedMessageButtonFromSystemMessage: Locator;
+  readonly jumpToPinnedMessageButtonFromPinnedList: Locator;
+  readonly topicDiscussionMessageButton: Locator;
+  readonly systemMessages: Locator;
+  readonly messageActionModalItems: Locator;
+  readonly displayNameOnMessageChannel: Locator;
+  readonly displayNameOnMessageTopic: Locator;
+  readonly headerInboxButton: Locator;
+  readonly topicNumberReplies: Locator;
+  readonly chatListContainer: Locator;
+  readonly group: Locator;
+  
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -127,9 +145,13 @@ export class MessagePage {
     this.userNamesInDM = page.locator(
       generateE2eSelector('chat.direct_message.chat_item.username')
     );
+    this.group = this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+      .filter({ has: this.page.locator('p', { hasText: 'Members' }) })
+      .first();
     this.secondClan = this.page.locator('div[title]').nth(1);
     this.messages = this.page.locator(generateE2eSelector('message.item'));
-    this.leaveGroupButton = this.helpers.group.locator(
+    this.leaveGroupButton = this.group.locator(
       generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
     );
     this.confirmLeaveGroupButton = this.page.locator(
@@ -229,6 +251,53 @@ export class MessagePage {
     this.searchTriggerButton = page.locator(
       generateE2eSelector('chat.direct_message.button.search')
     );
+    this.messageInput = this.page.locator(generateE2eSelector('mention.input'));
+    this.inboxMessages = this.page.locator(
+      `${generateE2eSelector('chat.channel_message.inbox.mentions')} div[class*="w-full"][class*="text-theme-message"]`
+    );
+    this.topicInput = this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
+    );
+    this.topicMessages = this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('message.item')}`
+    );
+    this.hoverEditMessageButton = page.locator(
+      `${generateE2eSelector('chat.hover_message_actions.button.base')}[title="Edit"]`
+    );
+    this.viewTopicButoon = this.page.locator(generateE2eSelector('chat.topic.button.view_topic'));
+    this.closeTopicBoxButton = this.page.locator(
+      generateE2eSelector('chat.topic.header.button.close')
+    );
+    this.pinBadge = page.locator(
+      generateE2eSelector('chat.channel_message.header.button.pin.pin_badge')
+    );
+    this.jumpToPinnedMessageButtonFromSystemMessage = page.locator(
+      generateE2eSelector('chat.system_message.pin_message.button.jump_to_message')
+    );
+    this.jumpToPinnedMessageButtonFromPinnedList = page.locator(
+      generateE2eSelector('common.pin_message.button.jump')
+    );
+    this.topicDiscussionMessageButton = page
+      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+      .filter({ hasText: 'Topic Discussion' });
+    this.systemMessages = this.page.locator(generateE2eSelector('chat.system_message'));
+    this.messageActionModalItems = page.locator(
+      generateE2eSelector('chat.message_action_modal.button.base')
+    );;
+    this.displayNameOnMessageChannel = this.page.locator(
+      `${generateE2eSelector('message.item')} ${generateE2eSelector('base_profile.display_name')}`
+    );
+    this.displayNameOnMessageTopic = this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('base_profile.display_name')}`
+    );
+    this.headerInboxButton = this.page.locator(
+      generateE2eSelector('chat.channel_message.header.button.inbox')
+    );
+    this.topicNumberReplies = this.page.locator(generateE2eSelector('chat.topic.number_replies'));
+    this.chatListContainer = page.locator(
+      generateE2eSelector('chat.direct_message.chat_list_container')
+    );
+    
   }
 
   async getFirstMessage(): Promise<Locator> {
@@ -329,7 +398,7 @@ export class MessagePage {
     const current = await this.helpers.countGroups();
     if (current >= prevGroupCount + 1) return true;
 
-    const groupName = await this.helpers.groupName.innerText();
+    const groupName = await this.groupName.innerText();
     if (!groupName) return false;
     const containsFirst = !!this.firstUserNameText && groupName.includes(this.firstUserNameText);
     const containsSecond = !!this.secondUserNameText && groupName.includes(this.secondUserNameText);
@@ -337,7 +406,7 @@ export class MessagePage {
   }
 
   async addMoreMemberToGroup(): Promise<void> {
-    await this.helpers.group.click();
+    await this.group.click();
     await this.addUserButton.click();
     await this.page.waitForTimeout(5000);
     await this.userItem.click();
@@ -347,7 +416,7 @@ export class MessagePage {
   }
 
   async getMemberCount(): Promise<number> {
-    await this.helpers.group.click();
+    await this.group.click();
     await this.sumMember.click();
 
     const memberItems = this.memberCount;
@@ -358,7 +427,7 @@ export class MessagePage {
     const start = Date.now();
     let newCount = previousCount;
     while (Date.now() - start < 8000) {
-      await this.helpers.group.click();
+      await this.group.click();
       await this.sumMember.click();
       newCount = await this.memberCount.count();
       if (newCount >= previousCount + 1) return true;
@@ -404,10 +473,10 @@ export class MessagePage {
   }
 
   async leaveGroupByXBtn(): Promise<string> {
-    const rawText = await this.helpers.group.innerText();
+    const rawText = await this.group.innerText();
     const groupName = rawText.split('\n')[0].trim();
 
-    await this.helpers.group.hover();
+    await this.group.hover();
     await this.leaveGroupButton.click({ force: true });
     await this.confirmLeaveGroupButton.click();
 
@@ -415,7 +484,7 @@ export class MessagePage {
   }
 
   async leaveGroupByLeaveGroupBtn(): Promise<void> {
-    await this.helpers.group.dispatchEvent('contextmenu');
+    await this.group.dispatchEvent('contextmenu');
   }
 
   async getFriendItemFromFriendList(friendName: string): Promise<Locator> {
@@ -452,9 +521,9 @@ export class MessagePage {
   async sendMessage(message: string): Promise<void> {
     this.message = message;
     await this.firstUserAddDM.click();
-    await this.helpers.textarea.click();
-    await this.helpers.textarea.fill(message);
-    await this.helpers.textarea.press('Enter');
+    await this.messageInput.click();
+    await this.messageInput.fill(message);
+    await this.messageInput.press('Enter');
   }
 
   async getMessageWithProfileName(profileName: string): Promise<Locator> {
@@ -463,9 +532,9 @@ export class MessagePage {
 
   async sendMessageWhenInDM(message: string): Promise<void> {
     this.message = message;
-    await this.helpers.textarea.click();
-    await this.helpers.textarea.fill(message);
-    await this.helpers.textarea.press('Enter');
+    await this.messageInput.click();
+    await this.messageInput.fill(message);
+    await this.messageInput.press('Enter');
   }
 
   async isMessageSend(): Promise<boolean> {
@@ -478,7 +547,7 @@ export class MessagePage {
   async updateNameGroupChatDM(groupName: string): Promise<void> {
     this.groupNameText = groupName;
 
-    await this.helpers.group.click();
+    await this.group.click();
     await this.editGroupButton.click();
     await this.groupNameInput.click();
     await this.groupNameInput.fill('');
@@ -487,7 +556,7 @@ export class MessagePage {
   }
 
   async isGroupNameDMUpdated(): Promise<boolean> {
-    const groupName = (await this.helpers.groupName.innerText()).trim();
+    const groupName = (await this.groupName.innerText()).trim();
     return groupName === this.groupNameText;
   }
 
@@ -591,7 +660,7 @@ export class MessagePage {
   async updateAvatarForGroup(groupName: string): Promise<void> {
     const fileSizeHelpers = new FileSizeTestHelpers(this.page);
 
-    await this.helpers.group.click();
+    await this.group.click();
     await this.editGroupButton.click();
     const groupAvt = await fileSizeHelpers.createFileWithSize(
       'direct_message_icon',

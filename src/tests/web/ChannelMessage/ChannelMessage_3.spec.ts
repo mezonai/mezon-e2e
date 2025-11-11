@@ -132,12 +132,13 @@ test.describe('Channel Message - Module 3', () => {
     });
 
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
+    const messagePage = new MessagePage(pageWithClipboard);
 
     const indentityMessage = (Date.now() + randomInt(10)).toString();
     const messageToPinText = `Message to pin ${indentityMessage}`;
     await AllureReporter.step('Send a message and pin it', async () => {
       await messageHelpers.sendTextMessage(messageToPinText);
-      await messageHelpers.messages.last().waitFor({ state: 'visible', timeout: 10000 });
+      await messagePage.messages.last().waitFor({ state: 'visible', timeout: 10000 });
       await messageHelpers.pinLastMessage();
     });
 
