@@ -786,4 +786,44 @@ export class MessagePage {
     await this.page.waitForTimeout(400);
     await expect(confirmLeaveGroupButton).toBeHidden({ timeout: 3000 });
   }
+
+  async isChannelPresentOnForwardModal(channelName: string) {
+    await expect(this.searchUserOnForwardMessageModal).toBeVisible({ timeout: 5000 });
+    await this.searchUserOnForwardMessageModal.fill(channelName);
+    await this.page.waitForTimeout(3000);
+    const channelItemLocator = this.modalForwardMessage.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: channelName,
+      }
+    );
+
+    try {
+      await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isChannelPresentOnSearchModal(channelName: string) {
+    await expect(this.searchInput).toBeVisible({ timeout: 5000 });
+    await this.searchInput.fill(channelName);
+    await this.page.waitForTimeout(3000);
+    const channelItemLocator = this.searchModal.locator(generateE2eSelector('suggest_item'), {
+      hasText: channelName,
+    });
+
+    try {
+      await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async closeModalForwardMessage() {
+    await this.cancelForwardMessageButton.click();
+    await expect(this.searchUserOnForwardMessageModal).toBeHidden({ timeout: 5000 });
+  }
 }
