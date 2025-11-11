@@ -1062,4 +1062,13 @@ export class ClanPage extends ClanSelector {
       return false;
     }
   }
+
+  async openChannelByName(channelName: string) {
+    const channelLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_list.item.name'),
+      { hasText: channelName }
+    );
+    await expect(channelLocator).toBeVisible({ timeout: 3000 });
+    await channelLocator.click();
+  }
 }
