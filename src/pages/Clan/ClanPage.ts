@@ -378,13 +378,13 @@ export class ClanPage extends ClanSelector {
   }
 
   async openDirectMessageWithUser(username: string): Promise<void> {
-    const directMessageHelpers = new DirectMessageHelper(this.page);
+    const messagePage = new MessagePage(this.page);
 
     await expect(
-      directMessageHelpers.userNamesInDM.getByText(username, { exact: true })
+      messagePage.userNamesInDM.getByText(username, { exact: true })
     ).toBeVisible();
 
-    await directMessageHelpers.userNamesInDM.getByText(username, { exact: true }).click();
+    await messagePage.userNamesInDM.getByText(username, { exact: true }).click();
   }
 
   async editChannelName(channelName: string, newChannelName: string): Promise<void> {
