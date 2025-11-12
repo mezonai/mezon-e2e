@@ -234,6 +234,7 @@ export default class ClanSelector extends BasePage {
     voiceManagement: {
       item: this.page.locator(generateE2eSelector('modal.voice_management')),
       button: {
+        copyLink: this.page.locator(generateE2eSelector('modal.voice_management.button.copy_link')),
         controlItem: this.page.locator(
           generateE2eSelector('modal.voice_management.button.control_item')
         ),
@@ -266,7 +267,7 @@ export default class ClanSelector extends BasePage {
     voiceRoom: {
       joinButton: this.page.locator(
         generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
-      )
+      ),
     },
   };
 

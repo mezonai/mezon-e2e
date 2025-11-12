@@ -258,9 +258,9 @@ export const DATA_E2E_IDENTIFIER = {
         new_clan_webhook_button: '',
         navigate_webhook_button: '',
         webhook_item: {
-					webhook_title: '',
-					webhook_description: ''
-				}
+          webhook_title: '',
+          webhook_description: '',
+        },
       },
       sidebar: {
         delete: '',
@@ -691,6 +691,7 @@ export const DATA_E2E_IDENTIFIER = {
     },
     voice_management: {
       button: {
+        copy_link: '',
         control_item: '',
       },
     },

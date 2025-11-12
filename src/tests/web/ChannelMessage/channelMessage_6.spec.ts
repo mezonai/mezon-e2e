@@ -11,6 +11,8 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
 import MessageSelector from '@/data/selectors/MessageSelector';
+import { ChannelType } from '@/types/clan-page.types';
+import ClanSelector from '@/data/selectors/ClanSelector';
 
 test.describe('Channel Message - Module 6', () => {
   const clanFactory = new ClanFactory();
@@ -157,6 +159,59 @@ test.describe('Channel Message - Module 6', () => {
     await AllureReporter.step('Reload and verify the message content is edited', async () => {
       await page.reload();
       await messageHelper.verifyLastMessageHasText(editedMessage);
+    });
+  });
+
+  test('Verify that can send voice channel link', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64645',
+      github_issue: '9816',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that can send voice channel link
+
+      **Test Steps:**
+      1. Create new voice channel
+      2. Join voice channel
+      3. Copy voice channel link
+      4. Send voice channel link in general channel
+      4. Verify voice channel link is sent
+
+      **Expected Result:** Voice channel link is sent
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['voice-channel', 'send-voice-channel-link'],
+    });
+    const clanPage = new ClanPage(page);
+    const clanSelector = new ClanSelector(page);
+    const messageHelper = new MessageTestHelpers(page);
+    const ran = Math.floor(Math.random() * 999) + 1;
+    const channelName = `voice-channel-${ran}`;
+
+    await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.VOICE, channelName);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Join voice channel', async () => {
+      await clanPage.joinVoiceChannel(channelName);
+      const isUserInVoiceChannel = await clanPage.isJoinVoiceChannel(channelName);
+      expect(isUserInVoiceChannel).toBe(true);
+    });
+
+    await AllureReporter.step('Copy and send voice channel link', async () => {
+      await clanSelector.modal.voiceManagement.button.copyLink.click();
+      await clanPage.openChannelByName('general');
+      await messageHelper.pasteAndSendText();
+      await page.waitForTimeout(3000);
+    });
+
+    await AllureReporter.step('Verify voice channel link is sent', async () => {
+      const isVoiceChannelLinkSent = await messageHelper.verifyLastMessageHasText(channelName);
+      expect(isVoiceChannelLinkSent).toBe(true);
     });
   });
 });
