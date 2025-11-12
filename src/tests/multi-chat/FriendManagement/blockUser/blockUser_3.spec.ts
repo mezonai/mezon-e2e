@@ -1,5 +1,6 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import MessageSelector from '@/data/selectors/MessageSelector';
 import { expect, test } from '@/fixtures/dual.fixture';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
@@ -189,7 +190,7 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const messagePageB = new MessagePage(pageB);
+    const messageSelectorB = new MessageSelector(pageB);
     const clanPageB = new ClanPage(pageB);
 
     await AllureReporter.addDescription(`
@@ -207,9 +208,9 @@ test.describe('Friend Management - Block User', () => {
     await test.step('Open DM on both sides and confirm buzz modal is accessible', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await pageB.keyboard.press('Control+g');
-      const buzzModalHeading = messagePageB.messageBuzzHeader;
+      const buzzModalHeading = messageSelectorB.messageBuzzHeader;
       await expect(buzzModalHeading).toBeVisible({ timeout: 5000 });
-      await messagePageB.messageBuzzButtonClose.click();
+      await messageSelectorB.messageBuzzButtonClose.click();
       await buzzModalHeading.waitFor({ state: 'detached', timeout: 5000 });
     });
 
@@ -220,12 +221,12 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('User B cannot trigger buzz after being blocked', async () => {
       await pageB.keyboard.press('Control+g');
-      const buzzModalHeading = messagePageB.messageBuzzHeader;
+      const buzzModalHeading = messageSelectorB.messageBuzzHeader;
       await expect(buzzModalHeading).toHaveCount(1, { timeout: 3000 });
       const textMessageBuzz = `text message buzz ${Date.now()}`;
-      await messagePageB.messageBuzzInputMessage.fill(textMessageBuzz);
-      await messagePageB.messageBuzzButtonSend.click();
-      await messagePageB.messageBuzzHeader.waitFor({ state: 'detached', timeout: 5000 });
+      await messageSelectorB.messageBuzzInputMessage.fill(textMessageBuzz);
+      await messageSelectorB.messageBuzzButtonSend.click();
+      await messageSelectorB.messageBuzzHeader.waitFor({ state: 'detached', timeout: 5000 });
       const isPermissionDeniedModelVisible = await clanPageB.permissionModal.isVisible();
       expect(isPermissionDeniedModelVisible).toBeTruthy();
       await clanPageB.permissionModal.cancel.click();

@@ -21,6 +21,9 @@ export class ChannelSettingPage extends BasePage {
     quick_menu: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
       hasText: 'Quick Menu',
     }),
+    deleteChannel: this.page.locator(generateE2eSelector('button.base'), {
+      hasText: 'Delete Channel',
+    }),
   };
 
   readonly webhook = {
@@ -256,5 +259,21 @@ export class ChannelSettingPage extends BasePage {
   async closeChannelSettings() {
     await this.button.close_settings.click();
     await expect(this.side_bar_buttons.quick_menu).toBeHidden({ timeout: 3000 });
+  }
+
+  async deleteChannel() {
+    const deleteButton = this.side_bar_buttons.deleteChannel;
+    await expect(deleteButton).toBeVisible({ timeout: 3000 });
+
+    await deleteButton.click();
+    const popup = this.page.locator('div.fixed.inset-0.flex.items-center.justify-center.z-50');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+
+    const confirmButton = popup.locator(generateE2eSelector('modal.confirm_modal.button.confirm'));
+    await expect(confirmButton).toBeVisible({ timeout: 5000 });
+    await confirmButton.click();
+
+    await expect(popup).toBeHidden({ timeout: 5000 });
+    await this.page.waitForTimeout(2000);
   }
 }
