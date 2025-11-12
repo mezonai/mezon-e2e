@@ -1,5 +1,5 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { ClanPage } from './Clan/ClanPage';
 
@@ -18,6 +18,12 @@ export class ChannelSettingPage extends BasePage {
     channel_label: this.page.locator(
       generateE2eSelector('channel_setting_page.side_bar.channel_label')
     ),
+    quick_menu: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
+      hasText: 'Quick Menu',
+    }),
+    deleteChannel: this.page.locator(generateE2eSelector('button.base'), {
+      hasText: 'Delete Channel',
+    }),
   };
 
   readonly webhook = {
@@ -87,6 +93,48 @@ export class ChannelSettingPage extends BasePage {
 
   readonly button = {
     close_settings: this.page.locator(generateE2eSelector('clan_page.settings.button.exit')),
+  };
+
+  readonly quick_menu = {
+    flashMessagesTab: this.page.locator(
+      generateE2eSelector('channel_setting_page.quick_menu.tab'),
+      { hasText: 'Flash Messages' }
+    ),
+    quickMenusTab: this.page.locator(generateE2eSelector('channel_setting_page.quick_menu.tab'), {
+      hasText: 'Quick Menus',
+    }),
+    button: {
+      addFlashMessage: this.page.locator(
+        generateE2eSelector('channel_setting_page.quick_menu.button.add'),
+        { hasText: 'Add Flash Message' }
+      ),
+      addQuickMenu: this.page.locator(
+        generateE2eSelector('channel_setting_page.quick_menu.button.add'),
+        { hasText: 'Add Quick Menu' }
+      ),
+    },
+    modal: {
+      container: this.page.locator(generateE2eSelector('channel_setting_page.quick_menu.modal')),
+      input: {
+        command: this.page.locator(
+          generateE2eSelector('channel_setting_page.quick_menu.modal.input.command_name')
+        ),
+        messageContent: this.page.locator(
+          generateE2eSelector('channel_setting_page.quick_menu.modal.input.message_content')
+        ),
+      },
+      button: {
+        submit: this.page.locator(
+          generateE2eSelector('channel_setting_page.quick_menu.modal.button.submit')
+        ),
+        cancel: this.page.locator(
+          generateE2eSelector('channel_setting_page.quick_menu.modal.button.cancel')
+        ),
+      },
+    },
+    item: {
+      container: this.page.locator(generateE2eSelector('channel_setting_page.quick_menu.item')),
+    },
   };
 
   async createChannelWebhook(): Promise<void> {
@@ -162,5 +210,70 @@ export class ChannelSettingPage extends BasePage {
     });
     await channelIconLock.waitFor({ state: 'visible' });
     return channelIconLock.isVisible();
+  }
+
+  async openQuickMenuSettings(): Promise<void> {
+    await expect(this.side_bar_buttons.quick_menu).toBeVisible({ timeout: 3000 });
+
+    await this.side_bar_buttons.quick_menu.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async openFlashMessageModal(): Promise<void> {
+    await expect(this.quick_menu.flashMessagesTab).toBeVisible({ timeout: 3000 });
+
+    await this.quick_menu.flashMessagesTab.click();
+    await expect(this.quick_menu.button.addFlashMessage).toBeVisible({
+      timeout: 3000,
+    });
+
+    await this.quick_menu.button.addFlashMessage.click();
+    await expect(this.quick_menu.modal.container).toBeVisible({ timeout: 3000 });
+  }
+
+  async createFlashMessage(command: string, messageContent: string): Promise<void> {
+    await this.quick_menu.modal.input.command.fill(command);
+    await this.quick_menu.modal.input.messageContent.fill(messageContent);
+    await this.quick_menu.modal.button.submit.click();
+    expect(this.quick_menu.modal.container).toBeHidden({ timeout: 5000 });
+  }
+
+  async verifyFlashMessageInQuickMenuList(command: string, messageContent: string): Promise<void> {
+    const itemLocator = this.page.locator(
+      generateE2eSelector('channel_setting_page.quick_menu.item')
+    );
+
+    const commandLocator = this.page
+      .locator(generateE2eSelector('channel_setting_page.quick_menu.item.command'))
+      .filter({ hasText: command });
+
+    const messageLocator = this.page
+      .locator(generateE2eSelector('channel_setting_page.quick_menu.item.message_content'))
+      .filter({ hasText: messageContent });
+
+    const matchedItem = itemLocator.filter({ has: commandLocator }).filter({ has: messageLocator });
+
+    await expect(matchedItem).toBeVisible();
+  }
+
+  async closeChannelSettings() {
+    await this.button.close_settings.click();
+    await expect(this.side_bar_buttons.quick_menu).toBeHidden({ timeout: 3000 });
+  }
+
+  async deleteChannel() {
+    const deleteButton = this.side_bar_buttons.deleteChannel;
+    await expect(deleteButton).toBeVisible({ timeout: 3000 });
+
+    await deleteButton.click();
+    const popup = this.page.locator('div.fixed.inset-0.flex.items-center.justify-center.z-50');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+
+    const confirmButton = popup.locator(generateE2eSelector('modal.confirm_modal.button.confirm'));
+    await expect(confirmButton).toBeVisible({ timeout: 5000 });
+    await confirmButton.click();
+
+    await expect(popup).toBeHidden({ timeout: 5000 });
+    await this.page.waitForTimeout(2000);
   }
 }

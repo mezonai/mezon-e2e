@@ -1,5 +1,6 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { expect, test } from '@/fixtures/dual.fixture';
 import { ClanInviteFriendModal } from '@/pages/Clan/ClanInviteFriendModal';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { FriendPage } from '@/pages/FriendPage';
@@ -9,11 +10,10 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { expect, test } from '@/fixtures/dual.fixture';
 
 test.describe('Friend Management - Block User', () => {
-  const accountA = AccountCredentials['account1'];
-  const accountB = AccountCredentials['account2'];
+  const accountA = AccountCredentials['accountKien2'];
+  const accountB = AccountCredentials['accountKien3'];
   const userNameA = accountA.email.split('@')[0];
   const userNameB = accountB.email.split('@')[0];
 

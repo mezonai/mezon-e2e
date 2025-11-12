@@ -8,6 +8,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
 import { test } from '../../fixtures/dual.fixture';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 test.describe('Direct Message', () => {
   const accountA = AccountCredentials['account2-3'];
@@ -15,6 +16,8 @@ test.describe('Direct Message', () => {
   const accountC = AccountCredentials['account2-5'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
+  const unique = Date.now().toString(36).slice(-6);
+  const nameGroupChat = `groupchat-${unique}`.slice(0, 20);
 
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
@@ -38,11 +41,16 @@ test.describe('Direct Message', () => {
   });
 
   test.afterEach(async ({ dual }) => {
+    // const { pageA, pageB } = dual;
+    // const messagePageA = new MessagePage(pageA);
+    // const messagePageB = new MessagePage(pageB);
     await dual.parallel({
       A: async page => {
+        // await messagePageA.leaveGroupByName(nameGroupChat);
         await AuthHelper.logout(page);
       },
       B: async page => {
+        // await messagePageB.leaveGroupByName(nameGroupChat);
         await AuthHelper.logout(page);
       },
     });
@@ -59,8 +67,7 @@ test.describe('Direct Message', () => {
     const messagePageB = new MessagePage(pageB);
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const unique = Date.now().toString(36).slice(-6);
-    const nameGroupChat = `groupchat-${unique}`.slice(0, 20);
+
     let profileHash: string | null = null;
 
     await AllureReporter.addDescription(`
@@ -151,8 +158,7 @@ test.describe('Direct Message', () => {
     const messagePageB = new MessagePage(pageB);
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const unique = Date.now().toString(36).slice(-6);
-    const nameGroupChat = `groupchat-${unique}`.slice(0, 20);
+    const messageSelector = new MessageSelector(pageA);
     let profileHash: string | null = null;
 
     await AllureReporter.addDescription(`
@@ -220,6 +226,7 @@ test.describe('Direct Message', () => {
 
         await messagePageA.openGroupFromName(nameGroupChat);
         await messagePageA.updateAvatarForGroup(nameGroupChat);
+        await dual.pageA.waitForTimeout(5000);
 
         const avtHashA = await messagePageA.getAvatarHashOnDMList(nameGroupChat);
         profileHash = avtHashA;
@@ -233,7 +240,7 @@ test.describe('Direct Message', () => {
         await messagePageB.openForwardMessageModal();
         const avtHashOnForwardPopup = await messagePageB.getAvatarHashOnForwardPopup(nameGroupChat);
         expect(avtHashOnForwardPopup).toBe(profileHash);
-        await messagePageB.cancelForwardMessageButton.click();
+        await messageSelector.cancelForwardMessageButton.click();
       }
     );
 
