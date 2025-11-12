@@ -71,10 +71,11 @@ export class MessageTestHelpers {
   }
 
   async editMessage(messageElement: Locator, newText: string): Promise<void> {
+    const messageSelector = new MessageSelector(this.page);
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
-    await this.editMessageButton.click();
+    await messageSelector.editMessageButton.click();
     await this.page.waitForTimeout(1000);
 
     const mentionInput = this.page

@@ -10,6 +10,7 @@ import { ClanPage } from '@/pages/Clan/ClanPage';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 test.describe('Channel Message - Module 6', () => {
   const clanFactory = new ClanFactory();
@@ -101,6 +102,7 @@ test.describe('Channel Message - Module 6', () => {
 
   test('Verify that message content is edited after jump to the message', async ({ page }) => {
     const messageHelper = new MessageTestHelpers(page);
+    const messageSelector = new MessageSelector(page);
     await AllureReporter.addWorkItemLinks({
       tms: '64595',
       github_issue: '9972',
@@ -131,7 +133,7 @@ test.describe('Channel Message - Module 6', () => {
       await messageHelper.sendTextMessage(originalMessage);
     });
 
-    const lastMessage = await messageHelper.messages.last();
+    const lastMessage = await messageSelector.messages.last();
 
     await AllureReporter.step('Pin the message', async () => {
       await messageHelper.pinLastMessage();
@@ -142,7 +144,6 @@ test.describe('Channel Message - Module 6', () => {
       await messageHelper.clickJumpToMessage(originalMessage);
       const isMessageVisible = await messageHelper.verifyMessageVisibleInMainChat(originalMessage);
       expect(isMessageVisible).toBeTruthy();
-    
     });
 
     await AllureReporter.step('Edit message content', async () => {
