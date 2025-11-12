@@ -145,6 +145,9 @@ export default class ClanSelector extends BasePage {
       roleSettings: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item'), {
         hasText: 'Roles',
       }),
+      integrations: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item'), {
+        hasText: 'Integrations',
+      }),
       createRole: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Create Role' }),
       displayRoleOption: this.page.locator(
         generateE2eSelector('clan_page.settings.role.container.role_option.display')

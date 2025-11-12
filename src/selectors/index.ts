@@ -256,6 +256,10 @@ export const DATA_E2E_IDENTIFIER = {
         create_clan_webhook_button: '',
         new_clan_webhook_button: '',
         navigate_webhook_button: '',
+        webhook_item: {
+					webhook_title: '',
+					webhook_description: ''
+				}
       },
       sidebar: {
         delete: '',
