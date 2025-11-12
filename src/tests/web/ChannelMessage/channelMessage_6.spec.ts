@@ -2,13 +2,15 @@ import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import test from '@playwright/test';
+import test, { expect } from '@playwright/test';
 import { AccountCredentials } from '../../../config/environment';
 
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
+import generateRandomString from '@/utils/randomString';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 test.describe('Channel Message - Module 6', () => {
   const clanFactory = new ClanFactory();
@@ -96,5 +98,65 @@ test.describe('Channel Message - Module 6', () => {
     );
 
     await AllureReporter.attachScreenshot(page, 'Flash message in input is correct');
+  });
+
+  test('Verify that message content is edited after jump to the message', async ({ page }) => {
+    const messageHelper = new MessageTestHelpers(page);
+    const messageSelector = new MessageSelector(page);
+    await AllureReporter.addWorkItemLinks({
+      tms: '64595',
+      github_issue: '9972',
+    });
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that message content is edited after jump to the message
+
+        **Test Steps:**
+        1. Send a message
+        2. Pin the message
+        3. Go to Pin list and jump to the message
+        4. Edit message content
+        5. Verify the message content is edited
+        6. Reload and verify the message content is edited
+
+        **Expected Result:** Message content is edited after jump to the message
+      `);
+
+    await AllureReporter.addLabels({
+      tag: ['pin-message', 'channel-message', 'edit-message'],
+    });
+
+    const originalMessage = `original message - ${generateRandomString(10)}`;
+    const editedMessage = `edited message - ${generateRandomString(10)}`;
+
+    await AllureReporter.step('Send a message', async () => {
+      await messageHelper.sendTextMessage(originalMessage);
+    });
+
+    const lastMessage = await messageSelector.messages.last();
+
+    await AllureReporter.step('Pin the message', async () => {
+      await messageHelper.pinLastMessage();
+    });
+
+    await AllureReporter.step('Go to Pin list and jump to the message', async () => {
+      await messageHelper.openPinnedMessagesModal();
+      await messageHelper.clickJumpToMessage(originalMessage);
+      const isMessageVisible = await messageHelper.verifyMessageVisibleInMainChat(originalMessage);
+      expect(isMessageVisible).toBeTruthy();
+    });
+
+    await AllureReporter.step('Edit message content', async () => {
+      await messageHelper.editMessage(lastMessage, editedMessage);
+    });
+
+    await AllureReporter.step('Verify the message content is edited', async () => {
+      await messageHelper.verifyLastMessageHasText(editedMessage);
+    });
+
+    await AllureReporter.step('Reload and verify the message content is edited', async () => {
+      await page.reload();
+      await messageHelper.verifyLastMessageHasText(editedMessage);
+    });
   });
 });
