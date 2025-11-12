@@ -1,15 +1,12 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSettingsPage } from '@/pages/ClanSettingsPage';
 import { MezonCredentials } from '@/types';
-import { ChannelStatus, ChannelType, ClanStatus, EventType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
@@ -76,18 +73,23 @@ test.describe('Clan Management - Module 3', () => {
     });
 
     const clanPage = new ClanPage(page);
-    const clanMenuPanel = new ClanMenuPanel(page);
     const clanSettingsPage = new ClanSettingsPage(page);
 
-    await clanPage.buttons.channelManagementButton.click();
+    await AllureReporter.step('Go to Channels page', async () => {
+      await clanPage.buttons.channelManagementButton.click();
+    });
 
-    await clanMenuPanel.text.clanName.click();
-    await clanMenuPanel.buttons.clanSettings.click();
-    await clanSettingsPage.buttons.sidebarItem.filter({ hasText: 'Integrations' }).click();
+    await AllureReporter.step('Open Integrations tab', async () => {
+      await clanSettingsPage.openIntegrationsTab();
+    });
 
-    await clanSettingsPage.createWebhook();
+    await AllureReporter.step('Create webhook', async () => {
+      await clanSettingsPage.createWebhook();
+    });
 
-    const isWebhookCreated = await clanSettingsPage.verifyWebhookCreated();
-    expect(isWebhookCreated).toBe(true);
+    await AllureReporter.step('Verify webhook is created', async () => {
+      const isWebhookCreated = await clanSettingsPage.verifyWebhookCreated();
+      expect(isWebhookCreated).toBe(true);
+    });
   });
 });

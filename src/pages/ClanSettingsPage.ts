@@ -5,6 +5,7 @@ import { WEBSITE_CONFIGS } from '../config/environment';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
 import { ClanPage } from './Clan/ClanPage';
+import { ClanMenuPanel } from './Clan/ClanMenuPanel';
 
 export class ClanSettingsPage extends BasePage {
   readonly buttons = {
@@ -1074,6 +1075,13 @@ export class ClanSettingsPage extends BasePage {
     }
   }
 
+  async openIntegrationsTab() {
+    const clanMenuPanel = new ClanMenuPanel(this.page);
+    await clanMenuPanel.text.clanName.click();
+    await clanMenuPanel.buttons.clanSettings.click();
+    await this.buttons.sidebarItem.filter({ hasText: 'Integrations' }).click();
+  }
+
   async createWebhook(): Promise<void> {
     await this.integrations.createWebhook.click();
     await this.integrations.newWebhook.click();
@@ -1083,7 +1091,9 @@ export class ClanSettingsPage extends BasePage {
     const clanPage = new ClanPage(this.page);
     const webhookItem = await this.integrations.webhookItem.item.first();
     const webhookItemTitle = await webhookItem.locator(this.integrations.webhookItem.title);
-    const webhookItemDescription = await webhookItem.locator(this.integrations.webhookItem.description);
+    const webhookItemDescription = await webhookItem.locator(
+      this.integrations.webhookItem.description
+    );
     try {
       await expect(webhookItem).toBeVisible();
       await expect(webhookItemTitle).toBeVisible();
