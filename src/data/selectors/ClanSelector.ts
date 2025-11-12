@@ -145,6 +145,9 @@ export default class ClanSelector extends BasePage {
       roleSettings: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item'), {
         hasText: 'Roles',
       }),
+      integrations: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item'), {
+        hasText: 'Integrations',
+      }),
       createRole: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Create Role' }),
       displayRoleOption: this.page.locator(
         generateE2eSelector('clan_page.settings.role.container.role_option.display')
@@ -164,8 +167,26 @@ export default class ClanSelector extends BasePage {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.item.name')),
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
+      iconHashtagLock: this.page.locator(
+        generateE2eSelector('clan_page.channel_list.item.icon.hashtag_lock')
+      ),
+      iconHashtag: this.page.locator(
+        generateE2eSelector('clan_page.channel_list.item.icon.hashtag')
+      ),
+      userList: {
+        item: this.page.locator(generateE2eSelector('clan_page.channel_list.item.user_list.item')),
+      },
+      userListCollapsed: {
+        item: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item')
+        ),
+        itemCount: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item_count')
+        ),
+      },
     },
     threadItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
@@ -210,6 +231,15 @@ export default class ClanSelector extends BasePage {
     limitCreation: {
       title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
     },
+    voiceManagement: {
+      item: this.page.locator(generateE2eSelector('modal.voice_management')),
+      button: {
+        controlItem: this.page.locator(
+          generateE2eSelector('modal.voice_management.button.control_item')
+        ),
+        endCall: this.page.locator(generateE2eSelector('icon.end_call')),
+      },
+    },
   };
 
   readonly modalInvite = {
@@ -220,6 +250,23 @@ export default class ClanSelector extends BasePage {
     ),
     button: {
       close: this.page.locator(generateE2eSelector('button.base'), { hasText: '×' }),
+    },
+  };
+
+  readonly secondarySideBar = {
+    member: {
+      item: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
+      inVoice: this.page.locator(
+        generateE2eSelector('clan_page.secondary_side_bar.member.in_voice')
+      ),
+    },
+  };
+
+  readonly screen = {
+    voiceRoom: {
+      joinButton: this.page.locator(
+        generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
+      )
     },
   };
 

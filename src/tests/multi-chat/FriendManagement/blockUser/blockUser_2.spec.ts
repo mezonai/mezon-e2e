@@ -1,16 +1,17 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import MessageSelector from '@/data/selectors/MessageSelector';
+import { expect, test } from '@/fixtures/dual.fixture';
 import { FriendPage } from '@/pages/FriendPage';
+import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { expect, test } from '@/fixtures/dual.fixture';
-import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('Friend Management - Block User', () => {
-  const accountA = AccountCredentials['account2-1'];
-  const accountB = AccountCredentials['account2-2'];
+  const accountA = AccountCredentials['accountKien4'];
+  const accountB = AccountCredentials['accountKien5'];
   const userNameA = accountA.email.split('@')[0];
   const userNameB = accountB.email.split('@')[0];
   test.beforeEach(async ({ dual }) => {
@@ -148,8 +149,8 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const messagePageA = new MessagePage(pageA);
-    const messagePageB = new MessagePage(pageB);
+    const messageSelectorA = new MessageSelector(pageA);
+    const messageSelectorB = new MessageSelector(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure the chat welcome header toggles its block/unblock button correctly when the current user blocks someone versus when they are blocked by the other party.
@@ -166,37 +167,37 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('Open DM on both sides and confirm Block button is visible', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
-      await messagePageA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      const initialBlockButton = messagePageA.directMessageBlockButton;
+      await messageSelectorA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      const initialBlockButton = messageSelectorA.directMessageBlockButton;
       await expect(initialBlockButton).toBeVisible({ timeout: 10000 });
     });
 
     await test.step('User A blocks User B from the welcome header', async () => {
-      const blockButtonA = messagePageA.directMessageBlockButton;
+      const blockButtonA = messageSelectorA.directMessageBlockButton;
       await blockButtonA.click();
-      await expect(messagePageA.directMessageUnblockButton).toBeVisible({
+      await expect(messageSelectorA.directMessageUnblockButton).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('Blocked User B welcome header hides block actions', async () => {
-      await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      await messageSelectorB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
       await pageB.waitForTimeout(1000);
-      await expect(messagePageB.directMessageUnblockButton).toHaveCount(1);
+      await expect(messageSelectorB.directMessageUnblockButton).toHaveCount(0);
     });
 
     await test.step('User A unblocks User B and Block button returns', async () => {
-      const unblockButtonA = messagePageA.directMessageUnblockButton;
+      const unblockButtonA = messageSelectorA.directMessageUnblockButton;
       await unblockButtonA.click();
-      await expect(messagePageA.directMessageBlockButton).toBeVisible({
+      await expect(messageSelectorA.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User B regains Block action after unblock', async () => {
       await friendPageB.createDM(userNameA);
-      await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      await expect(messagePageB.directMessageBlockButton).toBeVisible({
+      await messageSelectorB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      await expect(messageSelectorB.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -209,8 +210,8 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const messagePageA = new MessagePage(pageA);
-    const messagePageB = new MessagePage(pageB);
+    const messageSelectorA = new MessageSelector(pageA);
+    const messageSelectorB = new MessageSelector(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify websocket friend events update the welcome header and composer in real time when another user blocks or unblocks you.
@@ -227,19 +228,19 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('Open DM on both sides and confirm baseline actions', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
-      await messagePageA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      await messageSelectorA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(0, { timeout: 10000 });
-      await expect(messagePageA.directMessageBlockButton).toBeVisible({
+      await expect(messageSelectorA.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User B blocks User A from welcome header', async () => {
-      await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      const blockButtonB = messagePageB.directMessageBlockButton;
+      await messageSelectorB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      const blockButtonB = messageSelectorB.directMessageBlockButton;
       await expect(blockButtonB).toBeVisible({ timeout: 10000 });
       await blockButtonB.click();
-      await expect(messagePageB.directMessageUnblockButton).toBeVisible({
+      await expect(messageSelectorB.directMessageUnblockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -247,25 +248,22 @@ test.describe('Friend Management - Block User', () => {
     await test.step('User A UI reflects being blocked without refresh', async () => {
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
 
-      await expect(messagePageA.directMessageUnblockButton).toHaveCount(
-        1,
-        {
-          timeout: 10000,
-        }
-      );
+      await expect(messageSelectorA.directMessageUnblockButton).toHaveCount(0, {
+        timeout: 10000,
+      });
     });
 
     await test.step('User B unblocks User A and sees state revert', async () => {
-      const unblockButtonB = messagePageB.directMessageUnblockButton;
+      const unblockButtonB = messageSelectorB.directMessageUnblockButton;
       await unblockButtonB.click();
-      await expect(messagePageB.directMessageBlockButton).toBeVisible({
+      await expect(messageSelectorB.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
 
     await test.step('User A regains composer access and Block button in real time', async () => {
       await expect(friendPageA.inputs.permissionDenied).toHaveCount(0, { timeout: 10000 });
-      await expect(messagePageA.directMessageBlockButton).toBeVisible({
+      await expect(messageSelectorA.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -280,7 +278,7 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const messagePageB = new MessagePage(pageB);
+    const messageSelectorB = new MessageSelector(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure remote block events do not add the blocker to your Block tab (since source_id mismatches), yet the DM composer becomes read-only in real time.
@@ -306,11 +304,11 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('User B blocks User A from welcome header', async () => {
       await friendPageB.createDM(userNameA);
-      await messagePageB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      const blockButtonB = messagePageB.directMessageBlockButton;
+      await messageSelectorB.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
+      const blockButtonB = messageSelectorB.directMessageBlockButton;
       await expect(blockButtonB).toBeVisible({ timeout: 10000 });
       await blockButtonB.click();
-      await expect(messagePageB.directMessageUnblockButton).toBeVisible({
+      await expect(messageSelectorB.directMessageUnblockButton).toBeVisible({
         timeout: 10000,
       });
     });
@@ -328,7 +326,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('Cleanup by unblocking User A from User B side', async () => {
-      const unblockButtonB = messagePageB.directMessageUnblockButton;
+      const unblockButtonB = messageSelectorB.directMessageUnblockButton;
       await unblockButtonB.click();
       await friendPageA.gotoFriendsPage();
       await friendPageA.tabs.block.click();

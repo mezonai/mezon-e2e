@@ -11,6 +11,7 @@ import { ChannelSettingPage } from '../ChannelSettingPage';
 import { MessagePage } from '../MessagePage';
 import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 interface SelectorResult {
   found: boolean;
@@ -201,6 +202,12 @@ export class ClanPage extends ClanSelector {
     await this.page.waitForTimeout(500);
   }
 
+  async openChannelsListSetting(): Promise<void> {
+    await expect(this.buttons.channelManagementButton).toBeVisible({ timeout: 3000 });
+    await this.buttons.channelManagementButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
@@ -372,13 +379,11 @@ export class ClanPage extends ClanSelector {
   }
 
   async openDirectMessageWithUser(username: string): Promise<void> {
-    const directMessageHelpers = new DirectMessageHelper(this.page);
+    const messageSelector = new MessageSelector(this.page);
 
-    await expect(
-      directMessageHelpers.userNamesInDM.getByText(username, { exact: true })
-    ).toBeVisible();
+    await expect(messageSelector.userNamesInDM.getByText(username, { exact: true })).toBeVisible();
 
-    await directMessageHelpers.userNamesInDM.getByText(username, { exact: true }).click();
+    await messageSelector.userNamesInDM.getByText(username, { exact: true }).click();
   }
 
   async editChannelName(channelName: string, newChannelName: string): Promise<void> {
@@ -749,8 +754,8 @@ export class ClanPage extends ClanSelector {
   }
 
   async countMessagesOnChannel() {
-    const messagePage = new MessagePage(this.page);
-    return (await messagePage.messages.count()) + 1;
+    const messageSelector = new MessageSelector(this.page);
+    return (await messageSelector.messages.count()) + 1;
   }
 
   async getTotalMessages(channelName: string) {
@@ -821,8 +826,8 @@ export class ClanPage extends ClanSelector {
   }
 
   async joinClanByUrlInvite(url: string) {
-    const messagePage = new MessagePage(this.page);
-    const lastMessageLocator = messagePage.messages.last();
+    const messageSelector = new MessageSelector(this.page);
+    const lastMessageLocator = messageSelector.messages.last();
     await expect(lastMessageLocator).toBeVisible({ timeout: 3000 });
 
     const text = await lastMessageLocator.innerText();
@@ -971,5 +976,98 @@ export class ClanPage extends ClanSelector {
     await expect(channelSettings.side_bar_buttons.channel_label).toHaveText(channelName);
 
     await this.buttons.exitSettings.click();
+  }
+
+  async joinVoiceChannel(channelName: string): Promise<boolean> {
+    await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+    const joinButtonLocator = this.screen.voiceRoom.joinButton;
+    try {
+      await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await joinButtonLocator.click();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isJoinVoiceChannel(channelName: string): Promise<boolean> {
+    const membersButton = this.header.button.member.nth(0);
+    const generalChannel = this.sidebar.channelItem.name.filter({ hasText: 'general' });
+    const userListLocator = this.sidebar.channelItem.item
+      .filter({ has: this.sidebar.channelItem.name.filter({ hasText: channelName }) })
+      .locator(this.sidebar.channelItem.userList.item);
+    const memberListLocator = this.sidebarMemberList.memberItems;
+
+    try {
+      await userListLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await this.modal.voiceManagement.item.waitFor({ state: 'visible', timeout: 5000 });
+      await generalChannel.click();
+      await membersButton.click();
+      const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
+      await memberInVoice.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async leaveVoiceChannel(channelName: string): Promise<boolean> {
+    await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+    const leaveButtonLocator = this.modal.voiceManagement.button.controlItem.filter({
+      has: this.modal.voiceManagement.button.endCall,
+    });
+    try {
+      await leaveButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await leaveButtonLocator.click();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isLeaveVoiceChannel(channelName: string): Promise<boolean> {
+    await this.page.waitForTimeout(3000);
+    const userListLocator = this.sidebar.channelItem.item
+      .filter({ has: this.sidebar.channelItem.name.filter({ hasText: channelName }) })
+      .locator(this.sidebar.channelItem.userList.item);
+    const generalChannel = this.sidebar.channelItem.name.filter({ hasText: 'general' });
+    const membersButton = this.header.button.member.nth(0);
+    const memberListLocator = this.sidebarMemberList.memberItems;
+
+    try {
+      await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+      await userListLocator.waitFor({ state: 'hidden', timeout: 5000 });
+      await this.modal.voiceManagement.item.waitFor({ state: 'hidden', timeout: 5000 });
+      await generalChannel.click();
+      await membersButton.click();
+      const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
+      await memberInVoice.waitFor({ state: 'hidden', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isChannelPresentOnChannelManagement(channelName: string) {
+    const channelLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_management.channel_item.channel_name'),
+      { hasText: channelName }
+    );
+
+    try {
+      await channelLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async openChannelByName(channelName: string) {
+    const channelLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_list.item.name'),
+      { hasText: channelName }
+    );
+    await expect(channelLocator).toBeVisible({ timeout: 3000 });
+    await channelLocator.click();
   }
 }

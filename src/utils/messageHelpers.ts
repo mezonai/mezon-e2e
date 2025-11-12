@@ -1,94 +1,15 @@
 import { MessagePage } from '@/pages/MessagePage';
 import { expect, Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 export class MessageTestHelpers {
   private page: Page;
-  readonly messages: Locator;
-  readonly systemMessages: Locator;
-  readonly pinMessageButton: Locator;
-  readonly confirmPinMessageButton: Locator;
-  readonly jumpToPinnedMessageButtonFromSystemMessage: Locator;
-  readonly pinBadge: Locator;
-  readonly listPinButton: Locator;
-  readonly pinnedMessages: Locator;
-  readonly jumpToPinnedMessageButtonFromPinnedList: Locator;
-  readonly messageActionModalItems: Locator;
-  readonly topicDiscussionMessageButton: Locator;
-  readonly topicInput: Locator;
-  readonly closeTopicBoxButton: Locator;
-  readonly hoverEditMessageButton: Locator;
-  readonly editMessageButton: Locator;
-  readonly topicMessages: Locator;
-  readonly displayNameOnMessageChannel: Locator;
-  readonly viewTopicButoon: Locator;
-  readonly displayNameOnMessageTopic: Locator;
-  readonly deleteMessageButton: Locator;
 
   message: string = '';
 
   constructor(page: Page) {
     this.page = page;
-    this.messages = this.page.locator(generateE2eSelector('message.item'));
-    this.systemMessages = this.page.locator(generateE2eSelector('chat.system_message'));
-    this.messageActionModalItems = page.locator(
-      generateE2eSelector('chat.message_action_modal.button.base')
-    );
-    this.pinMessageButton = page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'Pin message' });
-    this.confirmPinMessageButton = page.locator(
-      generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
-      { hasText: 'Oh yeah. Pin it' }
-    );
-    this.jumpToPinnedMessageButtonFromSystemMessage = page.locator(
-      generateE2eSelector('chat.system_message.pin_message.button.jump_to_message')
-    );
-    this.pinBadge = page.locator(
-      generateE2eSelector('chat.channel_message.header.button.pin.pin_badge')
-    );
-    this.listPinButton = page.locator(
-      generateE2eSelector('chat.channel_message.header.button.pin')
-    );
-    this.pinnedMessages = page.locator(generateE2eSelector('common.pin_message'));
-    this.jumpToPinnedMessageButtonFromPinnedList = page.locator(
-      generateE2eSelector('common.pin_message.button.jump')
-    );
-    this.topicDiscussionMessageButton = page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'Topic Discussion' });
-    this.topicInput = this.page.locator(
-      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
-    );
-    this.closeTopicBoxButton = this.page.locator(
-      generateE2eSelector('chat.topic.header.button.close')
-    );
-
-    this.hoverEditMessageButton = page.locator(
-      `${generateE2eSelector('chat.hover_message_actions.button.base')}[title="Edit"]`
-    );
-
-    this.editMessageButton = page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'Edit Message' });
-
-    this.topicMessages = this.page.locator(
-      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('message.item')}`
-    );
-
-    this.displayNameOnMessageChannel = this.page.locator(
-      `${generateE2eSelector('message.item')} ${generateE2eSelector('base_profile.display_name')}`
-    );
-
-    this.displayNameOnMessageTopic = this.page.locator(
-      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('base_profile.display_name')}`
-    );
-
-    this.viewTopicButoon = this.page.locator(generateE2eSelector('chat.topic.button.view_topic'));
-
-    this.deleteMessageButton = page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'Delete Message' });
   }
 
   public getMessageItemLocator(textContains?: string): Locator {
@@ -131,11 +52,14 @@ export class MessageTestHelpers {
   }
   //
   async replyToMessage(messageElement: Locator, replyText: string): Promise<void> {
+    const messageSelector = new MessageSelector(this.page);
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
 
-    const replyBtn = await this.messageActionModalItems.filter({ hasText: 'Reply' }).first();
+    const replyBtn = await messageSelector.messageActionModalItems
+      .filter({ hasText: 'Reply' })
+      .first();
     await replyBtn.click();
     const input = await this.findMessageInput();
     await input.click();
@@ -147,12 +71,11 @@ export class MessageTestHelpers {
   }
 
   async editMessage(messageElement: Locator, newText: string): Promise<void> {
+    const messageSelector = new MessageSelector(this.page);
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
     await messageElement.click({ button: 'right' });
-
-    const editBtn = await this.findEditOption();
-    await editBtn.click();
+    await messageSelector.editMessageButton.click();
     await this.page.waitForTimeout(1000);
 
     const mentionInput = this.page
@@ -743,9 +666,9 @@ export class MessageTestHelpers {
   }
 
   async handleDeleteConfirmation(): Promise<void> {
-    const messagePage = new MessagePage(this.page);
+    const messageSelector = new MessageSelector(this.page);
 
-    const element = messagePage.confirmDeleteMessageButton;
+    const element = messageSelector.confirmDeleteMessageButton;
     try {
       await element.waitFor({ state: 'visible', timeout: 5000 });
       await element.click();
@@ -2682,15 +2605,17 @@ export class MessageTestHelpers {
   }
 
   async pinLastMessage() {
-    const lastMessage = this.messages.last();
+    const messageSelector = new MessageSelector(this.page);
+    const lastMessage = messageSelector.messages.last();
     await lastMessage.waitFor({ state: 'visible', timeout: 10000 });
     await lastMessage.click({ button: 'right' });
-    await this.pinMessageButton.click();
-    await this.confirmPinMessageButton.click();
+    await messageSelector.pinMessageButton.click();
+    await messageSelector.confirmPinMessageButton.click();
   }
 
   async isLastMessageSystemType(type: number): Promise<boolean> {
-    const lastMessage = this.systemMessages.last();
+    const messageSelector = new MessageSelector(this.page);
+    const lastMessage = messageSelector.systemMessages.last();
     await lastMessage.waitFor({ state: 'visible', timeout: 10000 });
     const identityDiv = lastMessage.locator('div[data-e2e^="chat-system_message-"]');
     const e2eAttr = await identityDiv.getAttribute('data-e2e');
@@ -2701,78 +2626,89 @@ export class MessageTestHelpers {
   }
 
   async clickJumpToPinMessageFromSystemMessage() {
-    await this.jumpToPinnedMessageButtonFromSystemMessage.click();
+    const messageSelector = new MessageSelector(this.page);
+    await messageSelector.jumpToPinnedMessageButtonFromSystemMessage.click();
   }
 
   async getMessageByIdentity(identity: string) {
-    const message = this.messages.filter({ hasText: identity });
+    const messageSelector = new MessageSelector(this.page);
+    const message = messageSelector.messages.filter({ hasText: identity });
     await message.waitFor({ state: 'visible', timeout: 5000 });
 
     return message;
   }
 
   async verifyRedDotIsDisplay(): Promise<void> {
-    await expect(this.pinBadge).toBeVisible({ timeout: 5000 });
+    const messageSelector = new MessageSelector(this.page);
+    await expect(messageSelector.pinBadge).toBeVisible({ timeout: 5000 });
   }
 
   async verifyMessagePinnedOnList(indentityMessage: string): Promise<void> {
-    await this.listPinButton.click();
-    const pinnedMessage = this.pinnedMessages.last().filter({ hasText: indentityMessage });
+    const messageSelector = new MessageSelector(this.page);
+    await messageSelector.displayListPinButton.click();
+    const pinnedMessage = messageSelector.pinnedMessages
+      .last()
+      .filter({ hasText: indentityMessage });
     await expect(pinnedMessage).toHaveCount(1);
   }
 
   async clickJumpToPinMessageFromPinnedMessage() {
-    await this.pinnedMessages.last().hover();
-    await this.jumpToPinnedMessageButtonFromPinnedList.click();
+    const messageSelector = new MessageSelector(this.page);
+    await messageSelector.pinnedMessages.last().hover();
+    await messageSelector.jumpToPinnedMessageButtonFromPinnedList.click();
   }
 
   async getLastMessageInChat(): Promise<string> {
-    const messageHelpers = new MessageTestHelpers(this.page);
-    const lastMessage = await messageHelpers.messages.last();
+    const messageSelector = new MessageSelector(this.page);
+    const lastMessage = await messageSelector.messages.last();
     await expect(lastMessage).toBeVisible();
     return (await lastMessage.innerText()).trim();
   }
 
   async createTopicToInitMessage(message: string) {
+    const messageSelector = new MessageSelector(this.page);
+
+    const topicInput = messageSelector.topicInput;
     const topicMessage = `Topic message - ${Date.now()}`;
 
     const messageLocator = this.getMessageItemLocator(message);
     await expect(messageLocator).toBeVisible({ timeout: 3000 });
 
     await messageLocator.click({ button: 'right' });
-    await expect(this.topicDiscussionMessageButton).toBeVisible({ timeout: 2000 });
+    await expect(messageSelector.topicDiscussionMessageButton).toBeVisible({ timeout: 2000 });
 
-    await this.topicDiscussionMessageButton.click();
-    await expect(this.topicInput).toBeVisible({ timeout: 2000 });
+    await messageSelector.topicDiscussionMessageButton.click();
+    await expect(topicInput).toBeVisible({ timeout: 2000 });
 
-    await this.topicInput.fill(topicMessage);
-    await this.topicInput.waitFor({ state: 'attached' });
-    await this.topicInput.press('Enter');
+    await topicInput.fill(topicMessage);
+    await topicInput.waitFor({ state: 'attached' });
+    await topicInput.press('Enter');
     await this.page.waitForLoadState('networkidle', { timeout: 5000 });
 
-    const topicMessageLocator = this.topicMessages.filter({
+    const topicMessageLocator = messageSelector.topicMessages.filter({
       hasText: topicMessage,
     });
     await expect(topicMessageLocator).toBeVisible({
       timeout: 5000,
     });
 
-    await this.closeTopicBoxButton.click();
-    await expect(this.topicInput).toBeHidden({ timeout: 2000 });
+    await this.page.reload();
   }
 
   async verifyEditButtonIsHiddenWhenHover(message: string) {
+    const messageSelector = new MessageSelector(this.page);
     const messageLocator = this.getMessageItemLocator(message);
     await expect(messageLocator).toBeVisible({ timeout: 5000 });
 
     await messageLocator.hover();
     await this.page.waitForTimeout(300);
 
-    const isVisible = await this.hoverEditMessageButton.isVisible();
+    const isVisible = await messageSelector.hoverEditMessageButton.isVisible();
     expect(isVisible).toBeFalsy();
   }
 
   async verifyEditButtonIsHiddenWhenClickRight(message: string) {
+    const messageSelector = new MessageSelector(this.page);
     const messageLocator = this.getMessageItemLocator(message);
     await expect(messageLocator).toBeVisible({ timeout: 5000 });
 
@@ -2780,30 +2716,32 @@ export class MessageTestHelpers {
 
     await this.page.waitForTimeout(300);
 
-    const isVisible = await this.editMessageButton.isVisible();
+    const isVisible = await messageSelector.hoverEditMessageButton.isVisible();
     expect(isVisible).toBeFalsy();
   }
 
   async verifyNameOnInitTopicMessageIsMatchWithClanSetting(name: string, messageText: string) {
-    const displayNameLocator = this.displayNameOnMessageChannel.last();
+    const messageSelector = new MessageSelector(this.page);
+    const displayNameLocator = messageSelector.displayNameOnMessageChannel.last();
     await expect(displayNameLocator).toBeVisible({ timeout: 3000 });
     const displayNameText = (await displayNameLocator.innerText()).trim();
     expect(displayNameText).toBe(name);
 
-    const viewTopicButon = this.viewTopicButoon.last();
+    const viewTopicButon = messageSelector.viewTopicButoon.last();
     await expect(viewTopicButon).toBeVisible({ timeout: 3000 });
     await viewTopicButon.click();
-    await expect(this.topicInput).toBeVisible({ timeout: 2000 });
+    await expect(messageSelector.topicInput).toBeVisible({ timeout: 2000 });
 
     await this.page.waitForTimeout(2000);
     const displayNameOnTopic = await this.getDisplayNameInTopicByMessageText(messageText);
     await expect(displayNameOnTopic).toHaveText(name);
 
-    await this.closeTopicBoxButton.click();
-    await expect(this.topicInput).toBeHidden({ timeout: 2000 });
+    await messageSelector.closeTopicBoxButton.click();
+    await expect(messageSelector.topicInput).toBeHidden({ timeout: 2000 });
   }
 
   async verifyDeleteButtonIsHiddenWhenClickRight(message: string) {
+    const messageSelector = new MessageSelector(this.page);
     const messageLocator = this.getMessageItemLocator(message);
     await expect(messageLocator).toBeVisible({ timeout: 5000 });
 
@@ -2811,8 +2749,94 @@ export class MessageTestHelpers {
 
     await this.page.waitForTimeout(300);
 
-    const isVisible = await this.deleteMessageButton.isVisible();
+    const isVisible = await messageSelector.deleteMessageButton.isVisible();
     expect(isVisible).toBeFalsy();
+  }
+
+  async openHeaderInboxButton() {
+    const messageSelector = new MessageSelector(this.page);
+    await expect(messageSelector.headerInboxButton).toBeVisible({ timeout: 5000 });
+    await messageSelector.headerInboxButton.click({ force: true });
+    const tooltip = this.page.locator('.rc-tooltip');
+    await expect(tooltip).toBeVisible({ timeout: 5000 });
+  }
+
+  async assertMessageInInboxByContent(messageContent: string) {
+    const messageSelector = new MessageSelector(this.page);
+    const inboxMessage = messageSelector.inboxMessages.filter({ hasText: messageContent });
+    await expect(inboxMessage).toBeVisible({ timeout: 5000 });
+  }
+
+  async openTopicBoxByMessage(message: string) {
+    const messageSelector = new MessageSelector(this.page);
+    const messageLocator = this.getMessageItemLocator(message);
+    await expect(messageLocator).toBeVisible({ timeout: 5000 });
+
+    const viewTopicLocator = messageLocator.locator(
+      generateE2eSelector('chat.topic.button.view_topic')
+    );
+    await expect(viewTopicLocator).toBeVisible({ timeout: 2000 });
+    await viewTopicLocator.click();
+    await expect(messageSelector.topicInput).toBeVisible({ timeout: 2000 });
+  }
+
+  async closeTopicBox() {
+    const messageSelector = new MessageSelector(this.page);
+    await expect(messageSelector.closeTopicBoxButton).toBeVisible({ timeout: 5000 });
+    await messageSelector.closeTopicBoxButton.click();
+    await expect(messageSelector.topicInput).toBeHidden({ timeout: 5000 });
+  }
+
+  async sendMessageInTopicBox(topicMessage: string) {
+    const messageSelector = new MessageSelector(this.page);
+    await expect(messageSelector.topicInput).toBeVisible({ timeout: 2000 });
+    await messageSelector.topicInput.fill(topicMessage);
+    await messageSelector.topicInput.press('Enter');
+    await this.page.waitForLoadState('networkidle', { timeout: 5000 });
+
+    const newTopicMessageLocator = messageSelector.topicMessages.filter({
+      hasText: topicMessage,
+    });
+    await expect(newTopicMessageLocator).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
+  async getTotalTopicMessages(message: string): Promise<number> {
+    const messageLocator = this.getMessageItemLocator(message);
+    await expect(messageLocator).toBeVisible({ timeout: 5000 });
+    const replyLocator = messageLocator.locator(generateE2eSelector('chat.topic.number_replies'));
+    await expect(replyLocator).toBeVisible({ timeout: 2000 });
+    const text = await replyLocator.innerText();
+    const cleaned = text.replace(/\D+/g, '');
+    return Number(cleaned);
+  }
+
+  async verifyFlashMessageOnMessageInput(command: string, contentMessage: string) {
+    const messageSelector = new MessageSelector(this.page);
+    const messageInput = messageSelector.messageInput;
+    const message = `/${command}`;
+    await expect(messageInput).toBeVisible({ timeout: 3000 });
+    await messageInput.fill(message);
+
+    const popup = this.page.locator('div.mention-popover-container');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+
+    const commandLocator = popup.locator(
+      `${generateE2eSelector('suggest_item')}:has-text("${command}")`
+    );
+
+    await expect(commandLocator).toBeVisible({ timeout: 3000 });
+
+    const contentMessageLocator = popup.locator(
+      `${generateE2eSelector('suggest_item.username')}:has-text("${contentMessage}")`
+    );
+
+    await expect(contentMessageLocator).toBeVisible({ timeout: 3000 });
+
+    await commandLocator.click();
+
+    await expect(messageInput).toHaveText(contentMessage, { timeout: 3000 });
   }
 }
 

@@ -9,6 +9,7 @@ import { test as base, expect, Page } from '@playwright/test';
 import { randomInt } from 'crypto';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 const test = base.extend<{
   pageWithClipboard: Page;
@@ -132,12 +133,13 @@ test.describe('Channel Message - Module 3', () => {
     });
 
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
+    const messageSelector = new MessageSelector(pageWithClipboard);
 
     const indentityMessage = (Date.now() + randomInt(10)).toString();
     const messageToPinText = `Message to pin ${indentityMessage}`;
     await AllureReporter.step('Send a message and pin it', async () => {
       await messageHelpers.sendTextMessage(messageToPinText);
-      await messageHelpers.messages.last().waitFor({ state: 'visible', timeout: 10000 });
+      await messageSelector.messages.last().waitFor({ state: 'visible', timeout: 10000 });
       await messageHelpers.pinLastMessage();
     });
 

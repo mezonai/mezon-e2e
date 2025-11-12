@@ -12,6 +12,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 test.describe('User Profile - Update avatar', () => {
   let profileHash: string | null = null;
@@ -104,10 +105,10 @@ test.describe('User Profile - Update avatar', () => {
 
     test('Validate footer avatar', async ({ page }) => {
       const profilePage = new ProfilePage(page);
-      const directMessagePage = new MessagePage(page);
+      const messageSelector = new MessageSelector(page);
 
       await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
-      const footerAvatar = directMessagePage.footerAvatar;
+      const footerAvatar = messageSelector.footerAvatar;
       await expect(footerAvatar).toBeVisible();
       const footerSrc = await footerAvatar.getAttribute('src');
       const footerHash = await getImageHash(footerSrc || '');
@@ -178,10 +179,11 @@ test.describe('User Profile - Update avatar', () => {
 
       const profilePage = new ProfilePage(page);
       const messagePage = new MessagePage(page);
+      const messageSelector = new MessageSelector(page);
 
       await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
       await messagePage.createDMWithFriendName(profileName || '');
-      const accountAvatar = messagePage.headerDMAvatar;
+      const accountAvatar = messageSelector.headerDMAvatar;
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
       const accountHash = await getImageHash(accountSrc || '');

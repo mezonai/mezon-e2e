@@ -257,6 +257,10 @@ export const DATA_E2E_IDENTIFIER = {
         create_clan_webhook_button: '',
         new_clan_webhook_button: '',
         navigate_webhook_button: '',
+        webhook_item: {
+					webhook_title: '',
+					webhook_description: ''
+				}
       },
       sidebar: {
         delete: '',
@@ -322,10 +326,18 @@ export const DATA_E2E_IDENTIFIER = {
       item: {
         icon: {
           hashtag: '',
+          hashtag_lock: '',
           voice: '',
           stream: '',
         },
         name: '',
+        user_list: {
+          item: '',
+        },
+        user_list_collapsed: {
+          item: '',
+          item_count: '',
+        },
       },
       thread_item: {
         name: '',
@@ -349,11 +361,47 @@ export const DATA_E2E_IDENTIFIER = {
         channel_name: '',
       },
     },
+    secondary_side_bar: {
+      member: {
+        in_voice: '',
+      },
+    },
+    screen: {
+      voice_room: {
+        button: {
+          join_voice: '',
+        },
+      },
+    },
   },
   channel_setting_page: {
     side_bar: {
       item: '',
       channel_label: '',
+    },
+    permissions: {
+      button: {
+        change_status: '',
+      },
+      section: {
+        member_role_management: {
+          role_list: {
+            role_item: '',
+          },
+          member_list: {
+            member_item: '',
+          },
+        },
+        advanced_permissions: '',
+      },
+      modal: {
+        ask_change: {
+          button: {
+            reset: '',
+            save_changes: '',
+          },
+        },
+      },
     },
     webhook: {
       button: {
@@ -363,6 +411,27 @@ export const DATA_E2E_IDENTIFIER = {
       },
       input: {
         avatar_channel_webhook: '',
+      },
+    },
+    quick_menu: {
+      tab: '',
+      button: {
+        add: '',
+      },
+      modal: {
+        input: {
+          command_name: '',
+          message_content: '',
+        },
+        button: {
+          submit: '',
+          cancel: '',
+        },
+      },
+      item: {
+        command: '',
+        type: '',
+        message_content: '',
       },
     },
   },
@@ -405,6 +474,7 @@ export const DATA_E2E_IDENTIFIER = {
         add_user: '',
         create_group: '',
         button_plus: '',
+        search: '',
       },
       edit_group: {
         button: '',
@@ -441,7 +511,7 @@ export const DATA_E2E_IDENTIFIER = {
       },
       unblock: {
         button: '',
-      }
+      },
     },
     channel_message: {
       header: {
@@ -499,6 +569,9 @@ export const DATA_E2E_IDENTIFIER = {
           actions: '',
         },
       },
+      inbox: {
+        mentions: '',
+      },
     },
     message_action_modal: {
       button: {
@@ -534,6 +607,7 @@ export const DATA_E2E_IDENTIFIER = {
       button: {
         view_topic: '',
       },
+      number_replies: '',
     },
   },
   onboarding: {
@@ -620,6 +694,18 @@ export const DATA_E2E_IDENTIFIER = {
         control_item: '',
       },
     },
+    forward_message: {
+      button: {
+        cancel: '',
+        send: '',
+      },
+      input: {
+        search: '',
+      },
+    },
+    search: {
+      input: '',
+    },
   },
   friend_page: {
     tab: {
@@ -645,6 +731,9 @@ export const DATA_E2E_IDENTIFIER = {
         okay: '',
       },
     },
+  },
+  icon: {
+    end_call: '',
   },
   message: {
     item: '',

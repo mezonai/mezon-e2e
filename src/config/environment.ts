@@ -482,6 +482,46 @@ export const AccountCredentials = {
     email: 'thang.thieuquang+02-5@ncc.asia',
     password: 'Ncc@1234',
   },
+  accountKien1: {
+    email: 'kien.trinhduy+01@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien2: {
+    email: 'kien.trinhduy+02@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien3: {
+    email: 'kien.trinhduy+03@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien4: {
+    email: 'kien.trinhduy+04@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien5: {
+    email: 'kien.trinhduy+05@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien6: {
+    email: 'kien.trinhduy+06@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien7: {
+    email: 'kien.trinhduy+07@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien8: {
+    email: 'kien.trinhduy+08@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien9: {
+    email: 'kien.trinhduy+09@ncc.asia',
+    password: 'Ncc@1234',
+  },
+  accountKien10: {
+    email: 'kien.trinhduy+10@ncc.asia',
+    password: 'Ncc@1234',
+  },
 };
 
 export const MEZON_DEV = 'https://dev-mezon.nccsoft.vn';
