@@ -319,15 +319,6 @@ export class MessageTestHelpers {
     if (copiedText) {
       await messageInput.fill(copiedText);
       await this.page.waitForTimeout(500);
-
-      // Verify text was filled
-      const inputValue = await messageInput.inputValue();
-
-      if (inputValue !== copiedText) {
-        await messageInput.fill('');
-        await messageInput.fill(copiedText);
-        await this.page.waitForTimeout(500);
-      }
     } else {
       // Fallback: use a default message
       await messageInput.fill('Pasted message from clipboard');
