@@ -11,6 +11,7 @@ import { ChannelSettingPage } from '../ChannelSettingPage';
 import { MessagePage } from '../MessagePage';
 import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 interface SelectorResult {
   found: boolean;
@@ -378,13 +379,11 @@ export class ClanPage extends ClanSelector {
   }
 
   async openDirectMessageWithUser(username: string): Promise<void> {
-    const messagePage = new MessagePage(this.page);
+    const messageSelector = new MessageSelector(this.page);
 
-    await expect(
-      messagePage.userNamesInDM.getByText(username, { exact: true })
-    ).toBeVisible();
+    await expect(messageSelector.userNamesInDM.getByText(username, { exact: true })).toBeVisible();
 
-    await messagePage.userNamesInDM.getByText(username, { exact: true }).click();
+    await messageSelector.userNamesInDM.getByText(username, { exact: true }).click();
   }
 
   async editChannelName(channelName: string, newChannelName: string): Promise<void> {
@@ -755,8 +754,8 @@ export class ClanPage extends ClanSelector {
   }
 
   async countMessagesOnChannel() {
-    const messagePage = new MessagePage(this.page);
-    return (await messagePage.messages.count()) + 1;
+    const messageSelector = new MessageSelector(this.page);
+    return (await messageSelector.messages.count()) + 1;
   }
 
   async getTotalMessages(channelName: string) {
@@ -827,8 +826,8 @@ export class ClanPage extends ClanSelector {
   }
 
   async joinClanByUrlInvite(url: string) {
-    const messagePage = new MessagePage(this.page);
-    const lastMessageLocator = messagePage.messages.last();
+    const messageSelector = new MessageSelector(this.page);
+    const lastMessageLocator = messageSelector.messages.last();
     await expect(lastMessageLocator).toBeVisible({ timeout: 3000 });
 
     const text = await lastMessageLocator.innerText();

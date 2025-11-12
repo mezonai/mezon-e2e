@@ -8,6 +8,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
 import { test } from '../../fixtures/dual.fixture';
+import MessageSelector from '@/data/selectors/MessageSelector';
 
 test.describe('Direct Message', () => {
   const accountA = AccountCredentials['account2-3'];
@@ -157,6 +158,7 @@ test.describe('Direct Message', () => {
     const messagePageB = new MessagePage(pageB);
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
+    const messageSelector = new MessageSelector(pageA);
     let profileHash: string | null = null;
 
     await AllureReporter.addDescription(`
@@ -238,7 +240,7 @@ test.describe('Direct Message', () => {
         await messagePageB.openForwardMessageModal();
         const avtHashOnForwardPopup = await messagePageB.getAvatarHashOnForwardPopup(nameGroupChat);
         expect(avtHashOnForwardPopup).toBe(profileHash);
-        await messagePageB.cancelForwardMessageButton.click();
+        await messageSelector.cancelForwardMessageButton.click();
       }
     );
 

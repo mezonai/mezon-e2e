@@ -1,5 +1,6 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import MessageSelector from '@/data/selectors/MessageSelector';
 import { expect, test } from '@/fixtures/dual.fixture';
 import { ClanInviteFriendModal } from '@/pages/Clan/ClanInviteFriendModal';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
@@ -266,6 +267,8 @@ test.describe('Friend Management - Block User', () => {
     const friendPageB = new FriendPage(pageB);
     const messagePageA = new MessagePage(pageA);
     const messagePageB = new MessagePage(pageB);
+    const messageSelectorA = new MessageSelector(pageA);
+    const messageSelectorB = new MessageSelector(pageB);
     const forwardMessageModalA = new ForwardMessageModal(pageA);
     const forwardMessageModalB = new ForwardMessageModal(pageB);
     const messageText = `Forward message ${Date.now()}`;
@@ -290,12 +293,12 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('User A sends message in DM', async () => {
       await messagePageA.sendMessageWhenInDM(messageText);
-      const sentMessage = messagePageA.messages.filter({ hasText: messageText }).first();
+      const sentMessage = messageSelectorA.messages.filter({ hasText: messageText }).first();
       await sentMessage.waitFor({ state: 'visible', timeout: 10000 });
     });
 
     await test.step('Verify message is visible for User B', async () => {
-      const receivedMessage = messagePageB.messages.filter({ hasText: messageText }).first();
+      const receivedMessage = messageSelectorB.messages.filter({ hasText: messageText }).first();
       await receivedMessage.waitFor({ state: 'visible', timeout: 10000 });
     });
 
@@ -305,7 +308,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User B should not shown in DM forward message list for User A', async () => {
-      const targetMessage = messagePageA.messages.filter({ hasText: messageText }).first();
+      const targetMessage = messageSelectorA.messages.filter({ hasText: messageText }).first();
       await targetMessage.waitFor({ state: 'visible', timeout: 10000 });
       await messagePageA.forwardMessage(targetMessage);
       const isUserBShown = await forwardMessageModalA.isUserShownInList(userNameB);
@@ -316,7 +319,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A should not shown in DM forward message list for User B', async () => {
-      const targetMessage = messagePageB.messages.filter({ hasText: messageText }).first();
+      const targetMessage = messageSelectorB.messages.filter({ hasText: messageText }).first();
       await targetMessage.waitFor({ state: 'visible', timeout: 10000 });
       await messagePageB.forwardMessage(targetMessage);
       const isUserAShown = await forwardMessageModalB.isUserShownInList(userNameA);
@@ -335,7 +338,8 @@ test.describe('Friend Management - Block User', () => {
     const friendPageB = new FriendPage(pageB);
     const clanFactory = new ClanFactory();
     const clanMenuPanelA = new ClanMenuPanel(pageA);
-    const messagePageB = new MessagePage(pageB);
+    const messageSelectorA = new MessageSelector(pageA);
+    const messageSelectorB = new MessageSelector(pageB);
     const messageHelpersA = new MessageTestHelpers(pageA);
     const messageHelpersB = new MessageTestHelpers(pageB);
     const forwardMessageModalA = new ForwardMessageModal(pageA);
@@ -397,24 +401,24 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('Verify base message visible for User B', async () => {
-      const messageLocatorB = messagePageB.messages.filter({ hasText: baseMessage }).first();
+      const messageLocatorB = messageSelectorB.messages.filter({ hasText: baseMessage }).first();
       await messageLocatorB.waitFor({ state: 'visible', timeout: 10000 });
     });
 
     await test.step('Both users open the topic discussion', async () => {
-      const viewTopicButtonA = messageHelpersA.viewTopicButoon.last();
+      const viewTopicButtonA = messageSelectorA.viewTopicButoon.last();
       await expect(viewTopicButtonA).toBeVisible({ timeout: 5000 });
       await viewTopicButtonA.click();
       await pageA.waitForTimeout(1000);
-      await expect(messageHelpersA.topicInput).toBeVisible({ timeout: 2000 });
+      await expect(messageSelectorA.topicInput).toBeVisible({ timeout: 2000 });
 
-      const viewTopicButtonB = messageHelpersB.viewTopicButoon.last();
+      const viewTopicButtonB = messageSelectorB.viewTopicButoon.last();
       await pageB.reload({
         waitUntil: 'domcontentloaded',
       });
       await expect(viewTopicButtonB).toBeVisible({ timeout: 10000 });
       await viewTopicButtonB.click();
-      await expect(messageHelpersB.topicInput).toBeVisible({ timeout: 5000 });
+      await expect(messageSelectorB.topicInput).toBeVisible({ timeout: 5000 });
     });
 
     await test.step('User A sends message inside topic', async () => {
@@ -436,11 +440,11 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A should not shown in topic forward message list for User B', async () => {
-      const topicInputVisible = await messageHelpersB.topicInput.isVisible();
+      const topicInputVisible = await messageSelectorB.topicInput.isVisible();
       if (!topicInputVisible) {
-        const viewTopicButtonB = messageHelpersB.viewTopicButoon.last();
+        const viewTopicButtonB = messageSelectorB.viewTopicButoon.last();
         await viewTopicButtonB.click();
-        await expect(messageHelpersB.topicInput).toBeVisible({ timeout: 5000 });
+        await expect(messageSelectorB.topicInput).toBeVisible({ timeout: 5000 });
       }
       const topicMessageLocatorB = messageHelpersB.getTopicMessageItemByText(topicMessage);
       await expect(topicMessageLocatorB).toBeVisible({ timeout: 10000 });
