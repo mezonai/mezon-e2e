@@ -12,12 +12,14 @@ import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { BrowserContext, expect, Page, test, TestInfo } from '@playwright/test';
 import { ClanSettingsPage } from '../../../pages/ClanSettingsPage';
 import { ProfilePage } from '../../../pages/ProfilePage';
+import ClanSelector from '@/data/selectors/ClanSelector';
 
 test.describe('File Size Limits Validation - Module 2', () => {
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
   let profilePage: ProfilePage;
   let clanPage: ClanPage;
+  let clanSelector: ClanSelector;
   const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
@@ -59,6 +61,7 @@ test.describe('File Size Limits Validation - Module 2', () => {
       clanSettingsPage = new ClanSettingsPage(page);
       profilePage = new ProfilePage(page);
       clanPage = new ClanPage(page);
+      clanSelector = new ClanSelector(page);
     }
   );
 
@@ -97,7 +100,7 @@ test.describe('File Size Limits Validation - Module 2', () => {
         state: 'visible',
         timeout: 3000,
       });
-      await clanPage.buttons.createClan.click();
+      await clanSelector.buttons.createClan.click();
     });
 
     const underLimitPath = await fileSizeHelpers.createFileWithSize(

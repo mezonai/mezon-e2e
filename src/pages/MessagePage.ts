@@ -7,10 +7,10 @@ import { expect, Locator, Page } from '@playwright/test';
 import sleep from '@utils/sleep';
 import { ProfilePage } from './ProfilePage';
 import MessageSelector from '@/data/selectors/MessageSelector';
+import { BasePage } from './BasePage';
 
-export class MessagePage {
+export class MessagePage extends BasePage {
   private helpers: DirectMessageHelper;
-  readonly page: Page;
   private selector: MessageSelector;
 
   firstUserNameText: string = '';
@@ -22,7 +22,7 @@ export class MessagePage {
   userNameItemText: string = '';
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.helpers = new DirectMessageHelper(page);
     this.selector = new MessageSelector(page);
   }

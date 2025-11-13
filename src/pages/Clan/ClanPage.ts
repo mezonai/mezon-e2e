@@ -6,28 +6,29 @@ import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
-import { DirectMessageHelper } from '../../utils/directMessageHelper';
 import { ChannelSettingPage } from '../ChannelSettingPage';
-import { MessagePage } from '../MessagePage';
 import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
 import MessageSelector from '@/data/selectors/MessageSelector';
+import { BasePage } from '../BasePage';
 
 interface SelectorResult {
   found: boolean;
   element?: Locator;
 }
 
-export class ClanPage extends ClanSelector {
+export class ClanPage extends BasePage {
+  private readonly selector: ClanSelector;
   constructor(page: Page) {
     super(page);
+    this.selector = new ClanSelector(page);
   }
 
   async createNewClan(clanName: string): Promise<boolean> {
     try {
-      await this.input.clanName.fill(clanName);
+      await this.selector.input.clanName.fill(clanName);
       await this.page.waitForTimeout(2000);
-      await this.buttons.createClanConfirm.click();
+      await this.selector.buttons.createClanConfirm.click();
       await this.page.waitForTimeout(5000);
       return true;
     } catch (error) {
@@ -50,8 +51,8 @@ export class ClanPage extends ClanSelector {
   }
 
   async clickCreateClanButton(): Promise<boolean> {
-    if (this.buttons.createClan) {
-      await this.buttons.createClan.click();
+    if (this.selector.buttons.createClan) {
+      await this.selector.buttons.createClan.click();
       return true;
     }
 
@@ -83,7 +84,7 @@ export class ClanPage extends ClanSelector {
   }
 
   async deleteAllClans({ onlyDeleteExpired }: { onlyDeleteExpired?: boolean }): Promise<boolean> {
-    const clanElements = this.sidebar.clanItem;
+    const clanElements = this.selector.sidebar.clanItem;
     const clanTitles = await this.mapLocator(clanElements, async element => {
       return element.getAttribute('title');
     });
@@ -103,7 +104,7 @@ export class ClanPage extends ClanSelector {
       const categoryPage = new ClanMenuPanel(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
 
-      const clanLocator = await this.findClanByTitle(clanName);
+      const clanLocator = await this.selector.findClanByTitle(clanName);
 
       await clanLocator.click();
       await this.page.waitForTimeout(1000);
@@ -133,8 +134,8 @@ export class ClanPage extends ClanSelector {
       await categorySettingPage.input.delete.fill(clanName || '');
       await categorySettingPage.buttons.confirmDelete.click();
       await this.page.waitForLoadState('domcontentloaded');
-      if (await this.permissionModal.isVisible()) {
-        await this.permissionModal.cancel.click();
+      if (await this.selector.permissionModal.isVisible()) {
+        await this.selector.permissionModal.cancel.click();
       }
       return true;
     } catch (error) {
@@ -184,27 +185,27 @@ export class ClanPage extends ClanSelector {
   }
 
   async createEvent(): Promise<void> {
-    this.buttons.eventButton.click();
-    this.eventModal.createEventButton.click();
-    this.eventModal.nextButton.click();
+    this.selector.buttons.eventButton.click();
+    this.selector.eventModal.createEventButton.click();
+    this.selector.eventModal.nextButton.click();
   }
 
   async openChannelSettings(channelName: string): Promise<void> {
-    const channelLocator = this.sidebar.channelItem.name.filter({ hasText: channelName });
+    const channelLocator = this.selector.sidebar.channelItem.name.filter({ hasText: channelName });
     await channelLocator.click({ button: 'right' });
-    await this.sidebar.panelItem.item.filter({ hasText: 'Edit Channel' }).click();
+    await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Channel' }).click();
     await this.page.waitForTimeout(500);
   }
 
   async openMemberListSetting(): Promise<void> {
-    await expect(this.buttons.memberListButton).toBeVisible({ timeout: 3000 });
-    await this.buttons.memberListButton.click();
+    await expect(this.selector.buttons.memberListButton).toBeVisible({ timeout: 3000 });
+    await this.selector.buttons.memberListButton.click();
     await this.page.waitForTimeout(500);
   }
 
   async openChannelsListSetting(): Promise<void> {
-    await expect(this.buttons.channelManagementButton).toBeVisible({ timeout: 3000 });
-    await this.buttons.channelManagementButton.click();
+    await expect(this.selector.buttons.channelManagementButton).toBeVisible({ timeout: 3000 });
+    await this.selector.buttons.channelManagementButton.click();
     await this.page.waitForTimeout(500);
   }
 
@@ -214,24 +215,24 @@ export class ClanPage extends ClanSelector {
     status?: ChannelStatus
   ): Promise<boolean> {
     try {
-      await this.buttons.createChannel.click();
+      await this.selector.buttons.createChannel.click();
 
       switch (typeChannel) {
         case ChannelType.TEXT:
-          await this.createChannelModal.type.text.click();
+          await this.selector.createChannelModal.type.text.click();
           break;
         case ChannelType.VOICE:
-          await this.createChannelModal.type.voice.click();
+          await this.selector.createChannelModal.type.voice.click();
           break;
         case ChannelType.STREAM:
-          await this.createChannelModal.type.stream.click();
+          await this.selector.createChannelModal.type.stream.click();
           break;
       }
-      await this.createChannelModal.input.channelName.fill(channelName);
+      await this.selector.createChannelModal.input.channelName.fill(channelName);
       if (status === ChannelStatus.PRIVATE && typeChannel === ChannelType.TEXT) {
-        await this.createChannelModal.toggle.isPrivate.click();
+        await this.selector.createChannelModal.toggle.isPrivate.click();
       }
-      await this.createChannelModal.button.confirm.click();
+      await this.selector.createChannelModal.button.confirm.click();
 
       return true;
     } catch (error) {
@@ -255,37 +256,42 @@ export class ClanPage extends ClanSelector {
   }
 
   async closeCreateThreadModal(): Promise<void> {
-    await this.threadBox.button.closeCreateThreadModal.waitFor({ state: 'visible', timeout: 5000 });
-    await this.threadBox.button.closeCreateThreadModal.click();
+    await this.selector.threadBox.button.closeCreateThreadModal.waitFor({
+      state: 'visible',
+      timeout: 5000,
+    });
+    await this.selector.threadBox.button.closeCreateThreadModal.click();
   }
 
   async createThread(threadName: string, status?: ThreadStatus): Promise<void> {
-    await this.header.button.thread.click();
-    await this.header.button.createThread.click();
-    await this.threadBox.threadNameInput.fill(threadName);
+    await this.selector.header.button.thread.click();
+    await this.selector.header.button.createThread.click();
+    await this.selector.threadBox.threadNameInput.fill(threadName);
     if (status === ThreadStatus.PRIVATE) {
-      await this.threadBox.threadPrivateCheckbox.click();
+      await this.selector.threadBox.threadPrivateCheckbox.click();
     }
-    await this.threadBox.threadInputMention.fill(threadName);
-    await this.threadBox.threadInputMention.press('Enter');
+    await this.selector.threadBox.threadInputMention.fill(threadName);
+    await this.selector.threadBox.threadInputMention.press('Enter');
     await this.page.waitForLoadState('networkidle');
   }
 
   async clickThreadItem(threadName: string): Promise<void> {
-    await this.sidePanel.thread.item
+    await this.selector.sidePanel.thread.item
       .filter({ hasText: threadName })
       .first()
       .waitFor({ state: 'visible', timeout: 45000 });
-    await this.sidePanel.thread.item.filter({ hasText: threadName }).first().click();
+    await this.selector.sidePanel.thread.item.filter({ hasText: threadName }).first().click();
   }
 
   async openMemberList(): Promise<void> {
-    await this.header.button.member.nth(0).click();
+    await this.selector.header.button.member.nth(0).click();
     await this.page.waitForTimeout(500);
   }
 
   async getMemberFromMemberList(memberName: string): Promise<Locator> {
-    const memberLocator = this.sidebarMemberList.memberItems.filter({ hasText: memberName });
+    const memberLocator = this.selector.sidebarMemberList.memberItems.filter({
+      hasText: memberName,
+    });
     await memberLocator.waitFor({ state: 'visible', timeout: 5000 });
     return memberLocator;
   }
@@ -293,12 +299,12 @@ export class ClanPage extends ClanSelector {
   async getProfileFromMemberList(memberName: string): Promise<void> {
     const memberItem = await this.getMemberFromMemberList(memberName);
     await memberItem.click({ button: 'right' });
-    await this.sidebarMemberList.profileButton.click();
+    await this.selector.sidebarMemberList.profileButton.click();
     await this.page.waitForTimeout(1000);
   }
 
   async isNewThreadPresent(threadName: string): Promise<boolean> {
-    const threadLocator = this.sidebar.threadItem.name.filter({
+    const threadLocator = this.selector.sidebar.threadItem.name.filter({
       hasText: threadName,
     });
 
@@ -312,18 +318,18 @@ export class ClanPage extends ClanSelector {
 
   async openThread(threadName: string): Promise<void> {
     await this.page.reload();
-    await this.header.button.thread.click();
+    await this.selector.header.button.thread.click();
     await this.clickThreadItem(threadName);
     await this.page.waitForLoadState('domcontentloaded');
   }
 
   async getAllClan(): Promise<number> {
-    const clanElements = this.sidebar.clanItem;
+    const clanElements = this.selector.sidebar.clanItem;
     return await clanElements.count();
   }
 
   async isLimitCreationModalPresent(): Promise<boolean> {
-    const limitCreationModalLocator = this.modal.limitCreation.title;
+    const limitCreationModalLocator = this.selector.modal.limitCreation.title;
     try {
       await limitCreationModalLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
@@ -334,9 +340,9 @@ export class ClanPage extends ClanSelector {
 
   async clickButtonInvitePeopleFromMenu(): Promise<boolean> {
     try {
-      await this.buttons.clanName.click();
-      await this.buttons.invitePeopleFromHeaderMenu.click();
-      await expect(this.modalInvite.container).toBeVisible({ timeout: 3000 });
+      await this.selector.buttons.clanName.click();
+      await this.selector.buttons.invitePeopleFromHeaderMenu.click();
+      await expect(this.selector.modalInvite.container).toBeVisible({ timeout: 3000 });
       return true;
     } catch (error) {
       console.error(`Error clicking invite people:`, error);
@@ -350,26 +356,26 @@ export class ClanPage extends ClanSelector {
     urlInvite?: string;
   }> {
     try {
-      await expect(this.modalInvite.userInvite.first()).toBeVisible();
+      await expect(this.selector.modalInvite.userInvite.first()).toBeVisible();
 
-      const userInviteItem = this.modalInvite.userInvite.first();
+      const userInviteItem = this.selector.modalInvite.userInvite.first();
       const usernameElement = userInviteItem.locator('p');
       await expect(usernameElement).toBeVisible();
 
       const username = (await usernameElement.innerText()).trim();
 
-      await expect(this.input.urlInvite).toHaveValue(/http/);
-      const urlInvite = (await this.input.urlInvite.inputValue()).trim();
+      await expect(this.selector.input.urlInvite).toHaveValue(/http/);
+      const urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
 
       if (!username || !urlInvite) {
         throw new Error('Missing invite info or URL');
       }
 
-      await this.buttons.invitePeople.first().click();
+      await this.selector.buttons.invitePeople.first().click();
 
-      await this.buttons.closeInviteModal.click();
+      await this.selector.buttons.closeInviteModal.click();
 
-      await this.modalInvite.container.waitFor({ state: 'hidden', timeout: 5000 });
+      await this.selector.modalInvite.container.waitFor({ state: 'hidden', timeout: 5000 });
 
       return { success: true, username, urlInvite };
     } catch (error) {
@@ -393,14 +399,14 @@ export class ClanPage extends ClanSelector {
     );
 
     await input.fill(newChannelName);
-    await this.buttons.saveChanges.click();
-    await this.buttons.exitSettings.click();
+    await this.selector.buttons.saveChanges.click();
+    await this.selector.buttons.exitSettings.click();
     await this.page.waitForLoadState('domcontentloaded');
   }
 
   async clickButtonInvitePeopleFromChannel(): Promise<boolean> {
     try {
-      await this.buttons.invitePeopleFromChannel.click();
+      await this.selector.buttons.invitePeopleFromChannel.click();
       return true;
     } catch (error) {
       console.error(`Error clicking invite people:`, error);
@@ -434,41 +440,43 @@ export class ClanPage extends ClanSelector {
     textChannelName?: string
   ): Promise<boolean> {
     try {
-      await this.buttons.eventButton.click();
-      await this.createEventModal.modalStart.waitFor({ state: 'visible', timeout: 5000 });
+      await this.selector.buttons.eventButton.click();
+      await this.selector.createEventModal.modalStart.waitFor({ state: 'visible', timeout: 5000 });
 
-      await this.eventModal.createEventButton.click();
+      await this.selector.eventModal.createEventButton.click();
 
       switch (eventType) {
         case EventType.LOCATION:
-          await this.createEventModal.type.location.click();
+          await this.selector.createEventModal.type.location.click();
           break;
         case EventType.VOICE:
-          await this.createEventModal.type.voice.click();
+          await this.selector.createEventModal.type.voice.click();
           break;
         case EventType.PRIVATE:
-          await this.createEventModal.type.private.click();
+          await this.selector.createEventModal.type.private.click();
           break;
       }
       if (voiceChannelName) {
         if (eventType === EventType.VOICE) {
-          await this.createEventModal.selectChannel.first().click();
-          const channelItem = this.createEventModal.channelItem.filter({
+          await this.selector.createEventModal.selectChannel.first().click();
+          const channelItem = this.selector.createEventModal.channelItem.filter({
             hasText: voiceChannelName,
           });
           await channelItem.click();
         } else if (eventType === EventType.LOCATION) {
-          await this.createEventModal.input.locationName.fill(voiceChannelName);
+          await this.selector.createEventModal.input.locationName.fill(voiceChannelName);
         }
       }
 
       if (status === ClanStatus.PRIVATE) {
-        await this.createEventModal.selectChannel.last().click({ force: true });
-        const channelItem = this.createEventModal.channelItem.filter({ hasText: textChannelName });
+        await this.selector.createEventModal.selectChannel.last().click({ force: true });
+        const channelItem = this.selector.createEventModal.channelItem.filter({
+          hasText: textChannelName,
+        });
         await channelItem.click();
       }
 
-      await this.eventModal.nextButton.click();
+      await this.selector.eventModal.nextButton.click();
 
       return true;
     } catch (error) {
@@ -479,8 +487,8 @@ export class ClanPage extends ClanSelector {
 
   async sendFirstMessage(message: string): Promise<boolean> {
     try {
-      await this.input.mention.fill(message);
-      await this.input.mention.press('Enter');
+      await this.selector.input.mention.fill(message);
+      await this.selector.input.mention.press('Enter');
       return true;
     } catch {
       return false;
@@ -534,17 +542,17 @@ export class ClanPage extends ClanSelector {
     try {
       const eventTopic = `E2E event ${Date.now()}`;
       const description = `This is an event created during E2E tests ${Date.now()}`;
-      const startDate = await this.createEventModal.input.startDateInput.inputValue();
-      const startTime = await this.createEventModal.input.startTime.inputValue();
+      const startDate = await this.selector.createEventModal.input.startDateInput.inputValue();
+      const startTime = await this.selector.createEventModal.input.startTime.inputValue();
 
       const { formattedDate, formattedTime } = await this.formatDateTimeFromInputs(
         startDate,
         startTime
       );
-      await this.createEventModal.input.eventTopic.fill(eventTopic);
-      await this.createEventModal.input.description.fill(description);
+      await this.selector.createEventModal.input.eventTopic.fill(eventTopic);
+      await this.selector.createEventModal.input.description.fill(description);
 
-      await this.eventModal.nextButton.click();
+      await this.selector.eventModal.nextButton.click();
 
       return {
         eventTopic,
@@ -572,18 +580,18 @@ export class ClanPage extends ClanSelector {
       const { eventTopic, description, startDate, startTime, voiceChannelName, textChannelName } =
         data;
 
-      const eventTopicLocator = this.createEventModal.eventTopicReview;
+      const eventTopicLocator = this.selector.createEventModal.eventTopicReview;
       await expect(eventTopicLocator).toHaveText(eventTopic);
 
       if (description) {
-        const descriptionLocator = this.createEventModal.descriptionReview;
+        const descriptionLocator = this.selector.createEventModal.descriptionReview;
         await expect(descriptionLocator).toHaveText(description);
       }
 
       const startDateTime = `${startDate} - ${startTime}`;
-      const startDateTimeLocator = this.createEventModal.startTimeReview;
+      const startDateTimeLocator = this.selector.createEventModal.startTimeReview;
       await expect(startDateTimeLocator).toHaveText(startDateTime);
-      const typeClanLocator = this.createEventModal.typeClanReview;
+      const typeClanLocator = this.selector.createEventModal.typeClanReview;
       if (data.eventType === EventType.VOICE || data.eventType === EventType.LOCATION) {
         if (data.clanStatus === ClanStatus.PUBLIC) {
           await expect(typeClanLocator).toHaveText('Clan Event');
@@ -596,16 +604,16 @@ export class ClanPage extends ClanSelector {
 
       if (voiceChannelName) {
         if (data.eventType === EventType.VOICE) {
-          const voiceChannelLocator = this.createEventModal.voiceChannelReview;
+          const voiceChannelLocator = this.selector.createEventModal.voiceChannelReview;
           await expect(voiceChannelLocator).toHaveText(voiceChannelName);
         } else if (data.eventType === EventType.LOCATION) {
-          const locationNameLocator = this.createEventModal.locationNameReview;
+          const locationNameLocator = this.selector.createEventModal.locationNameReview;
           await expect(locationNameLocator).toHaveText(voiceChannelName);
         }
       }
 
       if (data.clanStatus === ClanStatus.PRIVATE && textChannelName) {
-        const textChannelLocator = this.createEventModal.textChannelReview;
+        const textChannelLocator = this.selector.createEventModal.textChannelReview;
         await expect(textChannelLocator).toHaveText(textChannelName);
       }
       return true;
@@ -616,40 +624,46 @@ export class ClanPage extends ClanSelector {
   }
 
   async waitForModalToBeHidden(): Promise<void> {
-    await this.createEventModal.modal.waitFor({ state: 'hidden', timeout: 5000 });
+    await this.selector.createEventModal.modal.waitFor({ state: 'hidden', timeout: 5000 });
   }
 
   async getLastEventData(eventType: EventType) {
-    await this.buttons.eventButton.click();
-    await this.createEventModal.modalStart.waitFor({ state: 'visible', timeout: 5000 });
+    await this.selector.buttons.eventButton.click();
+    await this.selector.createEventModal.modalStart.waitFor({ state: 'visible', timeout: 5000 });
 
-    const lastEvent = this.createEventModal.eventManagementItem.last();
+    const lastEvent = this.selector.createEventModal.eventManagementItem.last();
     await lastEvent.waitFor({ state: 'visible', timeout: 5000 });
 
-    const startTime = await lastEvent.locator(this.createEventModal.startTimeReview).textContent();
-    const type = await lastEvent.locator(this.createEventModal.typeClanReview).textContent();
-    const topic = await lastEvent.locator(this.createEventModal.eventTopicReview).textContent();
+    const startTime = await lastEvent
+      .locator(this.selector.createEventModal.startTimeReview)
+      .textContent();
+    const type = await lastEvent
+      .locator(this.selector.createEventModal.typeClanReview)
+      .textContent();
+    const topic = await lastEvent
+      .locator(this.selector.createEventModal.eventTopicReview)
+      .textContent();
     const description = await lastEvent
-      .locator(this.createEventModal.descriptionReview)
+      .locator(this.selector.createEventModal.descriptionReview)
       .textContent();
     const voiceChannel =
       eventType === EventType.VOICE
         ? ((
             await lastEvent
-              .locator(this.createEventModal.voiceChannelReview)
+              .locator(this.selector.createEventModal.voiceChannelReview)
               .textContent()
               .catch(() => null)
           )?.trim() ?? '')
         : eventType === EventType.LOCATION
           ? ((
               await lastEvent
-                .locator(this.createEventModal.locationNameReview)
+                .locator(this.selector.createEventModal.locationNameReview)
                 .textContent()
                 .catch(() => null)
             )?.trim() ?? '')
           : '';
 
-    const textChannelLocator = lastEvent.locator(this.createEventModal.textChannelReview);
+    const textChannelLocator = lastEvent.locator(this.selector.createEventModal.textChannelReview);
     const hasTextChannel = (await textChannelLocator.count()) > 0;
 
     const textChannel = hasTextChannel ? (await textChannelLocator.textContent())?.trim() : '';
@@ -712,42 +726,42 @@ export class ClanPage extends ClanSelector {
     channelName?: string;
     startTime: string;
   }): Promise<boolean> {
-    await this.createEventModal.openEventDetailModalButton.last().click();
-    await this.eventDetailModal.modal.waitFor({ state: 'visible', timeout: 5000 });
+    await this.selector.createEventModal.openEventDetailModalButton.last().click();
+    await this.selector.eventDetailModal.modal.waitFor({ state: 'visible', timeout: 5000 });
 
-    const topic = this.eventDetailModal.topic;
+    const topic = this.selector.eventDetailModal.topic;
     await expect(topic).toHaveText(expected.eventTopic);
 
     if (expected.description) {
-      const description = this.eventDetailModal.description;
+      const description = this.selector.eventDetailModal.description;
       await expect(description).toHaveText(expected.description);
     }
 
     if (expected.channelName) {
-      const channelName = this.eventDetailModal.channelName;
+      const channelName = this.selector.eventDetailModal.channelName;
       await expect(channelName).toHaveText(expected.channelName);
     }
 
-    const startDateTime = this.eventDetailModal.startDateTime;
+    const startDateTime = this.selector.eventDetailModal.startDateTime;
     await expect(startDateTime).toHaveText(expected.startTime);
     return true;
   }
 
   async closeEventModal() {
-    await this.createEventModal.button.closeDetailModal.click();
-    await this.createEventModal.button.closeContainerModal.click();
+    await this.selector.createEventModal.button.closeDetailModal.click();
+    await this.selector.createEventModal.button.closeContainerModal.click();
   }
 
   async countChannelsOnChannelList() {
-    return await this.sidebar.channelsList.count();
+    return await this.selector.sidebar.channelsList.count();
   }
 
   async getTotalChannels() {
-    await this.buttons.channelManagementButton.click();
-    await this.channelManagement.totalChannels.isVisible({ timeout: 5000 });
+    await this.selector.buttons.channelManagementButton.click();
+    await this.selector.channelManagement.totalChannels.isVisible({ timeout: 5000 });
     await this.page.waitForTimeout(2000);
-    const text = await this.channelManagement.totalChannels.innerText();
-    const countChannelItems = await this.channelManagement.channelItem.count();
+    const text = await this.selector.channelManagement.totalChannels.innerText();
+    const countChannelItems = await this.selector.channelManagement.channelItem.count();
 
     const match = text.match(/channel of\s+(\d+)/i);
     return { totalChannels: match ? Number(match[1]) : null, countChannelItems };
@@ -759,12 +773,12 @@ export class ClanPage extends ClanSelector {
   }
 
   async getTotalMessages(channelName: string) {
-    await this.buttons.channelManagementButton.click();
+    await this.selector.buttons.channelManagementButton.click();
     await this.page.waitForTimeout(2000);
-    const channelItem = this.getChannelItemByNameOnCMTab(channelName);
+    const channelItem = this.selector.getChannelItemByNameOnCMTab(channelName);
     await expect(channelItem).toBeVisible({ timeout: 5000 });
 
-    const messageCountLocator = this.getMessageCountByNameOnCMTab(channelItem);
+    const messageCountLocator = this.selector.getMessageCountByNameOnCMTab(channelItem);
     await expect(messageCountLocator).toBeVisible({ timeout: 5000 });
 
     const countText = (await messageCountLocator.textContent())?.trim() ?? '0';
@@ -773,14 +787,14 @@ export class ClanPage extends ClanSelector {
 
   async openRoleSettingsPage(): Promise<boolean> {
     try {
-      await this.buttons.clanName.click();
-      await expect(this.buttons.clanSettings).toBeVisible({ timeout: 3000 });
+      await this.selector.buttons.clanName.click();
+      await expect(this.selector.buttons.clanSettings).toBeVisible({ timeout: 3000 });
 
-      await this.buttons.clanSettings.click();
-      await expect(this.clanSettings.buttons.roleSettings).toBeVisible({ timeout: 3000 });
+      await this.selector.buttons.clanSettings.click();
+      await expect(this.selector.clanSettings.buttons.roleSettings).toBeVisible({ timeout: 3000 });
 
-      await this.clanSettings.buttons.roleSettings.click();
-      await expect(this.clanSettings.buttons.createRole).toBeVisible({ timeout: 3000 });
+      await this.selector.clanSettings.buttons.roleSettings.click();
+      await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 3000 });
       return true;
     } catch (error) {
       console.error(`Error opening Role Settings page:`, error);
@@ -790,16 +804,16 @@ export class ClanPage extends ClanSelector {
 
   async addNewRoleOnClan(roleName: string) {
     try {
-      await this.clanSettings.buttons.createRole.click();
-      await expect(this.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
+      await this.selector.clanSettings.buttons.createRole.click();
+      await expect(this.selector.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
 
-      await this.clanSettings.buttons.displayRoleOption.click();
-      await expect(this.clanSettings.input.roleName).toBeVisible({ timeout: 3000 });
+      await this.selector.clanSettings.buttons.displayRoleOption.click();
+      await expect(this.selector.clanSettings.input.roleName).toBeVisible({ timeout: 3000 });
 
-      await this.clanSettings.input.roleName.fill(roleName);
+      await this.selector.clanSettings.input.roleName.fill(roleName);
 
-      await this.buttons.saveChanges.click();
-      await this.buttons.closeSettingClan.click();
+      await this.selector.buttons.saveChanges.click();
+      await this.selector.buttons.closeSettingClan.click();
     } catch (error) {
       console.error(`Failed to add new role:`, error);
     }
@@ -807,16 +821,16 @@ export class ClanPage extends ClanSelector {
 
   async inviteUserToClanByUsername(username: string) {
     try {
-      await this.modalInvite.searchInput.fill(username);
+      await this.selector.modalInvite.searchInput.fill(username);
 
-      await expect(this.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
-      await expect(this.input.urlInvite).toHaveValue(/http/);
+      await expect(this.selector.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
+      await expect(this.selector.input.urlInvite).toHaveValue(/http/);
 
-      const urlInvite = (await this.input.urlInvite.inputValue()).trim();
-      await this.buttons.invitePeople.first().click();
+      const urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
+      await this.selector.buttons.invitePeople.first().click();
 
-      await this.buttons.closeInviteModal.click();
-      await this.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
+      await this.selector.buttons.closeInviteModal.click();
+      await this.selector.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
 
       return urlInvite;
     } catch (error) {
@@ -856,7 +870,7 @@ export class ClanPage extends ClanSelector {
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {
-    await this.buttons.memberListButton.click();
+    await this.selector.buttons.memberListButton.click();
     const userRow = this.page.locator(
       `${generateE2eSelector('clan_page.member_list')}:has(${generateE2eSelector('clan_page.member_list.user_info.username')}:has-text("${username}"))`
     );
@@ -920,17 +934,17 @@ export class ClanPage extends ClanSelector {
   }
 
   async leaveClan() {
-    await this.buttons.clanName.click();
-    await expect(this.buttons.leaveClan).toBeVisible({ timeout: 3000 });
-    await this.buttons.leaveClan.click();
-    await expect(this.buttons.confirm).toBeVisible({ timeout: 3000 });
-    await this.buttons.confirm.click();
+    await this.selector.buttons.clanName.click();
+    await expect(this.selector.buttons.leaveClan).toBeVisible({ timeout: 3000 });
+    await this.selector.buttons.leaveClan.click();
+    await expect(this.selector.buttons.confirm).toBeVisible({ timeout: 3000 });
+    await this.selector.buttons.confirm.click();
   }
 
   async verifyUserHasRoleOnChannel(username: string, roleName: string, shouldVisible = true) {
-    await this.sidebar.channelsList.first().click();
-    await expect(this.header.button.member).toBeVisible({ timeout: 5000 });
-    await this.header.button.member.click();
+    await this.selector.sidebar.channelsList.first().click();
+    await expect(this.selector.header.button.member).toBeVisible({ timeout: 5000 });
+    await this.selector.header.button.member.click();
 
     const memberRow = this.page.locator(
       `${generateE2eSelector('chat.channel_message.member_list.item')}:has-text("${username}"))`
@@ -970,17 +984,17 @@ export class ClanPage extends ClanSelector {
 
     await expect(channelSettings.side_bar_buttons.channel_label).toHaveText(newChannelName);
 
-    await this.buttons.reset.click();
-    await expect(this.buttons.reset).toBeHidden({ timeout: 2000 });
+    await this.selector.buttons.reset.click();
+    await expect(this.selector.buttons.reset).toBeHidden({ timeout: 2000 });
     await expect(input).toHaveValue(channelName);
     await expect(channelSettings.side_bar_buttons.channel_label).toHaveText(channelName);
 
-    await this.buttons.exitSettings.click();
+    await this.selector.buttons.exitSettings.click();
   }
 
   async joinVoiceChannel(channelName: string): Promise<boolean> {
-    await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
-    const joinButtonLocator = this.screen.voiceRoom.joinButton;
+    await this.selector.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+    const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
     try {
       await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
       await joinButtonLocator.click();
@@ -991,19 +1005,21 @@ export class ClanPage extends ClanSelector {
   }
 
   async isJoinVoiceChannel(channelName: string): Promise<boolean> {
-    const membersButton = this.header.button.member.nth(0);
-    const generalChannel = this.sidebar.channelItem.name.filter({ hasText: 'general' });
-    const userListLocator = this.sidebar.channelItem.item
-      .filter({ has: this.sidebar.channelItem.name.filter({ hasText: channelName }) })
-      .locator(this.sidebar.channelItem.userList.item);
-    const memberListLocator = this.sidebarMemberList.memberItems;
+    const membersButton = this.selector.header.button.member.nth(0);
+    const generalChannel = this.selector.sidebar.channelItem.name.filter({ hasText: 'general' });
+    const userListLocator = this.selector.sidebar.channelItem.item
+      .filter({ has: this.selector.sidebar.channelItem.name.filter({ hasText: channelName }) })
+      .locator(this.selector.sidebar.channelItem.userList.item);
+    const memberListLocator = this.selector.sidebarMemberList.memberItems;
 
     try {
       await userListLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await this.modal.voiceManagement.item.waitFor({ state: 'visible', timeout: 5000 });
+      await this.selector.modal.voiceManagement.item.waitFor({ state: 'visible', timeout: 5000 });
       await generalChannel.click();
       await membersButton.click();
-      const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
+      const memberInVoice = memberListLocator.filter({
+        has: this.selector.secondarySideBar.member.inVoice,
+      });
       await memberInVoice.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
@@ -1012,9 +1028,9 @@ export class ClanPage extends ClanSelector {
   }
 
   async leaveVoiceChannel(channelName: string): Promise<boolean> {
-    await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
-    const leaveButtonLocator = this.modal.voiceManagement.button.controlItem.filter({
-      has: this.modal.voiceManagement.button.endCall,
+    await this.selector.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+    const leaveButtonLocator = this.selector.modal.voiceManagement.button.controlItem.filter({
+      has: this.selector.modal.voiceManagement.button.endCall,
     });
     try {
       await leaveButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
@@ -1027,20 +1043,22 @@ export class ClanPage extends ClanSelector {
 
   async isLeaveVoiceChannel(channelName: string): Promise<boolean> {
     await this.page.waitForTimeout(3000);
-    const userListLocator = this.sidebar.channelItem.item
-      .filter({ has: this.sidebar.channelItem.name.filter({ hasText: channelName }) })
-      .locator(this.sidebar.channelItem.userList.item);
-    const generalChannel = this.sidebar.channelItem.name.filter({ hasText: 'general' });
-    const membersButton = this.header.button.member.nth(0);
-    const memberListLocator = this.sidebarMemberList.memberItems;
+    const userListLocator = this.selector.sidebar.channelItem.item
+      .filter({ has: this.selector.sidebar.channelItem.name.filter({ hasText: channelName }) })
+      .locator(this.selector.sidebar.channelItem.userList.item);
+    const generalChannel = this.selector.sidebar.channelItem.name.filter({ hasText: 'general' });
+    const membersButton = this.selector.header.button.member.nth(0);
+    const memberListLocator = this.selector.sidebarMemberList.memberItems;
 
     try {
-      await this.sidebar.channelItem.name.filter({ hasText: channelName }).click();
+      await this.selector.sidebar.channelItem.name.filter({ hasText: channelName }).click();
       await userListLocator.waitFor({ state: 'hidden', timeout: 5000 });
-      await this.modal.voiceManagement.item.waitFor({ state: 'hidden', timeout: 5000 });
+      await this.selector.modal.voiceManagement.item.waitFor({ state: 'hidden', timeout: 5000 });
       await generalChannel.click();
       await membersButton.click();
-      const memberInVoice = memberListLocator.filter({ has: this.secondarySideBar.member.inVoice });
+      const memberInVoice = memberListLocator.filter({
+        has: this.selector.secondarySideBar.member.inVoice,
+      });
       await memberInVoice.waitFor({ state: 'hidden', timeout: 5000 });
       return true;
     } catch {
@@ -1069,5 +1087,43 @@ export class ClanPage extends ClanSelector {
     );
     await expect(channelLocator).toBeVisible({ timeout: 3000 });
     await channelLocator.click();
+  }
+
+  async markChannelAsFavorite(channelName: string) {
+    const clanSelector = new ClanSelector(this.page);
+    const channelLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_list.item.name'),
+      { hasText: channelName }
+    );
+    await channelLocator.click({ button: 'right' });
+    await clanSelector.sidebar.panelItem.item.filter({ hasText: 'Mark Favorite' }).click();
+  }
+
+  async verifyChannelIsMarkedAsFavorite(channelName: string) {
+    const channelLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_list.item.name'),
+      { hasText: channelName }
+    );
+    const count = await channelLocator.count();
+    await expect(count).toBe(2);
+  }
+
+  async unmarkChannelAsFavorite(channelName: string) {
+    const clanSelector = new ClanSelector(this.page);
+    const channelLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_list.item.name'),
+      { hasText: channelName }
+    );
+    await channelLocator.first().click({ button: 'right' });
+    await clanSelector.sidebar.panelItem.item.filter({ hasText: 'Unmark Favorite' }).click();
+  }
+
+  async verifyChannelIsUnmarkedAsFavorite(channelName: string) {
+    const channelLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_list.item.name'),
+      { hasText: channelName }
+    );
+    const count = await channelLocator.count();
+    await expect(count).toBe(1);
   }
 }

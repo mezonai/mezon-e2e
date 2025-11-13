@@ -1,6 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import ClanSelector from '@/data/selectors/ClanSelector';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSettingsPage } from '@/pages/ClanSettingsPage';
 import { MezonCredentials } from '@/types';
@@ -72,11 +73,11 @@ test.describe('Clan Management - Module 3', () => {
       tag: ['webhook_creation', 'channels_members_page'],
     });
 
-    const clanPage = new ClanPage(page);
     const clanSettingsPage = new ClanSettingsPage(page);
+    const clanSelector = new ClanSelector(page);
 
     await AllureReporter.step('Go to Channels page', async () => {
-      await clanPage.buttons.channelManagementButton.click();
+      await clanSelector.buttons.channelManagementButton.click();
     });
 
     await AllureReporter.step('Open Integrations tab', async () => {
@@ -90,6 +91,45 @@ test.describe('Clan Management - Module 3', () => {
     await AllureReporter.step('Verify webhook is created', async () => {
       const isWebhookCreated = await clanSettingsPage.verifyWebhookCreated();
       expect(isWebhookCreated).toBe(true);
+    });
+  });
+
+  test('Verify that favorite channel unmarkable', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64675',
+      github_issue: '9791',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that favorite channel unmarkable.
+          **Test Steps:**
+            1. Mark the general channel as favorite
+            2. Verify the general channel is marked as favorite
+            3. Unmark the general channel
+            4. Verify the general channel is not marked as favorite
+          **Expected Result:** The general channel is not marked as favorite.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['favorite-channel', 'unmarkable'],
+    });
+
+    const clanPage = new ClanPage(page);
+
+    await AllureReporter.step('Mark the general channel as favorite', async () => {
+      await clanPage.markChannelAsFavorite('general');
+    });
+
+    await AllureReporter.step('Verify the general channel is marked as favorite', async () => {
+      await clanPage.verifyChannelIsMarkedAsFavorite('general');
+    });
+
+    await AllureReporter.step('Unmark the general channel', async () => {
+      await clanPage.unmarkChannelAsFavorite('general');
+    });
+
+    await AllureReporter.step('Verify the general channel is not marked as favorite', async () => {
+      await clanPage.verifyChannelIsUnmarkedAsFavorite('general');
     });
   });
 });

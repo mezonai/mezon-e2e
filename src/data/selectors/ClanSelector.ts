@@ -1,10 +1,9 @@
-import { BasePage } from '@/pages/BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Locator, Page } from '@playwright/test';
 
-export default class ClanSelector extends BasePage {
-  constructor(page: Page) {
-    super(page);
+export default class ClanSelector {
+  constructor(private readonly page: Page) {
+    this.page = page;
   }
 
   readonly buttons = {
@@ -128,7 +127,7 @@ export default class ClanSelector extends BasePage {
     },
   };
 
-  protected input = {
+  readonly input = {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
     urlInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.url_invite')),
     delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
@@ -138,7 +137,7 @@ export default class ClanSelector extends BasePage {
     mention: this.page.locator(generateE2eSelector('mention.input')),
   };
 
-  protected clanSettings = {
+  readonly clanSettings = {
     clanName: this.page.locator(generateE2eSelector('clan_page.settings.overview.input.clan_name')),
     settings_page: this.page.locator(generateE2eSelector('clan_page.settings')),
     buttons: {
@@ -271,7 +270,7 @@ export default class ClanSelector extends BasePage {
     },
   };
 
-  protected createEventModal = {
+  readonly createEventModal = {
     modal: this.page.locator(generateE2eSelector('clan_page.modal.create_event')),
     modalStart: this.page.locator(generateE2eSelector('clan_page.modal.create_event.start_modal')),
     type: {
@@ -367,7 +366,7 @@ export default class ClanSelector extends BasePage {
     },
   };
 
-  protected eventDetailModal = {
+  readonly eventDetailModal = {
     modal: this.page.locator(
       generateE2eSelector('clan_page.modal.create_event.event_management.item.modal_detail_item')
     ),

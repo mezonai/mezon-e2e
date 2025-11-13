@@ -1,7 +1,7 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { ClanPage } from './Clan/ClanPage';
+import ClanSelector from '@/data/selectors/ClanSelector';
 
 export class ChannelSettingPage extends BasePage {
   constructor(page: Page) {
@@ -227,7 +227,7 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async verifyChannelStatusIsPrivate(channelName: string): Promise<boolean> {
-    const clanPage = new ClanPage(this.page);
+    const clanSelector = new ClanSelector(this.page);
     await this.page.waitForLoadState('networkidle');
     try {
       await this.permissions.section.member_role_section.waitFor({ state: 'visible' });
@@ -243,17 +243,17 @@ export class ChannelSettingPage extends BasePage {
 
     await this.button.close_settings.click();
 
-    const membersButton = clanPage.header.button.member.nth(0);
+    const membersButton = clanSelector.header.button.member.nth(0);
     await membersButton.waitFor({ state: 'visible' });
     await membersButton.click();
 
-    const members = clanPage.secondarySideBar.member.item;
+    const members = clanSelector.secondarySideBar.member.item;
     await members.waitFor({ state: 'visible' });
     const memberCount = await members.count();
     if (memberCount !== 1) return false;
 
-    const channelIconLock = clanPage.sidebar.channelItem.item.filter({
-      has: clanPage.sidebar.channelItem.iconHashtagLock,
+    const channelIconLock = clanSelector.sidebar.channelItem.item.filter({
+      has: clanSelector.sidebar.channelItem.iconHashtagLock,
       hasText: channelName,
     });
     await channelIconLock.waitFor({ state: 'visible' });
@@ -261,7 +261,7 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async verifyChannelStatusIsPublic(channelName: string): Promise<boolean> {
-    const clanPage = new ClanPage(this.page);
+    const clanSelector = new ClanSelector(this.page);
     await this.page.waitForLoadState('networkidle');
     try {
       await this.permissions.section.member_role_section.waitFor({ state: 'hidden' });
@@ -272,8 +272,8 @@ export class ChannelSettingPage extends BasePage {
 
     await this.button.close_settings.click();
 
-    const channelIconLock = clanPage.sidebar.channelItem.item.filter({
-      has: clanPage.sidebar.channelItem.iconHashtag,
+    const channelIconLock = clanSelector.sidebar.channelItem.item.filter({
+      has: clanSelector.sidebar.channelItem.iconHashtag,
       hasText: channelName,
     });
     await channelIconLock.waitFor({ state: 'visible' });
