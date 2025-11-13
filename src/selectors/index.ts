@@ -385,6 +385,24 @@ export const DATA_E2E_IDENTIFIER = {
       },
       section: {
         member_role_management: {
+          button: {
+            add: '',
+          },
+          modal: {
+            role_list: {
+              role_item: {
+                input: '',
+                title: '',
+              },
+            },
+            member_list: {
+              member_item: {
+                input: '',
+                name_prioritize: '',
+                username: '',
+              },
+            },
+          },
           role_list: {
             role_item: '',
           },
@@ -393,6 +411,9 @@ export const DATA_E2E_IDENTIFIER = {
           },
         },
         advanced_permissions: '',
+        list_roles_members: {
+          role_member_item: '',
+        },
       },
       modal: {
         ask_change: {
