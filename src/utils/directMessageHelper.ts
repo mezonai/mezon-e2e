@@ -1,6 +1,6 @@
-import { Locator, Page } from '@playwright/test';
+import MessageSelector from '@/data/selectors/MessageSelector';
+import { Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
-import { MessagePage } from '@/pages/MessagePage';
 
 export class DirectMessageHelper {
   private page: Page;
@@ -10,12 +10,12 @@ export class DirectMessageHelper {
   }
 
   async countGroups(): Promise<number> {
-    const messagePage = new MessagePage(this.page);
+    const selector = new MessageSelector(this.page);
     let groupCount = 0;
-    const count = await messagePage.listDMItems.count();
+    const count = await selector.listDMItems.count();
 
     for (let i = 0; i < count; i++) {
-      const dm = messagePage.listDMItems.nth(i);
+      const dm = selector.listDMItems.nth(i);
       const pCount = await dm.locator('p').count();
       if (pCount > 0) {
         const text = await dm.locator('p').first().textContent();
@@ -28,12 +28,12 @@ export class DirectMessageHelper {
   }
 
   async countUsers(): Promise<number> {
-    const messagePage = new MessagePage(this.page);
+    const selector = new MessageSelector(this.page);
     let userCount = 0;
-    const count = await messagePage.listDMItems.count();
+    const count = await selector.listDMItems.count();
 
     for (let i = 0; i < count; i++) {
-      const dm = messagePage.listDMItems.nth(i);
+      const dm = selector.listDMItems.nth(i);
       const pCount = await dm.locator('p').count();
 
       if (pCount === 0) {
@@ -56,7 +56,7 @@ export class DirectMessageHelper {
       waitMs?: number;
     } = {}
   ): Promise<boolean> {
-    const messagePage = new MessagePage(this.page);
+    const selector = new MessageSelector(this.page);
     const { scrollStep = 400, maxScroll = 10000, waitMs = 300 } = options;
     if (name === '') {
       return false;
@@ -65,7 +65,7 @@ export class DirectMessageHelper {
     let scrolled = 0;
 
     while (scrolled < maxScroll) {
-      const target = messagePage.listDMItems.filter({
+      const target = selector.listDMItems.filter({
         has: this.page.locator(
           `${generateE2eSelector('chat.direct_message.chat_item.username')}:text-is("${name}")`
         ),
@@ -78,7 +78,7 @@ export class DirectMessageHelper {
         return true;
       }
 
-      const reachedEnd = await messagePage.chatListContainer.evaluate((el, step) => {
+      const reachedEnd = await selector.chatListContainer.evaluate((el, step) => {
         const before = el.scrollTop;
         el.scrollBy(0, step);
         return el.scrollTop === before || el.scrollTop + el.clientHeight >= el.scrollHeight;
@@ -108,7 +108,7 @@ export class DirectMessageHelper {
       waitMs?: number;
     } = {}
   ): Promise<number> {
-    const messagePage = new MessagePage(this.page);
+    const selector = new MessageSelector(this.page);
     const { scrollStep = 400, maxScroll = 10000, waitMs = 300 } = options;
     if (name === '') {
       return 0;
@@ -118,8 +118,8 @@ export class DirectMessageHelper {
     let count = 0;
 
     while (scrolled < maxScroll) {
-      const target = messagePage.listDMItems.filter({
-        has: messagePage.page.locator(`:text-is("${name}")`),
+      const target = selector.listDMItems.filter({
+        has: selector.page.locator(`:text-is("${name}")`),
       });
 
       const currentCount = await target.count();
@@ -127,7 +127,7 @@ export class DirectMessageHelper {
         count = currentCount;
       }
 
-      const reachedEnd = await messagePage.chatListContainer.evaluate((el, step) => {
+      const reachedEnd = await selector.chatListContainer.evaluate((el, step) => {
         const before = el.scrollTop;
         el.scrollBy(0, step);
         return el.scrollTop === before || el.scrollTop + el.clientHeight >= el.scrollHeight;

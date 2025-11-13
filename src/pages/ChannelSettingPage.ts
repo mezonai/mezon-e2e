@@ -43,6 +43,12 @@ export class ChannelSettingPage extends BasePage {
       change_status: this.page.locator(
         generateE2eSelector('channel_setting_page.permissions.button.change_status')
       ),
+      add_members_roles: this.page.locator(
+        generateE2eSelector(
+          'channel_setting_page.permissions.section.member_role_management.button.add'
+        )
+      ),
+      submit: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Done' }),
     },
     section: {
       member_role_section: this.page.locator(
@@ -67,6 +73,68 @@ export class ChannelSettingPage extends BasePage {
         member_item: this.page.locator(
           generateE2eSelector(
             'channel_setting_page.permissions.section.member_role_management.member_list.member_item'
+          )
+        ),
+        modal_container: this.page.locator(
+          generateE2eSelector(
+            'channel_setting_page.permissions.section.member_role_management.modal'
+          )
+        ),
+        modal: {
+          roles_list: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.role_list'
+            )
+          ),
+          role_item: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.role_list.role_item'
+            )
+          ),
+          role_checkbox: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.role_list.role_item.input'
+            )
+          ),
+          role_title: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.role_list.role_item.title'
+            )
+          ),
+          members_list: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.member_list'
+            )
+          ),
+          member_item: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.member_list.member_item'
+            )
+          ),
+          member_checkbox: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.member_list.member_item.input'
+            )
+          ),
+          member_name_prioritize: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.member_list.member_item.name_prioritize'
+            )
+          ),
+          member_username: this.page.locator(
+            generateE2eSelector(
+              'channel_setting_page.permissions.section.member_role_management.modal.member_list.member_item.username'
+            )
+          ),
+        },
+      },
+      list_roles_members: {
+        container: this.page.locator(
+          generateE2eSelector('channel_setting_page.permissions.section.list_roles_members')
+        ),
+        item: this.page.locator(
+          generateE2eSelector(
+            'channel_setting_page.permissions.section.list_roles_members.role_member_item'
           )
         ),
       },
@@ -275,5 +343,117 @@ export class ChannelSettingPage extends BasePage {
 
     await expect(popup).toBeHidden({ timeout: 5000 });
     await this.page.waitForTimeout(2000);
+  }
+
+  async openPermissionsTab() {
+    await expect(this.side_bar_buttons.permissions).toBeVisible({ timeout: 3000 });
+    await this.side_bar_buttons.permissions.click();
+  }
+
+  async updateChannelStatusAndOpenAddMembersRolesModal() {
+    const checkbox = this.permissions.button.change_status;
+    await expect(checkbox).toBeVisible({ timeout: 3000 });
+    await checkbox.click();
+
+    const isChecked = await checkbox.isChecked();
+    expect(isChecked).toBe(true);
+
+    const addButton = this.permissions.button.add_members_roles;
+    await expect(addButton).toBeVisible({ timeout: 3000 });
+    await addButton.click();
+
+    await expect(this.permissions.section.member_role_management.modal_container).toBeVisible({
+      timeout: 3000,
+    });
+  }
+
+  async addMembersAndRolesForPrivateChannel(roleName: string, username: string) {
+    const modal = this.permissions.section.member_role_management.modal_container;
+
+    await expect(modal).toBeVisible({ timeout: 3000 });
+
+    const roles = this.permissions.section.member_role_management.modal.role_item;
+    const roleTitles = this.permissions.section.member_role_management.modal.role_title;
+    const roleCheckboxes = this.permissions.section.member_role_management.modal.role_checkbox;
+
+    const roleCount = await roles.count();
+    for (let i = 0; i < roleCount; i++) {
+      const title = (await roleTitles.nth(i).innerText()).trim().toLowerCase();
+      if (title === roleName.trim().toLowerCase()) {
+        await roleCheckboxes.nth(i).check();
+        console.log(`✅ Checked role: ${title}`);
+        break;
+      }
+    }
+
+    const members = this.permissions.section.member_role_management.modal.member_item;
+    const memberUsernames = this.permissions.section.member_role_management.modal.member_username;
+    const memberCheckboxes = this.permissions.section.member_role_management.modal.member_checkbox;
+
+    const memberCount = await members.count();
+    for (let i = 0; i < memberCount; i++) {
+      const name = (await memberUsernames.nth(i).innerText()).trim().toLowerCase();
+      if (name === username.trim().toLowerCase()) {
+        await memberCheckboxes.nth(i).check();
+        console.log(`✅ Checked member: ${name}`);
+        break;
+      }
+    }
+
+    await this.permissions.button.submit.click();
+    await expect(modal).toBeHidden({ timeout: 3000 });
+  }
+
+  async verifyRoleAndMemberExistBeforeSave(roleName: string, memberName: string) {
+    const { member_role_management } = this.permissions.section;
+
+    const roleItem = member_role_management.role_item.filter({ hasText: roleName });
+    await expect(roleItem, `❌ Role "${roleName}" not found in the list`).toBeVisible({
+      timeout: 3000,
+    });
+    console.log(`✅ Role "${roleName}" is visible in the list`);
+
+    const memberItem = member_role_management.member_item.filter({ hasText: memberName });
+    await expect(memberItem, `❌ Member "${memberName}" not found in the list`).toBeVisible({
+      timeout: 3000,
+    });
+    console.log(`✅ Member "${memberName}" is visible in the list`);
+  }
+
+  async verifyRoleAndMemberExistAfterSave(roleName: string, memberName: string) {
+    const { member_role_management } = this.permissions.section;
+    const save_changes = this.permissions.modal.ask_change.button.save_changes;
+    await expect(save_changes).toBeVisible({ timeout: 3000 });
+    await save_changes.click();
+    await this.page.waitForTimeout(2000);
+
+    const roleItem = member_role_management.role_item.filter({ hasText: roleName });
+    await expect(roleItem, `❌ Role "${roleName}" not found in the list`).toBeVisible({
+      timeout: 3000,
+    });
+    console.log(`✅ Role "${roleName}" is visible in the list`);
+
+    const memberItem = member_role_management.member_item.filter({ hasText: memberName });
+    await expect(memberItem, `❌ Member "${memberName}" not found in the list`).toBeVisible({
+      timeout: 3000,
+    });
+    console.log(`✅ Member "${memberName}" is visible in the list`);
+
+    const { container, item } = this.permissions.section.list_roles_members;
+    await expect(container, '❌ Combined list (list_roles_members) not visible').toBeVisible({
+      timeout: 3000,
+    });
+
+    const roleInList = item.filter({ hasText: roleName });
+    await expect(roleInList, `❌ Role "${roleName}" not found in combined list`).toBeVisible({
+      timeout: 3000,
+    });
+    console.log(`✅ Role "${roleName}" appears in combined list`);
+
+    const memberInList = item.filter({ hasText: memberName });
+    await expect(memberInList, `❌ Member "${memberName}" not found in combined list`).toBeVisible({
+      timeout: 3000,
+    });
+    console.log(`✅ Member "${memberName}" appears in combined list`);
   }
 }
