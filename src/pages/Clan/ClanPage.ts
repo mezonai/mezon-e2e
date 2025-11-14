@@ -1126,4 +1126,40 @@ export class ClanPage extends BasePage {
     const count = await channelLocator.count();
     await expect(count).toBe(1);
   }
+
+  async getFooterProfileUserName() {
+    return this.selector.footerProfile.userName.textContent();
+  }
+
+  async getModalInviteContainer() {
+    return this.selector.modalInvite.container;
+  }
+
+  async getModalInviteUserItemByUsername(username: string) {
+    return this.selector.modalInvite.userInvite.filter({ hasText: username });
+  }
+
+  async clickModalInviteCloseButton() {
+    await this.selector.modalInvite.button.close.click();
+  }
+
+  async isPermissionModalVisible() {
+    return this.selector.permissionModal.isVisible();
+  }
+
+  async clickPermissionModalCancelButton() {
+    await this.selector.permissionModal.cancel.click();
+  }
+
+  async clickCreateEventButton() {
+    await this.selector.eventModal.createEventButton.click();
+  }
+
+  async gotoChannelManagementPage() {
+    await this.selector.buttons.channelManagementButton.click();
+  }
+
+  async getMemberSettingsUsersInfoAvatar() {
+    return this.selector.memberSettings.usersInfo.locator(generateE2eSelector('avatar.image'));
+  }
 }

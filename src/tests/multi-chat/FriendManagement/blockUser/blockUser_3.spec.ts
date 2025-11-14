@@ -1,7 +1,5 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import ClanSelector from '@/data/selectors/ClanSelector';
-import MessageSelector from '@/data/selectors/MessageSelector';
 import { expect, test } from '@/fixtures/dual.fixture';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
@@ -134,7 +132,6 @@ test.describe('Friend Management - Block User', () => {
     const clanFactory = new ClanFactory();
     const clanMenuPanelA = new ClanMenuPanel(pageA);
     const clanPageA = new ClanPage(pageA);
-    const clanSelectorA = new ClanSelector(pageA);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure the DM invite modal excludes direct message threads that include blocked users.
@@ -156,11 +153,11 @@ test.describe('Friend Management - Block User', () => {
       await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
       await clanMenuPanelA.openInvitePeopleModal();
 
-      const inviteContainer = clanSelectorA.modalInvite.container;
+      const inviteContainer = await clanPageA.getModalInviteContainer();
       await expect(inviteContainer).toBeVisible({ timeout: 10000 });
-      const dmItemB = clanSelectorA.modalInvite.userInvite.filter({ hasText: userNameB });
+      const dmItemB = await clanPageA.getModalInviteUserItemByUsername(userNameB);
       await expect(dmItemB).toHaveCount(1, { timeout: 10000 });
-      await clanSelectorA.modalInvite.button.close.click();
+      await clanPageA.clickModalInviteCloseButton();
       await inviteContainer.waitFor({ state: 'detached', timeout: 10000 });
     });
 
@@ -172,11 +169,11 @@ test.describe('Friend Management - Block User', () => {
     await test.step('DM with User B no longer appears in invite modal', async () => {
       await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanMenuPanelA.openInvitePeopleModal();
-      const inviteContainer = clanSelectorA.modalInvite.container;
+      const inviteContainer = await clanPageA.getModalInviteContainer();
       await expect(inviteContainer).toBeVisible({ timeout: 10000 });
-      const dmItemB = clanSelectorA.modalInvite.userInvite.filter({ hasText: userNameB });
+      const dmItemB = await clanPageA.getModalInviteUserItemByUsername(userNameB);
       await expect(dmItemB).toHaveCount(0, { timeout: 10000 });
-      await clanSelectorA.modalInvite.button.close.click();
+      await clanPageA.clickModalInviteCloseButton();
       await inviteContainer.waitFor({ state: 'detached', timeout: 10000 });
     });
 
@@ -192,9 +189,8 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const messageSelectorB = new MessageSelector(pageB);
+    const messagePageB = new MessagePage(pageB);
     const clanPageB = new ClanPage(pageB);
-    const clanSelectorB = new ClanSelector(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure that once User A blocks User B, blocking pro-actively prevents notification features like buzz from triggering.
@@ -211,9 +207,9 @@ test.describe('Friend Management - Block User', () => {
     await test.step('Open DM on both sides and confirm buzz modal is accessible', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await pageB.keyboard.press('Control+g');
-      const buzzModalHeading = messageSelectorB.messageBuzzHeader;
+      const buzzModalHeading = await messagePageB.getMessageBuzzHeader();
       await expect(buzzModalHeading).toBeVisible({ timeout: 5000 });
-      await messageSelectorB.messageBuzzButtonClose.click();
+      await messagePageB.clickMessageBuzzCloseButton();
       await buzzModalHeading.waitFor({ state: 'detached', timeout: 5000 });
     });
 
@@ -224,15 +220,15 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('User B cannot trigger buzz after being blocked', async () => {
       await pageB.keyboard.press('Control+g');
-      const buzzModalHeading = messageSelectorB.messageBuzzHeader;
+      const buzzModalHeading = await messagePageB.getMessageBuzzHeader();
       await expect(buzzModalHeading).toHaveCount(1, { timeout: 3000 });
       const textMessageBuzz = `text message buzz ${Date.now()}`;
-      await messageSelectorB.messageBuzzInputMessage.fill(textMessageBuzz);
-      await messageSelectorB.messageBuzzButtonSend.click();
-      await messageSelectorB.messageBuzzHeader.waitFor({ state: 'detached', timeout: 5000 });
-      const isPermissionDeniedModelVisible = await clanSelectorB.permissionModal.isVisible();
+      await messagePageB.fillMessageBuzzInputMessage(textMessageBuzz);
+      await messagePageB.clickMessageBuzzSendButton();
+      await buzzModalHeading.waitFor({ state: 'detached', timeout: 5000 });
+      const isPermissionDeniedModelVisible = await clanPageB.isPermissionModalVisible();
       expect(isPermissionDeniedModelVisible).toBeTruthy();
-      await clanSelectorB.permissionModal.cancel.click();
+      await clanPageB.clickPermissionModalCancelButton();
       await expect(friendPageB.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
     });
   });

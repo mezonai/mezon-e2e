@@ -635,4 +635,20 @@ export class MessagePage extends BasePage {
     await this.selector.cancelForwardMessageButton.click();
     await expect(this.selector.searchUserOnForwardMessageModal).toBeHidden({ timeout: 5000 });
   }
+
+  async getMessageBuzzHeader() {
+    return this.selector.messageBuzzHeader;
+  }
+
+  async clickMessageBuzzCloseButton() {
+    await this.selector.messageBuzzButtonClose.click();
+  }
+
+  async fillMessageBuzzInputMessage(message: string) {
+    await this.selector.messageBuzzInputMessage.fill(message);
+  }
+
+  async clickMessageBuzzSendButton() {
+    await this.selector.messageBuzzButtonSend.click();
+  }
 }

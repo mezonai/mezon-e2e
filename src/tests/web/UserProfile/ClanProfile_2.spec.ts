@@ -1,7 +1,6 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import ClanSelector from '@/data/selectors/ClanSelector';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -17,7 +16,6 @@ import { expect, Locator, test } from '@playwright/test';
 test.describe('Clan Profile - Module 2', () => {
   let profileHash: string | null = null;
   let profilePage: ProfilePage;
-  let clanSelector: ClanSelector;
   const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
@@ -39,7 +37,6 @@ test.describe('Clan Profile - Module 2', () => {
     );
 
     profilePage = new ProfilePage(page);
-    clanSelector = new ClanSelector(page);
     await AllureReporter.step('Open user settings profile', async () => {
       await profilePage.buttons.userSettingProfile.click();
     });
@@ -115,7 +112,7 @@ test.describe('Clan Profile - Module 2', () => {
     await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
-    const userName = await clanSelector.footerProfile.userName.textContent();
+    const userName = await clanPage.getFooterProfileUserName();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
     const memberAvatar = memberItem.locator(generateE2eSelector('avatar.image'));
     await expect(memberAvatar).toBeVisible({ timeout: 5000 });
@@ -136,7 +133,7 @@ test.describe('Clan Profile - Module 2', () => {
     await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
-    const userName = await clanSelector.footerProfile.userName.textContent();
+    const userName = await clanPage.getFooterProfileUserName();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
     memberItem.click();
     const popup = page.locator('div.fixed.z-50');
@@ -162,7 +159,7 @@ test.describe('Clan Profile - Module 2', () => {
     await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
-    const userName = await clanSelector.footerProfile.userName.textContent();
+    const userName = await clanPage.getFooterProfileUserName();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
     await memberItem.click({ button: 'right' });
     await page
@@ -195,9 +192,7 @@ test.describe('Clan Profile - Module 2', () => {
     const clanPage = new ClanPage(page);
     await clanPage.openMemberListSetting();
 
-    const profileAvatar = clanSelector.memberSettings.usersInfo.locator(
-      generateE2eSelector('avatar.image')
-    );
+    const profileAvatar = await clanPage.getMemberSettingsUsersInfoAvatar();
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
     const avatarHash = await getImageHash(avatarSrc || '');

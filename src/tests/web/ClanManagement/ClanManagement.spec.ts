@@ -1,7 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, GLOBAL_CONFIG } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import ClanSelector from '@/data/selectors/ClanSelector';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ROUTES } from '@/selectors';
@@ -234,7 +233,7 @@ test.describe('Clan Management', () => {
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `vc-${unique}`.slice(0, 20);
     const clanPage = new ClanPage(page);
-    const clanSelector = new ClanSelector(page);
+
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.VOICE);
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
@@ -265,7 +264,7 @@ test.describe('Clan Management', () => {
         eventType: EventType.VOICE,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanSelector.eventModal.createEventButton.click();
+      await clanPage.clickCreateEventButton();
       await clanPage.waitForModalToBeHidden();
     });
 
@@ -323,7 +322,7 @@ test.describe('Clan Management', () => {
     const voiceChannelName = `vc-${unique}`.slice(0, 20);
     const textChannelName = `ptc-${unique}`.slice(0, 20);
     const clanPage = new ClanPage(page);
-    const clanSelector = new ClanSelector(page);
+
     await AllureReporter.addParameter('voiceChannelName', voiceChannelName);
     await AllureReporter.addParameter('voiceChannelType', ChannelType.VOICE);
     await AllureReporter.addParameter('voiceChannelStatus', ChannelStatus.PUBLIC);
@@ -374,7 +373,7 @@ test.describe('Clan Management', () => {
         textChannelName,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanSelector.eventModal.createEventButton.click();
+      await clanPage.clickCreateEventButton();
       await clanPage.waitForModalToBeHidden();
     });
 

@@ -1,7 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import ClanSelector from '@/data/selectors/ClanSelector';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSettingsPage } from '@/pages/ClanSettingsPage';
 import { MezonCredentials } from '@/types';
@@ -74,10 +73,10 @@ test.describe('Clan Management - Module 3', () => {
     });
 
     const clanSettingsPage = new ClanSettingsPage(page);
-    const clanSelector = new ClanSelector(page);
+    const clanPage = new ClanPage(page);
 
     await AllureReporter.step('Go to Channels page', async () => {
-      await clanSelector.buttons.channelManagementButton.click();
+      await clanPage.gotoChannelManagementPage();
     });
 
     await AllureReporter.step('Open Integrations tab', async () => {
