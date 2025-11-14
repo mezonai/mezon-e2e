@@ -7,10 +7,10 @@ import { expect, Locator, Page } from '@playwright/test';
 import sleep from '@utils/sleep';
 import { ProfilePage } from './ProfilePage';
 import MessageSelector from '@/data/selectors/MessageSelector';
+import { BasePage } from './BasePage';
 
-export class MessagePage {
+export class MessagePage extends BasePage {
   private helpers: DirectMessageHelper;
-  readonly page: Page;
   private selector: MessageSelector;
 
   firstUserNameText: string = '';
@@ -22,7 +22,7 @@ export class MessagePage {
   userNameItemText: string = '';
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.helpers = new DirectMessageHelper(page);
     this.selector = new MessageSelector(page);
   }
@@ -634,5 +634,21 @@ export class MessagePage {
   async closeModalForwardMessage() {
     await this.selector.cancelForwardMessageButton.click();
     await expect(this.selector.searchUserOnForwardMessageModal).toBeHidden({ timeout: 5000 });
+  }
+
+  async getMessageBuzzHeader() {
+    return this.selector.messageBuzzHeader;
+  }
+
+  async clickMessageBuzzCloseButton() {
+    await this.selector.messageBuzzButtonClose.click();
+  }
+
+  async fillMessageBuzzInputMessage(message: string) {
+    await this.selector.messageBuzzInputMessage.fill(message);
+  }
+
+  async clickMessageBuzzSendButton() {
+    await this.selector.messageBuzzButtonSend.click();
   }
 }

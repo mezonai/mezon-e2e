@@ -4,10 +4,11 @@ import { joinUrlPaths } from '../utils/joinUrlPaths';
 import { WEBSITE_CONFIGS } from '../config/environment';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
-import { ClanPage } from './Clan/ClanPage';
 import { ClanMenuPanel } from './Clan/ClanMenuPanel';
+import ClanSelector from '@/data/selectors/ClanSelector';
 
 export class ClanSettingsPage extends BasePage {
+  private readonly clanSelector: ClanSelector;
   readonly buttons = {
     sidebarItem: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item')),
     uploadEmoji: this.page.locator(generateE2eSelector('clan_page.settings.emoji.upload')),
@@ -128,6 +129,7 @@ export class ClanSettingsPage extends BasePage {
 
   constructor(page: Page, baseURL?: string) {
     super(page, baseURL);
+    this.clanSelector = new ClanSelector(page);
   }
 
   async navigateToClanMenu(): Promise<void> {
@@ -1088,7 +1090,6 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async verifyWebhookCreated(): Promise<boolean> {
-    const clanPage = new ClanPage(this.page);
     const webhookItem = await this.integrations.webhookItem.item.first();
     const webhookItemTitle = await webhookItem.locator(this.integrations.webhookItem.title);
     const webhookItemDescription = await webhookItem.locator(
@@ -1098,7 +1099,7 @@ export class ClanSettingsPage extends BasePage {
       await expect(webhookItem).toBeVisible();
       await expect(webhookItemTitle).toBeVisible();
       await expect(webhookItemDescription).toBeVisible();
-      await clanPage.buttons.closeSettingClan.click();
+      await this.clanSelector.buttons.closeSettingClan.click();
       const webhookItemDescriptionText = await webhookItemDescription.innerText();
       return isWebhookJustCreated(webhookItemDescriptionText);
     } catch {

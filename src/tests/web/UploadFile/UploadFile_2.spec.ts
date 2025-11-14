@@ -97,7 +97,7 @@ test.describe('File Size Limits Validation - Module 2', () => {
         state: 'visible',
         timeout: 3000,
       });
-      await clanPage.buttons.createClan.click();
+      await clanPage.clickCreateClanButton();
     });
 
     const underLimitPath = await fileSizeHelpers.createFileWithSize(

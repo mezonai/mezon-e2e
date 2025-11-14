@@ -1,10 +1,9 @@
-import { BasePage } from '@/pages/BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Locator, Page } from '@playwright/test';
+import { Page } from '@playwright/test';
 
-export default class ClanSelector extends BasePage {
-  constructor(page: Page) {
-    super(page);
+export default class MessageSelector {
+  constructor(private readonly page: Page) {
+    this.page = page;
   }
 
   buttonCreateGroupSidebar = this.page.locator(

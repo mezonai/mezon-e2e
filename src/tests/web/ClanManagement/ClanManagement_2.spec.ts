@@ -67,6 +67,7 @@ test.describe('Clan Management - Module 2', () => {
     });
 
     const clanPage = new ClanPage(page);
+
     const unique = Date.now().toString(36).slice(-6);
     const locationName = `location name - ${unique}`;
     let res: {
@@ -87,7 +88,7 @@ test.describe('Clan Management - Module 2', () => {
         clanStatus: ClanStatus.PUBLIC,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanPage.eventModal.createEventButton.click();
+      await clanPage.clickCreateEventButton();
       await clanPage.waitForModalToBeHidden();
     });
 
@@ -143,6 +144,7 @@ test.describe('Clan Management - Module 2', () => {
     });
 
     const clanPage = new ClanPage(page);
+
     const unique = Date.now().toString(36).slice(-6);
     const textChannelName = `ptc-${unique}`.slice(0, 20);
     const locationName = `location name - ${unique}`;
@@ -184,7 +186,7 @@ test.describe('Clan Management - Module 2', () => {
         textChannelName,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanPage.eventModal.createEventButton.click();
+      await clanPage.clickCreateEventButton();
       await clanPage.waitForModalToBeHidden();
     });
 
@@ -257,7 +259,7 @@ test.describe('Clan Management - Module 2', () => {
         eventType: EventType.PRIVATE,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanPage.eventModal.createEventButton.click();
+      await clanPage.clickCreateEventButton();
       await clanPage.waitForModalToBeHidden();
     });
     await AllureReporter.step('Verify event is present in event list', async () => {
