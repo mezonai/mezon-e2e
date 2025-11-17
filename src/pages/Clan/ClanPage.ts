@@ -1,4 +1,5 @@
 import ClanSelector from '@/data/selectors/ClanSelector';
+import MessageSelector from '@/data/selectors/MessageSelector';
 import { CategorySettingPage } from '@/pages/CategorySettingPage';
 import { ROUTES } from '@/selectors';
 import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/clan-page.types';
@@ -6,11 +7,10 @@ import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
+import { BasePage } from '../BasePage';
 import { ChannelSettingPage } from '../ChannelSettingPage';
 import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
-import MessageSelector from '@/data/selectors/MessageSelector';
-import { BasePage } from '../BasePage';
 
 interface SelectorResult {
   found: boolean;
@@ -213,7 +213,7 @@ export class ClanPage extends BasePage {
     status?: ChannelStatus
   ): Promise<boolean> {
     try {
-      await this.selector.buttons.createChannel.click();
+      await this.selector.buttons.createChannel.last().click();
 
       switch (typeChannel) {
         case ChannelType.TEXT:
@@ -1160,5 +1160,88 @@ export class ClanPage extends BasePage {
 
   async getMemberSettingsUsersInfoAvatar() {
     return this.selector.memberSettings.usersInfo.locator(generateE2eSelector('avatar.image'));
+  }
+
+  async openSelectionSystemMessageChannel() {
+    const selection =
+      this.selector.clanOverviewSettings.system_messages_channel.selection.container;
+    await selection.click();
+  }
+
+  private async selectSystemMessageChannel(channelName: string, categoryName: string) {
+    await this.openSelectionSystemMessageChannel();
+
+    const wrapItem = this.selector.clanOverviewSettings.system_messages_channel.selection.wrap_item;
+
+    const targetItem = wrapItem
+      .filter({
+        has: this.selector.clanOverviewSettings.system_messages_channel.selection.item.channel_name.filter(
+          {
+            hasText: channelName,
+          }
+        ),
+      })
+      .filter({
+        has: this.selector.clanOverviewSettings.system_messages_channel.selection.item.category_name.filter(
+          {
+            hasText: categoryName,
+          }
+        ),
+      });
+
+    await expect(targetItem).toBeVisible({ timeout: 3000 });
+    await targetItem.click();
+  }
+
+  public async verifySelectedSystemMessageChannel(channelName: string, categoryName: string) {
+    const selectedChannel =
+      this.selector.clanOverviewSettings.system_messages_channel.selection.selected.channel_name;
+    const selectedCategory =
+      this.selector.clanOverviewSettings.system_messages_channel.selection.selected.category_name;
+
+    await expect(selectedChannel).toHaveText(channelName);
+    await expect(selectedCategory).toHaveText(categoryName);
+  }
+
+  async verifySelectedSystemMessageChannelNotInDropdown(channelName: string, categoryName: string) {
+    const wrapItem = this.selector.clanOverviewSettings.system_messages_channel.selection.wrap_item;
+
+    const exists = wrapItem.filter({ hasText: channelName }).filter({ hasText: categoryName });
+
+    await expect(exists).toHaveCount(0);
+  }
+
+  async updateSystemMessagesChannel(channelName: string, categoryName: string) {
+    await this.selectSystemMessageChannel(channelName, categoryName);
+    await this.verifySelectedSystemMessageChannelNotInDropdown(channelName, categoryName);
+    await this.verifySelectedSystemMessageChannel(channelName, categoryName);
+
+    await this.selector.buttons.saveChanges.click();
+    await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
+  }
+
+  async closeSettingsClan() {
+    await this.selector.buttons.closeSettingClan.click();
+    await expect(this.selector.buttons.closeSettingClan).toBeHidden({ timeout: 3000 });
+  }
+
+  async verifySystemMessageIsSentOnUpdatedChannel(channelName: string, username: string) {
+    const messageSelector = new MessageSelector(this.page);
+    await this.openChannelByName(channelName);
+    const lastMessageLocator = messageSelector.systemMessages.last();
+    await expect(lastMessageLocator).toBeVisible({ timeout: 3000 });
+
+    const code = lastMessageLocator.locator(generateE2eSelector('chat.system_message', '5'));
+    await expect(code).toBeVisible({ timeout: 3000 });
+
+    const mentionUserLocator = code.locator(
+      generateE2eSelector('chat.channel_message.mention_user')
+    );
+    await expect(mentionUserLocator).toBeVisible();
+
+    const mentionText = (await mentionUserLocator.textContent())?.trim() ?? '';
+    const extractedUsername = mentionText.replace(/^@/, '');
+
+    expect(extractedUsername).toBe(username);
   }
 }
