@@ -5,131 +5,14 @@ import { WEBSITE_CONFIGS } from '../config/environment';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
 import { ClanMenuPanel } from './Clan/ClanMenuPanel';
-import ClanSelector from '@/data/selectors/ClanSelector';
+import ClanSettingSelector from '@/data/selectors/ClanSettingSelector';
 
 export class ClanSettingsPage extends BasePage {
-  private readonly clanSelector: ClanSelector;
-  readonly buttons = {
-    sidebarItem: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item')),
-    uploadEmoji: this.page.locator(generateE2eSelector('clan_page.settings.emoji.upload')),
-    uploadVoiceSticker: this.page.locator(
-      generateE2eSelector('clan_page.settings.voice_sticker.button_upload')
-    ),
-    enableOnboarding: this.page.locator(
-      generateE2eSelector('clan_page.settings.onboarding.button.enable_onboarding')
-    ),
-    editClanGuide: this.page.locator(
-      generateE2eSelector('clan_page.settings.onboarding.button.clan_guide')
-    ),
-    addResource: this.page.locator(
-      generateE2eSelector('clan_page.settings.onboarding.button.add_resources')
-    ),
-    enableCommunity: this.page.locator(
-      generateE2eSelector('clan_page.settings.community.button.enable_community')
-    ),
-  };
-
-  readonly integrations = {
-    createWebhook: this.page.locator(
-      generateE2eSelector('clan_page.settings.integrations.create_clan_webhook_button')
-    ),
-    newWebhook: this.page.locator(
-      generateE2eSelector('clan_page.settings.integrations.new_clan_webhook_button')
-    ),
-    webhookItem: {
-      item: this.page.locator(generateE2eSelector('clan_page.settings.integrations.webhook_item')),
-      title: this.page.locator(
-        generateE2eSelector('clan_page.settings.integrations.webhook_item.webhook_title')
-      ),
-      description: this.page.locator(
-        generateE2eSelector('clan_page.settings.integrations.webhook_item.webhook_description')
-      ),
-    },
-  };
-
-  private readonly clanMenuSelectors = [
-    '[data-testid="clan-menu"]',
-    'button:has-text("Clan")',
-    'a:has-text("Clan")',
-    '[aria-label*="clan" i]',
-    '.clan-menu',
-    '#clan-menu',
-  ];
-
-  private readonly settingsSelectors = [
-    '[data-testid="clan-settings"]',
-    'button:has-text("Settings")',
-    'a:has-text("Settings")',
-    '[aria-label*="settings" i]',
-    '.settings-menu',
-    'svg[data-icon="cog"]',
-    'svg[data-icon="gear"]',
-    '.fa-cog',
-    '.fa-gear',
-  ];
-
-  private readonly stickerSectionSelectors = [
-    '[data-testid="image-stickers"]',
-    'button:has-text("Image Stickers")',
-    'a:has-text("Image Stickers")',
-    'div:has-text("Image Stickers")',
-    '[aria-label*="sticker" i]',
-  ];
-
-  private readonly emojiSectionSelectors = [
-    '[data-testid="emoji-section"]',
-    'button:has-text("Emoji")',
-    'a:has-text("Emoji")',
-    'div:has-text("Emoji")',
-    '[aria-label*="emoji" i]',
-  ];
-
-  private readonly voiceStickerSectionSelectors = [
-    '[data-testid="voice-stickers"]',
-    'button:has-text("Voice Stickers")',
-    'a:has-text("Voice Stickers")',
-    'div:has-text("Voice Stickers")',
-    '[aria-label*="voice" i]',
-  ];
-
-  private readonly uploadButtonSelectors = [
-    '[data-testid="upload-stickers"]',
-    'button:has-text("Upload Stickers")',
-    'button:has-text("Upload")',
-    '[aria-label*="upload" i]',
-    'input[type="file"]',
-  ];
-
-  private readonly uploadEmojiButtonSelectors = [
-    '[data-testid="upload-emoji"]',
-    'button:has-text("Upload emoji")',
-    'div:has-text("Upload emoji")',
-    'text=Upload emoji',
-  ];
-
-  private readonly uploadVoiceButtonSelectors = [
-    '[data-testid="upload-sound"]',
-    'button:has-text("Upload sound")',
-    'text=Upload sound',
-  ];
-
-  private readonly modalSelectors = [
-    '.modal',
-    '.dialog',
-    '.popup',
-    '[role="dialog"]',
-    '[role="modal"]',
-    '.overlay',
-    '.modal-overlay',
-    '.bg-modal-overlay',
-    '[class*="modal-overlay"]',
-    '[data-testid="modal"]',
-    '[data-testid="upload-modal"]',
-  ];
+  private readonly selector: ClanSettingSelector;
 
   constructor(page: Page, baseURL?: string) {
     super(page, baseURL);
-    this.clanSelector = new ClanSelector(page);
+    this.selector = new ClanSettingSelector(page);
   }
 
   async navigateToClanMenu(): Promise<void> {
@@ -235,7 +118,7 @@ export class ClanSettingsPage extends BasePage {
   async navigateToClanSettings(): Promise<void> {
     let settingsFound = false;
 
-    for (const selector of this.settingsSelectors) {
+    for (const selector of this.selector.settingsSelectors) {
       try {
         const element = this.page.locator(selector).first();
         if (await element.isVisible({ timeout: 2000 })) {
@@ -272,7 +155,7 @@ export class ClanSettingsPage extends BasePage {
   async clickImageStickersSection(): Promise<void> {
     let stickerSectionFound = false;
 
-    for (const selector of this.stickerSectionSelectors) {
+    for (const selector of this.selector.stickerSectionSelectors) {
       try {
         const element = this.page.locator(selector).first();
         if (await element.isVisible({ timeout: 3000 })) {
@@ -302,7 +185,7 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async clickSettingClanSection(section: string): Promise<void> {
-    await this.buttons.sidebarItem.filter({ hasText: section }).click();
+    await this.selector.buttons.sidebarItem.filter({ hasText: section }).click();
     await this.page.waitForTimeout(1000);
   }
 
@@ -326,7 +209,7 @@ export class ClanSettingsPage extends BasePage {
   async clickVoiceStickersSection(): Promise<void> {
     let sectionFound = false;
 
-    for (const selector of this.voiceStickerSectionSelectors) {
+    for (const selector of this.selector.voiceStickerSectionSelectors) {
       try {
         const element = this.page.locator(selector).first();
         if (await element.isVisible({ timeout: 3000 })) {
@@ -356,7 +239,7 @@ export class ClanSettingsPage extends BasePage {
   async clickUploadStickers(): Promise<void> {
     let uploadButtonFound = false;
 
-    for (const selector of this.uploadButtonSelectors) {
+    for (const selector of this.selector.uploadButtonSelectors) {
       try {
         const element = this.page.locator(selector).first();
         if (await element.isVisible({ timeout: 3000 })) {
@@ -391,29 +274,29 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async clickUploadEmoji(): Promise<void> {
-    await this.buttons.uploadEmoji.click();
+    await this.selector.buttons.uploadEmoji.click();
     await this.page.waitForTimeout(1000);
   }
 
   async clickUploadVoiceStickers(): Promise<void> {
-    await this.buttons.uploadVoiceSticker.click();
+    await this.selector.buttons.uploadVoiceSticker.click();
     await this.page.waitForTimeout(1000);
   }
 
   async openEditOnboardingResource(): Promise<void> {
-    await this.buttons.enableOnboarding.click();
-    await this.buttons.editClanGuide.click();
-    await this.buttons.addResource.click();
+    await this.selector.buttons.enableOnboarding.click();
+    await this.selector.buttons.editClanGuide.click();
+    await this.selector.buttons.addResource.click();
   }
 
   async openCommunityModal(): Promise<void> {
-    await this.buttons.enableCommunity.click();
+    await this.selector.buttons.enableCommunity.click();
   }
 
   async getVisibleModalCount(): Promise<number> {
     let visibleModals = 0;
 
-    for (const selector of this.modalSelectors) {
+    for (const selector of this.selector.modalSelectors) {
       try {
         const modals = this.page.locator(selector);
         const count = await modals.count();
@@ -433,7 +316,7 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async isUploadModalDisplayed(): Promise<{ isDisplayed: boolean; selector?: string }> {
-    for (const selector of this.modalSelectors) {
+    for (const selector of this.selector.modalSelectors) {
       try {
         const modal = this.page.locator(selector).first();
         await modal.waitFor({ state: 'visible', timeout: 5000 });
@@ -1081,25 +964,27 @@ export class ClanSettingsPage extends BasePage {
     const clanMenuPanel = new ClanMenuPanel(this.page);
     await clanMenuPanel.text.clanName.click();
     await clanMenuPanel.buttons.clanSettings.click();
-    await this.buttons.sidebarItem.filter({ hasText: 'Integrations' }).click();
+    await this.selector.buttons.sidebarItem.filter({ hasText: 'Integrations' }).click();
   }
 
   async createWebhook(): Promise<void> {
-    await this.integrations.createWebhook.click();
-    await this.integrations.newWebhook.click();
+    await this.selector.integrations.createWebhook.click();
+    await this.selector.integrations.newWebhook.click();
   }
 
   async verifyWebhookCreated(): Promise<boolean> {
-    const webhookItem = await this.integrations.webhookItem.item.first();
-    const webhookItemTitle = await webhookItem.locator(this.integrations.webhookItem.title);
+    const webhookItem = await this.selector.integrations.webhookItem.item.first();
+    const webhookItemTitle = await webhookItem.locator(
+      this.selector.integrations.webhookItem.title
+    );
     const webhookItemDescription = await webhookItem.locator(
-      this.integrations.webhookItem.description
+      this.selector.integrations.webhookItem.description
     );
     try {
       await expect(webhookItem).toBeVisible();
       await expect(webhookItemTitle).toBeVisible();
       await expect(webhookItemDescription).toBeVisible();
-      await this.clanSelector.buttons.closeSettingClan.click();
+      await this.selector.buttons.closeSettingClan.click();
       const webhookItemDescriptionText = await webhookItemDescription.innerText();
       return isWebhookJustCreated(webhookItemDescriptionText);
     } catch {

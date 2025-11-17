@@ -92,14 +92,16 @@ test.describe('Friend Management - Block User', () => {
       
       **Expected Result:** The DM composer becomes read-only immediately after either user blocks the other, and returns to editable once the block is removed.
     `);
+    const permissionDeniedInputA = await friendPageA.getPermissionDeniedInput();
+    const permissionDeniedInputB = await friendPageB.getPermissionDeniedInput();
 
     await test.step('Open DM between User A and User B', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
 
     await test.step('Verify DM composer is initially editable for both users', async () => {
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(0);
-      await expect(friendPageB.inputs.permissionDenied).toHaveCount(0);
+      await expect(permissionDeniedInputA).toHaveCount(0);
+      await expect(permissionDeniedInputB).toHaveCount(0);
     });
 
     await test.step('User A blocks User B from DM', async () => {
@@ -107,8 +109,8 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('Composer becomes read-only for both users after User A blocks', async () => {
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(1);
-      await expect(friendPageB.inputs.permissionDenied).toHaveCount(1);
+      await expect(permissionDeniedInputA).toHaveCount(1);
+      await expect(permissionDeniedInputB).toHaveCount(1);
     });
 
     await test.step('Verify User B is visible in User A block list', async () => {
@@ -124,8 +126,8 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('Verify DM composer becomes editable again for both users', async () => {
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(0);
-      await expect(friendPageB.inputs.permissionDenied).toHaveCount(0);
+      await expect(permissionDeniedInputA).toHaveCount(0);
+      await expect(permissionDeniedInputB).toHaveCount(0);
     });
 
     await test.step('User B blocks User A from DM', async () => {
@@ -133,8 +135,8 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('Composer becomes read-only for both users after User B blocks', async () => {
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(1);
-      await expect(friendPageB.inputs.permissionDenied).toHaveCount(1);
+      await expect(permissionDeniedInputA).toHaveCount(1);
+      await expect(permissionDeniedInputB).toHaveCount(1);
     });
 
     await test.step('Verify User A is visible in User B block list', async () => {
@@ -225,11 +227,12 @@ test.describe('Friend Management - Block User', () => {
       
       **Expected Result:** Blocking and unblocking initiated by the other user propagate through websocket handlers, updating the UI on the remote client with no reload.
     `);
+    const permissionDeniedInputA = await friendPageA.getPermissionDeniedInput();
 
     await test.step('Open DM on both sides and confirm baseline actions', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await messageSelectorA.welcomeDM.waitFor({ state: 'visible', timeout: 10000 });
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(0, { timeout: 10000 });
+      await expect(permissionDeniedInputA).toHaveCount(0, { timeout: 10000 });
       await expect(messageSelectorA.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
@@ -246,7 +249,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A UI reflects being blocked without refresh', async () => {
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
+      await expect(permissionDeniedInputA).toHaveCount(1, { timeout: 10000 });
 
       await expect(messageSelectorA.directMessageUnblockButton).toHaveCount(0, {
         timeout: 10000,
@@ -262,7 +265,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A regains composer access and Block button in real time', async () => {
-      await expect(friendPageA.inputs.permissionDenied).toHaveCount(0, { timeout: 10000 });
+      await expect(permissionDeniedInputA).toHaveCount(0, { timeout: 10000 });
       await expect(messageSelectorA.directMessageBlockButton).toBeVisible({
         timeout: 10000,
       });
@@ -295,8 +298,9 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('Open DM on both sides and confirm Block tab empty for User A', async () => {
       await friendPageA.gotoFriendsPage();
-      await friendPageA.tabs.block.click();
-      await expect(friendPageA.lists.friendAll.filter({ hasText: userNameB })).toHaveCount(0, {
+      await friendPageA.clickTabBlock();
+      const userItemB = await friendPageA.getFriendAllUserItemByUsername(userNameB);
+      await expect(userItemB).toHaveCount(0, {
         timeout: 10000,
       });
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
@@ -314,13 +318,15 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A composer shows read-only state without page refresh', async () => {
-      await expect(friendPageB.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
+      const permissionDeniedInputB = await friendPageB.getPermissionDeniedInput();
+      await expect(permissionDeniedInputB).toHaveCount(1, { timeout: 10000 });
     });
 
     await test.step('Block tab still excludes blocker User B', async () => {
       await friendPageA.gotoFriendsPage();
-      await friendPageA.tabs.block.click();
-      await expect(friendPageA.lists.friendAll.filter({ hasText: userNameB })).toHaveCount(0, {
+      await friendPageA.clickTabBlock();
+      const userItemB = await friendPageA.getFriendAllUserItemByUsername(userNameB);
+      await expect(userItemB).toHaveCount(0, {
         timeout: 10000,
       });
     });
@@ -329,8 +335,9 @@ test.describe('Friend Management - Block User', () => {
       const unblockButtonB = messageSelectorB.directMessageUnblockButton;
       await unblockButtonB.click();
       await friendPageA.gotoFriendsPage();
-      await friendPageA.tabs.block.click();
-      await expect(friendPageA.lists.friendAll.filter({ hasText: userNameB })).toHaveCount(0, {
+      await friendPageA.clickTabBlock();
+      const userItemB = await friendPageA.getFriendAllUserItemByUsername(userNameB);
+      await expect(userItemB).toHaveCount(0, {
         timeout: 10000,
       });
     });

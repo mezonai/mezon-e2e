@@ -1,37 +1,15 @@
-import { ROUTES } from '@/selectors';
-import { generateE2eSelector, generateHrefSelector } from '@/utils/generateE2eSelector';
 import { type Page, expect } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../config/environment';
 import { BasePage } from './BasePage';
+import HomePageSelector from '@/data/selectors/HomePageSelector';
 
 export class HomePage extends BasePage {
+  private selector: HomePageSelector;
+
   constructor(page: Page) {
     super(page);
+    this.selector = new HomePageSelector(page);
   }
-  private container = {
-    main: this.page.locator(generateE2eSelector('homepage.main_page.container')),
-    header: this.page.locator(generateE2eSelector('homepage.header.container.navigation')),
-  };
-  private buttons = {
-    login: this.page.locator(generateE2eSelector('homepage.header.button.login')),
-    menu: this.page.locator(generateE2eSelector('homepage.header.button.menu')),
-  };
-  private links = {
-    home: this.page.locator(
-      `${generateE2eSelector('homepage.header.link')} ${generateHrefSelector(ROUTES.HOME)}`
-    ),
-    features: this.page.locator(
-      `${generateE2eSelector('homepage.header.link')} ${generateHrefSelector(ROUTES.FEATURES)}`
-    ),
-    developers: this.page.locator(
-      `${generateE2eSelector('homepage.header.link')} ${generateHrefSelector(ROUTES.DEVELOPERS)}`
-    ),
-  };
-  private text = {
-    copyright: this.page.locator(generateE2eSelector('homepage.footer.text.copyright')),
-    features: this.page.locator(generateE2eSelector('homepage.layout.title.features')),
-    title: this.page.locator(generateE2eSelector('homepage.main_page.heading.title')),
-  };
 
   async navigate(): Promise<void> {
     if (!WEBSITE_CONFIGS.MEZON.baseURL) {
@@ -47,15 +25,15 @@ export class HomePage extends BasePage {
     const baseUrl = WEBSITE_CONFIGS.MEZON.baseURL;
     expect(currentUrl).toContain(baseUrl);
 
-    await expect(this.container.main).toBeVisible();
+    await expect(this.selector.container.main).toBeVisible();
   }
 
   async verifyNavigationMenu(): Promise<void> {
-    await expect(this.container.header).toBeVisible();
+    await expect(this.selector.container.header).toBeVisible();
   }
 
   async clickLogin(): Promise<void> {
-    const loginBtn = this.buttons.login;
+    const loginBtn = this.selector.buttons.login;
     await loginBtn.waitFor({ state: 'visible', timeout: 10000 });
     await loginBtn.click();
     await this.page.waitForLoadState('domcontentloaded');
@@ -67,20 +45,20 @@ export class HomePage extends BasePage {
   }
 
   async verifyHeroSection(): Promise<void> {
-    await expect(this.text.title).toBeVisible();
+    await expect(this.selector.text.title).toBeVisible();
   }
 
   async verifyFeaturesSection(): Promise<void> {
-    await expect(this.text.features).toBeVisible();
+    await expect(this.selector.text.features).toBeVisible();
   }
 
   async verifyFooterSection(): Promise<void> {
-    await expect(this.text.copyright).toBeVisible();
+    await expect(this.selector.text.copyright).toBeVisible();
   }
 
   async verifyMobileNavigation(): Promise<void> {
-    const mobileToggle = this.buttons.menu;
-    const navigation = this.container.header;
+    const mobileToggle = this.selector.buttons.menu;
+    const navigation = this.selector.container.header;
     const isMobileToggleVisible = await mobileToggle.isVisible();
     const isNavigationVisible = await navigation.isVisible();
 
@@ -88,15 +66,15 @@ export class HomePage extends BasePage {
   }
 
   async verifyResponsiveLayout(): Promise<void> {
-    await expect(this.container.main).toBeVisible();
+    await expect(this.selector.container.main).toBeVisible();
     const viewport = await this.page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(375);
   }
 
   async verifyCriticalElements(): Promise<void> {
-    await expect(this.container.main).toBeVisible();
-    await expect(this.container.header).toBeVisible();
-    await expect(this.buttons.login).toBeVisible();
+    await expect(this.selector.container.main).toBeVisible();
+    await expect(this.selector.container.header).toBeVisible();
+    await expect(this.selector.buttons.login).toBeVisible();
   }
 
   async verifyNoBrokenLinks(): Promise<void> {
@@ -123,7 +101,7 @@ export class HomePage extends BasePage {
 
   async isUserLoggedIn(): Promise<boolean> {
     try {
-      const loginBtn = this.buttons.login;
+      const loginBtn = this.selector.buttons.login;
       return !(await loginBtn.isVisible());
     } catch {
       return false;
@@ -131,6 +109,6 @@ export class HomePage extends BasePage {
   }
 
   async verifyLoginButton(): Promise<void> {
-    await expect(this.buttons.login).toBeVisible();
+    await expect(this.selector.buttons.login).toBeVisible();
   }
 }

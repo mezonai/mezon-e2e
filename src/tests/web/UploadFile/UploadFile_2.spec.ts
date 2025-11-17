@@ -93,10 +93,6 @@ test.describe('File Size Limits Validation - Module 2', () => {
       `);
 
     await AllureReporter.step('Navigate to Clan Profile settings', async () => {
-      await profilePage.buttons.userSettingProfile.waitFor({
-        state: 'visible',
-        timeout: 3000,
-      });
       await clanPage.clickCreateClanButton();
     });
 

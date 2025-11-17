@@ -651,4 +651,12 @@ export class MessagePage extends BasePage {
   async clickMessageBuzzSendButton() {
     await this.selector.messageBuzzButtonSend.click();
   }
+
+  async getListDMItems() {
+    return this.selector.listDMItems;
+  }
+
+  async getChatListContainer() {
+    return this.selector.chatListContainer;
+  }
 }

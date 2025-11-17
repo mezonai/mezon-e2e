@@ -116,10 +116,8 @@ export class ClanPage extends BasePage {
       let isOwner = false;
 
       try {
-        await categorySettingPage.buttons.deleteSidebar.waitFor({
-          state: 'visible',
-          timeout: 5000,
-        });
+        const deleteSidebarButton = await categorySettingPage.getDeleteSidebarButton();
+        await deleteSidebarButton.waitFor({ state: 'visible', timeout: 5000 });
         isOwner = true;
       } catch {
         isOwner = false;
@@ -130,9 +128,9 @@ export class ClanPage extends BasePage {
         await this.page.goto(ROUTES.DIRECT_FRIENDS);
         return false;
       }
-      await categorySettingPage.buttons.deleteSidebar.click();
-      await categorySettingPage.input.delete.fill(clanName || '');
-      await categorySettingPage.buttons.confirmDelete.click();
+      await categorySettingPage.clickDeleteSidebarButton();
+      await categorySettingPage.fillDeleteInput(clanName || '');
+      await categorySettingPage.clickConfirmDeleteButton();
       await this.page.waitForLoadState('domcontentloaded');
       if (await this.selector.permissionModal.isVisible()) {
         await this.selector.permissionModal.cancel.click();
@@ -982,12 +980,13 @@ export class ClanPage extends BasePage {
 
     await input.fill(newChannelName);
 
-    await expect(channelSettings.side_bar_buttons.channel_label).toHaveText(newChannelName);
+    const sideBarChannelLabel = await channelSettings.getSideBarChannelLabel();
+    await expect(sideBarChannelLabel).toHaveText(newChannelName);
 
     await this.selector.buttons.reset.click();
     await expect(this.selector.buttons.reset).toBeHidden({ timeout: 2000 });
     await expect(input).toHaveValue(channelName);
-    await expect(channelSettings.side_bar_buttons.channel_label).toHaveText(channelName);
+    await expect(sideBarChannelLabel).toHaveText(channelName);
 
     await this.selector.buttons.exitSettings.click();
   }
