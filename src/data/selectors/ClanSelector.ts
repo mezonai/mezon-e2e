@@ -407,6 +407,43 @@ export default class ClanSelector {
     ),
   };
 
+  readonly clanOverviewSettings = {
+    system_messages_channel: {
+      selection: {
+        container: this.page.locator(
+          generateE2eSelector('clan_page.settings.overview.system_messages_channel')
+        ),
+        wrap_item: this.page.locator(
+          generateE2eSelector('clan_page.settings.overview.system_messages_channel.selection.item')
+        ),
+        item: {
+          channel_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.item.channel_name'
+            )
+          ),
+          category_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.item.category_name'
+            )
+          ),
+        },
+        selected: {
+          channel_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.selected.channel_name'
+            )
+          ),
+          category_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.selected.category_name'
+            )
+          ),
+        },
+      },
+    },
+  };
+
   /**
    * Find a clan item by its title attribute
    * @param clanName The exact title of the clan to find
