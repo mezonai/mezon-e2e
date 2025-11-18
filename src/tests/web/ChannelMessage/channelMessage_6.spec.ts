@@ -10,9 +10,8 @@ import { ClanPage } from '@/pages/Clan/ClanPage';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
-import MessageSelector from '@/data/selectors/MessageSelector';
 import { ChannelType } from '@/types/clan-page.types';
-import ClanSelector from '@/data/selectors/ClanSelector';
+import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('Channel Message - Module 6', () => {
   const clanFactory = new ClanFactory();
@@ -104,7 +103,7 @@ test.describe('Channel Message - Module 6', () => {
 
   test('Verify that message content is edited after jump to the message', async ({ page }) => {
     const messageHelper = new MessageTestHelpers(page);
-    const messageSelector = new MessageSelector(page);
+    const messagePage = new MessagePage(page);
     await AllureReporter.addWorkItemLinks({
       tms: '64595',
       github_issue: '9972',
@@ -135,7 +134,7 @@ test.describe('Channel Message - Module 6', () => {
       await messageHelper.sendTextMessage(originalMessage);
     });
 
-    const lastMessage = await messageSelector.messages.last();
+    const lastMessage = await messagePage.getLastMessage();
 
     await AllureReporter.step('Pin the message', async () => {
       await messageHelper.pinLastMessage();
@@ -185,7 +184,6 @@ test.describe('Channel Message - Module 6', () => {
       tag: ['voice-channel', 'send-voice-channel-link'],
     });
     const clanPage = new ClanPage(page);
-    const clanSelector = new ClanSelector(page);
     const messageHelper = new MessageTestHelpers(page);
     const ran = Math.floor(Math.random() * 999) + 1;
     const channelName = `voice-channel-${ran}`;
@@ -203,7 +201,7 @@ test.describe('Channel Message - Module 6', () => {
     });
 
     await AllureReporter.step('Copy and send voice channel link', async () => {
-      await clanSelector.modal.voiceManagement.button.copyLink.click();
+      await clanPage.copyVoiceChannelLink();
       await clanPage.openChannelByName('general');
       await messageHelper.pasteAndSendText();
       await page.waitForTimeout(3000);

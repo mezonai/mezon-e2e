@@ -659,4 +659,52 @@ export class MessagePage extends BasePage {
   async getChatListContainer() {
     return this.selector.chatListContainer;
   }
+
+  async getWelcomeDM() {
+    return this.selector.welcomeDM;
+  }
+
+  async getDirectMessageBlockButton() {
+    return this.selector.directMessageBlockButton;
+  }
+
+  async getDirectMessageUnblockButton() {
+    return this.selector.directMessageUnblockButton;
+  }
+
+  async getMessageByText(text: string): Promise<Locator> {
+    return this.selector.messages.filter({ hasText: text }).first();
+  }
+
+  async getLastViewTopicButton() {
+    return this.selector.viewTopicButoon.last();
+  }
+
+  async getTopicInput() {
+    return this.selector.topicInput;
+  }
+
+  async getGroupName() {
+    return this.selector.groupName;
+  }
+
+  async getUserNamesInDMByGroupName(groupName: string) {
+    return this.selector.userNamesInDM.filter({ hasText: groupName });
+  }
+
+  async getLastMessage() {
+    return this.selector.messages.last();
+  }
+
+  async getFirstUserNameAddDM() {
+    return this.selector.firstUserNameAddDM;
+  }
+
+  async getFooterAvatar() {
+    return this.selector.footerAvatar;
+  }
+
+  async getHeaderDMAvatar() {
+    return this.selector.headerDMAvatar;
+  }
 }

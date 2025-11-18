@@ -1089,13 +1089,12 @@ export class ClanPage extends BasePage {
   }
 
   async markChannelAsFavorite(channelName: string) {
-    const clanSelector = new ClanSelector(this.page);
     const channelLocator = this.page.locator(
       generateE2eSelector('clan_page.channel_list.item.name'),
       { hasText: channelName }
     );
     await channelLocator.click({ button: 'right' });
-    await clanSelector.sidebar.panelItem.item.filter({ hasText: 'Mark Favorite' }).click();
+    await this.selector.sidebar.panelItem.item.filter({ hasText: 'Mark Favorite' }).click();
   }
 
   async verifyChannelIsMarkedAsFavorite(channelName: string) {
@@ -1108,13 +1107,12 @@ export class ClanPage extends BasePage {
   }
 
   async unmarkChannelAsFavorite(channelName: string) {
-    const clanSelector = new ClanSelector(this.page);
     const channelLocator = this.page.locator(
       generateE2eSelector('clan_page.channel_list.item.name'),
       { hasText: channelName }
     );
     await channelLocator.first().click({ button: 'right' });
-    await clanSelector.sidebar.panelItem.item.filter({ hasText: 'Unmark Favorite' }).click();
+    await this.selector.sidebar.panelItem.item.filter({ hasText: 'Unmark Favorite' }).click();
   }
 
   async verifyChannelIsUnmarkedAsFavorite(channelName: string) {
@@ -1243,5 +1241,9 @@ export class ClanPage extends BasePage {
     const extractedUsername = mentionText.replace(/^@/, '');
 
     expect(extractedUsername).toBe(username);
+  }
+
+  async copyVoiceChannelLink() {
+    await this.selector.modal.voiceManagement.button.copyLink.click();
   }
 }

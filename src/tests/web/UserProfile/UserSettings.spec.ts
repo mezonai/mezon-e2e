@@ -1,7 +1,6 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import MessageSelector from '@/data/selectors/MessageSelector';
 import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ROUTES } from '@/selectors';
@@ -245,7 +244,7 @@ test.describe('User Settings', () => {
 
   test('Update avatar user profile - button visible', async ({ page }) => {
     const profilePage = new ProfilePage(page);
-    const messageSelector = new MessageSelector(page);
+    const messagePage = new MessagePage(page);
     const fileSizeHelpers = new FileSizeTestHelpers(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
@@ -289,7 +288,7 @@ test.describe('User Settings', () => {
     const profileHash = await getImageHash(profileSrc || '');
 
     await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
-    const footerAvatar: Locator = messageSelector.footerAvatar;
+    const footerAvatar: Locator = await messagePage.getFooterAvatar();
     await expect(footerAvatar).toBeVisible({ timeout: 5000 });
     const footerSrc = await footerAvatar.getAttribute('src');
     const footerHash = await getImageHash(footerSrc || '');
