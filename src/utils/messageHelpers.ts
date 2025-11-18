@@ -583,6 +583,34 @@ export class MessageTestHelpers {
     throw new Error('Could not find Create Thread option in context menu');
   }
 
+  async createThreadByMessage(): Promise<void> {
+    const messageSelector = new MessageSelector(this.page);
+    const createBtn = messageSelector.createThreadButton.first();
+    await expect(
+      createBtn,
+      'Expected "Create Thread" to be visible in the message context menu'
+    ).toBeVisible({ timeout: 5000 });
+    await createBtn.click();
+
+    const threadNameInput = this.page
+      .locator(generateE2eSelector('chat.channel_message.thread_box.input.thread_name'))
+      .first();
+    await threadNameInput.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(threadNameInput).toBeVisible({ timeout: 3000 });
+  }
+
+  getThreadMessageItemByText(text: string): Locator {
+    return this.page
+      .locator(
+        `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('message.item')}`
+      )
+      .filter({ hasText: text });
+  }
+
+  verifyInitMessageInThread(text: string): Locator {
+    return this.page.locator(`${generateE2eSelector('message.item')}`).filter({ hasText: text });
+  }
+
   async createThread(messageElement: Locator, threadName?: string): Promise<void> {
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();

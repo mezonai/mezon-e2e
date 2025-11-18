@@ -265,4 +265,84 @@ test.describe('Direct Message', () => {
       }
     );
   });
+
+  test('Verify that last user can leave group', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+    const { pageA, pageB } = dual;
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that last user can leave group
+        
+        **Test Steps:**
+        1. Clean up any existing friend relationships between users
+        2. User A sends a friend request to User B and user C
+        3. User B receives and accepts the friend request
+        4. Verify both users see each other in their friends list
+        5. User A create a group and rename it
+        6. User A remove user C from group
+        7. User A leave group
+        8. User B leave group
+        
+        **Expected Result:** Last user can leave group
+      `);
+
+    const userNameA = accountA.email.split('@')[0];
+    const userNameB = accountB.email.split('@')[0];
+    const userNameC = accountC.email.split('@')[0];
+    const unique = Date.now().toString(36).slice(-6);
+    nameGroupChat = `groupchat-${unique}`.slice(0, 20);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+      await friendPageA.cleanupFriendRelationships(userNameC);
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await friendPageA.sendFriendRequestToUser(userNameC);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User A create a group and update name', async () => {
+      await messagePageA.createGroup();
+      await dual.pageA.waitForTimeout(1000);
+
+      await messagePageA.updateNameGroupChatDM(nameGroupChat);
+      await dual.pageA.waitForTimeout(1000);
+    });
+
+    await AllureReporter.step('User A remove user C from group chat', async () => {
+      await messagePageA.removeUserFromGroup(userNameC);
+    });
+
+    await AllureReporter.step('User A leave group', async () => {
+      await messagePageA.leaveGroupByName(nameGroupChat);
+    });
+
+    await AllureReporter.step('User B leave group', async () => {
+      await messagePageB.leaveGroupByName(nameGroupChat);
+    });
+  });
 });

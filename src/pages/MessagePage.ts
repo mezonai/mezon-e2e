@@ -1,3 +1,4 @@
+import MessageSelector from '@/data/selectors/MessageSelector';
 import { ROUTES } from '@/selectors';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
@@ -5,9 +6,8 @@ import { getImageHash } from '@/utils/images';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { expect, Locator, Page } from '@playwright/test';
 import sleep from '@utils/sleep';
-import { ProfilePage } from './ProfilePage';
-import MessageSelector from '@/data/selectors/MessageSelector';
 import { BasePage } from './BasePage';
+import { ProfilePage } from './ProfilePage';
 
 export class MessagePage extends BasePage {
   private helpers: DirectMessageHelper;
@@ -706,5 +706,32 @@ export class MessagePage extends BasePage {
 
   async getHeaderDMAvatar() {
     return this.selector.headerDMAvatar;
+  }
+
+  async removeUserFromGroup(username: string) {
+    const showMemberButton = this.selector.sumMember;
+    await expect(showMemberButton).toBeVisible({ timeout: 3000 });
+    await showMemberButton.click();
+
+    const userLocator = this.page
+      .locator(generateE2eSelector('clan_page.secondary_side_bar.member'))
+      .filter({
+        has: this.page.locator('span').filter({ hasText: username }),
+      });
+
+    await expect(userLocator).toBeVisible({ timeout: 3000 });
+    await userLocator.click({ button: 'right' });
+
+    const popup = this.page.locator('div.contexify.z-50.rounded-lg.border-theme-primary');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+
+    const removeUserButton = popup.locator(
+      generateE2eSelector('chat.direct_message.menu.leave_group.button')
+    );
+
+    await expect(removeUserButton).toBeVisible({ timeout: 3000 });
+    await removeUserButton.click();
+
+    await expect(userLocator).toBeHidden({ timeout: 3000 });
   }
 }
