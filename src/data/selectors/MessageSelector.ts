@@ -89,6 +89,10 @@ export default class MessageSelector {
     .locator(generateE2eSelector('chat.message_action_modal.button.base'))
     .filter({ hasText: 'Forward Message' });
 
+  createThreadButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Create Thread' });
+
   confirmDeleteMessageButton = this.page.locator(
     generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
     { hasText: 'Delete' }
