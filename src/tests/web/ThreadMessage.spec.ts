@@ -10,6 +10,7 @@ import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { test, expect, type Locator } from '@playwright/test';
+import { INVALID_THREAD_NAME, VALID_THREAD_NAME } from '@/constants/ThreadName';
 
 test.describe('Thread in Public Channel', () => {
   const clanFactory = new ClanFactory();
@@ -70,27 +71,25 @@ test.describe('Thread in Public Channel', () => {
       expect(await clanPage.verifyMessageSent(initMessage)).toBeTruthy();
     });
 
-    const invalidThreadName = 'abc';
     await AllureReporter.step('Attempt create thread with invalid name', async () => {
       await messageLocator.hover();
       await messageLocator.click({ button: 'right' });
       await messageHelper.createThreadByMessage();
 
-      await messageHelper.fillThreadName(invalidThreadName);
+      await messageHelper.fillThreadName(INVALID_THREAD_NAME);
 
-      const existsInvalid = await clanPage.isNewThreadPresent(invalidThreadName);
+      const existsInvalid = await clanPage.isNewThreadPresent(INVALID_THREAD_NAME);
       expect(existsInvalid).toBeFalsy();
 
       const initMsgInThread = messageHelper.getThreadMessageItemByText(initMessage);
       expect(initMsgInThread).toBeVisible({ timeout: 3000 });
     });
 
-    const validThreadName = `valid-thread-${generateRandomString(5)}`;
     await AllureReporter.step('Fix thread name to valid and create', async () => {
-      await messageHelper.fillThreadName(validThreadName);
+      await messageHelper.fillThreadName(VALID_THREAD_NAME);
       const initMsgInThread = messageHelper.getThreadMessageItemByText(initMessage);
       await expect(initMsgInThread).toBeVisible({ timeout: 3000 });
-      const existsValid = await clanPage.isNewThreadPresent(validThreadName);
+      const existsValid = await clanPage.isNewThreadPresent(VALID_THREAD_NAME);
       expect(existsValid).toBeTruthy();
     });
 
@@ -101,7 +100,7 @@ test.describe('Thread in Public Channel', () => {
 
     await AllureReporter.step('Re-open thread from thread list', async () => {
       await clanPage.closeCreateThreadModal();
-      await clanPage.openThread(validThreadName);
+      await clanPage.openThread(VALID_THREAD_NAME);
       const initMsgReopened = messageHelper.verifyInitMessageInThread(initMessage);
       await expect(initMsgReopened).toBeVisible({ timeout: 3000 });
     });
