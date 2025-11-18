@@ -210,6 +210,7 @@ export default class ClanSelector {
   };
 
   readonly threadBox = {
+    container: this.page.locator(generateE2eSelector('discussion.box.thread')),
     threadNameInput: this.page.locator(
       generateE2eSelector('chat.channel_message.thread_box.input.thread_name')
     ),
@@ -219,6 +220,10 @@ export default class ClanSelector {
     threadInputMention: this.page.locator(
       `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`
     ),
+    messageItem: this.page.locator(
+      `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('message.item')}`
+    ),
+    reopenMessageItem: this.page.locator(`${generateE2eSelector('message.item')}`),
     button: {
       closeCreateThreadModal: this.page.locator(
         generateE2eSelector('discussion.header.button.close')
