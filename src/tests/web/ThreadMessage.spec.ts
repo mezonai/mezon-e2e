@@ -11,14 +11,6 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { test, expect, type Locator } from '@playwright/test';
 
-declare module '@/pages/Clan/ClanPage' {
-  interface ClanPage {
-    threadBox: {
-      threadNameInput: Locator;
-    };
-  }
-}
-
 test.describe('Thread in Public Channel', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account7;
