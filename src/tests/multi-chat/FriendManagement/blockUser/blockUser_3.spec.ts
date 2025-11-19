@@ -229,7 +229,8 @@ test.describe('Friend Management - Block User', () => {
       const isPermissionDeniedModelVisible = await clanPageB.isPermissionModalVisible();
       expect(isPermissionDeniedModelVisible).toBeTruthy();
       await clanPageB.clickPermissionModalCancelButton();
-      await expect(friendPageB.inputs.permissionDenied).toHaveCount(1, { timeout: 10000 });
+      const permissionDeniedInputB = await friendPageB.getPermissionDeniedInput();
+      await expect(permissionDeniedInputB).toHaveCount(1, { timeout: 10000 });
     });
   });
 
@@ -265,20 +266,22 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('Search filter works in User A Block tab', async () => {
       await friendPageA.gotoFriendsPage();
-      await friendPageA.tabs.block.click();
+      await friendPageA.clickTabBlock();
+      const userItemB = await friendPageA.getFriendAllUserItemByUsername(userNameB);
       await friendPageA.searchFriend(userNameB);
-      await expect(friendPageA.lists.friendAll.filter({ hasText: userNameB })).toHaveCount(1);
+      await expect(userItemB).toHaveCount(1);
       await friendPageA.clearSearch();
       await friendPageA.searchFriend(`${userNameB}-not-found`);
-      await expect(friendPageA.lists.friendAll.filter({ hasText: userNameB })).toHaveCount(0);
+      await expect(userItemB).toHaveCount(0);
       await friendPageA.clearSearch();
     });
 
     await test.step('Search filter in User B Block tab remains empty for User A', async () => {
       await friendPageB.gotoFriendsPage();
-      await friendPageB.tabs.block.click();
+      await friendPageB.clickTabBlock();
+      const userItemA = await friendPageB.getFriendAllUserItemByUsername(userNameA);
       await friendPageB.searchFriend(userNameA);
-      await expect(friendPageB.lists.friendAll.filter({ hasText: userNameA })).toHaveCount(0);
+      await expect(userItemA).toHaveCount(0);
       await friendPageB.clearSearch();
     });
 
@@ -300,20 +303,22 @@ test.describe('Friend Management - Block User', () => {
 
     await test.step('Search filter works in User B Block tab', async () => {
       await friendPageB.gotoFriendsPage();
-      await friendPageB.tabs.block.click();
+      await friendPageB.clickTabBlock();
+      const userItemA = await friendPageB.getFriendAllUserItemByUsername(userNameA);
       await friendPageB.searchFriend(userNameA);
-      await expect(friendPageB.lists.friendAll.filter({ hasText: userNameA })).toHaveCount(1);
+      await expect(userItemA).toHaveCount(1);
       await friendPageB.clearSearch();
       await friendPageB.searchFriend(`${userNameA}-not-found`);
-      await expect(friendPageB.lists.friendAll.filter({ hasText: userNameA })).toHaveCount(0);
+      await expect(userItemA).toHaveCount(0);
       await friendPageB.clearSearch();
     });
 
     await test.step('Search filter in User A Block tab remains empty for User B', async () => {
       await friendPageA.gotoFriendsPage();
-      await friendPageA.tabs.block.click();
+      await friendPageA.clickTabBlock();
+      const userItemB = await friendPageA.getFriendAllUserItemByUsername(userNameB);
       await friendPageA.searchFriend(userNameB);
-      await expect(friendPageA.lists.friendAll.filter({ hasText: userNameB })).toHaveCount(0);
+      await expect(userItemB).toHaveCount(0);
       await friendPageA.clearSearch();
     });
   });

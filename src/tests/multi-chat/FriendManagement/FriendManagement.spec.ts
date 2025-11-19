@@ -252,7 +252,7 @@ test.describe('Friend Management', () => {
 
     await test.step('Navigate to Friends page and All tab', async () => {
       await friendPageA.gotoFriendsPage();
-      await friendPageA.tabs.all.click();
+      await friendPageA.clickTabAll();
     });
 
     await test.step('Search with partial username and verify friend is visible', async () => {

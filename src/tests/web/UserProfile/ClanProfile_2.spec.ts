@@ -38,7 +38,7 @@ test.describe('Clan Profile - Module 2', () => {
 
     profilePage = new ProfilePage(page);
     await AllureReporter.step('Open user settings profile', async () => {
-      await profilePage.buttons.userSettingProfile.click();
+      await profilePage.openUserSettingProfile();
     });
 
     const fileSizeHelpers = new FileSizeTestHelpers(page);
@@ -71,10 +71,10 @@ test.describe('Clan Profile - Module 2', () => {
     );
 
     await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
-    await profilePage.buttons.applyImageAvatar.click();
-    await profilePage.buttons.saveChangesClanProfile.click();
+    await profilePage.applyImageAvatar();
+    await profilePage.saveChangesClanProfile();
 
-    const profileAvatar: Locator = profilePage.clanProfile.avatar;
+    const profileAvatar: Locator = await profilePage.getClanProfileAvatar();
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const profileSrc = await profileAvatar.getAttribute('src');
     profileHash = await getImageHash(profileSrc || '');

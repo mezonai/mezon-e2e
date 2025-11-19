@@ -1,134 +1,57 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import ProfileSelector from '@/data/selectors/ProfileSelector';
 
 export class ProfilePage extends BasePage {
+  private readonly selector;
+
   constructor(page: Page) {
     super(page);
+    this.selector = new ProfileSelector(page);
   }
 
-  readonly buttons = {
-    editUserprofile: this.page.locator(generateE2eSelector('user_setting.account.edit_profile')),
-    editDisplayName: this.page.locator(
-      generateE2eSelector('user_setting.account.edit_display_name')
-    ),
-    editUserName: this.page.locator(generateE2eSelector('user_setting.account.edit_username')),
-    saveChangesClanProfile: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
-      { hasText: 'Save Changes' }
-    ),
-    saveChangesUserProfile: this.page.locator(
-      generateE2eSelector('user_setting.profile.user_profile.button.save_changes')
-    ),
-    changeAvatar: this.page.locator(
-      generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')
-    ),
-    userSettingProfile: this.page.locator(
-      generateE2eSelector('user_setting.profile.button_setting')
-    ),
-    applyImageAvatar: this.page.locator(
-      generateE2eSelector('user_setting.profile.user_profile.upload.avatar_input.apply_button')
-    ),
-    closeSettingProfile: this.page.locator(
-      generateE2eSelector('user_setting.account.exit_setting')
-    ),
-  };
-
-  readonly accountPage = {
-    info: this.page.locator(generateE2eSelector('user_setting.account.info')),
-    image: this.page.locator(
-      `${generateE2eSelector('user_setting.account.info')} ${generateE2eSelector('avatar.image')}`
-    ),
-  };
-
-  readonly tabs = {
-    profile: this.page.locator(generateE2eSelector('user_setting.profile.tab_profile')),
-    userProfile: this.page.locator(generateE2eSelector('user_setting.profile.user_profile.button')),
-    clanProfile: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.button')),
-    account: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
-    logout: this.page.locator(generateE2eSelector('user_setting.logout')),
-  };
-
-  readonly userProfile = {
-    avatar: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
-    ),
-    displayName: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.preview.display_name')}`
-    ),
-  };
-
-  readonly clanProfile = {
-    avatar: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
-    ),
-  };
-
-  readonly inputs = {
-    nickname: this.page.locator(
-      generateE2eSelector('user_setting.profile.clan_profile.input_nickname')
-    ),
-    displayName: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.input.display_name')}`
-    ),
-    aboutMe: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.input.about_me')}`
-    ),
-    mention: this.page.locator(`${generateE2eSelector('mention.input')}`),
-  };
-
-  readonly texts = {
-    aboutMeLength: this.page.locator(
-      generateE2eSelector('user_setting.profile.user_profile.text.about_me_length')
-    ),
-    aboutMeInShortProfile: this.page.locator(generateE2eSelector('mention.text.about_me')),
-  };
-
-  readonly profiles = {
-    displayName: this.page.locator(generateE2eSelector('base_profile.display_name')),
-  };
-
   async openUserSettingProfile() {
-    await this.buttons.userSettingProfile.click();
+    await this.selector.buttons.userSettingProfile.click();
   }
 
   async openProfileTab() {
-    await this.tabs.profile.click();
+    await this.selector.tabs.profile.click();
   }
 
   async openClanProfileTab() {
-    await this.tabs.clanProfile.click();
+    await this.selector.tabs.clanProfile.click();
   }
 
   async openAccountTab() {
-    await this.tabs.account.click();
+    await this.selector.tabs.account.click();
   }
 
   async expectProfileTabsVisible() {
-    await expect(this.tabs.userProfile).toBeVisible({ timeout: 5000 });
-    await expect(this.tabs.clanProfile).toBeVisible({ timeout: 5000 });
+    await expect(this.selector.tabs.userProfile).toBeVisible({ timeout: 5000 });
+    await expect(this.selector.tabs.clanProfile).toBeVisible({ timeout: 5000 });
   }
 
   async openUserProfileTab() {
-    await this.tabs.userProfile.click();
+    await this.selector.tabs.userProfile.click();
   }
 
   async verifyDisplayNameUpdated(displayName: string) {
-    await expect(this.inputs.displayName).toHaveValue(displayName, { timeout: 2000 });
+    await expect(this.selector.inputs.displayName).toHaveValue(displayName, { timeout: 2000 });
   }
 
   async verifyAboutMeStatusUpdated(aboutMeStatus: string) {
-    await expect(this.inputs.aboutMe).toHaveValue(aboutMeStatus, { timeout: 2000 });
+    await expect(this.selector.inputs.aboutMe).toHaveValue(aboutMeStatus, { timeout: 2000 });
   }
 
   async getAboutMeLength(): Promise<number> {
-    const text = await this.texts.aboutMeLength.innerText();
+    const text = await this.selector.texts.aboutMeLength.innerText();
     return parseInt(text.split('/')[0], 10);
   }
 
   async enterAboutMeStatus(aboutMeStatus: string) {
     if (aboutMeStatus?.length > 0 && aboutMeStatus.length < 128) {
-      await this.inputs.aboutMe.fill(aboutMeStatus);
+      await this.selector.inputs.aboutMe.fill(aboutMeStatus);
     }
   }
 
@@ -138,24 +61,24 @@ export class ProfilePage extends BasePage {
   }
 
   async getProfileName(): Promise<string> {
-    return await this.userProfile.displayName.innerText();
+    return await this.selector.userProfile.displayName.innerText();
   }
 
   async sendMessage(mentionText: string) {
-    await this.inputs.mention.fill(mentionText);
-    await this.inputs.mention.press('Enter');
+    await this.selector.inputs.mention.fill(mentionText);
+    await this.selector.inputs.mention.press('Enter');
     await this.page.waitForTimeout(500);
   }
 
   async verifyAboutMeStatusInShortProfile(aboutMeStatus: string) {
-    await this.profiles.displayName.click();
-    const userAboutMe = await this.texts.aboutMeInShortProfile.first();
+    await this.selector.profiles.displayName.click();
+    const userAboutMe = await this.selector.texts.aboutMeInShortProfile.first();
     await expect(userAboutMe).toHaveText(aboutMeStatus, { timeout: 500 });
   }
 
   async clickLogout() {
-    await this.buttons.userSettingProfile.click();
-    await this.tabs.logout.click();
+    await this.selector.buttons.userSettingProfile.click();
+    await this.selector.tabs.logout.click();
     const logoutButton = this.page.locator(generateE2eSelector('button.base'), {
       hasText: 'Log Out',
     });
@@ -172,7 +95,7 @@ export class ProfilePage extends BasePage {
     await this.openUserSettingProfile();
     await this.openProfileTab();
     await this.openClanProfileTab();
-    const nicknameInput = this.inputs.nickname;
+    const nicknameInput = this.selector.inputs.nickname;
     await expect(nicknameInput).toBeVisible({ timeout: 2000 });
     await nicknameInput.waitFor({ state: 'attached' });
 
@@ -183,8 +106,48 @@ export class ProfilePage extends BasePage {
     await nicknameInput.press('Backspace');
     await this.page.keyboard.type(name, { delay: 120 });
 
-    const saveChangesBtn = this.buttons.saveChangesClanProfile;
+    const saveChangesBtn = this.selector.buttons.saveChangesClanProfile;
     await saveChangesBtn.click();
-    await this.buttons.closeSettingProfile.click();
+    await this.selector.buttons.closeSettingProfile.click();
+  }
+
+  async applyImageAvatar() {
+    await this.selector.buttons.applyImageAvatar.click();
+  }
+
+  async saveChangesClanProfile() {
+    await this.selector.buttons.saveChangesClanProfile.click();
+  }
+
+  async getClanProfileAvatar() {
+    return this.selector.clanProfile.avatar;
+  }
+
+  async getChangeAvatarButton() {
+    return this.selector.buttons.changeAvatar;
+  }
+
+  async getInputNickname() {
+    return this.selector.inputs.nickname;
+  }
+
+  async getEditUserProfileButton() {
+    return this.selector.buttons.editUserprofile;
+  }
+
+  async getEditDisplayNameButton() {
+    return this.selector.buttons.editDisplayName;
+  }
+
+  async getEditUserNameButton() {
+    return this.selector.buttons.editUserName;
+  }
+
+  async saveChangesUserProfile() {
+    return this.selector.buttons.saveChangesUserProfile;
+  }
+
+  async getUserProfileAvatar() {
+    return this.selector.userProfile.avatar;
   }
 }

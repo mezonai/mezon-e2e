@@ -1,20 +1,28 @@
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import CategorySettingSelector from '@/data/selectors/CategorySettingSelector';
 
 export class CategorySettingPage extends BasePage {
+  private readonly selector: CategorySettingSelector;
+
   constructor(page: Page) {
     super(page);
+    this.selector = new CategorySettingSelector(page);
   }
 
-  readonly buttons = {
-    deleteSidebar: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.delete')),
-    confirmDelete: this.page.locator(
-      generateE2eSelector('clan_page.settings.modal.delete_clan.confirm')
-    ),
-  };
+  async getDeleteSidebarButton() {
+    return this.selector.buttons.deleteSidebar;
+  }
 
-  readonly input = {
-    delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
-  };
+  async clickDeleteSidebarButton() {
+    return this.selector.buttons.deleteSidebar.click();
+  }
+
+  async fillDeleteInput(clanName: string) {
+    return this.selector.input.delete.fill(clanName);
+  }
+
+  async clickConfirmDeleteButton() {
+    return this.selector.buttons.confirmDelete.click();
+  }
 }

@@ -12,7 +12,6 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
-import MessageSelector from '@/data/selectors/MessageSelector';
 
 test.describe('User Profile - Update avatar', () => {
   let profileHash: string | null = null;
@@ -37,7 +36,7 @@ test.describe('User Profile - Update avatar', () => {
     const messagePage = new MessagePage(page);
 
     await AllureReporter.step('Open user settings profile', async () => {
-      await profilePage.buttons.userSettingProfile.click();
+      await profilePage.openUserSettingProfile();
     });
 
     const fileSizeHelpers = new FileSizeTestHelpers(page);
@@ -73,10 +72,10 @@ test.describe('User Profile - Update avatar', () => {
     );
 
     await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
-    await profilePage.buttons.applyImageAvatar.click();
-    await profilePage.buttons.saveChangesUserProfile.click();
+    await profilePage.applyImageAvatar();
+    await profilePage.saveChangesUserProfile();
 
-    const profileAvatar: Locator = profilePage.userProfile.avatar;
+    const profileAvatar: Locator = await profilePage.getUserProfileAvatar();
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const profileSrc = await profileAvatar.getAttribute('src');
     profileHash = await getImageHash(profileSrc || '');
@@ -105,10 +104,10 @@ test.describe('User Profile - Update avatar', () => {
 
     test('Validate footer avatar', async ({ page }) => {
       const profilePage = new ProfilePage(page);
-      const messageSelector = new MessageSelector(page);
+      const messagePage = new MessagePage(page);
 
       await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
-      const footerAvatar = messageSelector.footerAvatar;
+      const footerAvatar = await messagePage.getFooterAvatar();
       await expect(footerAvatar).toBeVisible();
       const footerSrc = await footerAvatar.getAttribute('src');
       const footerHash = await getImageHash(footerSrc || '');
@@ -179,11 +178,10 @@ test.describe('User Profile - Update avatar', () => {
 
       const profilePage = new ProfilePage(page);
       const messagePage = new MessagePage(page);
-      const messageSelector = new MessageSelector(page);
 
       await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
       await messagePage.createDMWithFriendName(profileName || '');
-      const accountAvatar = messageSelector.headerDMAvatar;
+      const accountAvatar = await messagePage.getHeaderDMAvatar();
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
       const accountHash = await getImageHash(accountSrc || '');
@@ -237,7 +235,7 @@ test.describe('User Profile - Update avatar', () => {
       );
       await displayName.click();
 
-      const accountAvatar = profilePage.userProfile.avatar;
+      const accountAvatar = await profilePage.getUserProfileAvatar();
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
       const accountHash = await getImageHash(accountSrc || '');
@@ -268,7 +266,7 @@ test.describe('User Profile - Update avatar', () => {
         .last()
         .locator(generateE2eSelector('chat.channel_message.mention_user'));
       await mentionItem.click();
-      const accountAvatar = profilePage.userProfile.avatar;
+      const accountAvatar = await profilePage.getUserProfileAvatar();
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
       const accountHash = await getImageHash(accountSrc || '');
@@ -289,7 +287,7 @@ test.describe('User Profile - Update avatar', () => {
       await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
       await messagePage.createDMWithFriendName(profileName || '');
       await messagePage.openUserProfile();
-      const accountAvatar = profilePage.userProfile.avatar;
+      const accountAvatar = await profilePage.getUserProfileAvatar();
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
       const accountHash = await getImageHash(accountSrc || '');

@@ -1,7 +1,6 @@
 import { AllureConfig, TestSetups } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import MessageSelector from '@/data/selectors/MessageSelector';
 import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ROUTES } from '@/selectors';
@@ -97,7 +96,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Verify change avatar button is visible', async () => {
-      const changeAvatarButton = profilePage.buttons.changeAvatar;
+      const changeAvatarButton = await profilePage.getChangeAvatarButton();
       await expect(changeAvatarButton).toBeVisible({ timeout: 5000 });
       await AllureReporter.addParameter('changeAvatarButtonVisible', 'Yes');
     });
@@ -143,7 +142,7 @@ test.describe('User Settings', () => {
     await AllureReporter.addParameter('platform', process.platform);
 
     await AllureReporter.step('Enter new nickname', async () => {
-      const nicknameInput = profilePage.inputs.nickname;
+      const nicknameInput = await profilePage.getInputNickname();
       await nicknameInput.click();
 
       const isMac = process.platform === 'darwin';
@@ -186,8 +185,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Save nickname changes', async () => {
-      const saveChangesBtn = profilePage.buttons.saveChangesClanProfile;
-      await saveChangesBtn.click();
+      await profilePage.saveChangesClanProfile();
       await AllureReporter.addParameter('saveButtonClicked', 'Yes');
     });
 
@@ -224,9 +222,9 @@ test.describe('User Settings', () => {
     });
 
     const buttons = [
-      profilePage.buttons.editUserprofile,
-      profilePage.buttons.editDisplayName,
-      profilePage.buttons.editUserName,
+      await profilePage.getEditUserProfileButton(),
+      await profilePage.getEditDisplayNameButton(),
+      await profilePage.getEditUserNameButton(),
     ];
 
     for (const button of buttons) {
@@ -246,7 +244,7 @@ test.describe('User Settings', () => {
 
   test('Update avatar user profile - button visible', async ({ page }) => {
     const profilePage = new ProfilePage(page);
-    const messageSelector = new MessageSelector(page);
+    const messagePage = new MessagePage(page);
     const fileSizeHelpers = new FileSizeTestHelpers(page);
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
@@ -281,16 +279,16 @@ test.describe('User Settings', () => {
     );
 
     await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
-    await profilePage.buttons.applyImageAvatar.click();
-    await profilePage.buttons.saveChangesUserProfile.click();
+    await profilePage.applyImageAvatar();
+    await profilePage.saveChangesUserProfile();
 
-    const profileAvatar: Locator = profilePage.userProfile.avatar;
+    const profileAvatar: Locator = await profilePage.getUserProfileAvatar();
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const profileSrc = await profileAvatar.getAttribute('src');
     const profileHash = await getImageHash(profileSrc || '');
 
     await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
-    const footerAvatar: Locator = messageSelector.footerAvatar;
+    const footerAvatar: Locator = await messagePage.getFooterAvatar();
     await expect(footerAvatar).toBeVisible({ timeout: 5000 });
     const footerSrc = await footerAvatar.getAttribute('src');
     const footerHash = await getImageHash(footerSrc || '');
@@ -340,7 +338,7 @@ test.describe('User Settings', () => {
 
     await AllureReporter.step('Enter new about me status and save button visible', async () => {
       await profilePage.enterAboutMeStatus(target);
-      const saveChangesBtn = profilePage.buttons.saveChangesUserProfile;
+      const saveChangesBtn = await profilePage.saveChangesUserProfile();
       await expect(saveChangesBtn).toBeVisible({ timeout: 500 });
       await expect(saveChangesBtn).toBeEnabled({ timeout: 500 });
     });
@@ -350,7 +348,7 @@ test.describe('User Settings', () => {
     });
 
     await AllureReporter.step('Save About me status', async () => {
-      await profilePage.buttons.saveChangesUserProfile.click();
+      await profilePage.saveChangesUserProfile();
     });
 
     await AllureReporter.step(
