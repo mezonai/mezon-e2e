@@ -161,6 +161,7 @@ export default class ClanSelector {
   };
 
   readonly sidebar = {
+    DMItem: this.page.locator(generateE2eSelector('clan_page.side_bar.DM_item')),
     clanItem: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item')),
     clanItems: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
