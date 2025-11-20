@@ -77,6 +77,15 @@ export default class MessageSelector {
     generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
     { hasText: 'Oh yeah. Pin it' }
   );
+
+  topicDiscussionButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Topic Discussion' });
+
+  copyTextButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Copy Text' });
+
   deleteMessageButton = this.page
     .locator(generateE2eSelector('chat.message_action_modal.button.base'))
     .filter({ hasText: 'Delete Message' });
@@ -196,4 +205,12 @@ export default class MessageSelector {
   chatListContainer = this.page.locator(
     generateE2eSelector('chat.direct_message.chat_list_container')
   );
+  secondarySideBar = {
+    member: {
+      item: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
+      inVoice: this.page.locator(
+        generateE2eSelector('clan_page.secondary_side_bar.member.in_voice')
+      ),
+    },
+  };
 }

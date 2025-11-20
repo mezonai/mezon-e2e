@@ -30,28 +30,6 @@ export class MessageTestHelpers {
     return topicMessageItem.locator(generateE2eSelector('base_profile.display_name'));
   }
 
-  async findEditOption(): Promise<Locator> {
-    const editSelectors = [
-      'text="Edit Message"',
-      'text="Edit"',
-      'text="Edit message"',
-      '[role="menuitem"]:has-text("Edit")',
-      'button:has-text("Edit")',
-      'li:has-text("Edit")',
-      'div:has-text("Edit")',
-      '[aria-label*="Edit" i]',
-      '[title*="Edit" i]',
-    ];
-
-    for (const selector of editSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 5000 })) {
-        return element;
-      }
-    }
-    throw new Error('Could not find Edit option in context menu');
-  }
-  //
   async replyToMessage(messageElement: Locator, replyText: string): Promise<void> {
     await messageElement.scrollIntoViewIfNeeded();
     await messageElement.hover();
@@ -193,35 +171,6 @@ export class MessageTestHelpers {
     }
 
     throw new Error('Could not find Copy Image option in context menu');
-  }
-
-  async findCopyTextOption(): Promise<Locator> {
-    const copyTextSelectors = [
-      'text="Copy Text"',
-      '[role="menuitem"]:has-text("Copy Text")',
-      'button:has-text("Copy Text")',
-      'li:has-text("Copy Text")',
-      'div:has-text("Copy Text")',
-      '[aria-label*="Copy Text" i]',
-      '[title*="Copy Text" i]',
-      'text="Copy"',
-      '[role="menuitem"]:has-text("Copy")',
-      'button:has-text("Copy")',
-      'li:has-text("Copy")',
-      'div:has-text("Copy")',
-      '[role="menuitem"]:nth-child(3)',
-      '[role="menuitem"] span:has-text("Copy")',
-      '.context-menu-item:has-text("Copy")',
-    ];
-
-    for (const selector of copyTextSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 5000 })) {
-        return element;
-      }
-    }
-
-    throw new Error('Could not find Copy Text option in context menu');
   }
 
   async findMessageWithText(): Promise<Locator> {
@@ -473,8 +422,7 @@ export class MessageTestHelpers {
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(2000);
 
-    const copyTextButton = await this.findCopyTextOption();
-    await copyTextButton.click();
+    await this.selector.copyTextButton.click();
     await this.page.waitForTimeout(1000);
 
     const copiedText = await this.verifyTextInClipboard();
@@ -483,32 +431,6 @@ export class MessageTestHelpers {
     }
 
     return copiedText;
-  }
-
-  async findTopicDiscussionOption(): Promise<Locator> {
-    const topicSelectors = [
-      'text="Topic Discussion"',
-      '[role="menuitem"]:has-text("Topic Discussion")',
-      'button:has-text("Topic Discussion")',
-      'li:has-text("Topic Discussion")',
-      'div:has-text("Topic Discussion")',
-      '[aria-label*="Topic Discussion" i]',
-      '[title*="Topic Discussion" i]',
-      'text="Create Thread"',
-      '[role="menuitem"]:has-text("Create Thread")',
-      'button:has-text("Create Thread")',
-      'li:has-text("Create Thread")',
-      'div:has-text("Create Thread")',
-    ];
-
-    for (const selector of topicSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 5000 })) {
-        return element;
-      }
-    }
-
-    throw new Error('Could not find Topic Discussion option in context menu');
   }
 
   async getMessagesFromTopicDrawer(): Promise<{ username: string; content: string }[]> {
@@ -552,35 +474,8 @@ export class MessageTestHelpers {
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(2000);
 
-    const topicButton = await this.findTopicDiscussionOption();
-    await topicButton.click();
+    await this.selector.topicDiscussionButton.click();
     await this.page.waitForTimeout(3000);
-  }
-
-  async findCreateThreadOption(): Promise<Locator> {
-    const createThreadSelectors = [
-      'text="Create Thread"',
-      '[role="menuitem"]:has-text("Create Thread")',
-      'button:has-text("Create Thread")',
-      'li:has-text("Create Thread")',
-      'div:has-text("Create Thread")',
-      '[aria-label*="Create Thread" i]',
-      '[title*="Create Thread" i]',
-      'text="Start Thread"',
-      '[role="menuitem"]:has-text("Start Thread")',
-      'button:has-text("Start Thread")',
-      'li:has-text("Start Thread")',
-      'div:has-text("Start Thread")',
-    ];
-
-    for (const selector of createThreadSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 5000 })) {
-        return element;
-      }
-    }
-
-    throw new Error('Could not find Create Thread option in context menu');
   }
 
   async createThreadByMessage(): Promise<void> {
@@ -617,8 +512,7 @@ export class MessageTestHelpers {
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(2000);
 
-    const createThreadButton = await this.findCreateThreadOption();
-    await createThreadButton.click();
+    await this.selector.createThreadButton.click();
     await this.page.waitForTimeout(3000);
 
     const defaultThreadName = threadName || `Thread ${Date.now()}`;
@@ -644,124 +538,6 @@ export class MessageTestHelpers {
     await threadNameInput.press('Enter');
   }
 
-  async findDeleteMessageOption(): Promise<Locator> {
-    const deleteSelectors = [
-      'text="Delete Message"',
-      '[role="menuitem"]:has-text("Delete Message")',
-      'button:has-text("Delete Message")',
-      'li:has-text("Delete Message")',
-      'div:has-text("Delete Message")',
-      '[aria-label*="Delete Message" i]',
-      '[title*="Delete Message" i]',
-      'text="Delete"',
-      '[role="menuitem"]:has-text("Delete")',
-      'button:has-text("Delete")',
-      'li:has-text("Delete")',
-      'div:has-text("Delete")',
-    ];
-
-    for (const selector of deleteSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 5000 })) {
-        return element;
-      }
-    }
-
-    throw new Error('Could not find Delete Message option in context menu');
-  }
-
-  async deleteMessage(messageElement: Locator): Promise<void> {
-    await messageElement.scrollIntoViewIfNeeded();
-    await messageElement.hover();
-    await messageElement.click({ button: 'right' });
-    await this.page.waitForTimeout(2000);
-
-    const deleteButton = await this.findDeleteMessageOption();
-    await deleteButton.click();
-    await this.page.waitForTimeout(1000);
-
-    await this.handleDeleteConfirmation();
-  }
-
-  async handleDeleteConfirmation(): Promise<void> {
-    const element = this.selector.confirmDeleteMessageButton;
-    try {
-      await element.waitFor({ state: 'visible', timeout: 5000 });
-      await element.click();
-    } catch {
-      throw new Error('Could not find delete confirmation button');
-    }
-
-    await this.page.waitForTimeout(2000);
-  }
-
-  async findEditButton(messageElement: Locator): Promise<Locator> {
-    await messageElement.hover();
-    await this.page.waitForTimeout(2000);
-
-    const editSelectors = [
-      'button[aria-label*="Edit" i]',
-      'button[title*="Edit" i]',
-      '[data-testid="edit-message"]',
-      'button:has([data-icon="edit"])',
-      'button:has([data-icon="pen"])',
-      '.edit-button',
-      '.message-edit',
-      'button:has(svg[data-icon="edit"])',
-      'button:has(svg[data-icon="pen"])',
-      'button svg[data-icon*="edit"]',
-      'button svg[data-icon*="pen"]',
-      '.message-actions button',
-      '.hover-actions button',
-      'button:near(:has-text("Original message"))',
-      'button:visible',
-    ];
-
-    for (const selector of editSelectors) {
-      const elements = this.page.locator(selector);
-      const count = await elements.count();
-
-      if (count > 0) {
-        for (let i = 0; i < count; i++) {
-          const element = elements.nth(i);
-          if (await element.isVisible({ timeout: 1000 })) {
-            const ariaLabel = await element.getAttribute('aria-label');
-            const title = await element.getAttribute('title');
-            const innerText = await element.textContent();
-
-            if (
-              (ariaLabel && ariaLabel.toLowerCase().includes('edit')) ||
-              (title && title.toLowerCase().includes('edit')) ||
-              (innerText && innerText.toLowerCase().includes('edit'))
-            ) {
-              return element;
-            }
-          }
-        }
-      }
-    }
-
-    await messageElement.click({ button: 'right' });
-    await this.page.waitForTimeout(1000);
-
-    const editMenuSelectors = [
-      'text="Edit Message"',
-      '[role="menuitem"]:has-text("Edit Message")',
-      'button:has-text("Edit Message")',
-      'li:has-text("Edit Message")',
-      'div:has-text("Edit Message")',
-    ];
-
-    for (const selector of editMenuSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 2000 })) {
-        return element;
-      }
-    }
-
-    throw new Error('Could not find edit button on message hover or in context menu');
-  }
-
   async sendMessageInThread(message: string, isThread?: boolean): Promise<void> {
     const threadInput = isThread
       ? this.page.locator(
@@ -785,51 +561,13 @@ export class MessageTestHelpers {
     await this.page.waitForLoadState('networkidle', { timeout: 5000 });
   }
 
-  async findForwardMessageOption(): Promise<Locator> {
-    const selectors = [
-      'text="Forward Message"',
-      '[role="menuitem"]:has-text("Forward")',
-      'div:has-text("Forward Message")',
-      'span:has-text("Forward")',
-    ];
-
-    for (const selector of selectors) {
-      const element = this.page.locator(selector);
-      if (await element.isVisible({ timeout: 3000 })) {
-        return element;
-      }
-    }
-
-    throw new Error('Could not find Forward Message option in context menu');
-  }
-
   async openForwardModal(messageElement: Locator): Promise<void> {
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(1000);
 
-    const forwardOption = await this.findForwardMessageOption();
-    await forwardOption.click();
+    await this.selector.forwardMessageButton.click();
 
     await this.page.waitForTimeout(2000);
-  }
-
-  async verifyForwardModalIsOpen(): Promise<boolean> {
-    const modalSelectors = [
-      'text="Forward Message"',
-      '[role="dialog"]:has-text("Forward")',
-      'div:has-text("Forward Message")',
-      'button:has-text("Send")',
-      'button:has-text("Cancel")',
-    ];
-
-    for (const selector of modalSelectors) {
-      const element = this.page.locator(selector);
-      if (await element.isVisible({ timeout: 5000 })) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   async closeForwardModal(): Promise<void> {
@@ -925,76 +663,11 @@ export class MessageTestHelpers {
     await this.sendForwardMessage();
   }
 
-  async findPinMessageOption(): Promise<Locator> {
-    const selectors = [
-      'text="Pin Message"',
-      'text="Pin"',
-      '[role="menuitem"]:has-text("Pin")',
-      'div:has-text("Pin Message")',
-      'span:has-text("Pin Message")',
-      'button:has-text("Pin Message")',
-      'li:has-text("Pin")',
-      'div:has-text("Pin")',
-      'span:has-text("Pin")',
-      '[data-testid*="pin"]',
-      '[aria-label*="pin" i]',
-      '[title*="pin" i]',
-      '.context-menu-item:has-text("Pin")',
-      '.menu-item:has-text("Pin")',
-    ];
-
-    for (const selector of selectors) {
-      const element = this.page.locator(selector);
-      if (await element.isVisible({ timeout: 3000 })) {
-        return element;
-      }
-    }
-
-    const allElements = this.page.locator('*');
-    const count = await allElements.count();
-
-    for (let i = 0; i < count; i++) {
-      const element = allElements.nth(i);
-      try {
-        const text = await element.textContent();
-        if (
-          text &&
-          text.toLowerCase().includes('pin') &&
-          (await element.isVisible({ timeout: 1000 }))
-        ) {
-          return element;
-        }
-      } catch {
-        // Ignore errors
-        continue;
-      }
-    }
-
-    throw new Error('Could not find Pin Message option in context menu');
-  }
-
   async pinMessage(messageElement: Locator): Promise<void> {
     await messageElement.click({ button: 'right' });
     await this.page.waitForTimeout(1000);
 
-    const contextMenuSelectors = [
-      '[role="menu"]',
-      '.context-menu',
-      '.menu',
-      '[class*="context"]',
-      '[class*="menu"]',
-    ];
-
-    for (const selector of contextMenuSelectors) {
-      const menu = this.page.locator(selector);
-      if (await menu.isVisible({ timeout: 2000 })) {
-        const menuText = await menu.textContent();
-        break;
-      }
-    }
-
-    const pinOption = await this.findPinMessageOption();
-    await pinOption.click();
+    await this.selector.pinMessageButton.click();
 
     await this.page.waitForTimeout(2000);
 
@@ -1002,74 +675,18 @@ export class MessageTestHelpers {
   }
 
   async confirmPinMessage(): Promise<void> {
-    const confirmSelectors = [
-      'button:has-text("Oh yeah. Pin it")',
-      'button:has-text("Pin it")',
-      '[data-testid="confirm-pin"]',
-      'button[aria-label*="confirm" i]',
-      '.confirm-button',
-      'button:has-text("Yes")',
-      'button:has-text("Confirm")',
-    ];
-
-    for (const selector of confirmSelectors) {
-      const element = this.page.locator(selector);
-      if (await element.isVisible({ timeout: 3000 })) {
-        await element.click();
-        await this.page.waitForTimeout(2000);
-        return;
-      }
-    }
-
-    throw new Error('Could not find pin confirmation button');
-  }
-
-  async findPinIcon(): Promise<Locator> {
-    const pinIconSelectors = [
-      'button[title="Pinned Messages"]',
-      'button[aria-label="Pinned Messages"]',
-      '[data-testid="pin-icon"]',
-      'button[aria-label*="pin" i]',
-      'button[title*="pin" i]',
-      '.pin-icon',
-      '[class*="pin"][role="button"]',
-      'button:has([class*="pin"])',
-      '[aria-label*="Pinned" i]',
-      '[data-testid*="pinned"]',
-      'button:has-text("📌")',
-      '.pinned-messages-button',
-    ];
-
-    for (const selector of pinIconSelectors) {
-      const element = this.page.locator(selector).first();
-      if (await element.isVisible({ timeout: 3000 })) {
-        const title = await element.getAttribute('title');
-        const ariaLabel = await element.getAttribute('aria-label');
-
-        if (
-          title?.includes('Pinned Messages') ||
-          ariaLabel?.includes('Pinned Messages') ||
-          title?.toLowerCase().includes('pin') ||
-          ariaLabel?.toLowerCase().includes('pin')
-        ) {
-          return element;
-        }
-      }
-    }
-
-    throw new Error('Could not find Pinned Messages button');
+    const confirmButton = this.selector.confirmPinMessageButton;
+    await confirmButton.waitFor({ state: 'visible', timeout: 5000 });
+    await confirmButton.click();
   }
 
   async openPinnedMessagesModal(): Promise<void> {
-    const pinIcon = await this.findPinIcon();
-    await pinIcon.click();
+    await this.selector.displayListPinButton.click();
     await this.page.waitForTimeout(2000);
   }
 
   async getThePinMessageItem(message: string): Promise<Locator> {
-    const pinMessage = this.page.locator(generateE2eSelector('common.pin_message'), {
-      hasText: message,
-    });
+    const pinMessage = this.selector.pinnedMessages.filter({ hasText: message });
     await pinMessage.waitFor({ state: 'visible', timeout: 8000 });
     return pinMessage;
   }
@@ -1108,28 +725,6 @@ export class MessageTestHelpers {
     }
 
     return allModalText.includes('Pinned Messages') && allModalText.length > 50;
-  }
-
-  async closePinnedModal(): Promise<void> {
-    const closeSelectors = [
-      'button:has-text("Close")',
-      '[aria-label="Close"]',
-      '.close-button',
-      '[data-testid="close"]',
-      'button[aria-label*="close" i]',
-    ];
-
-    for (const selector of closeSelectors) {
-      const element = this.page.locator(selector);
-      if (await element.isVisible({ timeout: 2000 })) {
-        await element.click();
-        await this.page.waitForTimeout(1000);
-        return;
-      }
-    }
-
-    await this.page.keyboard.press('Escape');
-    await this.page.waitForTimeout(1000);
   }
 
   async findJumpButton(messageText?: string): Promise<Locator> {
@@ -1218,7 +813,7 @@ export class MessageTestHelpers {
 
   async jumpToPinnedMessage(messageText: string): Promise<void> {
     await this.openPinnedMessagesModal();
-    await this.clickJumpToMessage();
+    await this.clickJumpToMessage(messageText);
   }
 
   async verifyHashtagChannelList(): Promise<boolean> {
@@ -1827,55 +1422,20 @@ export class MessageTestHelpers {
   async sendBuzzMessage(message: string): Promise<void> {
     const input = await this.findMessageInput();
     await input.click();
-    try {
-      await input.waitFor({ state: 'visible', timeout: 1000 });
-    } catch {}
+    await input.waitFor({ state: 'visible', timeout: 1000 });
     await this.page.keyboard.press('Control+g');
-    const buzzTextAreaSelectors = [
-      'textarea[class*="w-[calc(100%_-_70px)]"]',
-      'textarea[class*="w-[calc"]',
-      'textarea.w-\\[calc\\(100\\%_-_70px\\)\\]__input',
-      'textarea[maxlength="160"]',
-      'textarea[placeholder*="buzz" i]',
-      'textarea[placeholder*="message" i]',
-      '.modal textarea',
-      '[role="dialog"] textarea',
-      'textarea:visible',
-    ];
 
-    let textAreaFound = false;
-    for (const selector of buzzTextAreaSelectors) {
-      const textArea = this.page.locator(selector).first();
-      try {
-        await textArea.waitFor({ state: 'visible', timeout: 4000 });
-        await textArea.click();
-        await textArea.fill(message);
-        textAreaFound = true;
-        break;
-      } catch {}
-    }
+    const textArea = this.selector.messageBuzzInputMessage;
 
-    if (!textAreaFound) {
-      throw new Error('Buzz textarea not found');
-    }
+    await textArea.waitFor({ state: 'visible', timeout: 4000 });
+    await textArea.click();
+    await textArea.fill(message);
 
-    const sendButtonSelectors = [
-      'button:has-text("Send")',
-      'button[class*="bg-blue"]',
-      '.modal button:has-text("Send")',
-      '[role="dialog"] button:has-text("Send")',
-      'button[type="submit"]',
-      'button:visible:has-text("Send")',
-    ];
+    const sendButton = this.selector.messageBuzzButtonSend;
 
-    for (const selector of sendButtonSelectors) {
-      const sendButton = this.page.locator(selector).first();
-      try {
-        await sendButton.waitFor({ state: 'visible', timeout: 4000 });
-        await sendButton.click();
-        break;
-      } catch {}
-    }
+    await sendButton.waitFor({ state: 'visible', timeout: 4000 });
+    await sendButton.click();
+
     await this.page.waitForLoadState('networkidle');
   }
 
