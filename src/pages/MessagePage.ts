@@ -171,8 +171,7 @@ export class MessagePage extends BasePage {
   }
 
   async closeDM(username: string): Promise<void> {
-    const user = await this.page
-      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+    const user = await this.selector.listDMItems
       .filter({
         hasNot: this.page.locator('p', { hasText: 'Members' }),
         has: this.page.locator('span', {
@@ -414,8 +413,8 @@ export class MessagePage extends BasePage {
   }
 
   async getAvatarHashOnDMList(groupName: string): Promise<string> {
-    const avatarLocator = this.page
-      .locator(generateE2eSelector('chat.direct_message.chat_list'), {
+    const avatarLocator = this.selector.listDMItems
+      .filter({
         hasText: groupName.slice(0, 15),
       })
       .locator(generateE2eSelector('avatar.image'))
@@ -533,7 +532,7 @@ export class MessagePage extends BasePage {
     const profilePage = new ProfilePage(this.page);
     await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
 
-    const chatList = this.page.locator(generateE2eSelector('chat.direct_message.chat_list'));
+    const chatList = this.selector.listDMItems;
     await expect(chatList.first()).toBeVisible({ timeout: 10000 });
 
     while (true) {
@@ -713,11 +712,9 @@ export class MessagePage extends BasePage {
     await expect(showMemberButton).toBeVisible({ timeout: 3000 });
     await showMemberButton.click();
 
-    const userLocator = this.page
-      .locator(generateE2eSelector('clan_page.secondary_side_bar.member'))
-      .filter({
-        has: this.page.locator('span').filter({ hasText: username }),
-      });
+    const userLocator = this.selector.secondarySideBar.member.item.filter({
+      has: this.page.locator('span').filter({ hasText: username }),
+    });
 
     await expect(userLocator).toBeVisible({ timeout: 3000 });
     await userLocator.click({ button: 'right' });
