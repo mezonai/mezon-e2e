@@ -1246,4 +1246,14 @@ export class ClanPage extends BasePage {
   async copyVoiceChannelLink() {
     await this.selector.modal.voiceManagement.button.copyLink.click();
   }
+
+  async gotoDM() {
+    await this.selector.sidebar.DMItem.click();
+  }
+
+  async getClanItemByName(clanName: string) {
+    return await this.page.locator(
+      `[data-e2e="clan_page-side_bar-clan_item"][title="${clanName}"]`
+    );
+  }
 }

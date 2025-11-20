@@ -212,4 +212,71 @@ test.describe('Channel Message - Module 6', () => {
       expect(isVoiceChannelLinkSent).toBe(true);
     });
   });
+
+  test('Verify that can jump to pinned edited message is not makes DM and another channel/thread skeleton loading', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64699',
+      github_issue: '9420',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that can jump to pinned edited message is not makes DM and another channel/thread skeleton loading
+
+      **Test Steps:**
+      1. Send a message
+      2. Pin the message
+      3. Edit the message content
+      4. Go to Pin list and jump to the message
+      5. Verify the message is visible in the main chat
+      6. Go to DM list and return to the channel
+      7. Verify the message is displayed in the channel
+
+      **Expected Result:** Message is still displayed in the channel after going to DM list and return to the channel
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'jump-to-pinned-edited-message'],
+    });
+    const clanPage = new ClanPage(page);
+    const messagePage = new MessagePage(page);
+    const messageHelper = new MessageTestHelpers(page);
+
+    const originalMessage = `original message - ${generateRandomString(10)}`;
+    const editedMessage = `edited message - ${generateRandomString(10)}`;
+
+    await AllureReporter.step('Send a message', async () => {
+      await messageHelper.sendTextMessage(originalMessage);
+    });
+
+    const lastMessage = await messagePage.getLastMessage();
+
+    await AllureReporter.step('Pin the message', async () => {
+      await messageHelper.pinLastMessage();
+    });
+
+    await AllureReporter.step('Edit the message content', async () => {
+      await page.waitForTimeout(1000);
+      await messageHelper.editMessage(lastMessage, editedMessage);
+    });
+
+    await AllureReporter.step('Go to Pin list and jump to the message', async () => {
+      await messageHelper.openPinnedMessagesModal();
+      await messageHelper.clickJumpToMessage(editedMessage);
+      const isMessageVisible = await messageHelper.verifyMessageVisibleInMainChat(editedMessage);
+      expect(isMessageVisible).toBeTruthy();
+    });
+
+    await AllureReporter.step('Go to DM list and return to the channel', async () => {
+      await clanPage.gotoDM();
+      const clanItem = await clanPage.getClanItemByName(clanFactory.getClanName());
+      await clanItem.click();
+    });
+
+    await AllureReporter.step('Verify the message is displayed in the channel', async () => {
+      const isMessageVisible = await messageHelper.verifyMessageVisibleInMainChat(editedMessage);
+      expect(isMessageVisible).toBeTruthy();
+    });
+  });
 });
