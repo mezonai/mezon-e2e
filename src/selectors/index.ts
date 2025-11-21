@@ -38,6 +38,7 @@ export const DATA_E2E_IDENTIFIER = {
     text: {
       about_me: '',
     },
+    banned: { time: '' },
   },
   discussion: {
     box: {

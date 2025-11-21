@@ -1,7 +1,7 @@
+import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import ProfileSelector from '@/data/selectors/ProfileSelector';
 
 export class ProfilePage extends BasePage {
   private readonly selector;
@@ -143,8 +143,12 @@ export class ProfilePage extends BasePage {
     return this.selector.buttons.editUserName;
   }
 
-  async saveChangesUserProfile() {
+  async getSaveChangesUserProfile() {
     return this.selector.buttons.saveChangesUserProfile;
+  }
+
+  async saveChangesUserProfile() {
+    return this.selector.buttons.saveChangesUserProfile.click();
   }
 
   async getUserProfileAvatar() {

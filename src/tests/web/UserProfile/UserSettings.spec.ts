@@ -338,7 +338,7 @@ test.describe('User Settings', () => {
 
     await AllureReporter.step('Enter new about me status and save button visible', async () => {
       await profilePage.enterAboutMeStatus(target);
-      const saveChangesBtn = await profilePage.saveChangesUserProfile();
+      const saveChangesBtn = await profilePage.getSaveChangesUserProfile();
       await expect(saveChangesBtn).toBeVisible({ timeout: 500 });
       await expect(saveChangesBtn).toBeEnabled({ timeout: 500 });
     });
@@ -349,6 +349,8 @@ test.describe('User Settings', () => {
 
     await AllureReporter.step('Save About me status', async () => {
       await profilePage.saveChangesUserProfile();
+      const saveChangesBtn = await profilePage.getSaveChangesUserProfile();
+      await expect(saveChangesBtn).toBeHidden({ timeout: 500 });
     });
 
     await AllureReporter.step(

@@ -55,6 +55,11 @@ export default class ClanSelector {
       .filter({
         hasText: 'Profile',
       }),
+    banButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Ban',
+      }),
   };
 
   readonly sidePanel = {
@@ -135,6 +140,8 @@ export default class ClanSelector {
       `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
     ),
     mention: this.page.locator(generateE2eSelector('mention.input')),
+    banned: this.page.locator(generateE2eSelector('mention.banned')),
+    bannedTime: this.page.locator(generateE2eSelector('mention.banned.time')),
   };
 
   readonly clanSettings = {
