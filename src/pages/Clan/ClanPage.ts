@@ -1256,4 +1256,70 @@ export class ClanPage extends BasePage {
       `[data-e2e="clan_page-side_bar-clan_item"][title="${clanName}"]`
     );
   }
+
+  async banUserByName(username: string) {
+    const memberLocator = this.selector.sidebarMemberList.memberItems
+      .filter({ hasText: username })
+      .first();
+    await expect(memberLocator).toBeVisible({ timeout: 3000 });
+    await memberLocator.click({ button: 'right' });
+
+    await this.selector.sidebarMemberList.banButton.hover();
+
+    const option = this.selector.sidebar.panelItem.item.first();
+
+    const rawText = await option.innerText();
+
+    const match = rawText.match(/For\s+(\d+)\s+(\w+)/i);
+
+    let value = null;
+    let unit = null;
+
+    if (match) {
+      value = Number(match[1]);
+      unit = match[2].toLowerCase();
+    }
+
+    await option.click();
+
+    return { value, unit };
+  }
+
+  async isBannedItemVisible() {
+    const bannedLocator = this.selector.input.banned;
+    try {
+      await bannedLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async verifyBannedTime(value: number | null, unit: string | null) {
+    if (!value || !unit) {
+      return;
+    }
+    const raw = await this.selector.input.bannedTime.innerText();
+
+    const match = raw.match(/(\d+)([mhd])/i);
+    if (!match) throw new Error(`Invalid banned time format: ${raw}`);
+
+    const uiValue = Number(match[1]);
+    const uiUnitChar = match[2].toLowerCase();
+
+    let uiSeconds = 0;
+    if (uiUnitChar === 'm') uiSeconds = uiValue * 60;
+    if (uiUnitChar === 'h') uiSeconds = uiValue * 3600;
+
+    let expectedUnit = unit;
+
+    if (value === 1) expectedUnit = 'hours';
+
+    let expectedSeconds = 0;
+    if (expectedUnit === 'minutes') expectedSeconds = value * 60;
+    if (expectedUnit === 'hours') expectedSeconds = value * 3600;
+
+    const diff = Math.abs(uiSeconds - expectedSeconds);
+    expect(diff).toBeLessThanOrEqual(20);
+  }
 }

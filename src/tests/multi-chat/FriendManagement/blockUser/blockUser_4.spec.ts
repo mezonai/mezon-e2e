@@ -113,15 +113,11 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User B joins the clan', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await friendPageB.page.goto(inviteLink, {
         waitUntil: 'domcontentloaded',
       });
-      await friendPageA.page.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      const clanInviteModalA = new ClanInviteModal(pageA);
       const clanInviteModalB = new ClanInviteModal(pageB);
-      await clanInviteModalA.acceptInvite();
       await clanInviteModalB.acceptInvite();
     });
 
@@ -197,15 +193,11 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User B joins the clan', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await friendPageB.page.goto(inviteLink, {
         waitUntil: 'domcontentloaded',
       });
-      await friendPageA.page.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      const clanInviteModalA = new ClanInviteModal(pageA);
       const clanInviteModalB = new ClanInviteModal(pageB);
-      await clanInviteModalA.acceptInvite();
       await clanInviteModalB.acceptInvite();
     });
 
@@ -377,15 +369,11 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User B joins the clan via invite link', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await friendPageB.page.goto(inviteLink, {
         waitUntil: 'domcontentloaded',
       });
-      await friendPageA.page.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      const clanInviteModalA = new ClanInviteModal(pageA);
       const clanInviteModalB = new ClanInviteModal(pageB);
-      await clanInviteModalA.acceptInvite();
       await clanInviteModalB.acceptInvite();
     });
 
