@@ -79,8 +79,8 @@ export class ClanSettingsPage extends BasePage {
       await expect(webhookItem).toBeVisible();
       await expect(webhookItemTitle).toBeVisible();
       await expect(webhookItemDescription).toBeVisible();
-      await this.selector.buttons.closeSettingClan.click();
       const webhookItemDescriptionText = await webhookItemDescription.innerText();
+      await this.selector.buttons.closeSettingClan.click();
       return isWebhookJustCreated(webhookItemDescriptionText);
     } catch {
       return false;
