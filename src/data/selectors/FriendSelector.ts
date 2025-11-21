@@ -52,4 +52,8 @@ export default class FriendSelector {
       .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
       .filter({ hasText: 'Block' }),
   };
+
+  readonly badge = {
+    friendPending: this.page.locator(generateE2eSelector('badge.friend_pending')),
+  };
 }

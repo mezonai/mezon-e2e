@@ -306,4 +306,24 @@ export class FriendPage extends BasePage {
   async getFriendAllUserItemByUsername(username: string): Promise<Locator> {
     return this.selector.lists.friendAll.filter({ hasText: username });
   }
+
+  async getFriendPendingBadgeCount(): Promise<number> {
+    try {
+      await this.selector.badge.friendPending.waitFor({ state: 'visible', timeout: 3000 });
+      const friendPendingBadgeCount = await this.selector.badge.friendPending.innerText();
+      return parseInt(friendPendingBadgeCount);
+    } catch {
+      return 0;
+    }
+  }
+
+  async verifyFriendPendingBadgeIsDisplayed(prevCount = 0): Promise<void> {
+    const currentCount = await this.getFriendPendingBadgeCount();
+    expect(currentCount - prevCount).toBe(1);
+  }
+
+  async verifyFriendPendingBadgeIsDisappeared(prevCount = 1): Promise<void> {
+    const currentCount = await this.getFriendPendingBadgeCount();
+    expect(prevCount - currentCount).toBe(1);
+  }
 }
