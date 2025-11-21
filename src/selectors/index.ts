@@ -782,6 +782,9 @@ export const DATA_E2E_IDENTIFIER = {
   suggest_item: {
     username: '',
   },
+  badge: {
+    friend_pending: '',
+  },
 };
 
 export const ROUTES = {
