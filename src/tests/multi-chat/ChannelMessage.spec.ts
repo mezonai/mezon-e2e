@@ -161,7 +161,7 @@ test.describe('Channel Message', () => {
     });
   });
 
-  test('Verify that I can ban user on channel', async ({ dual }) => {
+  test('Verify that user is banned cannot send message on channel', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64609',
     });
@@ -169,7 +169,7 @@ test.describe('Channel Message', () => {
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
     await AllureReporter.addDescription(`
-      **Test Objective:** Verify that I can ban user on clan
+      **Test Objective:** Verify that user is banned cannot send message on channel
       
       **Test Steps:**
       1. User A create clan
@@ -178,7 +178,7 @@ test.describe('Channel Message', () => {
       4. User A ban user B
       5. Verify user B can not send message on channel after ban
 
-      **Expected Result:** I can ban user on clan
+      **Expected Result:** User is banned cannot send message on channel
     `);
 
     await AllureReporter.addLabels({
@@ -235,8 +235,96 @@ test.describe('Channel Message', () => {
       await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const isBannedInputVisible = await clanPageB.isBannedItemVisible();
       expect(isBannedInputVisible).toBe(true);
+      const isMessageInputVisible = await clanPageB.isMessageInputVisible();
+      expect(isMessageInputVisible).toBe(false);
       await pageB.reload();
       await clanPageB.verifyBannedTime(duration, unitTime);
     });
+  });
+
+  test('Verify that user is banned can not open context menu and react message', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user is banned can not open context menu and react message
+      
+      **Test Steps:**
+      1. User A create clan
+      2. User A invite user B
+      3. User B accept invite
+      4. User A send message on channel
+      5. User A ban user B
+
+      **Expected Result:** User is banned can not open context menu and react message
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan', 'ban-user'],
+    });
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const userNameA = accountA.email.split('@')[0];
+    const userNameB = accountB.email.split('@')[0];
+    const messageHelperA = new MessageTestHelpers(pageA);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('User A ban user B in clan', async () => {
+      await clanPageA.openMemberList();
+      await clanPageA.banUserByName(userNameB);
+    });
+
+    await AllureReporter.step('User A send a message on channel', async () => {
+      await messageHelperA.sendTextMessage('Text message');
+    });
+
+    await AllureReporter.step(
+      'Verify user can not open context menu and hover message modal on banned channel',
+      async () => {
+        await pageB.reload();
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        const isReactionVisible = await clanPageB.isHoverMessageModalVisible();
+        expect(isReactionVisible).toBe(false);
+        const isContextMenuVisible = await clanPageB.isContextMenuVisible();
+        expect(isContextMenuVisible).toBe(false);
+      }
+    );
   });
 });

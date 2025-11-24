@@ -213,4 +213,5 @@ export default class MessageSelector {
       ),
     },
   };
+  hoverMessageModal = this.page.locator(generateE2eSelector('chat.hover_message_actions'));
 }
