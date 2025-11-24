@@ -1,25 +1,35 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { expect, test } from '@/fixtures/dual.fixture';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
-import { ClanInviteFriendModal } from '@/pages/Clan/ClanInviteFriendModal';
-import { ClanInviteModal } from '@/pages/Modal/ClanInviteModal';
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import { FriendPage } from '@/pages/FriendPage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { expect, test } from '@/fixtures/dual.fixture';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 
 test.describe('Clan Context Menu - Create Category', () => {
   const managerAccount = AccountCredentials['account1'];
   const memberAccount = AccountCredentials['account4'];
+  const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
+  const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
+  const clanFactory = new ClanFactory();
 
-  let clanFactory: ClanFactory;
+  test.beforeAll(async ({ browser }) => {
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.blockUser,
+      credentials: managerAccount,
+    });
+  });
 
   test.beforeEach(async ({ dual }) => {
-    clanFactory = new ClanFactory();
-
     await dual.parallel({
       A: async () => {
         const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, managerAccount);
@@ -37,6 +47,25 @@ test.describe('Clan Context Menu - Create Category', () => {
           credentials
         );
       },
+    });
+  });
+
+  test.afterEach(async ({ dual }) => {
+    await dual.parallel({
+      A: async page => {
+        await AuthHelper.logout(page);
+      },
+      B: async page => {
+        await AuthHelper.logout(page);
+      },
+    });
+  });
+
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials: managerAccount,
     });
   });
 
@@ -63,31 +92,44 @@ test.describe('Clan Context Menu - Create Category', () => {
     });
 
     const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
     const menuPanelA = new ClanMenuPanel(pageA);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const userNameA = managerAccount.email.split('@')[0];
+    const userNameB = memberAccount.email.split('@')[0];
 
-    await test.step('Setup clan for thread test', async () => {
-      await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
     });
 
-    let inviteLink: string = '';
-    await test.step('User A invite User B to clan', async () => {
-      await menuPanelA.openInvitePeopleModal();
-      const clanInviteFriendModalA = new ClanInviteFriendModal(pageA);
-      inviteLink = await clanInviteFriendModalA.getInviteLink();
-      expect(inviteLink).not.toBe('');
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
     });
 
-    await test.step('User A and User B joins the clan', async () => {
-      await pageA.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      await pageB.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      const clanInviteModalA = new ClanInviteModal(pageA);
-      const clanInviteModalB = new ClanInviteModal(pageB);
-      await clanInviteModalA.acceptInvite();
-      await clanInviteModalB.acceptInvite();
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
     });
 
     await test.step('Manager sees Create Category entry in context menu', async () => {
@@ -99,6 +141,8 @@ test.describe('Clan Context Menu - Create Category', () => {
     await AllureReporter.addParameter('secondaryAccount', memberAccount.email);
 
     await test.step('Non-manager context menu hides Create Category entry', async () => {
+      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const memberMenuPanel = new ClanMenuPanel(pageB);
       await memberMenuPanel.openPanel();
       await expect(memberMenuPanel.buttons.invitePeople).toBeVisible();
@@ -107,9 +151,5 @@ test.describe('Clan Context Menu - Create Category', () => {
     });
 
     await AllureReporter.attachScreenshot(pageB, 'Context Menu Without ManageClan');
-
-    await test.step('Cleanup clan', async () => {
-      await clanFactory.cleanupClan(pageA);
-    });
   });
 });

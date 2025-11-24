@@ -1295,6 +1295,15 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async isMessageInputVisible() {
+    try {
+      await this.selector.input.mention.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async verifyBannedTime(value: number | null, unit: string | null) {
     if (!value || !unit) {
       return;
@@ -1321,5 +1330,33 @@ export class ClanPage extends BasePage {
 
     const diff = Math.abs(uiSeconds - expectedSeconds);
     expect(diff).toBeLessThanOrEqual(20);
+  }
+
+  async isContextMenuVisible() {
+    const messageSelector = new MessageSelector(this.page);
+    const messageLocator = messageSelector.messages.first();
+    await messageLocator.click({ button: 'right' });
+    const popup = this.page.locator(
+      'div.contexify.z-50.rounded-lg.text-theme-primary.text-theme-primary-hover.border-theme-primary'
+    );
+    try {
+      await popup.waitFor({ state: 'visible', timeout: 3000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isHoverMessageModalVisible() {
+    const messageSelector = new MessageSelector(this.page);
+    const messageLocator = messageSelector.messages.first();
+    await messageLocator.hover();
+    const hoverModal = messageSelector.hoverMessageModal;
+    try {
+      await hoverModal.waitFor({ state: 'visible', timeout: 3000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
