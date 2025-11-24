@@ -759,7 +759,6 @@ export class MessageTestHelpers {
   async clickJumpToMessage(messageText?: string): Promise<void> {
     const jumpButton = await this.findJumpButton(messageText);
     await jumpButton.click();
-    await this.page.waitForTimeout(3000);
   }
 
   async verifyMessageVisibleInMainChat(messageText: string): Promise<boolean> {
@@ -2392,6 +2391,11 @@ export class MessageTestHelpers {
     await commandLocator.click();
 
     await expect(messageInput).toHaveText(contentMessage, { timeout: 3000 });
+  }
+
+  async verifyMessageIsHighlighted(message: string): Promise<void> {
+    const messageLocator = this.getMessageItemLocator(message);
+    await expect(messageLocator).toHaveClass(/!bg-\[#eab30833\]/, { timeout: 1000 });
   }
 }
 

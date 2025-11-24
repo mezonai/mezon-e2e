@@ -150,8 +150,7 @@ test.describe('Channel Message - Module 3', () => {
 
     await AllureReporter.step('Click jump message and verify jump to right message', async () => {
       await messageHelpers.clickJumpToPinMessageFromSystemMessage();
-      const jumpedMessage = await messageHelpers.getMessageByIdentity(indentityMessage);
-      await expect(jumpedMessage).toHaveClass(/!bg-\[#eab30833\]/, { timeout: 1000 });
+      await messageHelpers.verifyMessageIsHighlighted(messageToPinText);
     });
 
     await AllureReporter.step('Verify that red dot is display after pinned message', async () => {
