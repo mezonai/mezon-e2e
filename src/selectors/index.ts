@@ -24,6 +24,7 @@ export const DATA_E2E_IDENTIFIER = {
   },
   button: {
     base: '',
+    copy: '',
   },
   base_profile: {
     display_name: '',
@@ -386,6 +387,12 @@ export const DATA_E2E_IDENTIFIER = {
           join_voice: '',
         },
       },
+      canvas_editor: {
+        input: {
+          title: '',
+          content: '',
+        },
+      },
     },
   },
   channel_setting_page: {
@@ -563,7 +570,21 @@ export const DATA_E2E_IDENTIFIER = {
           pin: {
             pin_badge: '',
           },
-          canvas: '',
+          canvas: {
+            modal: {
+              canvas_management: {
+                button: {
+                  create_canvas: '',
+                },
+              },
+            },
+            item: {
+              title: '',
+              button: {
+                delete: '',
+              },
+            },
+          },
           thread: {
             modal: {
               thread_management: {
@@ -726,7 +747,6 @@ export const DATA_E2E_IDENTIFIER = {
     },
     voice_management: {
       button: {
-        copy_link: '',
         control_item: '',
       },
     },

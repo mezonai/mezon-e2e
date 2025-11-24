@@ -1359,4 +1359,21 @@ export class ClanPage extends BasePage {
       return false;
     }
   }
+
+  async openCanvasManagementModal() {
+    await this.selector.header.button.canvas.click();
+  }
+
+  async createCanvas() {
+    await this.selector.modal.canvasManagement.button.createCanvas.click();
+  }
+
+  async fillCanvasTitle(title: string) {
+    await this.selector.screen.canvasEditor.input.title.fill(title);
+  }
+
+  async fillCanvasContent(content: string) {
+    await this.selector.screen.canvasEditor.input.content.click();
+    await this.page.keyboard.type(content);
+  }
 }

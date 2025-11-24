@@ -214,6 +214,7 @@ export default class ClanSelector {
       ),
       member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
       pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
+      canvas: this.page.locator(generateE2eSelector('chat.channel_message.header.button.canvas')),
     },
   };
 
@@ -246,11 +247,34 @@ export default class ClanSelector {
     voiceManagement: {
       item: this.page.locator(generateE2eSelector('modal.voice_management')),
       button: {
-        copyLink: this.page.locator(generateE2eSelector('modal.voice_management.button.copy_link')),
+        copyLink: this.page.locator(
+          `${generateE2eSelector('modal.voice_management')} ${generateE2eSelector('button.copy')}`
+        ),
         controlItem: this.page.locator(
           generateE2eSelector('modal.voice_management.button.control_item')
         ),
         endCall: this.page.locator(generateE2eSelector('icon.end_call')),
+      },
+    },
+    canvasManagement: {
+      modal: this.page.locator(
+        generateE2eSelector('chat.channel_message.header.button.canvas.modal.canvas_management')
+      ),
+      item: this.page.locator(
+        generateE2eSelector('chat.channel_message.header.button.canvas.item')
+      ),
+      button: {
+        createCanvas: this.page.locator(
+          generateE2eSelector(
+            'chat.channel_message.header.button.canvas.modal.canvas_management.button.create_canvas'
+          )
+        ),
+        copyCanvasLink: this.page.locator(
+          `${generateE2eSelector('chat.channel_message.header.button.canvas.modal.canvas_management')} ${generateE2eSelector('button.copy')}`
+        ),
+        deleteCanvas: this.page.locator(
+          generateE2eSelector('chat.channel_message.header.button.canvas.item.button.delete')
+        ),
       },
     },
   };
@@ -280,6 +304,14 @@ export default class ClanSelector {
       joinButton: this.page.locator(
         generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
       ),
+    },
+    canvasEditor: {
+      input: {
+        title: this.page.locator(generateE2eSelector('clan_page.screen.canvas_editor.input.title')),
+        content: this.page.locator(
+          generateE2eSelector('clan_page.screen.canvas_editor.input.content')
+        ),
+      },
     },
   };
 

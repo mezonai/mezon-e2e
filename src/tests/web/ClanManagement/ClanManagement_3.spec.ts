@@ -7,6 +7,8 @@ import { MezonCredentials } from '@/types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
+import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
@@ -129,6 +131,59 @@ test.describe('Clan Management - Module 3', () => {
 
     await AllureReporter.step('Verify the general channel is not marked as favorite', async () => {
       await clanPage.verifyChannelIsUnmarkedAsFavorite('general');
+    });
+  });
+
+  test('Verify that can jump to pinned message when user in canvas', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64793',
+      github_issue: '10006',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that can jump to pinned message when user in canvas.
+          **Test Steps:**
+            1. Send a message
+            2. Pin the message
+            3. Create a canvas
+            4. Fill canvas title & content
+            5. Open pinned messages modal and jump to the message
+            6. Verify the message is visible in the main chat
+          **Expected Result:** Message is visible in the main chat and is highlighted.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['canvas', 'jump-to-pinned-message'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const messageHelper = new MessageTestHelpers(page);
+
+    const originalMessage = `original message - ${generateRandomString(10)}`;
+    const canvasTitle = `canvas title - ${generateRandomString(10)}`;
+    const canvasContent = `canvas content - ${generateRandomString(10)}`;
+
+    await AllureReporter.step('Send a message', async () => {
+      await messageHelper.sendTextMessage(originalMessage);
+    });
+
+    await AllureReporter.step('Pin the message', async () => {
+      await messageHelper.pinLastMessage();
+    });
+
+    await AllureReporter.step('Create a canvas', async () => {
+      await clanPage.openCanvasManagementModal();
+      await clanPage.createCanvas();
+      await clanPage.fillCanvasTitle(canvasTitle);
+      await clanPage.fillCanvasContent(canvasContent);
+    });
+
+    await AllureReporter.step('Open pinned messages modal and jump to the message', async () => {
+      await messageHelper.openPinnedMessagesModal();
+      await messageHelper.clickJumpToMessage(originalMessage);
+      await messageHelper.verifyMessageIsHighlighted(originalMessage);
+      const isMessageVisible = await messageHelper.verifyMessageVisibleInMainChat(originalMessage);
+      expect(isMessageVisible).toBeTruthy();
     });
   });
 });
