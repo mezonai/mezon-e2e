@@ -1,6 +1,6 @@
+import MessageSelector from '@/data/selectors/MessageSelector';
 import { expect, Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
-import MessageSelector from '@/data/selectors/MessageSelector';
 
 export class MessageTestHelpers {
   private page: Page;
@@ -2333,11 +2333,10 @@ export class MessageTestHelpers {
     );
     await expect(viewTopicLocator).toBeVisible({ timeout: 2000 });
     await viewTopicLocator.click();
-    await expect(this.selector.topicInput).toBeVisible({ timeout: 2000 });
+    await expect(this.selector.topicBox).toBeVisible({ timeout: 2000 });
   }
 
   async closeTopicBox() {
-    await expect(this.selector.closeTopicBoxButton).toBeVisible({ timeout: 5000 });
     await expect(this.selector.closeTopicBoxButton).toBeVisible({ timeout: 5000 });
     await this.selector.closeTopicBoxButton.click();
     await expect(this.selector.topicInput).toBeHidden({ timeout: 5000 });

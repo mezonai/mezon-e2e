@@ -1285,8 +1285,10 @@ export class ClanPage extends BasePage {
     return { value, unit };
   }
 
-  async isBannedItemVisible() {
-    const bannedLocator = this.selector.input.banned;
+  async isBannedItemVisible(isTopic: boolean = false) {
+    const bannedLocator = isTopic
+      ? this.selector.input.topicBanned
+      : this.selector.input.messageBanned;
     try {
       await bannedLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
@@ -1295,9 +1297,12 @@ export class ClanPage extends BasePage {
     }
   }
 
-  async isMessageInputVisible() {
+  async isMessageInputVisible(isTopic: boolean = false) {
+    const messageInputLocator = isTopic
+      ? this.selector.input.topicInput
+      : this.selector.input.mention;
     try {
-      await this.selector.input.mention.waitFor({ state: 'visible', timeout: 5000 });
+      await messageInputLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
       return false;
@@ -1308,7 +1313,7 @@ export class ClanPage extends BasePage {
     if (!value || !unit) {
       return;
     }
-    const raw = await this.selector.input.bannedTime.innerText();
+    const raw = await this.selector.input.messageBannedTime.innerText();
 
     const match = raw.match(/(\d+)([mhd])/i);
     if (!match) throw new Error(`Invalid banned time format: ${raw}`);
@@ -1332,9 +1337,11 @@ export class ClanPage extends BasePage {
     expect(diff).toBeLessThanOrEqual(20);
   }
 
-  async isContextMenuVisible() {
+  async isContextMenuVisible(isTopic: boolean = false) {
     const messageSelector = new MessageSelector(this.page);
-    const messageLocator = messageSelector.messages.first();
+    const messageLocator = isTopic
+      ? messageSelector.topicMessages.last()
+      : messageSelector.messages.last();
     await messageLocator.click({ button: 'right' });
     const popup = this.page.locator(
       'div.contexify.z-50.rounded-lg.text-theme-primary.text-theme-primary-hover.border-theme-primary'
@@ -1347,9 +1354,11 @@ export class ClanPage extends BasePage {
     }
   }
 
-  async isHoverMessageModalVisible() {
+  async isHoverMessageModalVisible(isTopic: boolean = false) {
     const messageSelector = new MessageSelector(this.page);
-    const messageLocator = messageSelector.messages.first();
+    const messageLocator = isTopic
+      ? messageSelector.topicMessages.last()
+      : messageSelector.messages.last();
     await messageLocator.hover();
     const hoverModal = messageSelector.hoverMessageModal;
     try {
