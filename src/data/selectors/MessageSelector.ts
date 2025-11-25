@@ -165,6 +165,7 @@ export default class MessageSelector {
   inboxMessages = this.page.locator(
     `${generateE2eSelector('chat.channel_message.inbox.mentions')} div[class*="w-full"][class*="text-theme-message"]`
   );
+  topicBox = this.page.locator(generateE2eSelector('discussion.box.topic'));
   topicInput = this.page.locator(
     `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
   );

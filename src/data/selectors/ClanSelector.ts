@@ -140,8 +140,17 @@ export default class ClanSelector {
       `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
     ),
     mention: this.page.locator(generateE2eSelector('mention.input')),
-    banned: this.page.locator(generateE2eSelector('mention.banned')),
-    bannedTime: this.page.locator(generateE2eSelector('mention.banned.time')),
+    messageBanned: this.page.locator(generateE2eSelector('mention.banned')),
+    topicBanned: this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.banned')}`
+    ),
+    messageBannedTime: this.page.locator(generateE2eSelector('mention.banned.time')),
+    topicBannedTime: this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.banned.time')}`
+    ),
+    topicInput: this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
+    ),
   };
 
   readonly clanSettings = {

@@ -182,7 +182,7 @@ test.describe('Channel Message', () => {
     `);
 
     await AllureReporter.addLabels({
-      tag: ['clan', 'ban-user'],
+      tag: ['clan', 'ban-user', 'send-message'],
     });
 
     const clanPageA = new ClanPage(pageA);
@@ -265,7 +265,7 @@ test.describe('Channel Message', () => {
     `);
 
     await AllureReporter.addLabels({
-      tag: ['clan', 'ban-user'],
+      tag: ['clan', 'ban-user', 'context-menu', 'react-message'],
     });
 
     const clanPageA = new ClanPage(pageA);
@@ -323,6 +323,104 @@ test.describe('Channel Message', () => {
         const isReactionVisible = await clanPageB.isHoverMessageModalVisible();
         expect(isReactionVisible).toBe(false);
         const isContextMenuVisible = await clanPageB.isContextMenuVisible();
+        expect(isContextMenuVisible).toBe(false);
+      }
+    );
+  });
+
+  test('Verify that user is banned can not send message on topic', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user is banned can not send message on topic
+      
+      **Test Steps:**
+      1. User A create clan
+      2. User A invite user B
+      3. User B accept invite
+      4. User A send message on channel
+      5. User A ban user B
+
+      **Expected Result:** User is banned can not send message on topic
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan', 'ban-user', 'topic', 'send-message'],
+    });
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const userNameA = accountA.email.split('@')[0];
+    const userNameB = accountB.email.split('@')[0];
+    const messageHelperA = new MessageTestHelpers(pageA);
+    const messageHelperB = new MessageTestHelpers(pageB);
+    const testMessage = `Test message - ${Date.now()}`;
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('User A ban user B in clan', async () => {
+      await clanPageA.openMemberList();
+      await clanPageA.banUserByName(userNameB);
+    });
+
+    await AllureReporter.step('User A send a message on channel and create a topic', async () => {
+      await messageHelperA.sendTextMessage(testMessage);
+      await messageHelperA.createTopicToInitMessage(testMessage);
+    });
+
+    await AllureReporter.step('Verify user can not send message on topic', async () => {
+      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await messageHelperB.openTopicBoxByMessage(testMessage);
+
+      const isMessageInputVisible = await clanPageB.isMessageInputVisible(true);
+      expect(isMessageInputVisible).toBe(false);
+
+      const isBannedInputVisible = await clanPageB.isBannedItemVisible(true);
+      expect(isBannedInputVisible).toBe(true);
+    });
+
+    await AllureReporter.step(
+      'Verify user can not react or open context menu on topic message',
+      async () => {
+        const isReactionVisible = await clanPageB.isHoverMessageModalVisible(true);
+        expect(isReactionVisible).toBe(false);
+
+        const isContextMenuVisible = await clanPageB.isContextMenuVisible(true);
         expect(isContextMenuVisible).toBe(false);
       }
     );
