@@ -1388,4 +1388,13 @@ export class ClanPage extends BasePage {
     await this.selector.screen.canvasEditor.input.content.click();
     await this.page.keyboard.type(content);
   }
+
+  async mentionByText(text: string) {
+    await this.selector.input.mention.fill(text);
+    await this.page.waitForTimeout(1000);
+    await this.selector.input.mention.press('Enter');
+    await this.page.waitForTimeout(1000);
+    await this.selector.input.mention.press('Enter');
+    await this.page.waitForLoadState('networkidle');
+  }
 }
