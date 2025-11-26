@@ -1309,11 +1309,14 @@ export class ClanPage extends BasePage {
     }
   }
 
-  async verifyBannedTime(value: number | null, unit: string | null) {
+  async verifyBannedTime(value: number | null, unit: string | null, isTopic: boolean = false) {
     if (!value || !unit) {
       return;
     }
-    const raw = await this.selector.input.messageBannedTime.innerText();
+    const locator = isTopic
+      ? this.selector.input.topicBannedTime
+      : this.selector.input.messageBannedTime;
+    const raw = await locator.innerText();
 
     const match = raw.match(/(\d+)([mhd])/i);
     if (!match) throw new Error(`Invalid banned time format: ${raw}`);

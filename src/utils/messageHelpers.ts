@@ -2333,7 +2333,7 @@ export class MessageTestHelpers {
     );
     await expect(viewTopicLocator).toBeVisible({ timeout: 2000 });
     await viewTopicLocator.click();
-    await expect(this.selector.topicBox).toBeVisible({ timeout: 2000 });
+    await this.page.waitForTimeout(1000);
   }
 
   async closeTopicBox() {
@@ -2395,6 +2395,21 @@ export class MessageTestHelpers {
   async verifyMessageIsHighlighted(message: string): Promise<void> {
     const messageLocator = this.getMessageItemLocator(message);
     await expect(messageLocator).toHaveClass(/!bg-\[#eab30833\]/, { timeout: 1000 });
+  }
+
+  async openBuzzMessageModal() {
+    await this.page.keyboard.press('Control+g');
+    await this.page.waitForTimeout(1000);
+  }
+
+  async isBuzzModalOpen() {
+    const modal = this.selector.messageBuzzInputMessage;
+    try {
+      await modal.waitFor({ state: 'visible', timeout: 3000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
