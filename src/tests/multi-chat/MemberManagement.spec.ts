@@ -10,6 +10,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test } from '../../fixtures/dual.fixture';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Member Management', () => {
   const accountA = AccountCredentials['account2-1'];
@@ -17,6 +18,7 @@ test.describe('Member Management', () => {
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const clanFactory = new ClanFactory();
+  const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
 
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
@@ -97,8 +99,6 @@ test.describe('Member Management', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
     const unique = Date.now().toString(36).slice(-6);
     const roleName = `Role-${unique}`.slice(0, 20);
 

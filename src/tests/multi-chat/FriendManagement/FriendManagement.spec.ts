@@ -8,12 +8,12 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Friend Management', () => {
   const accountA = AccountCredentials['account8'];
   const accountB = AccountCredentials['account9'];
-  const userNameA = accountA.email.split('@')[0];
-  const userNameB = accountB.email.split('@')[0];
+  const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const VERIFY_REQUEST_EXISTS_STEP_NAME = 'Verify friend request exists on both sides';
   const CANCEL_REQUEST_STEP_NAME = 'User A cancels the friend request';
@@ -154,9 +154,6 @@ test.describe('Friend Management', () => {
       **Expected Result:** The friend request is sent successfully and the receiver can reject it.
     `);
 
-    const [userNameB] = accountB.email.split('@');
-    const [userNameA] = accountA.email.split('@');
-
     await test.step(SEND_REQUEST_STEP_NAME, async () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
     });
@@ -223,7 +220,6 @@ test.describe('Friend Management', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
-    const userNameB = accountB.email.split('@')[0];
 
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,

@@ -8,6 +8,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
 import { test } from '../../fixtures/dual.fixture';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Direct Message', () => {
   const accountA = AccountCredentials['account2-3'];
@@ -16,6 +17,11 @@ test.describe('Direct Message', () => {
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   let nameGroupChat: string;
+  const [userNameA, userNameB, userNameC] = getUsernamesFromEmails([
+    accountA.email,
+    accountB.email,
+    accountC.email,
+  ]);
 
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
@@ -82,9 +88,6 @@ test.describe('Direct Message', () => {
         **Expected Result:** Group avatar is updated with user B.
       `);
 
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
-    const userNameC = accountC.email.split('@')[0];
     const unique = Date.now().toString(36).slice(-6);
     nameGroupChat = `groupchat-${unique}`.slice(0, 20);
 
@@ -176,9 +179,6 @@ test.describe('Direct Message', () => {
         **Expected Result:** Group avatar is updated with user B on forward message and search popup (ctrl+k).
       `);
 
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
-    const userNameC = accountC.email.split('@')[0];
     const unique = Date.now().toString(36).slice(-6);
     nameGroupChat = `groupchat-${unique}`.slice(0, 20);
 
@@ -292,9 +292,6 @@ test.describe('Direct Message', () => {
         **Expected Result:** Last user can leave group
       `);
 
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
-    const userNameC = accountC.email.split('@')[0];
     const unique = Date.now().toString(36).slice(-6);
     nameGroupChat = `groupchat-${unique}`.slice(0, 20);
 

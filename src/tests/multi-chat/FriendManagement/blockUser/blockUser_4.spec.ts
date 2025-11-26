@@ -18,12 +18,13 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import generateRandomString from '@/utils/randomString';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['accountKien8'];
   const accountB = AccountCredentials['accountKien9'];
-  const userNameA = accountA.email.split('@')[0];
-  const userNameB = accountB.email.split('@')[0];
+  const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
+
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
       A: async () => {
