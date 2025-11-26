@@ -12,6 +12,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '../../../fixtures/dual.fixture';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Channel Message 1', () => {
   const accountA = AccountCredentials['account2-1'];
@@ -19,6 +20,7 @@ test.describe('Channel Message 1', () => {
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const clanFactory = new ClanFactory();
+  const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
 
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
@@ -101,8 +103,6 @@ test.describe('Channel Message 1', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     const messagePageA = new MessagePage(pageA);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await FriendHelper.cleanupMutualFriendRelationships(
@@ -187,8 +187,6 @@ test.describe('Channel Message 1', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await FriendHelper.cleanupMutualFriendRelationships(
@@ -259,8 +257,6 @@ test.describe('Channel Message 1', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await FriendHelper.cleanupMutualFriendRelationships(
@@ -340,8 +336,6 @@ test.describe('Channel Message 1', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
     const messageHelperA = new MessageTestHelpers(pageA);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
@@ -425,8 +419,6 @@ test.describe('Channel Message 1', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const userNameA = accountA.email.split('@')[0];
-    const userNameB = accountB.email.split('@')[0];
     const messageHelperB = new MessageTestHelpers(pageB);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {

@@ -12,6 +12,7 @@ import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import TestSuiteHelper from '@/utils/testSuite.helper';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Clan Context Menu - Create Category', () => {
   const managerAccount = AccountCredentials['account1'];
@@ -19,6 +20,10 @@ test.describe('Clan Context Menu - Create Category', () => {
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const clanFactory = new ClanFactory();
+  const [userNameA, userNameB] = getUsernamesFromEmails([
+    managerAccount.email,
+    memberAccount.email,
+  ]);
 
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
@@ -97,8 +102,6 @@ test.describe('Clan Context Menu - Create Category', () => {
     const menuPanelA = new ClanMenuPanel(pageA);
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const userNameA = managerAccount.email.split('@')[0];
-    const userNameB = memberAccount.email.split('@')[0];
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await FriendHelper.cleanupMutualFriendRelationships(

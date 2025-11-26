@@ -5,16 +5,15 @@ import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { FriendHelper } from '@/utils/friend.helper';
-
 import joinUrlPaths from '@/utils/joinUrlPaths';
-
 import { test } from '@/fixtures/dual.fixture';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['accountKien10'];
   const accountB = AccountCredentials['accountKien1'];
-  const userNameA = accountA.email.split('@')[0];
-  const userNameB = accountB.email.split('@')[0];
+  const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
+
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
       A: async () => {
