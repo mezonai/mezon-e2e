@@ -342,4 +342,74 @@ test.describe('Direct Message', () => {
       await messagePageB.leaveGroupByName(nameGroupChat);
     });
   });
+
+  test('Verify that user can add member has just been removed from group', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64801',
+      github_issue: '10160',
+    });
+    const { pageA, pageB } = dual;
+    const messagePageA = new MessagePage(pageA);
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that user can add member has just been removed from group
+        
+        **Test Steps:**
+        1. Clean up any existing friend relationships between users
+        2. User A sends a friend request to User B and user C
+        3. User A create a group contains user B and user C
+        4. User A remove user B from group chat
+        5. User A add user B back to group chat and verify user B is in group
+        6. User A remove user B from group chat and add user B back to group chat
+        7. Verify user B is in group
+
+        **Expected Result:** User can add member has just been removed from group
+      `);
+
+    const userNameA = accountA.email.split('@')[0];
+    const userNameB = accountB.email.split('@')[0];
+    const userNameC = accountC.email.split('@')[0];
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+      await friendPageA.cleanupFriendRelationships(userNameC);
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+      await friendPageA.sendFriendRequestToUser(userNameC);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User A create a group contains user B', async () => {
+      await messagePageA.openSelectFriendsModal();
+      await messagePageA.pickFriendByName(userNameB);
+      await messagePageA.pickFriendByName(userNameC);
+      await messagePageA.submitCreate();
+    });
+
+    await AllureReporter.step('Remove user B from group chat and add user B back', async () => {
+      await messagePageA.removeUserFromGroup(userNameB);
+      await messagePageA.addUserToGroup(userNameB);
+      await messagePageA.verifyUserInMemberGroup(userNameB);
+    });
+
+    await AllureReporter.step(
+      'Remove user B from group chat and verify can add user B back',
+      async () => {
+        await messagePageA.showMemberGroup();
+        await messagePageA.removeUserFromGroup(userNameB);
+        await messagePageA.addUserToGroup(userNameB);
+        await messagePageA.verifyUserInMemberGroup(userNameB);
+      }
+    );
+  });
 });

@@ -85,11 +85,11 @@ export class MessagePage extends BasePage {
     await this.selector.editGroupButton.click();
   }
 
-  private async openSelectFriendsModal(): Promise<void> {
+  async openSelectFriendsModal(): Promise<void> {
     await this.selector.buttonCreateGroupSidebar.click();
   }
 
-  private async pickFriends(count: number): Promise<void> {
+  async pickFriends(count: number): Promise<void> {
     const start = Date.now();
     while ((await this.selector.friendItems.count()) < count) {
       if (Date.now() - start > 10000) {
@@ -112,7 +112,7 @@ export class MessagePage extends BasePage {
     this.secondUserNameText = u1;
   }
 
-  private async submitCreate(): Promise<void> {
+  async submitCreate(): Promise<void> {
     await this.selector.createGroupButton.click();
   }
 
@@ -730,5 +730,29 @@ export class MessagePage extends BasePage {
     await removeUserButton.click();
 
     await expect(userLocator).toBeHidden({ timeout: 3000 });
+  }
+
+  async getFriendItemList(username: string) {
+    return this.selector.friendItems.filter({ hasText: username });
+  }
+
+  async pickFriendByName(username: string) {
+    return this.selector.friendItems.filter({ hasText: username }).first().click();
+  }
+
+  async addUserToGroup(username: string) {
+    await this.selector.addUserButton.click();
+    await this.selector.userItem.filter({ hasText: username }).first().click();
+    await this.selector.createGroupButton.click();
+  }
+
+  async showMemberGroup() {
+    await this.selector.sumMember.click();
+  }
+
+  async verifyUserInMemberGroup(username: string) {
+    await expect(
+      this.selector.secondarySideBar.member.item.filter({ hasText: username })
+    ).toBeVisible({ timeout: 3000 });
   }
 }
