@@ -1,4 +1,5 @@
 import { AccountCredentials } from '@/config/environment';
+import { INVALID_THREAD_NAME, VALID_THREAD_NAME } from '@/constants/ThreadName';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { MezonCredentials } from '@/types';
@@ -6,11 +7,10 @@ import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
-import { MessageTestHelpers } from '@/utils/messageHelpers';
-import { test, expect, type Locator } from '@playwright/test';
-import { INVALID_THREAD_NAME, VALID_THREAD_NAME } from '@/constants/ThreadName';
+import { expect, test, type Locator } from '@playwright/test';
 
 test.describe('Thread in Public Channel', () => {
   const clanFactory = new ClanFactory();
@@ -63,6 +63,7 @@ test.describe('Thread in Public Channel', () => {
     const messageHelper = new MessageTestHelpers(page);
 
     const initMessage = `thread-init-${generateRandomString(6)}`;
+    const threadReply = `Thread reply ${Date.now()}`;
     let messageLocator: Locator;
 
     await AllureReporter.step('Sent initial message to channel', async () => {
@@ -77,6 +78,7 @@ test.describe('Thread in Public Channel', () => {
       await messageHelper.createThreadByMessage();
 
       await messageHelper.fillThreadName(INVALID_THREAD_NAME);
+      await messageHelper.sendMessageInThread(threadReply, true);
 
       const existsInvalid = await clanPage.isNewThreadPresent(INVALID_THREAD_NAME);
       expect(existsInvalid).toBeFalsy();
@@ -87,6 +89,7 @@ test.describe('Thread in Public Channel', () => {
 
     await AllureReporter.step('Fix thread name to valid and create', async () => {
       await messageHelper.fillThreadName(VALID_THREAD_NAME);
+      await messageHelper.sendMessageInThread(threadReply, true);
       const initMsgInThread = messageHelper.getThreadMessageItemByText(initMessage);
       await expect(initMsgInThread).toBeVisible({ timeout: 3000 });
       const existsValid = await clanPage.isNewThreadPresent(VALID_THREAD_NAME);

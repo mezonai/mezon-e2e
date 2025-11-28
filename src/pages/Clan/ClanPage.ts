@@ -1004,21 +1004,27 @@ export class ClanPage extends BasePage {
   }
 
   async isJoinVoiceChannel(channelName: string): Promise<boolean> {
-    const membersButton = this.selector.header.button.member.nth(0);
-    const generalChannel = this.selector.sidebar.channelItem.name.filter({ hasText: 'general' });
     const userListLocator = this.selector.sidebar.channelItem.item
       .filter({ has: this.selector.sidebar.channelItem.name.filter({ hasText: channelName }) })
       .locator(this.selector.sidebar.channelItem.userList.item);
+
     const memberListLocator = this.selector.sidebarMemberList.memberItems;
+    const memberInVoice = memberListLocator.filter({
+      has: this.selector.secondarySideBar.member.inVoice,
+    });
+    const generalChannel = this.selector.sidebar.channelItem.name.filter({ hasText: 'general' });
 
     try {
       await userListLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await this.selector.modal.voiceManagement.item.waitFor({ state: 'visible', timeout: 5000 });
+      const sidebar = this.selector.secondarySideBar.container;
+      const membersButton = this.selector.header.button.member.nth(0);
       await generalChannel.click();
-      await membersButton.click();
-      const memberInVoice = memberListLocator.filter({
-        has: this.selector.secondarySideBar.member.inVoice,
-      });
+
+      if (await sidebar.isHidden({ timeout: 2000 })) {
+        await membersButton.click();
+        await expect(sidebar).toBeVisible({ timeout: 5000 });
+      }
+
       await memberInVoice.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
@@ -1396,5 +1402,20 @@ export class ClanPage extends BasePage {
     await this.page.waitForTimeout(1000);
     await this.selector.input.mention.press('Enter');
     await this.page.waitForLoadState('networkidle');
+  }
+
+  async kickUserByName(username: string) {
+    const memberLocator = this.selector.sidebarMemberList.memberItems
+      .filter({ hasText: username })
+      .first();
+    await expect(memberLocator).toBeVisible({ timeout: 3000 });
+    await memberLocator.click({ button: 'right' });
+
+    await this.selector.sidebarMemberList.kickButton.click();
+    const kickModal = this.page.locator('div.flex.items-center.justify-center.fixed.top-0');
+    await expect(kickModal).toBeVisible({ timeout: 3000 });
+
+    await kickModal.locator(this.selector.kickMemberModal.button.kick).click();
+    await expect(kickModal).toBeHidden({ timeout: 3000 });
   }
 }

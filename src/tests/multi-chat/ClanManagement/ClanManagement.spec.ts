@@ -9,11 +9,11 @@ import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect } from '@playwright/test';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Clan Management', () => {
   const accountA = AccountCredentials['account2-3'];
@@ -170,6 +170,114 @@ test.describe('Clan Management', () => {
 
     await AllureReporter.step('Verify that system message is sent on update channel', async () => {
       await clanPageA.verifySystemMessageIsSentOnUpdatedChannel(channelName, userNameB);
+    });
+  });
+
+  test('Verify that user kicked from a clan while joining a voice will not be in the voice room', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user kicked from a clan while joining a voice will not be in the voice room
+      
+      **Test Steps:**
+      1. User A create a clan
+      2. User A invite User B
+      3. User B accept
+      4. User A create a voice channel
+      5. User B join voice channel
+      6. User A kick User B from clan
+
+      **Expected Result:** User kicked from a clan while joining a voice will not be in the voice room
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan', 'voice-channel', 'kick-member'],
+    });
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const unique = Date.now().toString(36);
+    const channelName = `vc-${unique}`.slice(0, 20);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step(`User A create new voice channel: ${channelName}`, async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.createNewChannel(ChannelType.VOICE, channelName);
+      const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('User B join voice channel', async () => {
+      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+
+      await clanPageB.joinVoiceChannel(channelName);
+      const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
+      expect(isUserInVoiceChannel).toBe(true);
+    });
+
+    await AllureReporter.step('User A kick User B from clan', async () => {
+      await clanPageA.openMemberList();
+      await clanPageA.kickUserByName(userNameB);
+    });
+
+    await AllureReporter.step(
+      'Verify that user kicked from a clan while joining a voice will not be in the voice room',
+      async () => {
+        const isInClan = await clanPageB.isClanPresent(clanFactory.getClanName());
+        expect(isInClan).toBeFalsy();
+      }
+    );
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await friendPageB.createDM(userNameA);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('Verify that user B not in last voice channel', async () => {
+      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageB.joinVoiceChannel(channelName);
+      const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
+      expect(isUserInVoiceChannel).toBe(false);
     });
   });
 });
