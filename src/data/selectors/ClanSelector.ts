@@ -60,6 +60,11 @@ export default class ClanSelector {
       .filter({
         hasText: 'Ban',
       }),
+    kickButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Kick',
+      }),
   };
 
   readonly sidePanel = {
@@ -300,6 +305,7 @@ export default class ClanSelector {
   };
 
   readonly secondarySideBar = {
+    container: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar')),
     member: {
       item: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
       inVoice: this.page.locator(
@@ -495,6 +501,14 @@ export default class ClanSelector {
           ),
         },
       },
+    },
+  };
+
+  readonly kickMemberModal = {
+    reasonInput: this.page.locator(generateE2eSelector('clan_page.modal.kick_member.reason_input')),
+    button: {
+      kick: this.page.locator(generateE2eSelector('clan_page.modal.kick_member.button.kick')),
+      cancel: this.page.locator(generateE2eSelector('clan_page.modal.kick_member.button.cancel')),
     },
   };
 

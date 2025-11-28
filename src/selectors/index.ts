@@ -251,6 +251,13 @@ export const DATA_E2E_IDENTIFIER = {
           button: '',
         },
       },
+      kick_member: {
+        reason_input: '',
+        button: {
+          kick: '',
+          cancel: '',
+        },
+      },
     },
     settings: {
       button: {
