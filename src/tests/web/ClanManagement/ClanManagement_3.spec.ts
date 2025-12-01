@@ -3,6 +3,7 @@ import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSettingsPage } from '@/pages/ClanSettingsPage';
+import { MessagePage } from '@/pages/MessagePage';
 import { MezonCredentials } from '@/types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -185,5 +186,80 @@ test.describe('Clan Management - Module 3', () => {
       const isMessageVisible = await messageHelper.verifyMessageVisibleInMainChat(originalMessage);
       expect(isMessageVisible).toBeTruthy();
     });
+  });
+
+  test('Verify that display correct username on input chat on short profile', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64877',
+      github_issue: '10354',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that display correct username on input chat on short profile.
+          **Test Steps:**
+            1. Send message
+            2. Verify on short profile after click name above message
+            3. Verify on short profile after click mention username
+            4. Verify on short profile after click user in member list
+            5. Verify on short profile after click footer profile
+            6. Verify on short profile after click user in replied message
+          **Expected Result:** On short profile, display correct username in input chat.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['short-profile', 'input-chat', 'username'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const messagePage = new MessagePage(page);
+    const messageHelper = new MessageTestHelpers(page);
+    const username = 'thang.thieuquang';
+
+    await AllureReporter.step('Send message mention username', async () => {
+      await messagePage.mentionByText(username);
+    });
+
+    await AllureReporter.step(
+      'Verify on short profile after click name above message',
+      async () => {
+        const lastUserSendMessage = await messagePage.getLastUserSendMessage();
+        await lastUserSendMessage.click();
+        await messagePage.verifyShortProfileUsernameWithInputChat();
+      }
+    );
+
+    await AllureReporter.step('Verify on short profile after click mention username', async () => {
+      const mentionItem = await messageHelper.getMentionItemLocator(username);
+      await mentionItem.click();
+      await messagePage.verifyShortProfileUsernameWithInputChat();
+    });
+
+    await AllureReporter.step(
+      'Verify on short profile after click user in member list',
+      async () => {
+        await clanPage.openMemberList();
+        const memberItem = await clanPage.getMemberItemIn2ndSideBarbyUsername(username);
+        await memberItem.click();
+        await messagePage.verifyShortProfileUsernameWithInputChat();
+      }
+    );
+
+    await AllureReporter.step('Verify on short profile after click footer profile', async () => {
+      const footerProfile = await messagePage.getFooterAvatar();
+      await footerProfile.click();
+      await messagePage.verifyShortProfileUsernameWithInputChat();
+    });
+
+    await AllureReporter.step(
+      'Verify on short profile after click user in replied message',
+      async () => {
+        const lastMessage = await messagePage.getLastMessage();
+        await messageHelper.replyToMessage(lastMessage, 'replied message');
+        const lastRepliedMessageUsername =
+          await messageHelper.getLastRepliedMessageUsernameLocator();
+        await lastRepliedMessageUsername.click();
+        await messagePage.verifyShortProfileUsernameWithInputChat();
+      }
+    );
   });
 });

@@ -1395,15 +1395,6 @@ export class ClanPage extends BasePage {
     await this.page.keyboard.type(content);
   }
 
-  async mentionByText(text: string) {
-    await this.selector.input.mention.fill(text);
-    await this.page.waitForTimeout(1000);
-    await this.selector.input.mention.press('Enter');
-    await this.page.waitForTimeout(1000);
-    await this.selector.input.mention.press('Enter');
-    await this.page.waitForLoadState('networkidle');
-  }
-
   async kickUserByName(username: string) {
     const memberLocator = this.selector.sidebarMemberList.memberItems
       .filter({ hasText: username })
@@ -1417,5 +1408,9 @@ export class ClanPage extends BasePage {
 
     await kickModal.locator(this.selector.kickMemberModal.button.kick).click();
     await expect(kickModal).toBeHidden({ timeout: 3000 });
+  }
+
+  async getMemberItemIn2ndSideBarbyUsername(username: string) {
+    return this.selector.secondarySideBar.member.item.filter({ hasText: username });
   }
 }

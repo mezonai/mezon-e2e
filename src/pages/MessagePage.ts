@@ -755,4 +755,34 @@ export class MessagePage extends BasePage {
       this.selector.secondarySideBar.member.item.filter({ hasText: username })
     ).toBeVisible({ timeout: 3000 });
   }
+  async getLastUserSendMessage() {
+    return this.selector.displayNameOnMessageChannel.last();
+  }
+
+  async getShortProfileDisplayName() {
+    return this.selector.shortProfile.displayName.innerText();
+  }
+
+  async getShortProfileUsername() {
+    return this.selector.shortProfile.username.innerText();
+  }
+
+  async getShortProfileInputSendMessage() {
+    return this.selector.shortProfile.input.sendMessage.getAttribute('placeholder');
+  }
+
+  async verifyShortProfileUsernameWithInputChat() {
+    const displayName = await this.getShortProfileDisplayName();
+    const inputChat = await this.getShortProfileInputSendMessage();
+    expect(inputChat).toContain(displayName);
+  }
+
+  async mentionByText(text: string) {
+    await this.selector.messageInput.fill(`@${text}`);
+    await this.page.waitForTimeout(1000);
+    await this.selector.messageInput.press('Enter');
+    await this.page.waitForTimeout(1000);
+    await this.selector.messageInput.press('Enter');
+    await this.page.waitForLoadState('networkidle');
+  }
 }
