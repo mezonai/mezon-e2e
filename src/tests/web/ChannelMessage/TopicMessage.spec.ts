@@ -8,6 +8,7 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
+import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 import { randomInt } from 'crypto';
@@ -247,5 +248,67 @@ test.describe('Topic message', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Number of topic messages is match on topic box`);
+  });
+
+  test('Verify that replying message on init message topic is not lost', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64919',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that replying message on init message topic is not lost
+        **Test Steps:**
+          1. Send message
+          2. Reply message last message
+          3. Create topic on last message send message on topic box
+          4. Verify replied message is not lost in main chat and message in topic box is lost
+          5. Reload page and verify again.
+        **Expected Result:** Verify that replying message on init message topic is not lost
+      `);
+    await AllureReporter.addLabels({
+      tag: ['topic_message', 'reply_message', 'init_message'],
+    });
+    const originalMessage = `Original message - ${generateRandomString(10)}`;
+    const replyMessage = `Reply message - ${generateRandomString(10)}`;
+    const messageHelper = new MessageTestHelpers(page);
+
+    await AllureReporter.step('Send message', async () => {
+      await messageHelper.sendTextMessage(originalMessage);
+    });
+
+    await AllureReporter.step('Reply message last message', async () => {
+      const lastMessage = await messageHelper.findLastMessage();
+      await messageHelper.replyToMessage(lastMessage, replyMessage);
+    });
+
+    await AllureReporter.step('Create topic on last message', async () => {
+      await messageHelper.createTopicToInitMessage(replyMessage);
+    });
+
+    await AllureReporter.step(
+      'Verify replied message is not lost in main chat and message in topic box is lost1',
+      async () => {
+        await messageHelper.openTopicBoxByMessage(replyMessage);
+        await messageHelper.verifyReplyMessageIsLostInTopicBox(replyMessage);
+        await messageHelper.closeTopicBox();
+        await messageHelper.verifyReplyMessageIsVisibleInMainChat();
+      }
+    );
+
+    await AllureReporter.step('Reload page and verify again', async () => {
+      await page.reload();
+      await messageHelper.verifyReplyMessageIsVisibleInMainChat();
+      await messageHelper.openTopicBoxByMessage(replyMessage);
+      await messageHelper.verifyReplyMessageIsLostInTopicBox(replyMessage);
+    });
+
+    await AllureReporter.attachScreenshot(
+      page,
+      `Replying message on init message topic is not lost`
+    );
   });
 });
