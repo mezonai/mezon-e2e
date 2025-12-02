@@ -2411,6 +2411,17 @@ export class MessageTestHelpers {
       return false;
     }
   }
+
+  async getMentionItemLocator(username: string): Promise<Locator> {
+    return this.getMessageItemLocator(`@${username}`)
+      .last()
+      .locator(generateE2eSelector('chat.channel_message.mention_user'));
+  }
+
+  async getLastRepliedMessageUsernameLocator(): Promise<Locator> {
+    const lastMessage = await this.selector.messages.last();
+    return lastMessage.locator(generateE2eSelector('replied_message.username'));
+  }
 }
 
 export const LINK_TEST_URLS = [

@@ -215,4 +215,21 @@ export default class MessageSelector {
     },
   };
   hoverMessageModal = this.page.locator(generateE2eSelector('chat.hover_message_actions'));
+
+  readonly shortProfile = {
+    displayName: this.page.locator(generateE2eSelector('short_profile.display_name')),
+    username: this.page.locator(generateE2eSelector('short_profile.username')),
+    input: {
+      sendMessage: this.page.locator(generateE2eSelector('short_profile.input.send_message')),
+    },
+    button: {
+      addRole: this.page.locator(generateE2eSelector('short_profile.button.add_role')),
+      editProfile: this.page.locator(generateE2eSelector('short_profile.button.edit_profile')),
+    },
+  };
+
+  readonly repliedMessage = {
+    item: this.page.locator(generateE2eSelector('replied_message.item')),
+    username: this.page.locator(generateE2eSelector('replied_message.username')),
+  };
 }

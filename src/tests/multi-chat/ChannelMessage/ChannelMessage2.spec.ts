@@ -450,6 +450,7 @@ test.describe('Channel Message 2', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
+    const messagePageA = new MessagePage(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     const unique = Date.now().toString(36).slice(-6);
     const roleName = `Sushi ${unique}`;
@@ -497,7 +498,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('User A send message mention role "Sushi"', async () => {
       await clanPageA.openChannelByName('general');
-      await clanPageA.mentionByText(`@${roleName}`);
+      await messagePageA.mentionByText(roleName);
     });
 
     await AllureReporter.step('User B check inbox for role mention notification', async () => {

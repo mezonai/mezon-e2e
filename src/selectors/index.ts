@@ -29,6 +29,17 @@ export const DATA_E2E_IDENTIFIER = {
   base_profile: {
     display_name: '',
   },
+  short_profile: {
+    display_name: '',
+    username: '',
+    input: {
+      send_message: '',
+    },
+    button: {
+      edit_profile: '',
+      add_role: '',
+    },
+  },
   mention: {
     input: '',
     selected_file: '',
@@ -800,6 +811,10 @@ export const DATA_E2E_IDENTIFIER = {
   },
   message: {
     item: '',
+  },
+  replied_message: {
+    item: '',
+    username: '',
   },
   acceptModal: {
     button: {
