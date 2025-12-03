@@ -2422,6 +2422,20 @@ export class MessageTestHelpers {
     const lastMessage = await this.selector.messages.last();
     return lastMessage.locator(generateE2eSelector('replied_message.username'));
   }
+
+  async verifyReplyMessageIsVisibleInMainChat() {
+    const lastMessage = await this.selector.messages.last();
+    const replyMessageLocator = lastMessage.locator(generateE2eSelector('replied_message.item'));
+    await expect(replyMessageLocator).toBeVisible({ timeout: 3000 });
+  }
+
+  async verifyReplyMessageIsLostInTopicBox(replyMessage: string) {
+    const topicMessageLocator = await this.selector.topicMessages.filter({ hasText: replyMessage });
+    const replyMessageLocator = topicMessageLocator.locator(
+      generateE2eSelector('replied_message.item')
+    );
+    await expect(replyMessageLocator).toBeHidden({ timeout: 3000 });
+  }
 }
 
 export const LINK_TEST_URLS = [
