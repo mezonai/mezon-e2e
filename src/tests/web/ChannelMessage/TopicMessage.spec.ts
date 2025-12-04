@@ -250,7 +250,7 @@ test.describe('Topic message', () => {
     await AllureReporter.attachScreenshot(page, `Number of topic messages is match on topic box`);
   });
 
-  test('Verify that replying message on init message topic is not lost', async ({ page }) => {
+  test('Verify that should not lost init message when reply in topic', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64919',
     });
@@ -260,14 +260,14 @@ test.describe('Topic message', () => {
       severity: AllureConfig.Severity.CRITICAL,
     });
     await AllureReporter.addDescription(`
-        **Test Objective:** Verify that replying message on init message topic is not lost
+        **Test Objective:** Verify that should not lost init message when reply in topic
         **Test Steps:**
           1. Send message
           2. Reply message last message
           3. Create topic on last message send message on topic box
           4. Verify replied message is not lost in main chat and message in topic box is lost
           5. Reload page and verify again.
-        **Expected Result:** Verify that replying message on init message topic is not lost
+        **Expected Result:** Verify that should not lost init message when reply in topic
       `);
     await AllureReporter.addLabels({
       tag: ['topic_message', 'reply_message', 'init_message'],
@@ -290,10 +290,10 @@ test.describe('Topic message', () => {
     });
 
     await AllureReporter.step(
-      'Verify replied message is not lost in main chat and message in topic box is lost1',
+      'Verify replied message is not lost in main chat and message in topic box is lost',
       async () => {
         await messageHelper.openTopicBoxByMessage(replyMessage);
-        await messageHelper.verifyReplyMessageIsLostInTopicBox(replyMessage);
+        await messageHelper.verifyReplyMessageIsVisibleInTopicBox(replyMessage);
         await messageHelper.closeTopicBox();
         await messageHelper.verifyReplyMessageIsVisibleInMainChat();
       }
@@ -303,7 +303,7 @@ test.describe('Topic message', () => {
       await page.reload();
       await messageHelper.verifyReplyMessageIsVisibleInMainChat();
       await messageHelper.openTopicBoxByMessage(replyMessage);
-      await messageHelper.verifyReplyMessageIsLostInTopicBox(replyMessage);
+      await messageHelper.verifyReplyMessageIsVisibleInTopicBox(replyMessage);
     });
 
     await AllureReporter.attachScreenshot(

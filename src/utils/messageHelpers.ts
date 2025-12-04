@@ -2429,12 +2429,20 @@ export class MessageTestHelpers {
     await expect(replyMessageLocator).toBeVisible({ timeout: 3000 });
   }
 
-  async verifyReplyMessageIsLostInTopicBox(replyMessage: string) {
+  async verifyReplyMessageIsVisibleInTopicBox(replyMessage: string) {
     const topicMessageLocator = await this.selector.topicMessages.filter({ hasText: replyMessage });
     const replyMessageLocator = topicMessageLocator.locator(
       generateE2eSelector('replied_message.item')
     );
-    await expect(replyMessageLocator).toBeHidden({ timeout: 3000 });
+    await expect(replyMessageLocator).toBeVisible({ timeout: 3000 });
+  }
+
+  getSystemMessageByType(type: number): Locator {
+    return this.page.locator(generateE2eSelector('chat.system_message', type.toString()));
+  }
+
+  async getWelcomeMessageMentionUser(systemMessage: Locator): Promise<Locator> {
+    return systemMessage.locator(generateE2eSelector('chat.channel_message.mention_user'));
   }
 }
 
