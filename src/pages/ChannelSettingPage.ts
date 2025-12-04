@@ -1,7 +1,7 @@
+import ChannelSettingSelector from '@/data/selectors/ChannelSettingSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import ChannelSettingSelector from '@/data/selectors/ChannelSettingSelector';
 
 export class ChannelSettingPage extends BasePage {
   private readonly selector: ChannelSettingSelector;
@@ -276,5 +276,9 @@ export class ChannelSettingPage extends BasePage {
 
   async getSideBarChannelLabel() {
     return this.selector.side_bar_buttons.channel_label;
+  }
+
+  async openMemberList() {
+    await this.selector.header.button.member.first().click();
   }
 }

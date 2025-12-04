@@ -1,7 +1,9 @@
+import MessageSelector from '@/data/selectors/MessageSelector';
 import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { MessagePage } from './MessagePage';
 
 export class ProfilePage extends BasePage {
   private readonly selector;
@@ -153,5 +155,41 @@ export class ProfilePage extends BasePage {
 
   async getUserProfileAvatar() {
     return this.selector.userProfile.avatar;
+  }
+
+  async openFooterProfileModal() {
+    await this.selector.footerProfile.container.click();
+  }
+
+  async openCustomStatusModal() {
+    await this.selector.shortProfile.buttons.editCustomStatus.click();
+  }
+
+  async setCustomStatus(status: string) {
+    await expect(this.selector.shortProfile.modal.customStatus.container).toBeVisible({
+      timeout: 2000,
+    });
+    await this.selector.shortProfile.modal.customStatus.input.fill(status);
+    await this.selector.shortProfile.modal.customStatus.buttons.save.click();
+    await expect(this.selector.shortProfile.modal.customStatus.container).toBeHidden({
+      timeout: 2000,
+    });
+  }
+  async verifyCustomStatusSettedInShortProfile(status: string) {
+    const customStatusLocator = this.selector.shortProfile.activityStatus.container;
+    await expect(customStatusLocator).toHaveText(status, { timeout: 2000 });
+  }
+
+  async verifyCustomStatusSettedInFooterProfile(status: string) {
+    const customStatusLocator = this.selector.footerProfile.userStatus;
+    await expect(customStatusLocator).toHaveText(status, { timeout: 2000 });
+  }
+
+  async openShortProfileFromUsernameOnChat(username: string) {
+    const messagePage = new MessagePage(this.page);
+    const messageSelector = new MessageSelector(this.page);
+    const messageLocator = await messagePage.getMessageWithProfileName(username);
+    const displayNameLocator = messageLocator.locator(messageSelector.displayName);
+    await displayNameLocator.click();
   }
 }

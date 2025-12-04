@@ -16,6 +16,7 @@ import { expect, Locator, test } from '@playwright/test';
 
 test.describe('User Settings', () => {
   const clanFactory = new ClanFactory();
+  const account = AccountCredentials.account6;
 
   test.beforeAll(async ({ browser }) => {
     const context = await browser.newContext();
@@ -28,7 +29,7 @@ test.describe('User Settings', () => {
       severity: AllureConfig.Severity.CRITICAL,
     });
 
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account6);
+    await AuthHelper.setupAuthWithEmailPassword(page, account);
     await clanFactory.setupClan(ClanSetupHelper.configs.userProfileUserSetting, page);
 
     clanFactory.setClanUrl(
@@ -42,21 +43,19 @@ test.describe('User Settings', () => {
       parrent_issue: '63571',
     });
 
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account6
-    );
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(page, account);
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
   });
 
   test.afterAll(async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      page,
-      AccountCredentials.account6
-    );
+    const credentials = await AuthHelper.setupAuthWithEmailPassword(page, account);
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
     await clanFactory.cleanupClan(page);
     await AuthHelper.logout(page);

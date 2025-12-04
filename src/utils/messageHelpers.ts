@@ -2313,8 +2313,8 @@ export class MessageTestHelpers {
   }
 
   async openHeaderInboxButton() {
-    await expect(this.selector.headerInboxButton).toBeVisible({ timeout: 5000 });
-    await this.selector.headerInboxButton.click({ force: true });
+    await expect(this.selector.headerInboxButton.last()).toBeVisible({ timeout: 5000 });
+    await this.selector.headerInboxButton.last().click({ force: true });
     const tooltip = this.page.locator('.rc-tooltip');
     await expect(tooltip).toBeVisible({ timeout: 5000 });
   }
