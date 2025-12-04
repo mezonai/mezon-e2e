@@ -1413,4 +1413,10 @@ export class ClanPage extends BasePage {
   async getMemberItemIn2ndSideBarbyUsername(username: string) {
     return this.selector.secondarySideBar.member.item.filter({ hasText: username });
   }
+
+  async verifyCustomStatusSettedInMemberList(username: string, status: string) {
+    const memberItem = await this.getMemberItemIn2ndSideBarbyUsername(username);
+    const statusLocator = memberItem.locator(this.selector.secondarySideBar.member.customStatus);
+    await expect(statusLocator).toHaveText(status, { timeout: 2000 });
+  }
 }

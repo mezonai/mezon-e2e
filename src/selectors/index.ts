@@ -21,6 +21,7 @@ export const DATA_E2E_IDENTIFIER = {
   footer_profile: {
     avatar: '',
     name: '',
+    user_status: '',
   },
   button: {
     base: '',
@@ -32,12 +33,32 @@ export const DATA_E2E_IDENTIFIER = {
   short_profile: {
     display_name: '',
     username: '',
+    activity_status: {
+      button: {
+        custom: '',
+        clear: '',
+      },
+    },
     input: {
       send_message: '',
     },
     button: {
       edit_profile: '',
       add_role: '',
+    },
+    action: {
+      button: {
+        base: '',
+      },
+    },
+    modal: {
+      custom_status: {
+        input: '',
+        button: {
+          cancel: '',
+          save: '',
+        },
+      },
     },
   },
   mention: {
@@ -397,6 +418,7 @@ export const DATA_E2E_IDENTIFIER = {
     secondary_side_bar: {
       member: {
         in_voice: '',
+        user_status: '',
       },
     },
     screen: {

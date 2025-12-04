@@ -86,4 +86,44 @@ export default class ProfileSelector {
   readonly profiles = {
     displayName: this.page.locator(generateE2eSelector('base_profile.display_name')),
   };
+
+  readonly footerProfile = {
+    container: this.page.locator(generateE2eSelector('footer_profile.avatar')),
+    userStatus: this.page.locator(generateE2eSelector('footer_profile.user_status')),
+  };
+
+  readonly shortProfile = {
+    buttons: {
+      editCustomStatus: this.page.locator(generateE2eSelector('short_profile.action.button.base'), {
+        has: this.page.locator('li', {
+          hasText: /^(Set Custom Status|Edit Custom Status)$/,
+        }),
+      }),
+    },
+    modal: {
+      customStatus: {
+        container: this.page.locator(generateE2eSelector('short_profile.modal.custom_status')),
+        input: this.page.locator(generateE2eSelector('short_profile.modal.custom_status.input')),
+        buttons: {
+          cancel: this.page.locator(
+            generateE2eSelector('short_profile.modal.custom_status.button.cancel')
+          ),
+          save: this.page.locator(
+            generateE2eSelector('short_profile.modal.custom_status.button.save')
+          ),
+        },
+      },
+    },
+    activityStatus: {
+      container: this.page.locator(generateE2eSelector('short_profile.activity_status')),
+      actions: {
+        customStatus: this.page.locator(
+          generateE2eSelector('short_profile.activity_status.button.custom')
+        ),
+        clearStatus: this.page.locator(
+          generateE2eSelector('short_profile.activity_status.button.clear')
+        ),
+      },
+    },
+  };
 }

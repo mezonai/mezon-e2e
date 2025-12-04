@@ -311,6 +311,9 @@ export default class ClanSelector {
       inVoice: this.page.locator(
         generateE2eSelector('clan_page.secondary_side_bar.member.in_voice')
       ),
+      customStatus: this.page.locator(
+        generateE2eSelector('clan_page.secondary_side_bar.member.user_status')
+      ),
     },
   };
 

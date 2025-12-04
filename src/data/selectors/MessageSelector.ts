@@ -214,6 +214,8 @@ export default class MessageSelector {
       ),
     },
   };
+  avatar = this.page.locator(generateE2eSelector('avatar.image'));
+  displayName = this.page.locator(generateE2eSelector('base_profile.display_name'));
   hoverMessageModal = this.page.locator(generateE2eSelector('chat.hover_message_actions'));
 
   readonly shortProfile = {
