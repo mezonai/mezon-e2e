@@ -219,6 +219,9 @@ export default class MessageSelector {
   hoverMessageModal = this.page.locator(generateE2eSelector('chat.hover_message_actions'));
 
   readonly shortProfile = {
+    avatar: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+    ),
     displayName: this.page.locator(generateE2eSelector('short_profile.display_name')),
     username: this.page.locator(generateE2eSelector('short_profile.username')),
     input: {
@@ -234,4 +237,6 @@ export default class MessageSelector {
     item: this.page.locator(generateE2eSelector('replied_message.item')),
     username: this.page.locator(generateE2eSelector('replied_message.username')),
   };
+
+  mentionUser = this.page.locator(generateE2eSelector('chat.channel_message.mention_user'));
 }

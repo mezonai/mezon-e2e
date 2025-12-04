@@ -785,4 +785,10 @@ export class MessagePage extends BasePage {
     await this.selector.messageInput.press('Enter');
     await this.page.waitForLoadState('networkidle');
   }
+
+  async verifyShortProfileIsUnknownUser() {
+    expect(this.selector.shortProfile.displayName).toBeHidden({ timeout: 2000 });
+    expect(this.selector.shortProfile.username).toBeHidden({ timeout: 2000 });
+    await expect(this.selector.shortProfile.avatar).toBeVisible({ timeout: 2000 });
+  }
 }

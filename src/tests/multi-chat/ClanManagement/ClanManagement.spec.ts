@@ -4,6 +4,7 @@ import { test } from '@/fixtures/dual.fixture';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
+import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -12,6 +13,7 @@ import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect } from '@playwright/test';
 
@@ -278,6 +280,81 @@ test.describe('Clan Management', () => {
       await clanPageB.joinVoiceChannel(channelName);
       const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
       expect(isUserInVoiceChannel).toBe(false);
+    });
+  });
+
+  test('Verify that short profile is unknown user after kick user from clan', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64953',
+      github_issue: '9684',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that short profile is unknown user after kick user from clan
+      
+      **Test Steps:**
+      1. Invite User B to clan
+      2. Kick User B from clan
+      3. Click mention User B in message
+      4. Verify short profile is unknown user.
+      **Expected Result:** Short profile is unknown user after kick user from clan.
+    `);
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const messagePageA = new MessagePage(pageA);
+    const messageHelperA = new MessageTestHelpers(pageA);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('Kick User B from clan', async () => {
+      await pageA.waitForTimeout(3000);
+      await clanPageA.openMemberList();
+      await clanPageA.kickUserByName(userNameB);
+    });
+
+    await AllureReporter.step('Click mention User B in message', async () => {
+      const systemMessage = await messageHelperA.getSystemMessageByType(5);
+      await systemMessage.last().waitFor({ state: 'visible' });
+      await systemMessage.click();
+      const mentionUser = await messageHelperA.getWelcomeMessageMentionUser(systemMessage.last());
+      await mentionUser.click();
+    });
+
+    await AllureReporter.step('Verify on short profile, display anonymous avatar', async () => {
+      await messagePageA.verifyShortProfileIsUnknownUser();
     });
   });
 });
