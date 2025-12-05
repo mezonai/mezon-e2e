@@ -179,8 +179,6 @@ test.describe('User Settings 2', () => {
 
     const profilePage = new ProfilePage(page);
     const status = `custom status - ${generateRandomString(10)}`;
-    const channelSettingsPage = new ChannelSettingPage(page);
-    const clanPage = new ClanPage(page);
 
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
@@ -199,21 +197,14 @@ test.describe('User Settings 2', () => {
 
     await AllureReporter.step('Open user setting page', async () => {
       await profilePage.openUserSettingProfile();
-      await profilePage.openProfileTab();
     });
 
     await AllureReporter.step('Verify custom status setted on preview setting page', async () => {
-      await channelSettingsPage.openMemberList();
-      await clanPage.verifyCustomStatusSettedInMemberList(userName, status);
+      await profilePage.openProfileTab();
+      await profilePage.verifyCustomStatusSettedInShortProfile(status);
+      await profilePage.openClanProfileTab();
+      await profilePage.verifyCustomStatusSettedInShortProfile(status);
+      await profilePage.closeSettingsProfile();
     });
-
-    await AllureReporter.step(
-      'Verify custom status updated in short profile open from message',
-      async () => {
-        await profilePage.sendMessage('text message to open short profile');
-        await profilePage.openShortProfileFromUsernameOnChat(userName);
-        await profilePage.verifyCustomStatusSettedInShortProfile(status);
-      }
-    );
   });
 });

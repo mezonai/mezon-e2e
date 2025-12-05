@@ -192,4 +192,8 @@ export class ProfilePage extends BasePage {
     const displayNameLocator = messageLocator.locator(messageSelector.displayName);
     await displayNameLocator.click();
   }
+
+  async closeSettingsProfile() {
+    await this.selector.buttons.closeSettingProfile.click();
+  }
 }

@@ -85,6 +85,7 @@ export default class ProfileSelector {
 
   readonly profiles = {
     displayName: this.page.locator(generateE2eSelector('base_profile.display_name')),
+    userStatus: this.page.locator(generateE2eSelector('base_profile.user_status')),
   };
 
   readonly footerProfile = {
