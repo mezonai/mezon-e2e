@@ -1,10 +1,11 @@
+import FriendSelector from '@/data/selectors/FriendSelector';
+import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { ROUTES } from '@/selectors';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import sleep from '@/utils/sleep';
 import { Locator, Page, expect } from '@playwright/test';
 import { ToastSelector } from './../data/selectors/ToastSelectort';
 import { BasePage } from './BasePage';
-import FriendSelector from '@/data/selectors/FriendSelector';
 const SUCCESS_MESSAGE = 'Friend request sent successfully!';
 const ALREADY_SENT_MESSAGE = 'You have already sent a friend request to this user!';
 const ALREADY_FRIEND_MESSAGE = "You're already friends with that user!";
@@ -49,7 +50,7 @@ export class FriendPage extends BasePage {
 
   async friendExistsInTab(username: string, tab: Tabs) {
     await this.gotoFriendsPage();
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(2000);
     await this.selector.tabs[tab].click();
     return this.getFriend(username);
   }
@@ -325,5 +326,15 @@ export class FriendPage extends BasePage {
   async verifyFriendPendingBadgeIsDisappeared(prevCount = 1): Promise<void> {
     const currentCount = await this.getFriendPendingBadgeCount();
     expect(prevCount - currentCount).toBe(1);
+  }
+
+  async verifyUserCustomStatusInFriendList(username: string, status: string): Promise<void> {
+    const profileSelector = new ProfileSelector(this.page);
+    const friendItem = await this.friendExistsInTab(username, 'all');
+    await friendItem.waitFor({ state: 'visible', timeout: 20000 });
+    const statusLocator = friendItem
+      .locator(profileSelector.profiles.userStatus)
+      .filter({ hasText: status });
+    await expect(statusLocator).toBeVisible({ timeout: 5000 });
   }
 }
