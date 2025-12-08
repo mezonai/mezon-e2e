@@ -293,9 +293,10 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async selectAndSubmitBirthdayConfirmation(date: string) {
-    if (await this.selector.modal.birthday_confirmation.container.isVisible({ timeout: 3000 })) {
+    try {
+      await this.selector.modal.birthday_confirmation.container.waitFor({ state: 'visible' });
       await this.selector.modal.birthday_confirmation.input.date_picker.fill(date);
       await this.selector.modal.birthday_confirmation.button.submit.click();
-    }
+    } catch {}
   }
 }
