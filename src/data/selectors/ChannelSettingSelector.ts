@@ -283,6 +283,7 @@ export default class ChannelSettingSelector {
 
   readonly modal = {
     birthday_confirmation: {
+      container: this.page.locator(generateE2eSelector('modal.birthday_confirmation')),
       input: {
         date_picker: this.page.locator(
           generateE2eSelector('modal.birthday_confirmation.input.date_picker')

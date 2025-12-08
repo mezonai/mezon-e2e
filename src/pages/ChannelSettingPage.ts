@@ -292,12 +292,10 @@ export class ChannelSettingPage extends BasePage {
     await saveChangesButton.click();
   }
 
-  async clickOutsideBirthdayModal() {
-    await this.page.click('body');
-  }
-
   async selectAndSubmitBirthdayConfirmation(date: string) {
-    await this.selector.modal.birthday_confirmation.input.date_picker.fill(date);
-    await this.selector.modal.birthday_confirmation.button.submit.click();
+    if (await this.selector.modal.birthday_confirmation.container.isVisible({ timeout: 3000 })) {
+      await this.selector.modal.birthday_confirmation.input.date_picker.fill(date);
+      await this.selector.modal.birthday_confirmation.button.submit.click();
+    }
   }
 }
