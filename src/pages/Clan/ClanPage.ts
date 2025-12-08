@@ -1419,4 +1419,8 @@ export class ClanPage extends BasePage {
     const statusLocator = memberItem.locator(this.selector.secondarySideBar.member.customStatus);
     await expect(statusLocator).toHaveText(status, { timeout: 2000 });
   }
+
+  async getChannelNameInput() {
+    return this.selector.input.channelName.first();
+  }
 }

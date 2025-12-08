@@ -281,4 +281,23 @@ export class ChannelSettingPage extends BasePage {
   async openMemberList() {
     await this.selector.header.button.member.first().click();
   }
+
+  async toggleAgeRestricted() {
+    await this.selector.channel_settings.overview.age_restricted.toggle.click();
+  }
+
+  async saveChanges() {
+    const saveChangesButton = this.selector.permissions.modal.save_changes.button.save_changes;
+    await expect(saveChangesButton).toBeVisible({ timeout: 3000 });
+    await saveChangesButton.click();
+  }
+
+  async clickOutsideBirthdayModal() {
+    await this.page.click('body');
+  }
+
+  async selectAndSubmitBirthdayConfirmation(date: string) {
+    await this.selector.modal.birthday_confirmation.input.date_picker.fill(date);
+    await this.selector.modal.birthday_confirmation.button.submit.click();
+  }
 }

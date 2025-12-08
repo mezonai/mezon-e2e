@@ -154,6 +154,16 @@ export default class ChannelSettingSelector {
           ),
         },
       },
+      save_changes: {
+        button: {
+          reset: this.page.locator(generateE2eSelector('button.base'), {
+            hasText: 'Reset',
+          }),
+          save_changes: this.page.locator(generateE2eSelector('button.base'), {
+            hasText: 'Save Changes',
+          }),
+        },
+      },
     },
   };
 
@@ -259,5 +269,28 @@ export default class ChannelSettingSelector {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
     channelsList: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
+  };
+
+  readonly channel_settings = {
+    overview: {
+      age_restricted: {
+        toggle: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.settings.overview.age_restricted.toggle')
+        ),
+      },
+    },
+  };
+
+  readonly modal = {
+    birthday_confirmation: {
+      input: {
+        date_picker: this.page.locator(
+          generateE2eSelector('modal.birthday_confirmation.input.date_picker')
+        ),
+      },
+      button: {
+        submit: this.page.locator(generateE2eSelector('modal.birthday_confirmation.button.submit')),
+      },
+    },
   };
 }
