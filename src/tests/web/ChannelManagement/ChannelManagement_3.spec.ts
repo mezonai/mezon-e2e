@@ -10,6 +10,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import pressEsc from '@/utils/pressEsc';
+import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
@@ -121,5 +122,54 @@ test.describe('Channel Management - Module 2', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Text Channel deleted - ${channelName}`);
+  });
+
+  test('Verify that channel name still display when user enable Age-Restricted', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64970',
+      github_issue: '9763',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that channel name still display when user enable Age-Restricted.
+      
+      **Test Steps:**
+      1. Create a text channel
+      2. Enable Age-Restricted
+      3. Verify channel name still display
+      
+      **Expected Result:** Channel name still display when user enable Age-Restricted.
+    `);
+
+    const channelName = 'NSFW - ' + generateRandomString(10);
+    const clanPage = new ClanPage(page);
+    const channelSettings = new ChannelSettingPage(page);
+
+    await AllureReporter.step('Create new text channel', async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Enable Age-Restricted', async () => {
+      await clanPage.openChannelSettings(channelName);
+      await channelSettings.toggleAgeRestricted();
+      await page.waitForTimeout(1000);
+      await channelSettings.saveChanges();
+    });
+
+    await AllureReporter.step('Select and submit birthday confirmation', async () => {
+      await channelSettings.selectAndSubmitBirthdayConfirmation('2003-09-05');
+    });
+
+    await AllureReporter.step('Verify channel name still display', async () => {
+      const channelLabel = await channelSettings.getSideBarChannelLabel();
+      const channelNameInput = await clanPage.getChannelNameInput();
+      expect(await channelLabel.textContent()).toBe(channelName);
+      expect(await channelNameInput.inputValue()).toBe(channelName);
+      await channelSettings.closeChannelSettings();
+    });
   });
 });
