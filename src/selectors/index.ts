@@ -73,6 +73,19 @@ export const DATA_E2E_IDENTIFIER = {
       about_me: '',
     },
     banned: { time: '' },
+    button: {
+      gif: '',
+      sticker: '',
+      emoji: '',
+      sound: '',
+    },
+    popover: {
+      gifs: {
+        trending: '',
+        category: '',
+        item: '',
+      },
+    },
   },
   discussion: {
     box: {

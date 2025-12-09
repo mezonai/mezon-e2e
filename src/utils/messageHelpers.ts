@@ -2444,6 +2444,27 @@ export class MessageTestHelpers {
   async getWelcomeMessageMentionUser(systemMessage: Locator): Promise<Locator> {
     return systemMessage.locator(generateE2eSelector('chat.channel_message.mention_user'));
   }
+
+  async openGifsPopover() {
+    return this.selector.gifsMessage.button.openPopover.click();
+  }
+
+  async openGifsTrending() {
+    return this.selector.gifsMessage.popover.gifTrending.click();
+  }
+
+  async sendGifsMessage() {
+    const firstGif = this.selector.gifsMessage.popover.gifItem.first();
+    const alt = await firstGif.locator('img').getAttribute('alt');
+    await firstGif.click();
+    return alt;
+  }
+
+  async isGifMessageVisible(gifName: string | null): Promise<boolean> {
+    const gifMessage = this.selector.messages.locator(`div[id*="${gifName}"]`);
+
+    return await gifMessage.first().isVisible();
+  }
 }
 
 export const LINK_TEST_URLS = [

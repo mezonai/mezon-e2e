@@ -238,5 +238,16 @@ export default class MessageSelector {
     username: this.page.locator(generateE2eSelector('replied_message.username')),
   };
 
+  readonly gifsMessage = {
+    button: {
+      openPopover: this.page.locator(generateE2eSelector('mention.button.gif')),
+    },
+    popover: {
+      gifTrending: this.page.locator(generateE2eSelector('mention.popover.gifs.trending')),
+      gifCategory: this.page.locator(generateE2eSelector('mention.popover.gifs.category')),
+      gifItem: this.page.locator(generateE2eSelector('mention.popover.gifs.item')),
+    },
+  };
+
   mentionUser = this.page.locator(generateE2eSelector('chat.channel_message.mention_user'));
 }

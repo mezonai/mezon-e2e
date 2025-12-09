@@ -7,11 +7,12 @@ import { AccountCredentials } from '../../../config/environment';
 
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
+import { MessagePage } from '@/pages/MessagePage';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { ChannelType } from '@/types/clan-page.types';
+import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
-import generateRandomString from '@/utils/randomString';
-import { ChannelType } from '@/types/clan-page.types';
-import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('Channel Message - Module 6', () => {
   const clanFactory = new ClanFactory();
@@ -277,6 +278,63 @@ test.describe('Channel Message - Module 6', () => {
     await AllureReporter.step('Verify the message is displayed in the channel', async () => {
       const isMessageVisible = await messageHelper.verifyMessageVisibleInMainChat(editedMessage);
       expect(isMessageVisible).toBeTruthy();
+    });
+  });
+
+  test('Verify that user can send text message on voice channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '65032',
+      github_issue: '11018',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can send text message on voice channel
+
+      **Test Steps:**
+      1. Create voice channel
+      2. User join to voice channel
+      3. User open chat box
+      4. User send text message to chat box
+
+      **Expected Result:** User can send text message on voice channel
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['voice-channel', 'text-message', 'chat-box'],
+    });
+
+    const ran = Math.floor(Math.random() * 999) + 1;
+    const channelName = `voice-channel-${ran}`;
+    const clanPage = new ClanPage(page);
+    const messageHelper = new MessageTestHelpers(page);
+    const profilePage = new ProfilePage(page);
+    const messagePage = new MessagePage(page);
+    const message = `Text message ${ran}`;
+
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.VOICE);
+
+    await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.VOICE, channelName);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Join voice channel', async () => {
+      await clanPage.joinVoiceChannel(channelName);
+      const isUserInVoiceChannel = await clanPage.isJoinVoiceChannel(channelName);
+      expect(isUserInVoiceChannel).toBe(true);
+    });
+
+    await AllureReporter.step('Open chat box on channel', async () => {
+      await messageHelper.openHeaderInboxButton();
+      await profilePage.sendMessage(message);
+      await page.waitForTimeout(2000);
+    });
+
+    await AllureReporter.step('Veirify message is visible on chat box', async () => {
+      const messageSend = await messagePage.isMessageSend();
+      expect(messageSend).toBeTruthy();
     });
   });
 });

@@ -98,6 +98,7 @@ test.describe('User Settings', () => {
       const changeAvatarButton = await profilePage.getChangeAvatarButton();
       await expect(changeAvatarButton).toBeVisible({ timeout: 5000 });
       await AllureReporter.addParameter('changeAvatarButtonVisible', 'Yes');
+      await profilePage.closeSettingsProfile();
     });
 
     await AllureReporter.attachScreenshot(page, 'Change Avatar Button Visible');
@@ -186,6 +187,7 @@ test.describe('User Settings', () => {
     await AllureReporter.step('Save nickname changes', async () => {
       await profilePage.saveChangesClanProfile();
       await AllureReporter.addParameter('saveButtonClicked', 'Yes');
+      await profilePage.closeSettingsProfile();
     });
 
     await AllureReporter.attachScreenshot(page, 'Clan Nickname Changed Successfully');
@@ -234,6 +236,10 @@ test.describe('User Settings', () => {
 
       await profilePage.openAccountTab();
     }
+
+    await AllureReporter.step('Close settings page', async () => {
+      await profilePage.closeSettingsProfile();
+    });
 
     await AllureReporter.attachScreenshot(
       page,
