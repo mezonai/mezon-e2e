@@ -1,0 +1,105 @@
+import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import test, { expect } from '@playwright/test';
+import { AccountCredentials } from '../../../config/environment';
+
+import { ClanFactory } from '@/data/factories/ClanFactory';
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import { ChannelType } from '@/types/clan-page.types';
+import TestSuiteHelper from '@/utils/testSuite.helper';
+import { MessageTestHelpers } from '../../../utils/messageHelpers';
+
+test.describe('Channel Message - Module 7', () => {
+  const clanFactory = new ClanFactory();
+  const credentials = AccountCredentials.accountKien2;
+  test.beforeAll(async ({ browser }) => {
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.channelMessage7,
+      credentials,
+    });
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63366',
+    });
+    await TestSuiteHelper.setupBeforeEach({
+      page,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
+  });
+
+  test('Verify that user can send GIF message on voice channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '65032',
+      github_issue: '11018',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can send GIF message on voice channel
+
+      **Test Steps:**
+      1. Create voice channel
+      2. User join to voice channel
+      3. User open chat box
+      4. User send GIF message to chat box
+
+      **Expected Result:** User can send GIF message on voice channel
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['voice-channel', 'GIF-message', 'chat-box'],
+    });
+
+    const ran = Math.floor(Math.random() * 999) + 1;
+    const channelName = `voice-channel-${ran}`;
+    const clanPage = new ClanPage(page);
+    const messageHelper = new MessageTestHelpers(page);
+    let gifName: string | null;
+
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.VOICE);
+
+    await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.VOICE, channelName);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Join voice channel', async () => {
+      await clanPage.joinVoiceChannel(channelName);
+      const isUserInVoiceChannel = await clanPage.isJoinVoiceChannel(channelName);
+      expect(isUserInVoiceChannel).toBe(true);
+    });
+
+    await AllureReporter.step('Open chat box on channel', async () => {
+      await messageHelper.openHeaderInboxButton();
+      await messageHelper.openGifsPopover();
+      await messageHelper.openGifsTrending();
+      const res = await messageHelper.sendGifsMessage();
+      gifName = res;
+      await page.waitForTimeout(2000);
+    });
+
+    await AllureReporter.step('Veirify message is visible on chat box', async () => {
+      const messageSend = await messageHelper.isGifMessageVisible(gifName);
+      expect(messageSend).toBeTruthy();
+    });
+  });
+});
