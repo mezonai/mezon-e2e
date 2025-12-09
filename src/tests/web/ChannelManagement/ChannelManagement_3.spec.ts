@@ -2,6 +2,7 @@ import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
+import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { MessagePage } from '@/pages/MessagePage';
 import { ChannelType } from '@/types/clan-page.types';
@@ -10,6 +11,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import pressEsc from '@/utils/pressEsc';
+import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
@@ -121,5 +123,59 @@ test.describe('Channel Management - Module 2', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Text Channel deleted - ${channelName}`);
+  });
+
+  test('verify that Channel is moved to new category after switching category', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '65041',
+      github_issue: '11089',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can successfully move a channel to new category.
+      
+      **Test Steps:**
+      1. Create a category and do not enable show empty categories
+      2. Create a text channel in default category
+      3. Open channel settings and move to new category
+      4. Verify category is present in sidebar
+      
+      **Expected Result:** User can can successfully move a channel to new category.
+    `);
+
+    const categoryName = `category-${generateRandomString(5)}`;
+    const channelName = `channel-${generateRandomString(5)}`;
+
+    const clanPage = new ClanPage(page);
+    const menuPanel = new ClanMenuPanel(page);
+    const channelSettings = new ChannelSettingPage(page);
+
+    await AllureReporter.step('Create a category', async () => {
+      await menuPanel.createCategory(categoryName);
+      await menuPanel.toggleShowEmptyCategory();
+    });
+
+    await AllureReporter.step('Create a text channel in default category', async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Open channel settings and move to new category', async () => {
+      await clanPage.openChannelSettings(channelName);
+      await channelSettings.openCategoryTab();
+      await channelSettings.selectCategory(categoryName);
+      await channelSettings.closeChannelSettings();
+    });
+
+    await AllureReporter.step('Verify channel is moved to new category', async () => {
+      const isCategoryPresent = await menuPanel.isCategoryPresent(categoryName);
+      expect(isCategoryPresent).toBe(true);
+      await page.reload();
+      const isCategoryPresentAfterReload = await menuPanel.isCategoryPresent(categoryName);
+      expect(isCategoryPresentAfterReload).toBe(true);
+    });
   });
 });

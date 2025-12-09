@@ -94,6 +94,7 @@ export class ClanMenuPanel extends BasePage {
     await this.openPanel();
     await this.buttons.showEmpty.click();
     await this.page.waitForTimeout(500);
+    await this.openPanel();
   }
 
   async closeCreateCategoryModal(): Promise<void> {

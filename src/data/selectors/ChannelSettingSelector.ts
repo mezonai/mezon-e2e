@@ -22,6 +22,9 @@ export default class ChannelSettingSelector {
     deleteChannel: this.page.locator(generateE2eSelector('button.base'), {
       hasText: 'Delete Channel',
     }),
+    category: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
+      hasText: 'Category',
+    }),
   };
 
   readonly webhook = {
@@ -259,5 +262,15 @@ export default class ChannelSettingSelector {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
     channelsList: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
+  };
+
+  readonly category = {
+    channel_name: this.page.locator(
+      generateE2eSelector('channel_setting_page.category.channel_name')
+    ),
+    dropdown: {
+      value: this.page.locator(generateE2eSelector('channel_setting_page.category.dropdown.value')),
+      item: this.page.locator(generateE2eSelector('dropdown.item')),
+    },
   };
 }

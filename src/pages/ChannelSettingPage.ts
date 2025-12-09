@@ -281,4 +281,14 @@ export class ChannelSettingPage extends BasePage {
   async openMemberList() {
     await this.selector.header.button.member.first().click();
   }
+
+  async openCategoryTab() {
+    await expect(this.selector.side_bar_buttons.category).toBeVisible({ timeout: 3000 });
+    await this.selector.side_bar_buttons.category.click();
+  }
+
+  async selectCategory(categoryName: string) {
+    await this.selector.category.dropdown.value.click();
+    await this.selector.category.dropdown.item.filter({ hasText: categoryName }).click();
+  }
 }
