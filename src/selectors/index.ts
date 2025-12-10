@@ -304,6 +304,16 @@ export const DATA_E2E_IDENTIFIER = {
           cancel: '',
         },
       },
+      gallery: {
+        all: '',
+        image: '',
+        video: '',
+        tab: {
+          all: '',
+          image: '',
+          video: '',
+        },
+      },
     },
     settings: {
       button: {
@@ -650,6 +660,7 @@ export const DATA_E2E_IDENTIFIER = {
             item: '',
           },
           chat: '',
+          gallery: '',
         },
       },
       actions: {

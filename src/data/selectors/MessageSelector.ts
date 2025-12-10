@@ -217,6 +217,10 @@ export default class MessageSelector {
   avatar = this.page.locator(generateE2eSelector('avatar.image'));
   displayName = this.page.locator(generateE2eSelector('base_profile.display_name'));
   hoverMessageModal = this.page.locator(generateE2eSelector('chat.hover_message_actions'));
+  errorModal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
+  headerGalleryButton = this.page.locator(
+    generateE2eSelector('chat.channel_message.header.button.gallery')
+  );
 
   readonly shortProfile = {
     avatar: this.page.locator(
@@ -246,6 +250,20 @@ export default class MessageSelector {
       gifTrending: this.page.locator(generateE2eSelector('mention.popover.gifs.trending')),
       gifCategory: this.page.locator(generateE2eSelector('mention.popover.gifs.category')),
       gifItem: this.page.locator(generateE2eSelector('mention.popover.gifs.item')),
+    },
+  };
+
+  readonly galleryModal = {
+    container: this.page.locator(generateE2eSelector('clan_page.modal.gallery')),
+    tabs: {
+      all: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.all')),
+      images: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.image')),
+      videos: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.video')),
+    },
+    items: {
+      all: this.page.locator(generateE2eSelector('clan_page.modal.gallery.all')),
+      images: this.page.locator(generateE2eSelector('clan_page.modal.gallery.image')),
+      videos: this.page.locator(generateE2eSelector('clan_page.modal.gallery.video')),
     },
   };
 

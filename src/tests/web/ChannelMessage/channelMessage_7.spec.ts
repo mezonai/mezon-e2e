@@ -101,5 +101,48 @@ test.describe('Channel Message - Module 7', () => {
       const messageSend = await messageHelper.isGifMessageVisible(gifName);
       expect(messageSend).toBeTruthy();
     });
+
+    await AllureReporter.step('Verify modal error not visible', async () => {
+      await page.waitForTimeout(2000);
+      const errorModal = await messageHelper.isErrorModalVisible();
+      expect(errorModal).toBeFalsy();
+    });
+  });
+
+  test('Verify that user can send GIF message on channel and gif verify on image gallery', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+      github_issue: '10991',
+    });
+
+    await AllureReporter.addLabels({
+      tag: ['text-channel', 'GIF-message', 'chat-box'],
+    });
+
+    const messageHelper = new MessageTestHelpers(page);
+    let gifName: string | null;
+
+    await AllureReporter.step('Send gif message on channel', async () => {
+      await messageHelper.openGifsPopover();
+      await messageHelper.openGifsTrending();
+      const res = await messageHelper.sendGifsMessage();
+      gifName = res;
+      await page.waitForTimeout(2000);
+    });
+
+    await AllureReporter.step('Veirify message is visible on chat box', async () => {
+      const messageSend = await messageHelper.isGifMessageVisible(gifName);
+      expect(messageSend).toBeTruthy();
+    });
+
+    await AllureReporter.step('Verify gif is visible on image gallery', async () => {
+      await messageHelper.openGalleryModal();
+      await messageHelper.isGifVisibleOnGalleryTab(gifName);
+
+      await messageHelper.openImagesTabOnGallery();
+      await messageHelper.isGifVisibleOnGalleryTab(gifName);
+    });
   });
 });
