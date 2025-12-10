@@ -2462,8 +2462,28 @@ export class MessageTestHelpers {
 
   async isGifMessageVisible(gifName: string | null): Promise<boolean> {
     const gifMessage = this.selector.messages.locator(`div[id*="${gifName}"]`);
-
     return await gifMessage.first().isVisible();
+  }
+
+  async isErrorModalVisible() {
+    const errorModal = this.selector.errorModal;
+    return await errorModal.isVisible();
+  }
+
+  async openGalleryModal() {
+    return await this.selector.headerGalleryButton.click();
+  }
+
+  async isGifVisibleOnGalleryTab(gifName: string | null): Promise<boolean> {
+    if (!gifName) return false;
+
+    const imageLocator = this.page.locator(`img[src*="${gifName}"]`);
+
+    return await imageLocator.isVisible();
+  }
+
+  async openImagesTabOnGallery() {
+    return await this.selector.galleryModal.tabs.images.click();
   }
 }
 
