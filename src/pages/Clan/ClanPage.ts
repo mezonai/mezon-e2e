@@ -1419,4 +1419,22 @@ export class ClanPage extends BasePage {
     const statusLocator = memberItem.locator(this.selector.secondarySideBar.member.customStatus);
     await expect(statusLocator).toHaveText(status, { timeout: 2000 });
   }
+
+  async openPopoverRole() {
+    const messageSelector = new MessageSelector(this.page);
+    const addRoleButton = messageSelector.shortProfile.button.addRole;
+    await addRoleButton.click();
+  }
+
+  async addRoleFromShortProfile() {
+    const messageSelector = new MessageSelector(this.page);
+    const popoverRoleItem = messageSelector.shortProfile.popoverRole.item.first();
+    await popoverRoleItem.click();
+  }
+
+  async verifyRoleVisibleInShortProfile(roleName: string) {
+    const messageSelector = new MessageSelector(this.page);
+    const roleItemSelector = messageSelector.shortProfile.itemRole.filter({ hasText: roleName });
+    return await expect(roleItemSelector).toBeVisible({ timeout: 3000 });
+  }
 }
