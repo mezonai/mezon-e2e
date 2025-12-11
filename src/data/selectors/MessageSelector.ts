@@ -232,9 +232,15 @@ export default class MessageSelector {
       sendMessage: this.page.locator(generateE2eSelector('short_profile.input.send_message')),
     },
     button: {
-      addRole: this.page.locator(generateE2eSelector('short_profile.button.add_role')),
+      addRole: this.page.locator(generateE2eSelector('short_profile.role.button.add')),
       editProfile: this.page.locator(generateE2eSelector('short_profile.button.edit_profile')),
     },
+    popoverRole: {
+      item: this.page.locator(generateE2eSelector('short_profile.role.popover.item')),
+    },
+    itemRole: this.page.locator(
+      generateE2eSelector('clan_page.channel_list.members.role.role_name')
+    ),
   };
 
   readonly repliedMessage = {

@@ -6,11 +6,11 @@ import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test } from '../../fixtures/dual.fixture';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Member Management', () => {
   const accountA = AccountCredentials['account2-1'];
@@ -165,5 +165,90 @@ test.describe('Member Management', () => {
         await clanPageA.verifyUserHasRoleOnMemberSettings(userNameB, roleName, false);
       }
     );
+  });
+
+  test('Verify that user can add role in short profile and it is visible after added', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63514',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that user can add role in short profile and it is visible after added.
+        
+        **Test Steps:**
+        1. Clean up any existing friend relationships between users
+        2. User A sends a friend request to User B
+        3. User B receives and accepts the friend request
+        4. Verify both users see each other in their friends list
+        5. User A create a clan and add a role
+        6. User A invite user B to clan
+        7. User B accept invite
+        8. User A add role to user B from short profile
+        
+        **Expected Result:** User can add role in short profile and it is visible after added
+      `);
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const unique = Date.now().toString(36).slice(-6);
+    const roleName = `Role-${unique}`.slice(0, 20);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step('User A add a new role', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.openRoleSettingsPage();
+      await clanPageA.addNewRoleOnClan(roleName);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('Add role for user B from short profile', async () => {
+      await clanPageA.openMemberList();
+      const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
+      await memberItem.click();
+      await clanPageA.openPopoverRole();
+      await clanPageA.addRoleFromShortProfile();
+    });
+
+    await AllureReporter.step('Verify that user B has role on short profile', async () => {
+      await clanPageA.verifyRoleVisibleInShortProfile(roleName);
+    });
+
+    await AllureReporter.step('Verify that user B has role on member settings page', async () => {
+      await clanPageA.openMemberListSetting();
+      await clanPageA.verifyUserHasRoleOnMemberSettings(userNameB, roleName);
+    });
   });
 });

@@ -61,6 +61,14 @@ export const DATA_E2E_IDENTIFIER = {
         },
       },
     },
+    role: {
+      button: {
+        add: '',
+      },
+      popover: {
+        item: '',
+      },
+    },
   },
   mention: {
     input: '',
