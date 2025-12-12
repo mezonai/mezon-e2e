@@ -10,7 +10,7 @@ import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
-import test, { expect } from '@playwright/test';
+import test, { expect, Locator } from '@playwright/test';
 import { randomInt } from 'crypto';
 
 test.describe('Topic message', () => {
@@ -309,6 +309,75 @@ test.describe('Topic message', () => {
     await AllureReporter.attachScreenshot(
       page,
       `Replying message on init message topic is not lost`
+    );
+  });
+
+  test('Verify that user can jump to topic box when click from inbox popover', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64315',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that user can jump to topic box when click from inbox popover
+        **Test Steps:**
+          1. Send message on channel
+          2. Create topic on created message
+          3. Send messages on topic box
+          4. Open inbox popover 
+          5. Click topic tab
+          6. Click created topic on inbox popover 
+
+        **Expected Result:** User can jump to topic box when click from inbox popover
+      `);
+    await AllureReporter.addLabels({
+      tag: ['topic_message', 'inbox_popover', 'topic_tab'],
+    });
+
+    const messageHelper = new MessageTestHelpers(page);
+    const testMessage = `Test message - ${Date.now()}`;
+    const replyMessage = `Message in topic box ${Date.now()}`;
+    let topicLocator: Locator;
+
+    await AllureReporter.step('Send messages on channel and create topic', async () => {
+      await messageHelper.sendTextMessage(testMessage);
+      await messageHelper.createTopicToInitMessage(testMessage);
+    });
+
+    await AllureReporter.step('Send messages on topic box', async () => {
+      await messageHelper.openTopicBoxByMessage(testMessage);
+      await messageHelper.sendMessageInTopicBox(replyMessage);
+      await page.waitForTimeout(2000);
+      await messageHelper.closeTopicBox();
+    });
+
+    await AllureReporter.step('Open inbox popover and topic tab', async () => {
+      await messageHelper.openHeaderInboxButton();
+      await messageHelper.openTopicTabOnInboxPopover();
+    });
+
+    await AllureReporter.step('Verify that created topic is visible on topic tab', async () => {
+      const locator = await messageHelper.verifyCreatedTopicOnInboxPopover(
+        testMessage,
+        replyMessage
+      );
+      topicLocator = locator;
+    });
+
+    await AllureReporter.step(
+      'Click created topic and verify it jump to created topic',
+      async () => {
+        await messageHelper.clickJumpToTopicFromInboxPopover(topicLocator);
+        await messageHelper.verifyCreatedTopicIsOpen(testMessage, replyMessage);
+      }
+    );
+
+    await AllureReporter.attachScreenshot(
+      page,
+      `User can jump to topic box when click from inbox popover`
     );
   });
 });

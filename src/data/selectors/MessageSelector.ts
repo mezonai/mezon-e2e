@@ -273,5 +273,23 @@ export default class MessageSelector {
     },
   };
 
+  readonly topicInboxPopover = {
+    item: {
+      container: this.page.locator(generateE2eSelector('chat.channel_message.inbox.topics')),
+      initMessage: this.page.locator(
+        generateE2eSelector('chat.channel_message.inbox.topics.init_message')
+      ),
+      lastReplyMessage: this.page.locator(
+        generateE2eSelector('chat.channel_message.inbox.topics.last_reply_message')
+      ),
+      buttonJump: this.page.locator(
+        generateE2eSelector('chat.channel_message.inbox.topics.button.jump')
+      ),
+    },
+    triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
+      hasText: 'Topics',
+    }),
+  };
+
   mentionUser = this.page.locator(generateE2eSelector('chat.channel_message.mention_user'));
 }

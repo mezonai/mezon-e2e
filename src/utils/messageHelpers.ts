@@ -2479,11 +2479,42 @@ export class MessageTestHelpers {
 
     const imageLocator = this.page.locator(`img[src*="${gifName}"]`);
 
-    return await imageLocator.isVisible();
+    return await imageLocator.first().isVisible();
   }
 
   async openImagesTabOnGallery() {
     return await this.selector.galleryModal.tabs.images.click();
+  }
+
+  async openTopicTabOnInboxPopover() {
+    return await this.selector.topicInboxPopover.triggerTab.click();
+  }
+
+  async verifyCreatedTopicOnInboxPopover(initMessage: string, lastReply: string) {
+    const {
+      container,
+      initMessage: initMessageLocator,
+      lastReplyMessage,
+    } = this.selector.topicInboxPopover.item;
+
+    await expect(initMessageLocator).toContainText(initMessage);
+    await expect(lastReplyMessage).toContainText(lastReply);
+
+    return container;
+  }
+
+  async clickJumpToTopicFromInboxPopover(topicLocator: Locator) {
+    await topicLocator.hover();
+    const buttonJump = topicLocator.locator(this.selector.topicInboxPopover.item.buttonJump);
+    await buttonJump.click();
+  }
+
+  async verifyCreatedTopicIsOpen(initMessage: string, lastReply: string) {
+    await expect(this.selector.topicBox).toBeVisible({ timeout: 3000 });
+    const firstMessage = this.selector.topicMessages.first();
+    const lastMessage = this.selector.topicMessages.last();
+    await expect(firstMessage).toContainText(initMessage);
+    await expect(lastMessage).toContainText(lastReply);
   }
 }
 
