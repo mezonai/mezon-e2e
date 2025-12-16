@@ -241,6 +241,9 @@ export default class MessageSelector {
     itemRole: this.page.locator(
       generateE2eSelector('clan_page.channel_list.members.role.role_name')
     ),
+    itemRoleColor: this.page.locator(
+      generateE2eSelector('clan_page.channel_list.members.role.role_color')
+    ),
   };
 
   readonly repliedMessage = {

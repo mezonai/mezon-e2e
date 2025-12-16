@@ -251,4 +251,240 @@ test.describe('Member Management', () => {
       await clanPageA.verifyUserHasRoleOnMemberSettings(userNameB, roleName);
     });
   });
+
+  test('Verify that role color not cache on member list and role not visible on short profile when user leave and join clan again', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63514',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that role color not cache on member list and role not visible on short profile when user leave and join clan again.
+        
+        **Test Steps:**
+        1. Clean up any existing friend relationships between users
+        2. User A sends a friend request to User B
+        3. User B receives and accepts the friend request
+        4. Verify both users see each other in their friends list
+        5. User A create a clan and add a role
+        6. User A invite user B to clan
+        7. User B accept invite
+        8. User A add role to user B
+        9. User B leave clan
+        10. User A invite user B to clan again
+        11. User B accept
+        
+        **Expected Result:** Role color not cache on member list and role not visible on short profile when user leave and join clan again
+      `);
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const unique = Date.now().toString(36).slice(-6);
+    const roleName = `Role-${unique}`.slice(0, 20);
+    let roleStyle: any;
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step(
+      'User A send a fisrt message to user B and move to created clan and add a new role',
+      async () => {
+        await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageA.openRoleSettingsPage();
+        const style = await clanPageA.addNewRoleWithColorOnClan(roleName);
+        roleStyle = style;
+      }
+    );
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('Add role for user B from short profile', async () => {
+      await clanPageA.openMemberList();
+      const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
+      await memberItem.click();
+      await clanPageA.openPopoverRole();
+      await clanPageA.addRoleFromShortProfile();
+    });
+
+    await AllureReporter.step('Verify that user B has role on short profile', async () => {
+      await clanPageA.verifyRoleVisibleInShortProfile(roleName, roleStyle);
+      await dual.pageA.keyboard.press('Escape');
+      const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
+      await clanPageA.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(memberItem, roleStyle);
+    });
+
+    await AllureReporter.step('User B verify that it has new role and leave clan', async () => {
+      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageB.openMemberList();
+      const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
+      await clanPageB.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(memberItem, roleStyle);
+      await clanPageB.leaveClan();
+    });
+
+    await AllureReporter.step(
+      'User A invite user B to clan again and verify the role color still not visible in username of members list',
+      async () => {
+        await clanPageA.clickButtonInvitePeopleFromMenu();
+        const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+        await friendPageB.createDM(userNameA);
+        await clanPageB.joinClanByUrlInvite(url);
+        await pageB.reload();
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
+        await clanPageB.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(
+          memberItem,
+          roleStyle,
+          false
+        );
+      }
+    );
+
+    await AllureReporter.step('verify the role still not visible in short profile', async () => {
+      const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
+      await memberItem.click();
+      await clanPageB.verifyRoleVisibleInShortProfile(roleName, roleStyle, false);
+    });
+  });
+
+  test('Verify that role color not cache on member management and role color not cache on username of chat box when user leave and join clan again', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63514',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that role color not cache on member management and role color not cache on username of chat box when user leave and join clan again
+        
+        **Test Steps:**
+        1. Clean up any existing friend relationships between users
+        2. User A sends a friend request to User B
+        3. User B receives and accepts the friend request
+        4. Verify both users see each other in their friends list
+        5. User A create a clan and add a role
+        6. User A invite user B to clan
+        7. User B accept invite
+        8. User A add role to user B
+        9. User B leave clan
+        10. User A invite user B to clan again
+        11. User B accept
+        
+        **Expected Result:** Role color not cache on member management and role color not cache on username of chat box when user leave and join clan again
+      `);
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const unique = Date.now().toString(36).slice(-6);
+    const roleName = `Role-${unique}`.slice(0, 20);
+    let roleStyle: any;
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step(
+      'User A send a fisrt message to user B and move to created clan and add a new role',
+      async () => {
+        await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageA.openRoleSettingsPage();
+        const style = await clanPageA.addNewRoleWithColorOnClan(roleName);
+        roleStyle = style;
+      }
+    );
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('Add role for user B and verify user B has new role', async () => {
+      await clanPageA.addRoleForUserByUsername(userNameB, roleName);
+      await clanPageA.verifyUserHasRoleOnMemberSettings(userNameB, roleName, true, roleStyle);
+    });
+
+    await AllureReporter.step(
+      'User B send a message, verify role color visible on username of chatbox and leave clan',
+      async () => {
+        await pageB.reload();
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.sendFirstMessage('This is message');
+        await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameB);
+        await clanPageB.leaveClan();
+      }
+    );
+
+    await AllureReporter.step(
+      'User A invite user B to clan again and verify the role color still not visible in username of chatbox',
+      async () => {
+        await clanPageA.clickButtonInvitePeopleFromMenu();
+        const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+        await friendPageB.createDM(userNameA);
+        await clanPageB.joinClanByUrlInvite(url);
+        await pageB.reload();
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameB, false);
+      }
+    );
+
+    await AllureReporter.step(
+      'verify the role color still not visible in username of member management',
+      async () => {
+        await clanPageA.verifyUserHasRoleOnMemberSettings(userNameB, roleName, false, roleStyle);
+      }
+    );
+  });
 });

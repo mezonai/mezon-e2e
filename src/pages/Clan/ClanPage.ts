@@ -903,7 +903,8 @@ export class ClanPage extends BasePage {
   async verifyUserHasRoleOnMemberSettings(
     username: string,
     roleName: string,
-    shouldVisible = true
+    shouldVisible = true,
+    style?: string
   ) {
     await this.page.reload();
 
@@ -916,6 +917,10 @@ export class ClanPage extends BasePage {
       `${generateE2eSelector('clan_page.member_list.role_settings.exist_role.role_name')}:has-text("${roleName.slice(0, 6)}")`
     );
 
+    const displayNameLocator = userRow
+      .locator(this.selector.memberSettings.userDisplayName)
+      .first();
+
     const isVisible = await roleLocator.isVisible();
 
     if (shouldVisible) {
@@ -923,11 +928,17 @@ export class ClanPage extends BasePage {
         isVisible,
         `❌ Expected role "${roleName}" to be visible for user "${username}", but it is not.`
       ).toBeTruthy();
+      if (style) {
+        await expect(displayNameLocator).toHaveCSS('color', style);
+      }
     } else {
       expect(
         isVisible,
         `❌ Expected role "${roleName}" to NOT be visible for user "${username}", but it is visible.`
       ).toBeFalsy();
+      if (style) {
+        await expect(displayNameLocator).not.toHaveCSS('color', style);
+      }
     }
   }
 
@@ -1432,9 +1443,77 @@ export class ClanPage extends BasePage {
     await popoverRoleItem.click();
   }
 
-  async verifyRoleVisibleInShortProfile(roleName: string) {
+  async verifyRoleVisibleInShortProfile(roleName: string, style?: string, shouldVisible = true) {
     const messageSelector = new MessageSelector(this.page);
-    const roleItemSelector = messageSelector.shortProfile.itemRole.filter({ hasText: roleName });
-    return await expect(roleItemSelector).toBeVisible({ timeout: 3000 });
+    const roleItemNameSelector = messageSelector.shortProfile.itemRole.filter({
+      hasText: roleName,
+    });
+    if (style && shouldVisible) {
+      const roleItemColorSelector = messageSelector.shortProfile.itemRoleColor.first();
+      await expect(roleItemColorSelector).toHaveCSS('background-color', style);
+    }
+    if (shouldVisible) {
+      return await expect(roleItemNameSelector).toBeVisible({ timeout: 3000 });
+    } else {
+      return await expect(roleItemNameSelector).toBeHidden({ timeout: 3000 });
+    }
+  }
+
+  async verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(
+    memberItem: Locator,
+    style: string,
+    shouldVisible = true
+  ) {
+    const username = memberItem.locator(this.selector.secondarySideBar.member.username).first();
+
+    if (shouldVisible) {
+      await expect(username).toBeVisible({ timeout: 3000 });
+      await expect(username).toHaveCSS('color', style);
+    } else {
+      await expect(username).not.toHaveCSS('color', style);
+    }
+  }
+
+  async addNewRoleWithColorOnClan(roleName: string): Promise<string | undefined> {
+    try {
+      await this.selector.clanSettings.buttons.createRole.click();
+      await expect(this.selector.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
+
+      await this.selector.clanSettings.buttons.displayRoleOption.click();
+      await expect(this.selector.clanSettings.input.roleName).toBeVisible({ timeout: 3000 });
+
+      await this.selector.clanSettings.input.roleName.fill(roleName);
+
+      const firstRoleColorLocator = this.selector.clanSettings.buttons.roleColor.first();
+
+      const color = await firstRoleColorLocator.evaluate(
+        el => getComputedStyle(el).backgroundColor
+      );
+
+      await firstRoleColorLocator.click();
+      await this.selector.buttons.saveChanges.click();
+      await this.selector.buttons.closeSettingClan.click();
+
+      return color;
+    } catch (error) {
+      console.error('Failed to add new role:', error);
+      return undefined;
+    }
+  }
+
+  async verifyRoleColorVisibleOnNameOfChatbox(
+    style: string,
+    username: string,
+    shouldVisible = true
+  ) {
+    const messageSelector = new MessageSelector(this.page);
+    const displayNameLocator = messageSelector.messages.locator(
+      messageSelector.displayName.filter({ hasText: username }).first()
+    );
+    if (shouldVisible) {
+      await expect(displayNameLocator).toHaveCSS('color', style);
+    } else {
+      await expect(displayNameLocator).not.toHaveCSS('color', style);
+    }
   }
 }
