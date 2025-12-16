@@ -405,6 +405,7 @@ export const DATA_E2E_IDENTIFIER = {
             manage_members: '',
           },
           name_input: '',
+          role_color: '',
         },
       },
     },
@@ -437,6 +438,7 @@ export const DATA_E2E_IDENTIFIER = {
       members: {
         role: {
           role_name: '',
+          role_color: '',
         },
       },
     },

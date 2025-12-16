@@ -77,6 +77,10 @@ export default class ClanSelector {
 
   readonly memberSettings = {
     usersInfo: this.page.locator(generateE2eSelector('clan_page.member_list.user_info')),
+    userDisplayName: this.page.locator(
+      generateE2eSelector('clan_page.member_list.user_info.display_name')
+    ),
+    username: this.page.locator(generateE2eSelector('clan_page.member_list.user_info.username')),
   };
 
   readonly footerProfile = {
@@ -171,6 +175,9 @@ export default class ClanSelector {
       createRole: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Create Role' }),
       displayRoleOption: this.page.locator(
         generateE2eSelector('clan_page.settings.role.container.role_option.display')
+      ),
+      roleColor: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_color')
       ),
     },
     input: {
@@ -314,6 +321,7 @@ export default class ClanSelector {
       customStatus: this.page.locator(
         generateE2eSelector('clan_page.secondary_side_bar.member.user_status')
       ),
+      username: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username')),
     },
   };
 
