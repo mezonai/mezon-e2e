@@ -46,6 +46,9 @@ export default class ClanSelector {
     cancel: this.page.locator(generateE2eSelector('modal.confirm_modal.button.cancel')),
     confirm: this.page.locator(generateE2eSelector('modal.confirm_modal.button.confirm')),
     reset: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Reset' }),
+    markAsRead: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Mark as Read',
+    }),
   };
 
   readonly sidebarMemberList = {

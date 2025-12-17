@@ -1516,4 +1516,29 @@ export class ClanPage extends BasePage {
       await expect(displayNameLocator).not.toHaveCSS('color', style);
     }
   }
+
+  async verifyChannelHasHighlight(channelName: string, shouldHighLight = true) {
+    const channelItem = this.selector.sidebar.channelItem.item.filter({
+      has: this.selector.sidebar.channelItem.name.filter({ hasText: channelName }),
+    });
+
+    const channelNameLocator = channelItem
+      .locator(this.selector.sidebar.channelItem.name)
+      .filter({ hasText: channelName });
+
+    const channelSpan = channelNameLocator.locator('..');
+
+    if (shouldHighLight) {
+      await expect(channelSpan).toHaveClass(/font-semibold/);
+      await expect(channelSpan).not.toHaveClass(/font-medium/);
+    } else {
+      await expect(channelSpan).toHaveClass(/font-medium/);
+      await expect(channelSpan).not.toHaveClass(/font-semibold/);
+    }
+  }
+
+  async clickButtonMarkAsReadFromMenu() {
+    await this.selector.buttons.clanName.click();
+    await this.selector.buttons.markAsRead.click();
+  }
 }
