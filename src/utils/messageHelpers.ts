@@ -1,3 +1,4 @@
+import FriendSelector from '@/data/selectors/FriendSelector';
 import MessageSelector from '@/data/selectors/MessageSelector';
 import { expect, Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
@@ -1065,11 +1066,13 @@ export class MessageTestHelpers {
     await input.click();
     await this.page.waitForTimeout(200);
 
-    if (!partialOrName.startsWith('@')) {
-      await input.fill(`@${partialOrName}`);
-    } else {
-      await input.fill(partialOrName);
-    }
+    const normalizedMention = partialOrName.replace(/\+.*/, '');
+
+    const mentionText = normalizedMention.startsWith('@')
+      ? normalizedMention
+      : `@${normalizedMention}`;
+
+    await input.fill(mentionText);
     await this.page.waitForTimeout(600);
     await this.selectMentionFromList(partialOrName.replace(/^@/, ''), candidateNames);
     await this.page.waitForTimeout(200);
@@ -2515,6 +2518,35 @@ export class MessageTestHelpers {
     const lastMessage = this.selector.topicMessages.last();
     await expect(firstMessage).toContainText(initMessage);
     await expect(lastMessage).toContainText(lastReply);
+  }
+
+  async verifyUserOnDMHasHighlight(username: string, shouldHighLight = true) {
+    const userLocator = this.selector.listDMItems.filter({
+      has: this.selector.userNamesInDM.filter({ hasText: username }),
+    });
+    const childLocator = userLocator.locator('div').first();
+    const ACTIVE = /(^|\s)text-theme-primary-active(\s|$)/;
+    const NORMAL = /(^|\s)text-theme-primary(\s|$)/;
+
+    if (shouldHighLight) {
+      await expect(childLocator).toHaveClass(ACTIVE);
+      await expect(childLocator).not.toHaveClass(NORMAL);
+    } else {
+      await expect(childLocator).toHaveClass(NORMAL);
+      await expect(childLocator).not.toHaveClass(ACTIVE);
+    }
+  }
+
+  async clickButtonMarkAsReadByUsername(username: string) {
+    const friendSelector = new FriendSelector(this.page);
+    const userLocator = this.selector.listDMItems
+      .filter({
+        has: this.selector.userNamesInDM.filter({ hasText: username }),
+      })
+      .first();
+    await userLocator.click({ button: 'right' });
+    const markAsReadButton = friendSelector.dmFriendMenu.markAsRead;
+    await markAsReadButton.click();
   }
 }
 

@@ -51,6 +51,9 @@ export default class FriendSelector {
     blockButton: this.page
       .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
       .filter({ hasText: 'Block' }),
+    markAsRead: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({ hasText: 'Mark as Read' }),
   };
 
   readonly badge = {

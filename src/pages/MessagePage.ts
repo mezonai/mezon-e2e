@@ -611,6 +611,21 @@ export class MessagePage extends BasePage {
     }
   }
 
+  async forwardMessageToChannel(channelName: string) {
+    await expect(this.selector.searchUserOnForwardMessageModal).toBeVisible({ timeout: 5000 });
+    await this.selector.searchUserOnForwardMessageModal.fill(channelName);
+    await this.page.waitForTimeout(3000);
+    const channelItemLocator = this.selector.modalForwardMessage.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: channelName,
+      }
+    );
+    await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
+    await channelItemLocator.first().click();
+    await this.selector.sendForwardMessageButton.click();
+  }
+
   async isChannelPresentOnSearchModal(channelName: string) {
     await expect(this.selector.searchInput).toBeVisible({ timeout: 5000 });
     await this.selector.searchInput.fill(channelName);
