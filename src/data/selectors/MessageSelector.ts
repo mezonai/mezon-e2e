@@ -158,6 +158,9 @@ export default class MessageSelector {
   cancelForwardMessageButton = this.page.locator(
     generateE2eSelector('modal.forward_message.button.cancel')
   );
+  sendForwardMessageButton = this.page.locator(
+    generateE2eSelector('modal.forward_message.button.send')
+  );
   searchModal = this.page.locator(generateE2eSelector('modal.search'));
   searchInput = this.page.locator(`${generateE2eSelector('modal.search.input')} input`);
   searchTriggerButton = this.page.locator(generateE2eSelector('chat.direct_message.button.search'));

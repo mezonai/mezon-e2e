@@ -49,6 +49,7 @@ export default class ClanSelector {
     markAsRead: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
       hasText: 'Mark as Read',
     }),
+    badge: this.page.locator(generateE2eSelector('clan_page.badge')),
   };
 
   readonly sidebarMemberList = {
@@ -218,6 +219,7 @@ export default class ClanSelector {
           generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item_count')
         ),
       },
+      badge: this.page.locator(generateE2eSelector('clan_page.channel_list.item.badge')),
     },
     threadItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
@@ -240,6 +242,7 @@ export default class ClanSelector {
       pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
       canvas: this.page.locator(generateE2eSelector('chat.channel_message.header.button.canvas')),
     },
+    badge: this.page.locator(generateE2eSelector('chat.channel_message.header.badge')),
   };
 
   readonly threadBox = {

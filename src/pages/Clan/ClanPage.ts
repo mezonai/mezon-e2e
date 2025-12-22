@@ -1541,4 +1541,45 @@ export class ClanPage extends BasePage {
     await this.selector.buttons.clanName.click();
     await this.selector.buttons.markAsRead.click();
   }
+
+  async verifyChannelHasBadge(channelName: string, shouldHasBadge = true) {
+    const channelLocator = this.selector.sidebar.channelItem.item.filter({
+      hasText: channelName,
+    });
+
+    const badge = channelLocator.locator('div[class*="absolute"][class*="ml-auto"]').last();
+
+    if (shouldHasBadge) {
+      await expect(channelLocator).toBeVisible({ timeout: 3000 });
+      await expect(badge).toHaveText('1');
+    } else {
+      await expect(badge).toBeHidden({ timeout: 3000 });
+    }
+  }
+
+  async verifyClanHasBadge(count: number, clanItem: Locator, shouldHasBadge = true) {
+    const clanBagdeItem = clanItem.locator(this.selector.buttons.badge);
+
+    if (shouldHasBadge) {
+      await expect(clanBagdeItem).toBeVisible({ timeout: 3000 });
+      await expect(clanBagdeItem).toHaveText(`${count}`);
+    } else {
+      await expect(clanBagdeItem).toBeHidden({ timeout: 3000 });
+    }
+  }
+
+  async verifyInboxButtonHasBadge(shouldHasBadge = true) {
+    const badgeInBoxLocator = this.selector.header.badge.first();
+    if (shouldHasBadge) {
+      await expect(badgeInBoxLocator).toBeVisible({ timeout: 3000 });
+    } else {
+      await expect(badgeInBoxLocator).toBeHidden({ timeout: 3000 });
+    }
+  }
+
+  async clickButtonMarkAsReadFromChannel(channelName: string) {
+    const channelItem = this.selector.sidebar.channelItem.item.filter({ hasText: channelName });
+    await channelItem.first().click({ button: 'right' });
+    await this.selector.sidebar.panelItem.item.filter({ hasText: 'Mark as Read' }).click();
+  }
 }
