@@ -630,6 +630,9 @@ export const DATA_E2E_IDENTIFIER = {
       unblock: {
         button: '',
       },
+      side_bar: {
+        item: '',
+      },
     },
     channel_message: {
       header: {

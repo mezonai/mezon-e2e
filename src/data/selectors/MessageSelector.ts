@@ -151,6 +151,7 @@ export default class MessageSelector {
   directMessageUnblockButton = this.page.locator(
     generateE2eSelector('chat.direct_message.unblock.button')
   );
+  DMItemOnSidebar = this.page.locator(generateE2eSelector('chat.direct_message.side_bar.item'));
   modalForwardMessage = this.page.locator(generateE2eSelector('modal.forward_message'));
   searchUserOnForwardMessageModal = this.page.locator(
     generateE2eSelector('modal.forward_message.input.search')
