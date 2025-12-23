@@ -2548,6 +2548,30 @@ export class MessageTestHelpers {
     const markAsReadButton = friendSelector.dmFriendMenu.markAsRead;
     await markAsReadButton.click();
   }
+
+  async openDMByNameOnsearchModal(username: string) {
+    await expect(this.selector.searchInput).toBeVisible({ timeout: 5000 });
+    await this.selector.searchInput.fill(username);
+    await this.page.waitForTimeout(3000);
+    const userLocator = this.selector.searchModal.locator(generateE2eSelector('suggest_item'), {
+      hasText: username,
+    });
+    await expect(userLocator.first()).toBeVisible({ timeout: 5000 });
+    await userLocator.first().click();
+  }
+
+  async verifyDMAvatarIconOnSidebarVisible(url: string, shouldVisible = true) {
+    const identity = url.split('/chat/direct/message/')[1].split('/')[0];
+    const selector = generateE2eSelector('chat.direct_message.side_bar.item', identity.toString());
+
+    const dmItem = this.page.locator(selector);
+
+    if (shouldVisible) {
+      await expect(dmItem).toBeVisible();
+    } else {
+      await expect(dmItem).toHaveCount(0);
+    }
+  }
 }
 
 export const LINK_TEST_URLS = [
