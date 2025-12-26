@@ -26,7 +26,7 @@ test.describe('Direct Message', () => {
 
     const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      AccountCredentials.account4
+      AccountCredentials.account2
     );
     await AuthHelper.prepareBeforeTest(
       page,

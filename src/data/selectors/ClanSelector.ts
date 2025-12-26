@@ -18,6 +18,12 @@ export default class ClanSelector {
       `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Create' }
     ),
+    createMyOwnClan: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_clan.template.item.create_my_own')
+    ),
+    createTemplateClan: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_clan.template.item.name')
+    ),
     invitePeopleFromHeaderMenu: this.page.locator(
       generateE2eSelector('clan_page.header.modal_panel.item'),
       { hasText: 'Invite People' }
@@ -170,6 +176,7 @@ export default class ClanSelector {
     clanName: this.page.locator(generateE2eSelector('clan_page.settings.overview.input.clan_name')),
     settings_page: this.page.locator(generateE2eSelector('clan_page.settings')),
     buttons: {
+      sidebarItem: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item')),
       roleSettings: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item'), {
         hasText: 'Roles',
       }),
@@ -180,9 +187,13 @@ export default class ClanSelector {
       displayRoleOption: this.page.locator(
         generateE2eSelector('clan_page.settings.role.container.role_option.display')
       ),
+      permissionsRole: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_option.permissions')
+      ),
       roleColor: this.page.locator(
         generateE2eSelector('clan_page.settings.role.container.role_color')
       ),
+      deleteClan: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.delete')),
     },
     input: {
       roleName: this.page.locator(
@@ -190,6 +201,27 @@ export default class ClanSelector {
       ),
     },
     roleContainer: this.page.locator(generateE2eSelector('clan_page.settings.role.container')),
+    rolePermissionsItem: this.page.locator(
+      generateE2eSelector('clan_page.settings.role.container.role_option.permissions.item')
+    ),
+    rolePermissionsSwitch: this.page.locator(
+      generateE2eSelector('clan_page.settings.role.container.role_option.permissions.item.switch')
+    ),
+    sidebarTitle: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.title')),
+    roleList: {
+      item: this.page.locator(generateE2eSelector('clan_page.settings.role.item')),
+      roleName: this.page.locator(generateE2eSelector('clan_page.settings.role.item.role_name')),
+      memberCount: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.item.member_count')
+      ),
+      buttons: {
+        edit: this.page.locator(generateE2eSelector('clan_page.settings.role.item.button.edit')),
+        view: this.page.locator(generateE2eSelector('clan_page.settings.role.item.button.view')),
+        delete: this.page.locator(
+          generateE2eSelector('clan_page.settings.role.item.button.delete')
+        ),
+      },
+    },
   };
 
   readonly sidebar = {

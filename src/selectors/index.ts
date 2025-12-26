@@ -222,6 +222,12 @@ export const DATA_E2E_IDENTIFIER = {
           confirm: '',
           cancel: '',
         },
+        template: {
+          item: {
+            create_my_own: '',
+            name: '',
+          },
+        },
       },
       create_channel: {
         type: '',
@@ -337,6 +343,7 @@ export const DATA_E2E_IDENTIFIER = {
         },
       },
       sidebar: {
+        title: '',
         delete: '',
         item: '',
       },
@@ -401,11 +408,25 @@ export const DATA_E2E_IDENTIFIER = {
         container: {
           role_option: {
             display: '',
-            permissions: '',
+            permissions: {
+              item: {
+                title: '',
+                switch: '',
+              },
+            },
             manage_members: '',
           },
           name_input: '',
           role_color: '',
+        },
+        item: {
+          role_name: '',
+          button: {
+            edit: '',
+            delete: '',
+            view: '',
+          },
+          member_count: '',
         },
       },
     },

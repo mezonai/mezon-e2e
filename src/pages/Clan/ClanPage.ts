@@ -59,6 +59,18 @@ export class ClanPage extends BasePage {
     return false;
   }
 
+  async clickCreateMyOwnClan(): Promise<boolean> {
+    // if (this.selector.buttons.createMyOwnClan) {
+    //   await this.selector.buttons.createMyOwnClan.click();
+    //   return true;
+    // }
+    if (this.page.locator('button:has-text("Create My Own")')) {
+      await this.page.locator('button:has-text("Create My Own")').first().click();
+      return true;
+    }
+    return false;
+  }
+
   async mapLocator(locator: Locator, callback: (element: Locator) => Promise<any>): Promise<any> {
     let count = 0;
     try {
@@ -1581,5 +1593,75 @@ export class ClanPage extends BasePage {
     const channelItem = this.selector.sidebar.channelItem.item.filter({ hasText: channelName });
     await channelItem.first().click({ button: 'right' });
     await this.selector.sidebar.panelItem.item.filter({ hasText: 'Mark as Read' }).click();
+  }
+
+  async verifyAdministratorPermissionRole(hasRole = true) {
+    const intergrationsSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({
+      hasText: 'Integrations',
+    });
+    const auditLogSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({
+      hasText: 'Audit Log',
+    });
+    const onboardingSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({
+      hasText: 'Onboarding',
+    });
+    const enableCommunitySidebar = this.selector.clanSettings.buttons.sidebarItem.filter({
+      hasText: 'Enable Community',
+    });
+    const overViewSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({
+      hasText: 'Overview',
+    });
+    const roleSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({ hasText: 'Roles' });
+    const deleteSidebar = this.selector.clanSettings.buttons.deleteClan;
+    if (hasRole) {
+      await expect(intergrationsSidebar).toBeVisible({ timeout: 3000 });
+      await expect(auditLogSidebar).toBeVisible({ timeout: 3000 });
+      await expect(onboardingSidebar).toBeVisible({ timeout: 3000 });
+      await expect(enableCommunitySidebar).toBeVisible({ timeout: 3000 });
+      await expect(overViewSidebar).toBeVisible({ timeout: 3000 });
+      await expect(roleSidebar).toBeVisible({ timeout: 3000 });
+      await expect(deleteSidebar).toBeHidden({ timeout: 3000 });
+    } else {
+      await expect(intergrationsSidebar).toBeHidden({ timeout: 3000 });
+      await expect(auditLogSidebar).toBeHidden({ timeout: 3000 });
+      await expect(onboardingSidebar).toBeHidden({ timeout: 3000 });
+      await expect(enableCommunitySidebar).toBeHidden({ timeout: 3000 });
+      await expect(overViewSidebar).toBeHidden({ timeout: 3000 });
+      await expect(roleSidebar).toBeHidden({ timeout: 3000 });
+      await expect(deleteSidebar).toBeHidden({ timeout: 3000 });
+    }
+  }
+
+  async createRoleWithPermission(roleName: string, permission: string) {
+    await this.selector.clanSettings.buttons.createRole.click();
+    await expect(this.selector.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
+
+    const permissionItem = this.selector.clanSettings.rolePermissionsItem.filter({
+      hasText: permission,
+    });
+    await expect(permissionItem).toBeVisible({ timeout: 3000 });
+    const toggle = permissionItem.locator(this.selector.clanSettings.rolePermissionsSwitch);
+    await toggle.click();
+
+    await this.selector.clanSettings.buttons.displayRoleOption.click();
+    await expect(this.selector.clanSettings.input.roleName).toBeVisible({ timeout: 3000 });
+
+    await this.selector.clanSettings.input.roleName.fill(roleName);
+    await this.selector.buttons.saveChanges.click();
+
+    await this.selector.buttons.closeSettingClan.click();
+  }
+
+  async verifyUserCannotEditRoleItself(roleName: string) {
+    await this.selector.clanSettings.buttons.roleSettings.click();
+    const roleItem = this.selector.clanSettings.roleList.item.filter({
+      hasText: roleName,
+    });
+    await expect(roleItem).toBeVisible({ timeout: 3000 });
+    await roleItem.hover();
+    const editButton = roleItem.locator(this.selector.clanSettings.roleList.buttons.edit);
+    const deleteButton = roleItem.locator(this.selector.clanSettings.roleList.buttons.delete);
+    await expect(editButton).toBeHidden({ timeout: 3000 });
+    await expect(deleteButton).toBeHidden({ timeout: 3000 });
   }
 }

@@ -357,4 +357,91 @@ test.describe('Clan Management', () => {
       await messagePageA.verifyShortProfileIsUnknownUser();
     });
   });
+
+  test('Veify that I have admin permissions after add role with admin permissions', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64954',
+      github_issue: '9685',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that I have admin permissions after add role with admin permissions.
+
+      **Test Steps:**
+      1. Invite User B to clan
+      2. Add new role with admin permissions to User B
+      3. Login User B and verify admin permissions
+      **Expected Result:** I have admin permissions after add role with admin permissions.
+    `);
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const roleName = `role-${Date.now().toString(36).slice(-8)}`;
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step(
+      'Verify that user B has not admin permission before add role',
+      async () => {
+        await pageB.reload();
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.openClanSettings();
+        await clanPageB.verifyAdministratorPermissionRole(false);
+        await clanPageB.closeSettingsClan();
+      }
+    );
+
+    await AllureReporter.step('Add new role with admin permissions to User B', async () => {
+      await clanPageA.openRoleSettingsPage();
+      await clanPageA.createRoleWithPermission(roleName, 'Administrator');
+      await clanPageA.addRoleForUserByUsername(userNameB, roleName);
+    });
+
+    await AllureReporter.step(
+      'Verify that user B has admin permission after add role',
+      async () => {
+        await pageB.reload();
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.openClanSettings();
+        await clanPageB.verifyAdministratorPermissionRole();
+      }
+    );
+    await AllureReporter.step('Verify that user B cannot edit edit role itself', async () => {
+      await clanPageB.verifyUserCannotEditRoleItself(roleName);
+      await clanPageB.closeSettingsClan();
+    });
+  });
 });

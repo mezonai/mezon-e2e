@@ -39,6 +39,11 @@ export class ClanFactory {
       throw new Error('Failed to click create clan button');
     }
 
+    const createMyOwnClicked = await clanPage.clickCreateMyOwnClan();
+    if (!createMyOwnClicked) {
+      throw new Error('Failed to click create my own clan option');
+    }
+
     await clanPage.createNewClan(clanName);
 
     const clanExists = await clanPage.isClanPresent(clanName);
