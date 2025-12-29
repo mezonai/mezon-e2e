@@ -1,3 +1,4 @@
+import ChannelSettingSelector from '@/data/selectors/ChannelSettingSelector';
 import ClanSelector from '@/data/selectors/ClanSelector';
 import MessageSelector from '@/data/selectors/MessageSelector';
 import { CategorySettingPage } from '@/pages/CategorySettingPage';
@@ -1663,5 +1664,22 @@ export class ClanPage extends BasePage {
     const deleteButton = roleItem.locator(this.selector.clanSettings.roleList.buttons.delete);
     await expect(editButton).toBeHidden({ timeout: 3000 });
     await expect(deleteButton).toBeHidden({ timeout: 3000 });
+  }
+
+  async openChannelSettingsSidebar(channelName: string = 'general') {
+    const generalChannel = this.selector.sidebar.channelItem.name.filter({ hasText: channelName });
+    await generalChannel.click({ button: 'right' });
+  }
+
+  async verifyUserWithChannelManagePermission(couldManageChannel = true) {
+    const channelSettingsSelector = new ChannelSettingSelector(this.page);
+    const editSelector = channelSettingsSelector.sidebar.panelItem.item.filter({
+      hasText: 'Edit Channel',
+    });
+    if (couldManageChannel) {
+      await expect(editSelector).toBeVisible({ timeout: 3000 });
+    } else {
+      await expect(editSelector).toBeHidden({ timeout: 3000 });
+    }
   }
 }
