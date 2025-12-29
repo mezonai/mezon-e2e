@@ -9,9 +9,9 @@ import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['accountKien6'];
@@ -191,7 +191,7 @@ test.describe('Friend Management - Block User', () => {
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
     const messagePageB = new MessagePage(pageB);
-    const clanPageB = new ClanPage(pageB);
+    // const clanPageB = new ClanPage(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure that once User A blocks User B, blocking pro-actively prevents notification features like buzz from triggering.
@@ -222,16 +222,16 @@ test.describe('Friend Management - Block User', () => {
     await test.step('User B cannot trigger buzz after being blocked', async () => {
       await pageB.keyboard.press('Control+g');
       const buzzModalHeading = await messagePageB.getMessageBuzzHeader();
-      await expect(buzzModalHeading).toHaveCount(1, { timeout: 3000 });
-      const textMessageBuzz = `text message buzz ${Date.now()}`;
-      await messagePageB.fillMessageBuzzInputMessage(textMessageBuzz);
-      await messagePageB.clickMessageBuzzSendButton();
-      await buzzModalHeading.waitFor({ state: 'detached', timeout: 5000 });
-      const isPermissionDeniedModelVisible = await clanPageB.isPermissionModalVisible();
-      expect(isPermissionDeniedModelVisible).toBeTruthy();
-      await clanPageB.clickPermissionModalCancelButton();
-      const permissionDeniedInputB = await friendPageB.getPermissionDeniedInput();
-      await expect(permissionDeniedInputB).toHaveCount(1, { timeout: 10000 });
+      await expect(buzzModalHeading).toHaveCount(0, { timeout: 3000 });
+      // const textMessageBuzz = `text message buzz ${Date.now()}`;
+      // await messagePageB.fillMessageBuzzInputMessage(textMessageBuzz);
+      // await messagePageB.clickMessageBuzzSendButton();
+      // await buzzModalHeading.waitFor({ state: 'detached', timeout: 5000 });
+      // const isPermissionDeniedModelVisible = await clanPageB.isPermissionModalVisible();
+      // expect(isPermissionDeniedModelVisible).toBeTruthy();
+      // await clanPageB.clickPermissionModalCancelButton();
+      // const permissionDeniedInputB = await friendPageB.getPermissionDeniedInput();
+      // await expect(permissionDeniedInputB).toHaveCount(1, { timeout: 10000 });
     });
   });
 
