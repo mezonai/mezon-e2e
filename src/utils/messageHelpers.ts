@@ -2572,6 +2572,18 @@ export class MessageTestHelpers {
       await expect(dmItem).toHaveCount(0);
     }
   }
+
+  async verifyUserCanDeleteMessage(username: string, canDelete = true) {
+    const message = this.selector.messages.filter({ hasText: username }).last();
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await message.click({ button: 'right' });
+    const deleteMessageButton = this.selector.deleteMessageButton;
+    if (canDelete) {
+      await expect(deleteMessageButton).toBeVisible({ timeout: 3000 });
+    } else {
+      await expect(deleteMessageButton).toBeHidden({ timeout: 3000 });
+    }
+  }
 }
 
 export const LINK_TEST_URLS = [
