@@ -274,6 +274,21 @@ export class ClanPage extends BasePage {
     await this.selector.threadBox.button.closeCreateThreadModal.click();
   }
 
+  async openThreadModalFromHeader(): Promise<void> {
+    await this.selector.header.button.thread.click();
+  }
+
+  async verifyCreateThreadButtonIsOpen(shouldVisible = true): Promise<boolean> {
+    const createThreadButtonLocator = this.selector.header.button.createThread;
+    if (shouldVisible) {
+      await expect(createThreadButtonLocator).toBeVisible({ timeout: 5000 });
+      return true;
+    } else {
+      await expect(createThreadButtonLocator).toBeHidden({ timeout: 5000 });
+      return false;
+    }
+  }
+
   async createThread(threadName: string, status?: ThreadStatus): Promise<void> {
     await this.selector.header.button.thread.click();
     await this.selector.header.button.createThread.click();
