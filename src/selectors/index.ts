@@ -921,6 +921,9 @@ export const DATA_E2E_IDENTIFIER = {
   badge: {
     friend_pending: '',
   },
+  full_profile: {
+    about_me: '',
+  },
 };
 
 export const ROUTES = {

@@ -336,6 +336,7 @@ export default class ClanSelector {
         ),
       },
     },
+    aboutMe: this.page.locator(generateE2eSelector('full_profile.about_me')),
   };
 
   readonly modalInvite = {
@@ -395,7 +396,7 @@ export default class ClanSelector {
       private: this.page.locator(
         generateE2eSelector('clan_page.modal.create_event.location.type'),
         {
-          hasText: 'Create Private Event',
+          hasText: 'Create External Event',
         }
       ),
     },
