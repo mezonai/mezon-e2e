@@ -324,7 +324,7 @@ export class MessagePage extends BasePage {
   async editMessage(messageItem: Locator, newText: string) {
     await messageItem.click({ button: 'right' });
     await this.selector.editMessageButton.click();
-    const textarea = this.page.locator('#editorReactMentionChannel');
+    const textarea = this.page.locator('div[class*="mention-input-editor"]').first();
     await textarea.fill(newText);
     await textarea.press('Enter');
     await sleep(1000);

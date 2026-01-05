@@ -625,7 +625,7 @@ export class ClanPage extends BasePage {
           await expect(typeClanLocator).toHaveText('Channel Event');
         }
       } else if (data.eventType === EventType.PRIVATE) {
-        await expect(typeClanLocator).toHaveText('Private Event');
+        await expect(typeClanLocator).toHaveText('External Event');
       }
 
       if (voiceChannelName) {
@@ -741,7 +741,7 @@ export class ClanPage extends BasePage {
         await expect(typeClanLocator).toBe('Channel Event');
       }
     } else if (expected.eventType === EventType.PRIVATE) {
-      await expect(typeClanLocator).toBe('Private Event');
+      await expect(typeClanLocator).toBe('External Event');
     }
 
     return true;
@@ -1696,5 +1696,15 @@ export class ClanPage extends BasePage {
     } else {
       await expect(editSelector).toBeHidden({ timeout: 3000 });
     }
+  }
+
+  async openContextModalOnMemberList(memberItem: Locator) {
+    await memberItem.click({ button: 'right' });
+    await this.selector.sidebarMemberList.profileButton.click();
+  }
+
+  async verifyAboutMeStatusInFullProfile(status: string) {
+    const aboutMeStatusLocator = this.selector.modal.aboutMe;
+    await expect(aboutMeStatusLocator).toHaveText(status, { timeout: 2000 });
   }
 }

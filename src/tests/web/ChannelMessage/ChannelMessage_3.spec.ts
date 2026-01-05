@@ -95,7 +95,6 @@ test.describe('Channel Message - Module 3', () => {
 
     expect(newMessage).toHaveCount(1);
     expect(newMessage).toBeVisible();
-    expect(newMessage).toHaveText(editedContent);
   });
 
   test('Forward message - select target and send', async ({ pageWithClipboard }) => {

@@ -11,7 +11,7 @@ import { splitDomainAndPath } from '@/utils/domain';
 import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { joinUrlPaths } from '@/utils/joinUrlPaths';
 import generateRandomString from '@/utils/randomString';
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('User Settings 2', () => {
   const clanFactory = new ClanFactory();
@@ -206,5 +206,90 @@ test.describe('User Settings 2', () => {
       await profilePage.verifyCustomStatusSettedInShortProfile(status);
       await profilePage.closeSettingsProfile();
     });
+  });
+
+  test('About me status on full profile', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63571',
+    });
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that a user can successfully change their About me status.
+  
+        **Test Steps:**
+        1. Locate the About me status input field
+        2. Clear existing About me status and enter new one
+        3. Verify save changes button visible
+        4. Verify that the length of the "About Me" status is reflected correctly.
+        5. Save the changes
+        6. Verify the About me status has been updated
+  
+        **Expected Result:** The About me status should be successfully updated and saved.
+      `);
+
+    const profilePage = new ProfilePage(page);
+    const clanPage = new ClanPage(page);
+    const channelSettingPage = new ChannelSettingPage(page);
+
+    await AllureReporter.step('Navigate to profile tab', async () => {
+      await profilePage.openUserSettingProfile();
+      await profilePage.openProfileTab();
+    });
+
+    await AllureReporter.step('Navigate to user profile tab', async () => {
+      await profilePage.openUserProfileTab();
+    });
+
+    await AllureReporter.addLabels({
+      tag: ['user-profile'],
+    });
+
+    const target = `about me status - ${generateRandomString(10)}`;
+    await AllureReporter.addParameter('newAboutMeStatus', target);
+    await AllureReporter.addParameter('platform', process.platform);
+
+    await AllureReporter.step('Enter new about me status and save button visible', async () => {
+      await profilePage.enterAboutMeStatus(target);
+      const saveChangesBtn = await profilePage.getSaveChangesUserProfile();
+      await expect(saveChangesBtn).toBeVisible({ timeout: 500 });
+      await expect(saveChangesBtn).toBeEnabled({ timeout: 500 });
+    });
+
+    await AllureReporter.step('Verify length of new about me status', async () => {
+      await profilePage.validateLength(target);
+    });
+
+    await AllureReporter.step('Save About me status', async () => {
+      await profilePage.saveChangesUserProfile();
+      const saveChangesBtn = await profilePage.getSaveChangesUserProfile();
+      await expect(saveChangesBtn).toBeHidden({ timeout: 500 });
+    });
+
+    await AllureReporter.step(
+      'Verify About me status has been changed successfully at About me input',
+      async () => {
+        await page.reload();
+        await profilePage.openUserSettingProfile();
+        await profilePage.openProfileTab();
+        await profilePage.openUserProfileTab();
+        await profilePage.verifyAboutMeStatusUpdated(target);
+      }
+    );
+
+    await AllureReporter.step(
+      'Verify About me status has been changed successfully at full profile',
+      async () => {
+        await page.reload({
+          waitUntil: 'domcontentloaded',
+        });
+        await channelSettingPage.openMemberList();
+        const memberItem = await clanPage.getMemberItemIn2ndSideBarbyUsername(userName);
+        await clanPage.openContextModalOnMemberList(memberItem);
+        await clanPage.verifyAboutMeStatusInFullProfile(target);
+        await page.keyboard.press('Escape');
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, 'About me status Changed Successfully');
   });
 });
