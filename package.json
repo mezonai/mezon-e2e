@@ -54,7 +54,7 @@
   "license": "MIT",
   "devDependencies": {
     "@estruyf/github-actions-reporter": "^1.10.0",
-    "@playwright/test": "^1.55.0",
+    "@playwright/test": "^1.57.0",
     "@types/archiver": "^6.0.3",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
