@@ -1,5 +1,7 @@
 import FriendSelector from '@/data/selectors/FriendSelector';
 import MessageSelector from '@/data/selectors/MessageSelector';
+import { FriendPage } from '@/pages/FriendPage';
+import { LoginPage } from '@/pages/LoginPage';
 import { expect, Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
 
@@ -2322,6 +2324,12 @@ export class MessageTestHelpers {
     await expect(tooltip).toBeVisible({ timeout: 5000 });
   }
 
+  async openMessageTabInInbox() {
+    await expect(this.selector.messageInboxPopover.triggerTab).toBeVisible({ timeout: 5000 });
+    await this.selector.messageInboxPopover.triggerTab.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async assertMessageInInboxByContent(messageContent: string) {
     const inboxMessage = this.selector.inboxMessages.filter({ hasText: messageContent });
     await expect(inboxMessage).toBeVisible({ timeout: 5000 });
@@ -2583,6 +2591,104 @@ export class MessageTestHelpers {
     } else {
       await expect(deleteMessageButton).toBeHidden({ timeout: 3000 });
     }
+  }
+
+  async verifyShareContactModalVisible() {
+    const shareContactModal = this.selector.shareContact.modal.item;
+    await expect(shareContactModal).toBeVisible({ timeout: 3000 });
+  }
+
+  async shareContactInDMOrChannel(destination: string, shouldVisible = true) {
+    const shareContactInput = this.selector.shareContact.modal.inputSearch;
+    await expect(shareContactInput).toBeVisible({ timeout: 3000 });
+    await shareContactInput.fill(destination);
+    await this.page.waitForTimeout(3000);
+    const destinationItemLocator = this.selector.modalForwardMessage.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: destination,
+      }
+    );
+    const isVisible = await destinationItemLocator.isVisible();
+    if (!shouldVisible) {
+      expect(isVisible).toBeFalsy();
+    } else {
+      expect(isVisible).toBeTruthy();
+      await destinationItemLocator.first().click();
+      await this.selector.shareContact.modal.buttonShare.click();
+      await this.page.waitForTimeout(2000);
+    }
+  }
+
+  async verifyContactSharedInDMOrChannel(username: string) {
+    const lastMessage = this.selector.messages.last();
+    const contactLocator = lastMessage.locator(this.selector.shareContact.card);
+    await expect(contactLocator).toBeVisible({ timeout: 3000 });
+    const nameLocator = contactLocator.locator(this.selector.shareContact.username);
+    await expect(nameLocator).toHaveText(username, { timeout: 3000 });
+  }
+
+  async verifyCallItemVisibleInShareContactCard(username: string, shouldVisible = true) {
+    const friendPage = new FriendPage(this.page);
+    const loginPage = new LoginPage(this.page);
+    const lastMessage = this.selector.messages.last();
+    const contactLocator = lastMessage.locator(this.selector.shareContact.card);
+    await expect(contactLocator).toBeVisible({ timeout: 3000 });
+    const nameLocator = contactLocator.locator(this.selector.shareContact.username);
+    await expect(nameLocator).toHaveText(username, { timeout: 3000 });
+    const callItemLocator = contactLocator.locator(this.selector.shareContact.buttonCall);
+    await callItemLocator.click();
+    if (shouldVisible) {
+      const currentUrl = loginPage.getCurrentUrl();
+      expect(currentUrl).toContain('chat/direct/message');
+    } else {
+      await friendPage.verifyReceivedRequestToast(`You cannot call yourself.`);
+    }
+  }
+
+  async clickMessageOnShareContactCard() {
+    const lastMessage = this.selector.messages.last();
+    const contactLocator = lastMessage.locator(this.selector.shareContact.card);
+    await expect(contactLocator).toBeVisible({ timeout: 3000 });
+    const buttonMessageLocator = contactLocator.locator(this.selector.shareContact.buttonMessage);
+    await expect(buttonMessageLocator).toBeVisible({ timeout: 3000 });
+    await buttonMessageLocator.click();
+    await this.page.waitForTimeout(2000);
+  }
+
+  async addMessageToInbox(messageElement: Locator): Promise<void> {
+    await messageElement.click({ button: 'right' });
+    await this.page.waitForTimeout(1000);
+
+    await this.selector.addToInboxButton.click();
+
+    await this.page.waitForTimeout(500);
+  }
+
+  async forwardAllMessages(destination: string) {
+    const messages = this.selector.messages.last();
+    await messages.click({ button: 'right' });
+    await this.page.waitForTimeout(400);
+    await this.selector.forwardAllMessagesButton.click();
+    await this.page.waitForTimeout(500);
+    await this.selector.searchUserOnForwardMessageModal.fill(destination);
+    await this.page.waitForTimeout(3000);
+    const channelItemLocator = this.selector.modalForwardMessage.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: destination,
+      }
+    );
+    await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
+    await channelItemLocator.first().click();
+    await this.selector.sendForwardMessageButton.click();
+  }
+
+  async assertMessageFromLastByIndexAndContent(indexFromLast: number, messageContent: string) {
+    const messageLocator = this.selector.messages.nth(-(indexFromLast + 1));
+
+    await expect(messageLocator).toBeVisible({ timeout: 5000 });
+    await expect(messageLocator).toHaveText(messageContent, { timeout: 5000 });
   }
 }
 

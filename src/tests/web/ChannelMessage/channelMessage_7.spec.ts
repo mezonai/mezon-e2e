@@ -6,6 +6,7 @@ import { AccountCredentials } from '../../../config/environment';
 
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
+import { MessagePage } from '@/pages/MessagePage';
 import { ChannelType } from '@/types/clan-page.types';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
@@ -143,6 +144,124 @@ test.describe('Channel Message - Module 7', () => {
 
       await messageHelper.openImagesTabOnGallery();
       await messageHelper.isGifVisibleOnGalleryTab(gifName);
+    });
+  });
+
+  test('Verify that user can send message with anonymous', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+      github_issue: '10991',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that user can send message with anonymous in a channel
+
+    **Test Steps:**
+    1. Navigate to a channel
+    2. Enable anonymous mode using Ctrl+Shift+Enter
+    3. Verify anonymous icon is visible
+    4. Send a message with anonymous identity
+    5. Verify the message is displayed with anonymous profile
+
+    **Expected Result:** User can send message with anonymous identity
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'anonymous', 'text-channel'],
+    });
+
+    const messageText = `Anonymous message ${Date.now()}`;
+    const messagePage = new MessagePage(page);
+
+    await AllureReporter.step('Enable anonymous mode and send message', async () => {
+      await messagePage.sendMessageWithAnonymous(messageText);
+    });
+
+    await AllureReporter.step(
+      'Verify anonymous message is sent with anonymous identity',
+      async () => {
+        const isMessageSent = await messagePage.isAnonymousMessageSent();
+        expect(isMessageSent).toBe(true);
+      }
+    );
+  });
+
+  test('Verify that user can not send message with anonymous when settings prevent anonymous', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+      github_issue: '10991',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that user can not send message with anonymous when settings prevent anonymous
+
+    **Test Steps:**
+    1. Setting prevent anonymous in clan settings
+    1. Navigate to a channel
+    2. Enable anonymous mode using Ctrl+Shift+Enter
+    3. Verify anonymous icon is not visible
+
+    **Expected Result:** User can not send message with anonymous when settings prevent anonymous
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'anonymous', 'text-channel', 'prevent-anonymous'],
+    });
+
+    const messagePage = new MessagePage(page);
+    const clanPage = new ClanPage(page);
+
+    await AllureReporter.step('Setting prevent anonymous', async () => {
+      await clanPage.openClanSettings();
+      await clanPage.preventAnonymous();
+      await clanPage.closeSettingsClan();
+    });
+
+    await AllureReporter.step('Enable anonymous mode', async () => {
+      await page.keyboard.press('Control+Shift+Enter');
+      await page.waitForTimeout(3000);
+    });
+
+    await AllureReporter.step('Verify anonymous icon is not visible', async () => {
+      const isVisible = await messagePage.isAnonymousIconVisible();
+      expect(isVisible).toBe(false);
+    });
+  });
+
+  test('Add message to inbox and verify message is present in inbox', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '65128',
+      github_issue: '11057',
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can add message to inbox and verify message is present in inbox
+      **Test Steps:**
+      1. Send message on channel
+      2. Add message to inbox
+      3. Open inbox
+      4. Verify message is present in inbox
+      **Expected Result:** User can add message to inbox and verify message is present in inbox
+    `);
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'inbox', 'add-to-inbox'],
+    });
+    const messageHelper = new MessageTestHelpers(page);
+    const messageContent = `Test inbox message ${Date.now()}`;
+    await AllureReporter.step('Send message on channel', async () => {
+      await messageHelper.sendTextMessage(messageContent);
+    });
+
+    await AllureReporter.step('Add message to inbox', async () => {
+      const targetMessage = await messageHelper.findMessageItemByText(messageContent);
+      await messageHelper.addMessageToInbox(targetMessage);
+    });
+
+    await AllureReporter.step('Open inbox and verify message is present in inbox', async () => {
+      await messageHelper.openHeaderInboxButton();
+      await messageHelper.openMessageTabInInbox();
+      await messageHelper.assertMessageInInboxByContent(messageContent);
     });
   });
 });

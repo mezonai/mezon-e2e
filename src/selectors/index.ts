@@ -30,6 +30,9 @@ export const DATA_E2E_IDENTIFIER = {
   base_profile: {
     display_name: '',
     user_status: '',
+    anonymous: {
+      avatar: '',
+    },
   },
   short_profile: {
     display_name: '',
@@ -178,6 +181,7 @@ export const DATA_E2E_IDENTIFIER = {
         events: '',
         members: '',
         channels: '',
+        clan_guide: '',
       },
     },
     member_list: {
@@ -193,6 +197,12 @@ export const DATA_E2E_IDENTIFIER = {
         },
         exist_role: {
           role_name: '',
+        },
+      },
+      actions: '',
+      transfer_owner_modal: {
+        input: {
+          confirm_transfer: '',
         },
       },
     },
@@ -346,12 +356,36 @@ export const DATA_E2E_IDENTIFIER = {
         title: '',
         delete: '',
         item: '',
+        onboarding_status: '',
       },
       onboarding: {
         button: {
           enable_onboarding: '',
           add_resources: '',
           clan_guide: '',
+          setup_question: '',
+          add_question: '',
+          remove_question: '',
+          save_change: '',
+          save_all: '',
+          add_task: '',
+          cancel: '',
+          back: '',
+          disable_onboarding: '',
+          open_preview_mode: '',
+          close_preview_mode: '',
+        },
+        input: {
+          question: '',
+          answer: '',
+        },
+        question: {
+          item: '',
+        },
+        clan_guide: {
+          input: {
+            title: '',
+          },
         },
       },
       community: {
@@ -392,6 +426,7 @@ export const DATA_E2E_IDENTIFIER = {
             },
           },
         },
+        prevent_anonymous: '',
       },
       upload: {
         clan_logo_input: '',
@@ -582,7 +617,9 @@ export const DATA_E2E_IDENTIFIER = {
     },
     direct_message: {
       header: {
-        left_container: '',
+        left_container: {
+          in_voice_status: '',
+        },
         right_container: {
           user_profile: '',
           call: '',
@@ -598,6 +635,7 @@ export const DATA_E2E_IDENTIFIER = {
         close_dm_button: '',
         text_area: '',
         namegroup: '',
+        in_voice_status: '',
       },
       message_buzz: {
         header: '',
@@ -777,10 +815,29 @@ export const DATA_E2E_IDENTIFIER = {
       },
       number_replies: '',
     },
+    anonymous: '',
+    share_contact: {
+      display_name: '',
+      username: '',
+      button: {
+        call: '',
+        message: '',
+      },
+    },
+    button: {
+      wave_to_say_hi: '',
+    },
   },
   onboarding: {
     chat: {
       guide_sections: '',
+    },
+    clan_guide_page: {
+      label: '',
+      question: '',
+      title: '',
+      description: '',
+      action: '',
     },
   },
   user_setting: {
@@ -874,6 +931,15 @@ export const DATA_E2E_IDENTIFIER = {
     search: {
       input: '',
     },
+    share_contact: {
+      input: {
+        search: '',
+      },
+      button: {
+        cancel: '',
+        share: '',
+      },
+    },
   },
   friend_page: {
     tab: {
@@ -902,6 +968,8 @@ export const DATA_E2E_IDENTIFIER = {
   },
   icon: {
     end_call: '',
+    owner: '',
+    profile_status: '',
   },
   message: {
     item: '',

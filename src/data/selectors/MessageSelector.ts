@@ -73,6 +73,19 @@ export default class MessageSelector {
   pinMessageButton = this.page
     .locator(generateE2eSelector('chat.message_action_modal.button.base'))
     .filter({ hasText: 'Pin message' });
+
+  unpinMessageButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Unpin Message' });
+
+  addToInboxButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Add To Inbox' });
+
+  markAsUnreadButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Mark Unread' });
+
   confirmPinMessageButton = this.page.locator(
     generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
     { hasText: 'Oh yeah. Pin it' }
@@ -98,6 +111,10 @@ export default class MessageSelector {
     .locator(generateE2eSelector('chat.message_action_modal.button.base'))
     .filter({ hasText: 'Forward Message' });
 
+  forwardAllMessagesButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Forward All Messages' });
+
   createThreadButton = this.page
     .locator(generateE2eSelector('chat.message_action_modal.button.base'))
     .filter({ hasText: 'Create Thread' });
@@ -115,8 +132,15 @@ export default class MessageSelector {
   pinnedMessages = this.page.locator(generateE2eSelector('common.pin_message'));
   welcomeDM = this.page.locator(generateE2eSelector('chat_welcome'));
   welcomeDMAvatar = this.welcomeDM.locator(generateE2eSelector('avatar.image'));
+  headerDM = this.page.locator(generateE2eSelector('chat.direct_message.header.left_container'));
   headerDMAvatar = this.page.locator(
     `${generateE2eSelector('chat.direct_message.header.left_container')} ${generateE2eSelector('avatar.image')}`
+  );
+  invoiceStatusDMHeader = this.page.locator(
+    generateE2eSelector('chat.direct_message.header.left_container.in_voice_status')
+  );
+  invoiceStatusFriendList = this.page.locator(
+    generateE2eSelector('chat.direct_message.chat_item.in_voice_status')
   );
   headerUserProfileButton = this.page.locator(
     `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
@@ -225,6 +249,16 @@ export default class MessageSelector {
   headerGalleryButton = this.page.locator(
     generateE2eSelector('chat.channel_message.header.button.gallery')
   );
+  waveToSayHiButton = this.page.locator(generateE2eSelector('chat.button.wave_to_say_hi'));
+
+  readonly anonymous = {
+    anonymousIcon: this.page.locator(generateE2eSelector('chat.anonymous')),
+    anonymousMessage: this.page.locator(generateE2eSelector('base_profile.anonymous')),
+    anonymousAvatar: this.page.locator(generateE2eSelector('base_profile.anonymous.avatar')),
+    anonymousName: this.page.locator(generateE2eSelector('base_profile.display_name'), {
+      hasText: 'Anonymous',
+    }),
+  };
 
   readonly shortProfile = {
     avatar: this.page.locator(
@@ -296,6 +330,26 @@ export default class MessageSelector {
     triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
       hasText: 'Topics',
     }),
+  };
+
+  readonly messageInboxPopover = {
+    triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
+      hasText: 'Messages',
+    }),
+  };
+
+  readonly shareContact = {
+    card: this.page.locator(generateE2eSelector('chat.share_contact')),
+    displayName: this.page.locator(generateE2eSelector('chat.share_contact.display_name')),
+    username: this.page.locator(generateE2eSelector('chat.share_contact.username')),
+    buttonCall: this.page.locator(generateE2eSelector('chat.share_contact.button.call')),
+    buttonMessage: this.page.locator(generateE2eSelector('chat.share_contact.button.message')),
+    modal: {
+      item: this.page.locator(generateE2eSelector('modal.share_contact')),
+      inputSearch: this.page.locator(generateE2eSelector('modal.share_contact.input.search')),
+      buttonCancel: this.page.locator(generateE2eSelector('modal.share_contact.button.cancel')),
+      buttonShare: this.page.locator(generateE2eSelector('modal.share_contact.button.share')),
+    },
   };
 
   mentionUser = this.page.locator(generateE2eSelector('chat.channel_message.mention_user'));

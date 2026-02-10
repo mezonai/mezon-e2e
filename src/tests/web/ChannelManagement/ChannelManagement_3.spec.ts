@@ -122,4 +122,61 @@ test.describe('Channel Management - Module 2', () => {
 
     await AllureReporter.attachScreenshot(page, `Text Channel deleted - ${channelName}`);
   });
+  test('Verify that permission settings not visible on stream channel and voice channel', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64610',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that permission settings are not visible on stream channel and voice channel.  
+      Steps:
+      1. Create a stream channel
+      2. Verify that permission settings not visible on stream channel
+      3. Create a voice channel
+      4. Verify that permission settings not visible on voice channel
+      **Expected Result:** Permission settings are not visible on stream channel and voice channel.
+    `);
+    await AllureReporter.addLabels({
+      tag: ['stream-channel', 'voice-channel', 'permission-settings'],
+    });
+    const unique = Date.now().toString(36).slice(-6);
+    const streamChannelName = `sc-${unique}`.slice(0, 20);
+    const voiceChannelName = `vc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPage(page);
+    const channelSettings = new ChannelSettingPage(page);
+    await AllureReporter.addParameter('streamChannelName', streamChannelName);
+    await AllureReporter.addParameter('voiceChannelName', voiceChannelName);
+    await AllureReporter.step(`Create new stream channel: ${streamChannelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.STREAM, streamChannelName);
+      const isStreamChannelPresent = await clanPage.isNewChannelPresent(streamChannelName);
+      expect(isStreamChannelPresent).toBe(true);
+    });
+    await AllureReporter.step(
+      'Verify that permission settings not visible on stream channel',
+      async () => {
+        await clanPage.openChannelSettings(streamChannelName);
+        const isPermissionSettingsVisible = await channelSettings.isPermissionSettingsVisible();
+        expect(isPermissionSettingsVisible).toBe(false);
+      }
+    );
+    await AllureReporter.step(`Create new voice channel: ${voiceChannelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.VOICE, voiceChannelName);
+      const isVoiceChannelPresent = await clanPage.isNewChannelPresent(voiceChannelName);
+      expect(isVoiceChannelPresent).toBe(true);
+    });
+    await AllureReporter.step(
+      'Verify that permission settings not visible on voice channel',
+      async () => {
+        await clanPage.openChannelSettings(voiceChannelName);
+        const isPermissionSettingsVisible = await channelSettings.isPermissionSettingsVisible();
+        expect(isPermissionSettingsVisible).toBe(false);
+      }
+    );
+  });
 });

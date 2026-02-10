@@ -1,7 +1,7 @@
+import HomePageSelector from '@/data/selectors/HomePageSelector';
 import { type Page, expect } from '@playwright/test';
 import { WEBSITE_CONFIGS } from '../config/environment';
 import { BasePage } from './BasePage';
-import HomePageSelector from '@/data/selectors/HomePageSelector';
 
 export class HomePage extends BasePage {
   private selector: HomePageSelector;
