@@ -226,4 +226,199 @@ test.describe('Channel Message 3', () => {
       expect(lastMessage).toContain(testMessage);
     });
   });
+
+  test('Verify that user can share friend contact card in clan channel', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can share friend contact card in clan channel
+      Steps:
+      1. User A create clan
+      2. User A invite user B
+      3. User B accept invite
+      4. User A share friend contact card in clan channel
+      **Expected Result:** User can share friend contact card in clan channel
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan', 'contact-card', 'share'],
+    });
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const messageHelperA = new MessageTestHelpers(pageA);
+    const messageHelperB = new MessageTestHelpers(pageB);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('User A share friend contact card in clan channel', async () => {
+      await clanPageA.openMemberList();
+      await clanPageA.clickShareContactByName(userNameB);
+      await messageHelperA.verifyShareContactModalVisible();
+      await messageHelperA.shareContactInDMOrChannel('general');
+    });
+    await AllureReporter.step('Verify contact card message is visible on destination', async () => {
+      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await messageHelperB.verifyContactSharedInDMOrChannel(userNameB);
+    });
+  });
+
+  test('Verify that user can not share friend contact card to friend`s DM', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can not share friend contact card in friend's DM
+      Steps:
+      1. User A create clan
+      2. User A invite user B
+      3. User B accept invite
+      4. User A share friend contact card to friend's DM
+      **Expected Result:** User can not share friend contact card in friend's DM
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan', 'contact-card', 'share', 'dm'],
+    });
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const messageHelperA = new MessageTestHelpers(pageA);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('User A click share friend contact card to friend`s dm', async () => {
+      await clanPageA.openMemberList();
+      await clanPageA.clickShareContactByName(userNameB);
+      await messageHelperA.verifyShareContactModalVisible();
+      await messageHelperA.shareContactInDMOrChannel(userNameB, false);
+    });
+  });
+
+  test('Verify that user can not call itself from share contact', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can not call itself from share contact
+      Steps:
+      1. User A create clan
+      2. User A invite user B
+      3. User B accept invite
+      4. User A share friend contact card to channel
+      5. User B verify call item is not present on shared contact card
+      **Expected Result:** User can not call itself from share contact
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan', 'contact-card', 'share', 'call'],
+    });
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const messageHelperA = new MessageTestHelpers(pageA);
+    const messageHelperB = new MessageTestHelpers(pageB);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step('User A click share friend contact card to friend`s dm', async () => {
+      await clanPageA.openMemberList();
+      await clanPageA.clickShareContactByName(userNameB);
+      await messageHelperA.verifyShareContactModalVisible();
+      await messageHelperA.shareContactInDMOrChannel('general');
+    });
+
+    await AllureReporter.step('Verify contact card message has not call item', async () => {
+      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await messageHelperB.verifyContactSharedInDMOrChannel(userNameB);
+      await messageHelperB.verifyCallItemVisibleInShareContactCard(userNameB, false);
+    });
+  });
 });

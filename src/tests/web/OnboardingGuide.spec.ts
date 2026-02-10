@@ -176,4 +176,195 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     await AllureReporter.attachScreenshot(page, 'Create Channel Task Completed');
   });
+
+  test('Verify that user can enable onboarding on clan settings', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+      github_issue: '10991',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that user can enable onboarding on clan settings
+
+    **Test Steps:**
+    1. Open clan settings -> onboarding tab
+    2. Click enable onboarding
+    3. Click setup question
+    4. Add task
+    5. Add question, answer title, answer description and save
+
+    **Expected Result:** Verify that user can enable onboarding on clan settings
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan-setting', 'onboarding', 'pre-question', 'enable'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const onboardingPage = new OnboardingPage(page);
+    const data = {
+      question: 'This is question',
+      answerTitle: 'This is answer title',
+      answerDescription: 'This is answer description',
+      taskName: 'Send a message',
+    };
+
+    await AllureReporter.step('Enable onboarding on clan', async () => {
+      await clanPage.openClanSettings();
+      await onboardingPage.verifyEnableOnboardingOnClanSettingsSidebar(false);
+      await onboardingPage.openOnboardingTab();
+      await onboardingPage.clickEnableOnboarding();
+    });
+
+    await AllureReporter.step('Enable onboarding', async () => {
+      await onboardingPage.addTaskOnboarding(data.taskName);
+      await onboardingPage.clickBackOnboardingModal();
+      await onboardingPage.addPrequestionOnboaring(
+        data.question,
+        data.answerTitle,
+        data.answerDescription
+      );
+    });
+
+    await AllureReporter.step('Verify onboarding is enable', async () => {
+      await onboardingPage.verifyEnableOnboardingOnClanSettingsSidebar();
+    });
+  });
+
+  test('Verify that onboarding page is visible and data is match', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+      github_issue: '10991',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that onboarding page is visible and data is match
+
+    **Test Steps:**
+    1. Open clan settings -> onboarding tab
+    2. Click enable onboarding
+    3. Click setup question
+    4. Add question, answer title, answer description and save
+    5. Verify pre-question is visible on preview
+
+    **Expected Result:** Verify that onboarding page is visible and data is match
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan-setting', 'onboarding', 'task'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const onboardingPage = new OnboardingPage(page);
+    const data = {
+      question: 'This is question',
+      answerTitle: 'This is answer title',
+      answerDescription: 'This is answer description',
+      taskName: 'Send a message',
+    };
+
+    await AllureReporter.step('Enable onboarding on clan', async () => {
+      await clanPage.openClanSettings();
+      await onboardingPage.verifyEnableOnboardingOnClanSettingsSidebar(false);
+      await onboardingPage.openOnboardingTab();
+      await onboardingPage.clickEnableOnboarding();
+    });
+
+    await AllureReporter.step('Enable onboarding', async () => {
+      await onboardingPage.addTaskOnboarding(data.taskName);
+      await onboardingPage.clickBackOnboardingModal();
+      await onboardingPage.addPrequestionOnboaring(
+        data.question,
+        data.answerTitle,
+        data.answerDescription
+      );
+    });
+
+    await AllureReporter.step('Verify onboarding is enable', async () => {
+      await onboardingPage.verifyEnableOnboardingOnClanSettingsSidebar();
+      await clanPage.closeSettingsClan();
+    });
+
+    await AllureReporter.step('Verify onboarding page is enable and data is match', async () => {
+      await onboardingPage.verifyOnboardingPageVisible();
+      await onboardingPage.openOnboardingPage();
+      await onboardingPage.verifyOnboardingSetupByType(
+        'question',
+        data.answerTitle,
+        data.answerDescription,
+        data.question
+      );
+      await onboardingPage.verifyOnboardingSetupByType('mission', data.taskName);
+    });
+  });
+
+  test('Verify that onboarding settings is match on preview mode', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63368',
+      github_issue: '10991',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that onboarding settings is match on preview mode
+
+    **Test Steps:**
+    1. Open clan settings -> onboarding tab
+    2. Click enable onboarding
+    3. Click setup question
+    4. Add question, answer title, answer description and save
+    5. Verify pre-question is visible on preview
+
+    **Expected Result:** Verify that onboarding settings is match on preview mode
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan-setting', 'onboarding', 'task', 'preview-mode'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const onboardingPage = new OnboardingPage(page);
+    const data = {
+      question: 'This is question',
+      answerTitle: 'This is answer title',
+      answerDescription: 'This is answer description',
+      taskName: 'Send a message',
+    };
+
+    await AllureReporter.step('Enable onboarding on clan', async () => {
+      await clanPage.openClanSettings();
+      await onboardingPage.verifyEnableOnboardingOnClanSettingsSidebar(false);
+      await onboardingPage.openOnboardingTab();
+      await onboardingPage.clickEnableOnboarding();
+    });
+
+    await AllureReporter.step('Enable onboarding', async () => {
+      await onboardingPage.addTaskOnboarding(data.taskName);
+      await onboardingPage.clickBackOnboardingModal();
+      await onboardingPage.addPrequestionOnboaring(
+        data.question,
+        data.answerTitle,
+        data.answerDescription
+      );
+    });
+
+    await AllureReporter.step('Verify onboarding is enable', async () => {
+      await onboardingPage.verifyEnableOnboardingOnClanSettingsSidebar();
+    });
+
+    await AllureReporter.step(
+      'Verify that onboarding settings is match on preview mode',
+      async () => {
+        await onboardingPage.openOnboardingPreviewMode();
+        await onboardingPage.verifyOnboardingSetupByType(
+          'question',
+          data.answerTitle,
+          data.answerDescription,
+          data.question
+        );
+        await onboardingPage.verifyOnboardingSetupByType('mission', data.taskName);
+        await onboardingPage.closeOnboardingPreviewMode();
+        await clanPage.closeSettingsClan();
+      }
+    );
+  });
 });

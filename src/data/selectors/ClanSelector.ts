@@ -56,6 +56,9 @@ export default class ClanSelector {
       hasText: 'Mark as Read',
     }),
     badge: this.page.locator(generateE2eSelector('clan_page.badge')),
+    preventAnoSettings: this.page.locator(
+      `${generateE2eSelector('clan_page.settings.overview.prevent_anonymous')} ${generateE2eSelector('input.base')}`
+    ),
   };
 
   readonly sidebarMemberList = {
@@ -75,6 +78,11 @@ export default class ClanSelector {
       .filter({
         hasText: 'Kick',
       }),
+    shareContactButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Share this contact',
+      }),
   };
 
   readonly sidePanel = {
@@ -91,6 +99,18 @@ export default class ClanSelector {
       generateE2eSelector('clan_page.member_list.user_info.display_name')
     ),
     username: this.page.locator(generateE2eSelector('clan_page.member_list.user_info.username')),
+    actionsButton: this.page.locator(generateE2eSelector('clan_page.member_list.actions')),
+    transferOwnershipModal: {
+      container: this.page.locator(
+        generateE2eSelector('clan_page.member_list.transfer_owner_modal')
+      ),
+      confirmTransferInput: this.page.locator(
+        generateE2eSelector('clan_page.member_list.transfer_owner_modal.input.confirm_transfer')
+      ),
+      confirmTransferButton: this.page.locator(generateE2eSelector('button.base'), {
+        hasText: 'Transfer Ownership',
+      }),
+    },
   };
 
   readonly footerProfile = {
@@ -361,6 +381,7 @@ export default class ClanSelector {
         generateE2eSelector('clan_page.secondary_side_bar.member.user_status')
       ),
       username: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username')),
+      ownerIcon: this.page.locator(generateE2eSelector('icon.owner')),
     },
   };
 
@@ -429,6 +450,9 @@ export default class ClanSelector {
         generateE2eSelector('clan_page.modal.create_event.location.input')
       ),
     },
+    selectVoiceChannel: this.page.locator(
+      `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select Voice channel")`
+    ),
     selectChannel: this.page.locator(
       `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select channel")`
     ),
@@ -559,6 +583,94 @@ export default class ClanSelector {
     button: {
       kick: this.page.locator(generateE2eSelector('clan_page.modal.kick_member.button.kick')),
       cancel: this.page.locator(generateE2eSelector('clan_page.modal.kick_member.button.cancel')),
+    },
+  };
+
+  readonly onboarding = {
+    status: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.onboarding_status')),
+    buttons: {
+      enableOnboarding: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.enable_onboarding')
+      ),
+      back: this.page.locator(generateE2eSelector('clan_page.settings.onboarding.button.back')),
+      disableOnboarding: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.disable_onboarding')
+      ),
+      openPreviewMode: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.open_preview_mode')
+      ),
+      closePreviewMode: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.close_preview_mode')
+      ),
+    },
+    setupQuestion: {
+      item: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.setup_question')
+      ),
+      input: {
+        question: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.input.question')
+        ),
+        answerTitle: this.page.locator(`
+          ${generateE2eSelector('clan_page.settings.onboarding.input.answer')} input[placeholder="Enter an answer..."]
+        `),
+        answerDescription: this.page.locator(`
+          ${generateE2eSelector('clan_page.settings.onboarding.input.answer')} input[placeholder="Enter a description... (optional)"]
+        `),
+      },
+      button: {
+        confirmAnswer: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save' }),
+        saveQuestion: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.save_change')
+        ),
+        addQuestion: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.add_question')
+        ),
+        addAnswer: this.page.locator(generateE2eSelector('button.base'), {
+          hasText: 'Add an Answer',
+        }),
+        removeQuestion: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.remove_question')
+        ),
+        removeAnswer: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Remove' }),
+        questionItem: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.question.item')
+        ),
+        saveAll: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.save_all')
+        ),
+      },
+    },
+    clanGuideSettings: {
+      item: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.clan_guide')
+      ),
+      buttons: {
+        addTask: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.add_task')
+        ),
+      },
+      input: {
+        taskTitle: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.clan_guide.input.title')
+        ),
+      },
+    },
+    clanGuidePage: {
+      sidebar: this.page.locator(generateE2eSelector('clan_page.side_bar.button.clan_guide')),
+      questionLabel: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.label'), {
+        hasText: 'Questions',
+      }),
+      resourceLabel: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.label'), {
+        hasText: 'Resources',
+      }),
+      missionLabel: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.label'), {
+        hasText: 'Missions',
+      }),
+      title: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.title')),
+      description: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.description')),
+      action: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.action')),
+      question: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.question')),
     },
   };
 

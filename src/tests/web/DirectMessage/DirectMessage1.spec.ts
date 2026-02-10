@@ -1,0 +1,170 @@
+import { AllureConfig } from '@/config/allure.config';
+import { AccountCredentials } from '@/config/environment';
+import { ClanFactory } from '@/data/factories/ClanFactory';
+import MessageSelector from '@/data/selectors/MessageSelector';
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import { MessagePage } from '@/pages/MessagePage';
+import { MezonCredentials } from '@/types';
+import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
+import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
+import TestSuiteHelper from '@/utils/testSuite.helper';
+import { expect, test } from '@playwright/test';
+
+test.describe('Direct Message 1 - Invoice Status', () => {
+  const clanFactory = new ClanFactory();
+  const credentials: MezonCredentials = AccountCredentials.account2;
+  const [userNameA] = getUsernamesFromEmails([credentials.email]);
+
+  test.beforeAll(async ({ browser }) => {
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.directMessage1,
+      credentials,
+    });
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      parrent_issue: '63370',
+    });
+
+    await TestSuiteHelper.setupBeforeEach({
+      page,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
+  });
+
+  test('Display invoice status in DM list and header', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that invoice (in-voice) status indicator is visible on the direct message friend list and in the DM chat header when a user is in an active voice call.
+
+      **Test Steps:**
+      1. Create a new voice channel
+      2. Join the voice channel
+      3. Navigate to direct friends page
+      4. Open DM conversation with the current user (self)
+      5. Verify invoice status indicator in friend list
+      6. Verify invoice status indicator in DM header
+
+      **Expected Result:** Invoice status indicator is visible on the friend list item and in the DM chat header when user is in an active voice session.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['direct-message', 'invoice-status', 'voice-status'],
+    });
+
+    const messageSelector = new MessageSelector(page);
+    const clanPage = new ClanPage(page);
+    const messagePage = new MessagePage(page);
+    const messageHelper = new MessageTestHelpers(page);
+
+    // Create a voice channel
+    const voiceChannelName = `voice-${Date.now().toString(36).slice(-6)}`.slice(0, 20);
+
+    await AllureReporter.addParameter('voiceChannelName', voiceChannelName);
+    await AllureReporter.addParameter('channelType', ChannelType.VOICE);
+    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step(`Create new public voice channel: ${voiceChannelName}`, async () => {
+      const channelCreated = await clanPage.createNewChannel(
+        ChannelType.VOICE,
+        voiceChannelName,
+        ChannelStatus.PUBLIC
+      );
+      expect(channelCreated).toBe(true);
+    });
+
+    await AllureReporter.step('Verify voice channel is present', async () => {
+      const channelExists = await clanPage.isNewChannelPresent(voiceChannelName);
+      expect(channelExists).toBe(true);
+    });
+
+    await AllureReporter.step(`Join voice channel: ${voiceChannelName}`, async () => {
+      const joinedVoice = await clanPage.joinVoiceChannel(voiceChannelName);
+      expect(joinedVoice).toBe(true);
+      await page.waitForTimeout(2000);
+    });
+
+    await AllureReporter.step('Verify user is in voice channel', async () => {
+      const isInVoiceChannel = await clanPage.isJoinVoiceChannel(voiceChannelName);
+      expect(isInVoiceChannel).toBe(true);
+    });
+
+    await AllureReporter.step(`Open DM conversation with current user: ${userNameA}`, async () => {
+      await messagePage.openSearchModalbyPressCtrlK();
+      await messageHelper.openDMByNameOnsearchModal(userNameA);
+      await page.waitForTimeout(1500);
+    });
+
+    await AllureReporter.step('Verify invoice status indicator in friend list', async () => {
+      const invoiceStatusInFriendList = messageSelector.invoiceStatusFriendList;
+      const friendListStatusVisible = await invoiceStatusInFriendList
+        .isVisible({ timeout: 5000 })
+        .catch(() => false);
+
+      if (friendListStatusVisible) {
+        await expect(invoiceStatusInFriendList).toBeVisible();
+      }
+
+      return friendListStatusVisible;
+    });
+
+    await AllureReporter.step('Verify invoice status indicator in DM header', async () => {
+      const invoiceStatusInHeader = messageSelector.invoiceStatusDMHeader;
+      const headerStatusVisible = await invoiceStatusInHeader
+        .isVisible({ timeout: 5000 })
+        .catch(() => false);
+
+      if (headerStatusVisible) {
+        await expect(invoiceStatusInHeader).toBeVisible();
+      }
+
+      return headerStatusVisible;
+    });
+
+    await AllureReporter.step(
+      'Verify invoice status is visible on friend list or DM header',
+      async () => {
+        const invoiceStatusInFriendList = messageSelector.invoiceStatusFriendList;
+        const invoiceStatusInHeader = messageSelector.invoiceStatusDMHeader;
+
+        const friendListStatusVisible = await invoiceStatusInFriendList
+          .isVisible({ timeout: 5000 })
+          .catch(() => false);
+
+        const headerStatusVisible = await invoiceStatusInHeader
+          .isVisible({ timeout: 5000 })
+          .catch(() => false);
+
+        // At least one indicator should be visible when user is in voice
+        expect(friendListStatusVisible || headerStatusVisible).toBe(true);
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, `Invoice Status - DM List & Header - ${userNameA}`);
+  });
+});

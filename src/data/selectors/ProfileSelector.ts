@@ -102,6 +102,9 @@ export default class ProfileSelector {
       }),
     },
     modal: {
+      container: this.page.locator(
+        generateE2eSelector('user_setting.profile.user_profile.preview.avatar')
+      ),
       customStatus: {
         container: this.page.locator(generateE2eSelector('short_profile.modal.custom_status')),
         input: this.page.locator(generateE2eSelector('short_profile.modal.custom_status.input')),
@@ -125,6 +128,10 @@ export default class ProfileSelector {
           generateE2eSelector('short_profile.activity_status.button.clear')
         ),
       },
+    },
+    profileStatus: {
+      triggerButton: this.page.locator(generateE2eSelector('short_profile.action.button.base')),
+      status: this.page.locator(generateE2eSelector('icon.profile_status')),
     },
   };
 }

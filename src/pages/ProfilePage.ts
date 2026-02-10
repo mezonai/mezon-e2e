@@ -1,7 +1,7 @@
 import MessageSelector from '@/data/selectors/MessageSelector';
 import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { MessagePage } from './MessagePage';
 
@@ -195,5 +195,90 @@ export class ProfilePage extends BasePage {
 
   async closeSettingsProfile() {
     await this.selector.buttons.closeSettingProfile.click();
+  }
+
+  async getProfileStatusInFooterProfile() {
+    const locator = this.selector.shortProfile.profileStatus.triggerButton;
+
+    if (await locator.locator('.bg-green-500').isVisible()) {
+      return 'online';
+    }
+
+    if (await locator.locator('.bg-red-500').isVisible()) {
+      return 'Do Not Disturb';
+    }
+
+    if (await locator.locator('svg.text-\\[\\#F0B232\\]').isVisible()) {
+      return 'Idle';
+    }
+
+    if (await locator.locator('rect[stroke="#AEAEAE"]').isVisible()) {
+      return 'Invisible';
+    }
+
+    return 'Unknown';
+  }
+
+  async openSelectProfileStatusModal(currentStatus: string) {
+    const buttonTrigger = this.selector.shortProfile.profileStatus.triggerButton.locator('li', {
+      hasText: currentStatus,
+    });
+    await expect(buttonTrigger).toBeVisible({ timeout: 3000 });
+    await buttonTrigger.click();
+  }
+
+  async getProfileStatus(locator: Locator): Promise<string> {
+    if (await locator.locator('.bg-green-500').isVisible()) {
+      return 'online';
+    }
+
+    if (await locator.locator('.bg-red-500').isVisible()) {
+      return 'Do Not Disturb';
+    }
+
+    if (await locator.locator('svg.text-\\[\\#F0B232\\]').isVisible()) {
+      return 'Idle';
+    }
+
+    if (await locator.locator('rect[stroke="#AEAEAE"]').isVisible()) {
+      return 'Invisible';
+    }
+
+    return 'Unknown';
+  }
+
+  async setProfileStatus(newStatus: string, timeVisible?: string) {
+    const statusLocator = this.selector.shortProfile.profileStatus.triggerButton
+      .filter({ hasText: newStatus })
+      .first();
+    await expect(statusLocator).toBeVisible({ timeout: 3000 });
+    await statusLocator.click();
+    const timeLocator = this.selector.shortProfile.profileStatus.triggerButton
+      .filter({ hasText: timeVisible })
+      .first();
+    if (timeVisible) {
+      await timeLocator.click();
+    }
+  }
+
+  async verifyNewStatusVisibleShortProfile(expectedStatus: string) {
+    const previewStatus = this.selector.shortProfile.modal.container.locator(
+      this.selector.shortProfile.profileStatus.status
+    );
+
+    const actualStatus = await this.getProfileStatus(previewStatus);
+
+    expect(actualStatus).toBe(expectedStatus);
+  }
+
+  async verifyNewProfileStatusVisibleDueToLocator(userLocator: Locator, expectedStatus: string) {
+    const profileStatus = userLocator.locator(this.selector.shortProfile.profileStatus.status);
+    const actualStatus = await this.getProfileStatus(profileStatus);
+
+    expect(actualStatus).toBe(expectedStatus);
+  }
+
+  async getUserProfileLocator() {
+    return this.selector.shortProfile.modal.container.first();
   }
 }

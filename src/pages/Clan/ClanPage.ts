@@ -195,6 +195,13 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async preventAnonymous() {
+    const buttonSettings = this.selector.buttons.preventAnoSettings;
+    await buttonSettings.click();
+    await this.selector.buttons.saveChanges.click();
+    await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
+  }
+
   async createEvent(): Promise<void> {
     this.selector.buttons.eventButton.click();
     this.selector.eventModal.createEventButton.click();
@@ -484,7 +491,7 @@ export class ClanPage extends BasePage {
       }
       if (voiceChannelName) {
         if (eventType === EventType.VOICE) {
-          await this.selector.createEventModal.selectChannel.first().click();
+          await this.selector.createEventModal.selectVoiceChannel.first().click();
           const channelItem = this.selector.createEventModal.channelItem.filter({
             hasText: voiceChannelName,
           });
@@ -1706,5 +1713,111 @@ export class ClanPage extends BasePage {
   async verifyAboutMeStatusInFullProfile(status: string) {
     const aboutMeStatusLocator = this.selector.modal.aboutMe;
     await expect(aboutMeStatusLocator).toHaveText(status, { timeout: 2000 });
+  }
+
+  async clickShareContactByName(username: string) {
+    const memberLocator = this.selector.sidebarMemberList.memberItems
+      .filter({ hasText: username })
+      .first();
+    await expect(memberLocator).toBeVisible({ timeout: 3000 });
+    await memberLocator.click({ button: 'right' });
+
+    await this.selector.sidebarMemberList.shareContactButton.click();
+  }
+
+  async openMemberActionsMenu(username: string) {
+    const userRow = this.page.locator(
+      `${generateE2eSelector('clan_page.member_list')}:has(${generateE2eSelector('clan_page.member_list.user_info.username')}:has-text("${username}"))`
+    );
+    await expect(userRow).toBeVisible({ timeout: 5000 });
+    await userRow.click({ button: 'right' });
+  }
+
+  async clickTransferClanOwnershipButton() {
+    const transferOwnershipButton = this.selector.memberSettings.actionsButton.locator(
+      generateE2eSelector('chat.direct_message.menu.leave_group.button'),
+      { hasText: 'Transfer Ownership' }
+    );
+    await transferOwnershipButton.click();
+  }
+
+  async confirmTransferOwnership() {
+    const transferModal = this.selector.memberSettings.transferOwnershipModal.container;
+    await expect(transferModal).toBeVisible({ timeout: 3000 });
+    const confirmInput = this.selector.memberSettings.transferOwnershipModal.confirmTransferInput;
+    await confirmInput.click();
+    const confirmButton = this.selector.memberSettings.transferOwnershipModal.confirmTransferButton;
+    await confirmButton.click();
+  }
+
+  async verifyOwnerIconIsVisibleInMemberList(memberItem: Locator) {
+    const ownerIconLocator = memberItem.locator(this.selector.secondarySideBar.member.ownerIcon);
+    await expect(ownerIconLocator).toBeVisible({ timeout: 3000 });
+  }
+
+  async verifyOwnerCannotLeaveClan() {
+    await this.selector.buttons.clanName.click();
+    const leaveClanButtonVisible = await this.selector.buttons.leaveClan.isVisible({
+      timeout: 3000,
+    });
+    expect(leaveClanButtonVisible).toBeFalsy();
+  }
+
+  async verifyOwnerCanDeleteClan() {
+    await this.selector.buttons.clanSettings.click();
+
+    const deleteClanButton = this.selector.clanSettings.buttons.deleteClan;
+    await expect(deleteClanButton).toBeVisible({ timeout: 3000 });
+  }
+
+  async verifyOwnerCanKickMembers(username: string) {
+    const memberLocator = this.selector.sidebarMemberList.memberItems
+      .filter({ hasText: username })
+      .first();
+    await expect(memberLocator).toBeVisible({ timeout: 3000 });
+    await memberLocator.click({ button: 'right' });
+    const kickButtonVisible = await this.selector.sidebarMemberList.kickButton.isVisible({
+      timeout: 3000,
+    });
+    expect(kickButtonVisible).toBeTruthy();
+  }
+
+  async joinVoiceChannelFromMessage(channelName: string): Promise<boolean> {
+    const messageSelector = new MessageSelector(this.page);
+    const voiceChannelMessage = messageSelector.messages
+      .filter({
+        hasText: channelName,
+      })
+      .last();
+    await voiceChannelMessage.click();
+    const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
+    try {
+      await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await joinButtonLocator.click();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async clickWaveButton(username: string) {
+    const messageSelector = new MessageSelector(this.page);
+
+    const targetMessage = messageSelector.systemMessages.filter({
+      has: messageSelector.mentionUser.filter({ hasText: username }),
+    });
+
+    await targetMessage.locator(messageSelector.waveToSayHiButton).first().click();
+  }
+
+  async verifyWelcomeMessageInChannel() {
+    const messageSelector = new MessageSelector(this.page);
+
+    const lastMessage = messageSelector.messages.last();
+    await expect(lastMessage).toBeVisible({ timeout: 3000 });
+
+    const gifMessage = lastMessage.locator('[id*=".gif"]');
+
+    await expect(gifMessage).toBeVisible();
   }
 }

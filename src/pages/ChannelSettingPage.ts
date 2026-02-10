@@ -281,4 +281,13 @@ export class ChannelSettingPage extends BasePage {
   async openMemberList() {
     await this.selector.header.button.member.first().click();
   }
+
+  async isPermissionSettingsVisible(): Promise<boolean> {
+    try {
+      await this.selector.side_bar_buttons.permissions.waitFor({ state: 'visible' });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }

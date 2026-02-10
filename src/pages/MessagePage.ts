@@ -804,6 +804,82 @@ export class MessagePage extends BasePage {
   async verifyShortProfileIsUnknownUser() {
     expect(this.selector.shortProfile.displayName).toBeHidden({ timeout: 2000 });
     expect(this.selector.shortProfile.username).toBeHidden({ timeout: 2000 });
-    await expect(this.selector.shortProfile.avatar).toBeVisible({ timeout: 2000 });
+    await expect(this.selector.anonymous.anonymousAvatar).toBeVisible({ timeout: 2000 });
+  }
+
+  async sendMessageWithAnonymous(message: string): Promise<void> {
+    try {
+      await this.page.keyboard.press('Control+Shift+Enter');
+      await this.page.waitForTimeout(3000);
+
+      await this.selector.anonymous.anonymousIcon.waitFor({ state: 'visible', timeout: 5000 });
+      const isAnonymousIconVisible = await this.selector.anonymous.anonymousIcon.isVisible();
+      if (!isAnonymousIconVisible) {
+        throw new Error('Anonymous icon is not visible after enabling anonymous mode');
+      }
+
+      await this.selector.messageInput.click();
+      await this.selector.messageInput.fill(message);
+      await this.selector.messageInput.press('Enter');
+      await this.page.waitForLoadState('networkidle');
+
+      this.message = message;
+    } catch (error) {
+      console.error('Error sending anonymous message:', error);
+      throw error;
+    }
+  }
+
+  async isAnonymousIconVisible(): Promise<boolean> {
+    try {
+      await this.selector.anonymous.anonymousIcon.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isAnonymousMessageSent(): Promise<boolean> {
+    try {
+      const messageLocator = this.page.locator(`text="${this.message}"`);
+      await messageLocator.waitFor({ state: 'visible', timeout: 5000 });
+
+      await this.selector.anonymous.anonymousMessage.waitFor({ state: 'visible', timeout: 5000 });
+
+      await this.selector.anonymous.anonymousName.waitFor({ state: 'visible', timeout: 5000 });
+
+      return true;
+    } catch (error) {
+      console.error('Error verifying anonymous message:', error);
+      return false;
+    }
+  }
+
+  async unpinLastMessage() {
+    const lastMessage = this.selector.messages.last();
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
+    await lastMessage.click({ button: 'right' });
+    await this.page.waitForTimeout(1000);
+    await this.selector.unpinMessageButton.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async verifyMessageIsUnpinned(message: string): Promise<boolean> {
+    await this.selector.displayListPinButton.click();
+    const pinnedMessage = this.selector.pinnedMessages.filter({ hasText: message });
+    return (await pinnedMessage.count()) === 0;
+  }
+
+  async markMessageAsUnread(username: string) {
+    const lastMessage = this.selector.messages.filter({ hasText: username }).last();
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
+    await lastMessage.click({ button: 'right' });
+    await this.page.waitForTimeout(1000);
+    await this.selector.markAsUnreadButton.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async getHeaderDM() {
+    return this.selector.headerDM.first();
   }
 }

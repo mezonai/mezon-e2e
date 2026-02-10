@@ -4,11 +4,12 @@ import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
-import { test } from '../../fixtures/dual.fixture';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import { test } from '../../../fixtures/dual.fixture';
 
 test.describe('Direct Message', () => {
   const accountA = AccountCredentials['account2-3'];
@@ -411,5 +412,63 @@ test.describe('Direct Message', () => {
         await messagePageA.verifyUserInMemberGroup(userNameB);
       }
     );
+  });
+
+  test('Verify that user can mark as unread on DM', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64802',
+      github_issue: '10161',
+    });
+    const { pageA, pageB } = dual;
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const messageHelperB = new MessageTestHelpers(pageB);
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that user can mark as unread on DM
+        **Test Steps:**
+        1. Clean up any existing friend relationships between users
+        2. User A sends a friend request to User B
+        3. User B receives and accepts the friend request
+        4. Verify both users see each other in their friends list
+        5. User A create a DM with User B
+        6. User A send message to User B
+        7. User B mark the DM as unread 
+        **Expected Result:** User can mark as unread on DM
+      `);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await friendPageA.sendFriendRequestToUser(userNameC);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User A create a DM with User B and send message', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+      await messagePageA.sendMessageWhenInDM('Hello from User A to User B');
+    });
+    await AllureReporter.step('User B mark the message as unread', async () => {
+      await messagePageB.markMessageAsUnread(userNameA);
+      await friendPageB.createDM(userNameC);
+      await messageHelperB.verifyUserOnDMHasHighlight(userNameA);
+    });
   });
 });

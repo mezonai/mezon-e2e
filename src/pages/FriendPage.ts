@@ -337,4 +337,8 @@ export class FriendPage extends BasePage {
       .filter({ hasText: status });
     await expect(statusLocator).toBeVisible({ timeout: 5000 });
   }
+
+  async getDMByUsername(username: string) {
+    return this.selector.dm.items.filter({ hasText: username }).first();
+  }
 }

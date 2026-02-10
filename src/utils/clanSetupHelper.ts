@@ -157,6 +157,11 @@ export class ClanSetupHelper {
       suiteName: 'Channel Message - Module 7',
     }),
 
+    channelMessage8: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 8',
+    }),
+
     clanManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ClanManagementTest',
       suiteName: 'Clan Management',
@@ -234,6 +239,11 @@ export class ClanSetupHelper {
     directMessage: ClanSetupHelper.createConfig({
       clanNamePrefix: 'DirectMessageTest',
       suiteName: 'Direct Message',
+    }),
+
+    directMessage1: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'DirectMessageTest',
+      suiteName: 'Direct Message 1',
     }),
 
     topicMessage: ClanSetupHelper.createConfig({
