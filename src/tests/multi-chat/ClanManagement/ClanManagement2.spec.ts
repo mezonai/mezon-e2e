@@ -3,6 +3,7 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { test } from '@/fixtures/dual.fixture';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -366,5 +367,144 @@ test.describe('Clan Management 2', () => {
       await clanPageB.verifyOwnerCannotLeaveClan();
       await clanPageB.verifyOwnerCanDeleteClan();
     });
+  });
+
+  test('Verify that member since in clan reflect correct when user join clan', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64610',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify member since on Member management tab and member list on channel display correct
+      Steps:
+      1. User A create clan
+      2. User A invite user B
+      3. User B accept invite
+      4. Verify member since on Member management tab and member list on channel display correct
+    `);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const profilePageB = new ProfilePage(pageB);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+    const timeJoin = new Date();
+    await AllureReporter.step(
+      'Verify that member since on short profile of user B display correct',
+      async () => {
+        await pageB.reload();
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.openMemberList();
+        const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
+        await memberItem.click();
+        await profilePageB.verifyMemberSinceInShortProfile(timeJoin);
+      }
+    );
+
+    await AllureReporter.step(
+      'Verify that member since on member management tab display correct',
+      async () => {
+        await clanPageB.openMemberListSetting();
+        await profilePageB.verifyMemberSinceJoinClanInMemberManagement(timeJoin);
+      }
+    );
+  });
+
+  test('Verify that member since in clan reflect correct when user join mezon', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64610',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify member since on Member management tab and member list on channel display correct
+      Steps:
+      1. User A create clan
+      2. User A invite user B
+      3. User B accept invite
+      4. Verify member since on Member management tab and member list on channel display correct
+    `);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const profilePageB = new ProfilePage(pageB);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+    let memberSince: string | Date;
+    await AllureReporter.step(
+      'Verify that member since on short profile of user B display correct',
+      async () => {
+        await pageB.reload();
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.openMemberList();
+        const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
+        await memberItem.click({ button: 'right' });
+        const timeJoin = await clanPageA.getMemberSinceFromFullProfile();
+        memberSince = timeJoin;
+      }
+    );
+
+    await AllureReporter.step(
+      'Verify that member since on member management tab display correct',
+      async () => {
+        await clanPageB.openMemberListSetting();
+        await profilePageB.verifyMemberSinceJoinMezonInMemberManagement(memberSince);
+      }
+    );
   });
 });

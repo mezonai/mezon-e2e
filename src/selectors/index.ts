@@ -189,6 +189,8 @@ export const DATA_E2E_IDENTIFIER = {
         display_name: '',
         username: '',
       },
+      member_since: '',
+      join_mezon: '',
       role_settings: {
         add_role: {
           button: '',
@@ -391,7 +393,11 @@ export const DATA_E2E_IDENTIFIER = {
       community: {
         button: {
           enable_community: '',
+          save: '',
         },
+        description: '',
+        about: '',
+        vanity_url: '',
       },
       emoji: {
         upload: '',
@@ -991,6 +997,7 @@ export const DATA_E2E_IDENTIFIER = {
   },
   full_profile: {
     about_me: '',
+    member_since: '',
   },
 };
 

@@ -1,7 +1,9 @@
+import ClanSelector from '@/data/selectors/ClanSelector';
 import MessageSelector from '@/data/selectors/MessageSelector';
 import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Locator, Page } from '@playwright/test';
+import { formatDistance } from 'date-fns';
 import { BasePage } from './BasePage';
 import { MessagePage } from './MessagePage';
 
@@ -280,5 +282,45 @@ export class ProfilePage extends BasePage {
 
   async getUserProfileLocator() {
     return this.selector.shortProfile.modal.container.first();
+  }
+
+  async verifyMemberSinceInShortProfile(time: string | Date) {
+    const date = new Date(time);
+
+    const formatTime = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    const memberSinceLocator = await this.selector.texts.aboutMeInShortProfile.last();
+
+    await expect(memberSinceLocator).toHaveText(formatTime, { timeout: 500 });
+  }
+
+  async verifyMemberSinceJoinClanInMemberManagement(time: string | Date) {
+    const clanSelector = new ClanSelector(this.page);
+
+    const date = new Date(time);
+
+    const formatTime = formatDistance(date, new Date(), {
+      addSuffix: true,
+    });
+
+    const memberSinceLocator = clanSelector.memberSettings.memberSince.first();
+
+    await expect(memberSinceLocator).toHaveText(formatTime, { timeout: 500 });
+  }
+
+  async verifyMemberSinceJoinMezonInMemberManagement(time: string | Date) {
+    const clanSelector = new ClanSelector(this.page);
+    const date = new Date(time);
+
+    const formatTime = formatDistance(date, new Date(), {
+      addSuffix: true,
+    });
+    const memberSinceLocator = clanSelector.memberSettings.joinMezon.first();
+
+    await expect(memberSinceLocator).toHaveText(formatTime, { timeout: 500 });
   }
 }

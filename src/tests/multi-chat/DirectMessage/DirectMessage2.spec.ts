@@ -18,7 +18,6 @@ test.describe('Direct Message', () => {
   const accountC = AccountCredentials['account2-5'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
-  let nameGroupChat: string;
   const [userNameA, userNameB, userNameC] = getUsernamesFromEmails([
     accountA.email,
     accountB.email,
@@ -132,18 +131,21 @@ test.describe('Direct Message', () => {
     await AllureReporter.addDescription(`
         **Test Objective:** Verify that user can set profile status and verify it is visible on short profile
         **Test Steps:**
-        1. User A set profile status to 'Idle' for '30 Minutes'
+        1. User A set profile status to 'Do Not Disturb' for '30 Minutes'
         2. Verify that new profile status is visible on User A's short profile 
         **Expected Result:** User can set profile status and verify it is visible on short profile
       `);
 
-    await AllureReporter.step("User A set profile status to 'Idle' for '30 Minutes'", async () => {
-      const currentProfileStatus = await profilePage.getProfileStatusInFooterProfile();
-      await profilePage.openFooterProfileModal();
-      await profilePage.openSelectProfileStatusModal(currentProfileStatus);
+    await AllureReporter.step(
+      "User A set profile status to 'Do Not Disturb' for '30 Minutes'",
+      async () => {
+        const currentProfileStatus = await profilePage.getProfileStatusInFooterProfile();
+        await profilePage.openFooterProfileModal();
+        await profilePage.openSelectProfileStatusModal(currentProfileStatus);
 
-      await profilePage.setProfileStatus('Do Not Disturb', 'For 30 Minutes');
-    });
+        await profilePage.setProfileStatus('Do Not Disturb', 'For 30 Minutes');
+      }
+    );
     await AllureReporter.step('verify it is visible on short profile', async () => {
       const currentProfileStatus = await profilePage.getProfileStatusInFooterProfile();
       expect(currentProfileStatus).toContain('Do Not Disturb');
@@ -165,7 +167,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.addDescription(`
         **Test Objective:** Verify that profile status reflect correct on DM list, friend list
         **Test Steps:**
-        1. User A set profile status to 'Idle' for '30 Minutes'
+        1. User A set profile status to 'Do Not Disturb' for '30 Minutes'
         2. Verify that new profile status reflect correct on DM list, friend list 
 
         **Expected Result:** Profile status reflect correct on DM list, friend list
@@ -196,13 +198,16 @@ test.describe('Direct Message', () => {
       await friendPageB.assertAllFriend(userNameA);
     });
 
-    await AllureReporter.step("User A set profile status to 'Idle' for '30 Minutes'", async () => {
-      const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
-      await profilePageA.openFooterProfileModal();
-      await profilePageA.openSelectProfileStatusModal(currentProfileStatus);
+    await AllureReporter.step(
+      "User A set profile status to 'Do Not Disturb' for '30 Minutes'",
+      async () => {
+        const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+        await profilePageA.openFooterProfileModal();
+        await profilePageA.openSelectProfileStatusModal(currentProfileStatus);
 
-      await profilePageA.setProfileStatus('Do Not Disturb', 'For 30 Minutes');
-    });
+        await profilePageA.setProfileStatus('Do Not Disturb', 'For 30 Minutes');
+      }
+    );
 
     await AllureReporter.step('verify it is visible on friends list', async () => {
       const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
@@ -241,7 +246,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.addDescription(`
         **Test Objective:** Verify that profile status reflect correct on DM profile, header DM
         **Test Steps:**
-        1. User A set profile status to 'Idle' for '30 Minutes'
+        1. User A set profile status to 'Do Not Disturb' for '30 Minutes'
         2. Verify that new profile status reflect correct on DM profile, header DM
         
         **Expected Result:** Profile status reflect correct on DM profile, header DM
@@ -272,13 +277,16 @@ test.describe('Direct Message', () => {
       await friendPageB.assertAllFriend(userNameA);
     });
 
-    await AllureReporter.step("User A set profile status to 'Idle' for '30 Minutes'", async () => {
-      const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
-      await profilePageA.openFooterProfileModal();
-      await profilePageA.openSelectProfileStatusModal(currentProfileStatus);
+    await AllureReporter.step(
+      "User A set profile status to 'Do Not Disturb' for '30 Minutes'",
+      async () => {
+        const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+        await profilePageA.openFooterProfileModal();
+        await profilePageA.openSelectProfileStatusModal(currentProfileStatus);
 
-      await profilePageA.setProfileStatus('Do Not Disturb', 'For 30 Minutes');
-    });
+        await profilePageA.setProfileStatus('Do Not Disturb', 'For 30 Minutes');
+      }
+    );
 
     const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
 
@@ -296,6 +304,76 @@ test.describe('Direct Message', () => {
       await messagePageB.openUserProfile();
       const profileLocator = await profilePageB.getUserProfileLocator();
       await profilePageB.verifyNewProfileStatusVisibleDueToLocator(
+        profileLocator,
+        currentProfileStatus
+      );
+    });
+  });
+
+  test('Verify that profile status reflect correct on user settings', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64803',
+      github_issue: '10162',
+    });
+    const { pageA, pageB } = dual;
+    const profilePageA = new ProfilePage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const friendPageA = new FriendPage(pageA);
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that profile status reflect correct on user settings
+        **Test Steps:**
+        1. User A set profile status to 'Do Not Disturb' for '30 Minutes'
+        2. Verify that new profile status reflect correct on user settings
+        
+        **Expected Result:** Profile status reflect correct on user settings
+      `);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+      await friendPageA.cleanupFriendRelationships(userNameC);
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+
+    await AllureReporter.step(
+      "User A set profile status to 'Do Not Disturb' for '30 Minutes'",
+      async () => {
+        const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+        await profilePageA.openFooterProfileModal();
+        await profilePageA.openSelectProfileStatusModal(currentProfileStatus);
+
+        await profilePageA.setProfileStatus('Do Not Disturb', 'For 30 Minutes');
+      }
+    );
+
+    const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+
+    await AllureReporter.step('verify it is visible on user settings', async () => {
+      await profilePageA.openUserSettingProfile();
+      await profilePageA.openProfileTab();
+      await profilePageA.openUserProfileTab();
+
+      const profileLocator = await profilePageA.getUserProfileLocator();
+      await profilePageA.verifyNewProfileStatusVisibleDueToLocator(
         profileLocator,
         currentProfileStatus
       );

@@ -45,4 +45,17 @@ export default class ClanSettingSelector {
       ),
     },
   };
+
+  readonly communitySettings = {
+    input: {
+      description: this.page.locator(
+        generateE2eSelector('clan_page.settings.community.description')
+      ),
+      about: this.page.locator(generateE2eSelector('clan_page.settings.community.about')),
+      vanity_url: this.page.locator(generateE2eSelector('clan_page.settings.community.vanity_url')),
+    },
+    buttons: {
+      save: this.page.locator(generateE2eSelector('clan_page.settings.community.button.save')),
+    },
+  };
 }
