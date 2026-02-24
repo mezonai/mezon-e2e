@@ -94,6 +94,9 @@ export default class ClanSelector {
   };
 
   readonly memberSettings = {
+    userContainer: this.page.locator(generateE2eSelector('clan_page.member_list')),
+    memberSince: this.page.locator(generateE2eSelector('clan_page.member_list.member_since')),
+    joinMezon: this.page.locator(generateE2eSelector('clan_page.member_list.join_mezon')),
     usersInfo: this.page.locator(generateE2eSelector('clan_page.member_list.user_info')),
     userDisplayName: this.page.locator(
       generateE2eSelector('clan_page.member_list.user_info.display_name')
@@ -357,6 +360,7 @@ export default class ClanSelector {
       },
     },
     aboutMe: this.page.locator(generateE2eSelector('full_profile.about_me')),
+    memberSince: this.page.locator(generateE2eSelector('full_profile.member_since')),
   };
 
   readonly modalInvite = {

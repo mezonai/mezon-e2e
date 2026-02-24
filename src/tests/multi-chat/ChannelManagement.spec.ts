@@ -3,17 +3,19 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
+import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
-import { ChannelType } from '@/types/clan-page.types';
+import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import pressEsc from '@/utils/pressEsc';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect } from '@playwright/test';
 import { test } from '../../fixtures/dual.fixture';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Channel Management', () => {
   const accountA = AccountCredentials['account2-1'];
@@ -167,6 +169,89 @@ test.describe('Channel Management', () => {
         await channelSettingsA.verifyRoleAndMemberExistBeforeSave(roleName, userNameB);
         await channelSettingsA.verifyRoleAndMemberExistAfterSave(roleName, userNameB);
         await channelSettingsA.closeChannelSettings();
+      }
+    );
+  });
+
+  test('Verify that I can not access to private channel when i am not owner and not been invited', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that I can not access to private channel when i am not owner and not been invited
+      
+      **Test Steps:**
+      1. User A create a private channel
+      2. User B find channel
+      3. Verify that user B cannot find that channel
+      
+      **Expected Result:** I can not access to private channel when i am not owner and not been invited
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['text-channel', 'private-channel', 'members', 'roles'],
+    });
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const unique = Date.now().toString(36);
+    const channelName = `tc-${unique}`.slice(0, 20);
+    const messagePageB = new MessagePage(pageB);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step(
+      `User A create new private text channel: ${channelName}`,
+      async () => {
+        await clanPageA.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
+        const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
+        expect(isNewChannelPresent).toBe(true);
+      }
+    );
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step(
+      'User B search channel name and verify that the channel not visible',
+      async () => {
+        await messagePageB.openSearchModalbyPressCtrlK();
+        const isNewChannelPresentOnSearchModal =
+          await messagePageB.isChannelPresentOnSearchModal(channelName);
+        expect(isNewChannelPresentOnSearchModal).toBe(false);
+        await pressEsc(pageB);
       }
     );
   });

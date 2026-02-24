@@ -1,9 +1,9 @@
+import ClanSettingSelector from '@/data/selectors/ClanSettingSelector';
+import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { type Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
 import { ClanMenuPanel } from './Clan/ClanMenuPanel';
-import ClanSettingSelector from '@/data/selectors/ClanSettingSelector';
 
 export class ClanSettingsPage extends BasePage {
   private readonly selector: ClanSettingSelector;
@@ -85,5 +85,14 @@ export class ClanSettingsPage extends BasePage {
     } catch {
       return false;
     }
+  }
+
+  async addDataToEnableCommunity(community: any) {
+    const { description, about, vanity_url } = community;
+    await this.selector.communitySettings.input.description.fill(description);
+    await this.selector.communitySettings.input.about.fill(about);
+    await this.selector.communitySettings.input.vanity_url.fill(vanity_url);
+
+    await this.selector.communitySettings.buttons.save.click();
   }
 }

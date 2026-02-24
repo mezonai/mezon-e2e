@@ -1820,4 +1820,12 @@ export class ClanPage extends BasePage {
 
     await expect(gifMessage).toBeVisible();
   }
+
+  async getMemberSinceFromFullProfile(): Promise<string> {
+    const locator = this.selector.modal.memberSince.first();
+    await locator.waitFor({ state: 'visible', timeout: 3000 });
+
+    const memberSince = await locator.innerText();
+    return memberSince.trim();
+  }
 }

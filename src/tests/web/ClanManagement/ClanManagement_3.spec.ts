@@ -11,6 +11,7 @@ import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
+import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { expect, test } from '@playwright/test';
 
 test.describe('Clan Management - Module 3', () => {
@@ -261,5 +262,61 @@ test.describe('Clan Management - Module 3', () => {
         await messagePage.verifyShortProfileUsernameWithInputChat();
       }
     );
+  });
+
+  test('Verify that user can enable community on clan settings', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64877',
+      github_issue: '10354',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can enable community on clan settings
+          **Test Steps:**
+            1. Open clan settings
+            2. Open community settings
+            3. Add require data
+            4. click save
+          **Expected Result:** Verify that user can enable community on clan settings
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['community-settings', 'enable'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const clanSettingsPage = new ClanSettingsPage(page);
+    const fileSizeHelpers = new FileSizeTestHelpers(page);
+    const clanFactory = new ClanFactory();
+
+    await AllureReporter.step('Open Clan Settings → Community', async () => {
+      await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), credentials);
+      await clanPage.openClanSettings();
+      await clanSettingsPage.clickSettingClanSection('Enable Community');
+      await clanSettingsPage.openCommunityModal();
+    });
+
+    const under10MbBanner = await fileSizeHelpers.createFileWithSize(
+      'community_banner_under_10mb',
+      9 * 1024 * 1024,
+      'jpg'
+    );
+    await AllureReporter.step('Upload community banner under limit (9MB)', async () => {
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        under10MbBanner,
+        UploadType.COMMUNITY_BANNER,
+        true
+      );
+      expect(result.success).toBe(true);
+    });
+
+    const community = {
+      description: 'This is description',
+      about: 'This is about',
+      vanity_url: `my-community-${generateRandomString(5)}`,
+    };
+    await AllureReporter.step('Add require data to enable community', async () => {
+      await clanSettingsPage.addDataToEnableCommunity(community);
+    });
   });
 });
