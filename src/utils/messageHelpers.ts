@@ -2690,6 +2690,26 @@ export class MessageTestHelpers {
     await expect(messageLocator).toBeVisible({ timeout: 5000 });
     await expect(messageLocator).toHaveText(messageContent, { timeout: 5000 });
   }
+
+  async canSeeCreateThreadOption() {
+    const createThreadLocator = this.selector.createThreadButton;
+    await expect(createThreadLocator).toBeVisible({ timeout: 3000 });
+  }
+
+  async verifyMessageHasCanvasLink(canvasTitle: string) {
+    const lastMessage = this.selector.messages.last();
+    const canvasLinkLocator = lastMessage.locator(this.selector.canvasMessage);
+    await expect(canvasLinkLocator).toBeVisible({ timeout: 5000 });
+    await expect(canvasLinkLocator).toHaveText(canvasTitle, { timeout: 5000 });
+  }
+
+  async clickOnMessageWithCanvasLink(canvasTitle: string) {
+    const lastMessage = this.selector.messages.last();
+    const canvasLinkLocator = lastMessage.locator(this.selector.canvasMessage);
+    await expect(canvasLinkLocator).toBeVisible({ timeout: 5000 });
+    await expect(canvasLinkLocator).toHaveText(canvasTitle, { timeout: 5000 });
+    await canvasLinkLocator.click();
+  }
 }
 
 export const LINK_TEST_URLS = [

@@ -234,6 +234,7 @@ export default class MessageSelector {
   chatListContainer = this.page.locator(
     generateE2eSelector('chat.direct_message.chat_list_container')
   );
+  canvasMessage = this.page.locator(generateE2eSelector('message.hashtag.canvas'));
   secondarySideBar = {
     member: {
       item: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),

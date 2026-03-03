@@ -529,6 +529,10 @@ export const DATA_E2E_IDENTIFIER = {
           title: '',
           content: '',
         },
+        button: {
+          save: '',
+          discard_changes: '',
+        },
       },
     },
     badge: '',
@@ -979,6 +983,9 @@ export const DATA_E2E_IDENTIFIER = {
   },
   message: {
     item: '',
+    hashtag: {
+      canvas: '',
+    },
   },
   replied_message: {
     item: '',

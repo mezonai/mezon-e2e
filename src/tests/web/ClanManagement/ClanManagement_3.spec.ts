@@ -178,6 +178,7 @@ test.describe('Clan Management - Module 3', () => {
       await clanPage.createCanvas();
       await clanPage.fillCanvasTitle(canvasTitle);
       await clanPage.fillCanvasContent(canvasContent);
+      await clanPage.saveCanvas();
     });
 
     await AllureReporter.step('Open pinned messages modal and jump to the message', async () => {
