@@ -108,4 +108,35 @@ test.describe('Thread in Public Channel', () => {
       await expect(initMsgReopened).toBeVisible({ timeout: 3000 });
     });
   });
+
+  test('Verify that I cannot create thread from message in other thread', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63581',
+      github_issue: '9658',
+    });
+    const messageHelper = new MessageTestHelpers(page);
+    const initMessage = `thread-init-${generateRandomString(6)}`;
+
+    await AllureReporter.step('Create thread and send message in it', async () => {
+      const messageElement = await messageHelper.sendTextMessageAndGetItem(initMessage);
+      await messageElement.hover();
+      await messageElement.click({ button: 'right' });
+      await messageHelper.createThreadByMessage();
+      await messageHelper.fillThreadName(VALID_THREAD_NAME);
+      await messageHelper.sendMessageInThread(initMessage, true);
+      const initMsgInThread = messageHelper.getThreadMessageItemByText(initMessage);
+      await expect(initMsgInThread).toBeVisible({ timeout: 3000 });
+    });
+
+    await AllureReporter.step(
+      'Try to create thread from message in thread and verify cannot',
+      async () => {
+        const msgInThread = messageHelper.getThreadMessageItemByText(initMessage);
+        await msgInThread.hover();
+        await msgInThread.click({ button: 'right' });
+        const canSeeCreateThreadOption = await messageHelper.canSeeCreateThreadOption();
+        expect(canSeeCreateThreadOption).toBeFalsy();
+      }
+    );
+  });
 });

@@ -336,6 +336,12 @@ export class ClanPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
+  async clickAddFriendButtonFromModal() {
+    const addFriendLocator = this.selector.sidebarMemberList.addFriendButton;
+    await addFriendLocator.waitFor({ state: 'visible', timeout: 5000 });
+    await addFriendLocator.click();
+  }
+
   async isNewThreadPresent(threadName: string): Promise<boolean> {
     const threadLocator = this.selector.sidebar.threadItem.name.filter({
       hasText: threadName,
@@ -1439,6 +1445,33 @@ export class ClanPage extends BasePage {
   async fillCanvasContent(content: string) {
     await this.selector.screen.canvasEditor.input.content.click();
     await this.page.keyboard.type(content);
+  }
+
+  async saveCanvas() {
+    await this.selector.screen.canvasEditor.button.save.click();
+    await expect(this.selector.screen.canvasEditor.button.save).toBeHidden({ timeout: 3000 });
+  }
+
+  async discardCanvas() {
+    await this.selector.screen.canvasEditor.button.discardChanges.click();
+    await expect(this.selector.screen.canvasEditor.button.discardChanges).toBeHidden({
+      timeout: 3000,
+    });
+  }
+
+  async assertCanvasContent(title: string, content: string) {
+    const canvasTitle = this.selector.screen.canvasEditor.input.title;
+    const canvasContent = this.selector.screen.canvasEditor.input.content;
+    await expect(canvasTitle).toHaveValue(title, { timeout: 3000 });
+    await expect(canvasContent).toHaveText(content, { timeout: 3000 });
+  }
+
+  async copyCanvasLink(canvasTitle: string) {
+    const canvasItem = this.selector.modal.canvasManagement.item.filter({
+      has: this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle }),
+    });
+    await expect(canvasItem).toBeVisible({ timeout: 3000 });
+    await canvasItem.locator(this.selector.modal.canvasManagement.button.copyCanvasLink).click();
   }
 
   async kickUserByName(username: string) {

@@ -83,6 +83,11 @@ export default class ClanSelector {
       .filter({
         hasText: 'Share this contact',
       }),
+    addFriendButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Add Friend',
+      }),
   };
 
   readonly sidePanel = {
@@ -351,9 +356,7 @@ export default class ClanSelector {
             'chat.channel_message.header.button.canvas.modal.canvas_management.button.create_canvas'
           )
         ),
-        copyCanvasLink: this.page.locator(
-          `${generateE2eSelector('chat.channel_message.header.button.canvas.modal.canvas_management')} ${generateE2eSelector('button.copy')}`
-        ),
+        copyCanvasLink: this.page.locator(generateE2eSelector('button.copy')),
         deleteCanvas: this.page.locator(
           generateE2eSelector('chat.channel_message.header.button.canvas.item.button.delete')
         ),
@@ -400,6 +403,12 @@ export default class ClanSelector {
         title: this.page.locator(generateE2eSelector('clan_page.screen.canvas_editor.input.title')),
         content: this.page.locator(
           generateE2eSelector('clan_page.screen.canvas_editor.input.content')
+        ),
+      },
+      button: {
+        save: this.page.locator(generateE2eSelector('clan_page.screen.canvas_editor.button.save')),
+        discardChanges: this.page.locator(
+          generateE2eSelector('clan_page.screen.canvas_editor.button.discard_changes')
         ),
       },
     },
