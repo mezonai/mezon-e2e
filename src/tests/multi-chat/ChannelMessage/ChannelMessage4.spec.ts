@@ -12,7 +12,6 @@ import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
-import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
@@ -22,21 +21,11 @@ test.describe('Channel Message 4', () => {
   const accountC = AccountCredentials['accountKien4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
-  const clanFactory = new ClanFactory();
   const [userNameA, userNameB, userNameC] = getUsernamesFromEmails([
     accountA.email,
     accountB.email,
     accountC.email,
   ]);
-
-  test.beforeAll(async ({ browser }) => {
-    await TestSuiteHelper.setupBeforeAll({
-      browser,
-      clanFactory,
-      configs: ClanSetupHelper.configs.channelMessage1,
-      credentials: accountA,
-    });
-  });
 
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
@@ -56,14 +45,6 @@ test.describe('Channel Message 4', () => {
           credentials
         );
       },
-    });
-  });
-
-  test.afterAll(async ({ browser }) => {
-    await TestSuiteHelper.onAfterAll({
-      browser,
-      clanFactory,
-      credentials: accountA,
     });
   });
 
@@ -106,6 +87,10 @@ test.describe('Channel Message 4', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -154,8 +139,8 @@ test.describe('Channel Message 4', () => {
     await AllureReporter.step('Verify contact card message is visible on destination', async () => {
       await pageB.reload();
       await messagePageB.openGroupFromName(nameGroupChat);
-      await messageHelperB.verifyContactSharedInDMOrChannel(userNameB);
-      await messageHelperB.verifyCallItemVisibleInShareContactCard(userNameB, false);
+      await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameB}`);
+      await messageHelperB.verifyCallItemVisibleInShareContactCard(`@${userNameB}`, false);
     });
   });
 
@@ -189,6 +174,10 @@ test.describe('Channel Message 4', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -237,13 +226,13 @@ test.describe('Channel Message 4', () => {
     await AllureReporter.step('Click message on share contact card', async () => {
       await pageB.reload();
       await messagePageB.openGroupFromName(nameGroupChat);
-      await messageHelperB.verifyContactSharedInDMOrChannel(userNameB);
+      await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameB}`);
       await messageHelperB.clickMessageOnShareContactCard();
     });
 
     await AllureReporter.step("Verify navigate to friend's dm", async () => {
       const usernameLocator = await messagePageB.getGroupName();
-      await expect(usernameLocator).toHaveText(userNameB);
+      await expect(usernameLocator).toHaveText(userNameB, { timeout: 3000 });
     });
   });
 
@@ -278,6 +267,10 @@ test.describe('Channel Message 4', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -299,6 +292,12 @@ test.describe('Channel Message 4', () => {
       await friendPageB.assertAllFriend(userNameA);
       await friendPageA.sendFriendRequestToUser(userNameC);
       await friendPageA.verifySentRequestToast();
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage3, pageA);
     });
 
     const ran = Math.floor(Math.random() * 999) + 1;
@@ -310,6 +309,13 @@ test.describe('Channel Message 4', () => {
       expect(isNewChannelPresent).toBe(true);
     });
 
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
     await AllureReporter.step('Join voice channel', async () => {
       await clanPageA.joinVoiceChannel(channelName);
       const isUserInVoiceChannel = await clanPageA.isJoinVoiceChannel(channelName);
@@ -319,7 +325,7 @@ test.describe('Channel Message 4', () => {
     await AllureReporter.step('Copy and send voice channel link', async () => {
       await clanPageA.copyVoiceChannelLink();
       await clanPageA.openChannelByName('general');
-      await messageHelperA.pasteAndSendText();
+      await messageHelperA.pasteAndSendTextV2();
       await pageA.waitForTimeout(3000);
     });
 
@@ -330,7 +336,7 @@ test.describe('Channel Message 4', () => {
 
     await AllureReporter.step('Verify voice channel link is visible to User B', async () => {
       await pageB.reload();
-      await clanPageB.openChannelByName('general');
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const isVoiceChannelLinkSent = await messageHelperB.verifyLastMessageHasText(channelName);
       expect(isVoiceChannelLinkSent).toBe(true);
     });
@@ -374,6 +380,10 @@ test.describe('Channel Message 4', () => {
     const clanPageB = new ClanPage(pageB);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -397,11 +407,15 @@ test.describe('Channel Message 4', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage4, pageA);
+    });
 
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
 
@@ -412,6 +426,10 @@ test.describe('Channel Message 4', () => {
     await AllureReporter.step('Verify welcome message is visible to User B', async () => {
       const isWelcomeMessageVisible = await clanPageA.verifyWelcomeMessageInChannel();
       expect(isWelcomeMessageVisible).toBe(true);
+    });
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
     });
   });
 });

@@ -798,7 +798,7 @@ export class MessagePage extends BasePage {
     await this.selector.messageInput.press('Enter');
     await this.page.waitForTimeout(1000);
     await this.selector.messageInput.press('Enter');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
   }
 
   async verifyShortProfileIsUnknownUser() {
@@ -807,21 +807,30 @@ export class MessagePage extends BasePage {
     await expect(this.selector.anonymous.anonymousAvatar).toBeVisible({ timeout: 2000 });
   }
 
+  async openAnonymous() {
+    await this.page.keyboard.down('Control');
+    await this.page.waitForTimeout(1000);
+    await this.page.keyboard.down('Shift');
+    await this.page.waitForTimeout(1000);
+    await this.page.keyboard.press('Enter');
+    await this.page.waitForTimeout(1000);
+    await this.page.keyboard.up('Shift');
+    await this.page.keyboard.up('Control');
+
+    await this.page.waitForTimeout(3000);
+  }
+
+  async verifyAnonymousIsVisible() {
+    await this.selector.anonymous.anonymousIcon.waitFor({ state: 'visible', timeout: 5000 });
+  }
+
   async sendMessageWithAnonymous(message: string): Promise<void> {
     try {
-      await this.page.keyboard.press('Control+Shift+Enter');
-      await this.page.waitForTimeout(3000);
-
-      await this.selector.anonymous.anonymousIcon.waitFor({ state: 'visible', timeout: 5000 });
-      const isAnonymousIconVisible = await this.selector.anonymous.anonymousIcon.isVisible();
-      if (!isAnonymousIconVisible) {
-        throw new Error('Anonymous icon is not visible after enabling anonymous mode');
-      }
-
       await this.selector.messageInput.click();
       await this.selector.messageInput.fill(message);
       await this.selector.messageInput.press('Enter');
-      await this.page.waitForLoadState('networkidle');
+      // await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(2000);
 
       this.message = message;
     } catch (error) {

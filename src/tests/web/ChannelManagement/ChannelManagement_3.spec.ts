@@ -163,6 +163,7 @@ test.describe('Channel Management - Module 2', () => {
         await clanPage.openChannelSettings(streamChannelName);
         const isPermissionSettingsVisible = await channelSettings.isPermissionSettingsVisible();
         expect(isPermissionSettingsVisible).toBe(false);
+        await clanPage.closeSettingsChannel();
       }
     );
     await AllureReporter.step(`Create new voice channel: ${voiceChannelName}`, async () => {
@@ -176,6 +177,7 @@ test.describe('Channel Management - Module 2', () => {
         await clanPage.openChannelSettings(voiceChannelName);
         const isPermissionSettingsVisible = await channelSettings.isPermissionSettingsVisible();
         expect(isPermissionSettingsVisible).toBe(false);
+        await clanPage.closeSettingsChannel();
       }
     );
   });

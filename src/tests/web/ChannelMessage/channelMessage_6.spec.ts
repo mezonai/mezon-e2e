@@ -209,6 +209,7 @@ test.describe('Channel Message - Module 6', () => {
     });
 
     await AllureReporter.step('Verify voice channel link is sent', async () => {
+      await page.reload();
       const isVoiceChannelLinkSent = await messageHelper.verifyLastMessageHasText(channelName);
       expect(isVoiceChannelLinkSent).toBe(true);
     });

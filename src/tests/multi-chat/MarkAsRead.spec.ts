@@ -12,7 +12,6 @@ import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
-import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect } from '@playwright/test';
 
 test.describe('Mark as read', () => {
@@ -20,17 +19,7 @@ test.describe('Mark as read', () => {
   const accountB = AccountCredentials['accountKien8'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
-  const clanFactory = new ClanFactory();
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
-
-  test.beforeAll(async ({ browser }) => {
-    await TestSuiteHelper.setupBeforeAll({
-      browser,
-      clanFactory,
-      configs: ClanSetupHelper.configs.clanManagement,
-      credentials: accountA,
-    });
-  });
 
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
@@ -50,14 +39,6 @@ test.describe('Mark as read', () => {
           credentials
         );
       },
-    });
-  });
-
-  test.afterAll(async ({ browser }) => {
-    await TestSuiteHelper.onAfterAll({
-      browser,
-      clanFactory,
-      credentials: accountA,
     });
   });
 
@@ -107,8 +88,13 @@ test.describe('Mark as read', () => {
     const unique = Date.now().toString(36);
     const channelNames = [`tc1-${unique}`.slice(0, 20), `tc2-${unique}`.slice(0, 20)];
     const messageHelperA = new MessageTestHelpers(pageA);
+    const clanFactory = new ClanFactory();
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -133,10 +119,14 @@ test.describe('Mark as read', () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
 
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.markAsRead, pageA);
+    });
+
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
       await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
@@ -155,7 +145,7 @@ test.describe('Mark as read', () => {
     );
 
     await AllureReporter.step('Verify that channels with new mentions have badges', async () => {
-      await pageB.reload();
+      // await pageB.reload();
       for (const name of channelNames) {
         await clanPageB.verifyChannelHasBadge(name);
       }
@@ -191,6 +181,10 @@ test.describe('Mark as read', () => {
     await AllureReporter.step('Verify that inbox button not has badge', async () => {
       await clanPageB.verifyInboxButtonHasBadge(false);
     });
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that I can mark as read on clan (highlight on channel name)', async ({ dual }) => {
@@ -200,6 +194,7 @@ test.describe('Mark as read', () => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
+    const clanFactory = new ClanFactory();
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that I can mark as read on clan.
       
@@ -226,6 +221,10 @@ test.describe('Mark as read', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -250,10 +249,13 @@ test.describe('Mark as read', () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
 
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.markAsRead, pageA);
+    });
+
     await AllureReporter.step(
       `User A create new text channels and send message on channels: ${channelNames.join(', ')}`,
       async () => {
-        await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         for (const name of channelNames) {
           await clanPageA.createNewChannel(ChannelType.TEXT, name);
           const isNewChannelPresent = await clanPageA.isNewChannelPresent(name);
@@ -266,6 +268,7 @@ test.describe('Mark as read', () => {
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
       await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
@@ -287,6 +290,9 @@ test.describe('Mark as read', () => {
         }
       }
     );
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that I can mark as read on channel (highlight)', async ({ dual }) => {
@@ -323,6 +329,10 @@ test.describe('Mark as read', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -346,11 +356,14 @@ test.describe('Mark as read', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.markAsRead, pageA);
+    });
 
     await AllureReporter.step(
       `User A create new text channels and send message on channels: ${channelName}`,
       async () => {
-        await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageA.createNewChannel(ChannelType.TEXT, channelName);
         const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
         expect(isNewChannelPresent).toBe(true);
@@ -361,6 +374,7 @@ test.describe('Mark as read', () => {
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
       await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
@@ -378,6 +392,9 @@ test.describe('Mark as read', () => {
         await clanPageB.verifyChannelHasHighlight(channelName, false);
       }
     );
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that I can mark as read on channel (mention)', async ({ dual }) => {
@@ -414,6 +431,10 @@ test.describe('Mark as read', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -437,11 +458,15 @@ test.describe('Mark as read', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.markAsRead, pageA);
+    });
 
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
       await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
@@ -458,7 +483,7 @@ test.describe('Mark as read', () => {
     );
 
     await AllureReporter.step('Verify that channels with new mentions have badges', async () => {
-      await pageB.reload();
+      // await pageB.reload();
       await clanPageB.verifyChannelHasBadge(channelName);
     });
 
@@ -490,6 +515,10 @@ test.describe('Mark as read', () => {
     await AllureReporter.step('Verify that inbox button not has badge', async () => {
       await clanPageB.verifyInboxButtonHasBadge(false);
     });
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that I can mark as read on direct message (highlight)', async ({ dual }) => {
@@ -519,6 +548,10 @@ test.describe('Mark as read', () => {
     const messageHelperB = new MessageTestHelpers(pageB);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -595,6 +628,10 @@ test.describe('Mark as read', () => {
     let userADMChatURL: string;
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,

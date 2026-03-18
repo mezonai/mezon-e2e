@@ -35,7 +35,9 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async verifyChannelStatusIsPrivate(channelName: string): Promise<boolean> {
-    await this.page.waitForLoadState('networkidle');
+    // await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
+
     try {
       await this.selector.permissions.section.member_role_section.waitFor({ state: 'visible' });
       await this.selector.permissions.section.advanced_permissions_section.waitFor({
@@ -72,7 +74,8 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async verifyChannelStatusIsPublic(channelName: string): Promise<boolean> {
-    await this.page.waitForLoadState('networkidle');
+    // await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
     try {
       await this.selector.permissions.section.member_role_section.waitFor({ state: 'hidden' });
       await this.selector.permissions.section.advanced_permissions_section.waitFor({

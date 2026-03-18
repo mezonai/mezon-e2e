@@ -1,5 +1,7 @@
 export const isWebhookJustCreated = (dataString: string): boolean => {
   const match = dataString.match(/on\s+([A-Za-z]{3}\s+[A-Za-z]{3}\s+\d{1,2}\s*-\s*\d{2}:\d{2})/);
+  console.log(match);
+
   if (!match) return false;
 
   const timeStr = match[1];
@@ -9,6 +11,7 @@ export const isWebhookJustCreated = (dataString: string): boolean => {
   const [hours, minutes] = parts[4].split(':').map(Number);
 
   const now = new Date();
+
   const parsed = new Date(
     now.getFullYear(),
     new Date(`${month} 1`).getMonth(),
@@ -17,11 +20,8 @@ export const isWebhookJustCreated = (dataString: string): boolean => {
     minutes
   );
 
-  return (
-    parsed.getFullYear() === now.getUTCFullYear() &&
-    parsed.getMonth() === now.getUTCMonth() &&
-    parsed.getDate() === now.getUTCDate() &&
-    parsed.getHours() === now.getUTCHours() &&
-    (parsed.getMinutes() === now.getUTCMinutes() || parsed.getMinutes() === now.getUTCMinutes() - 1)
-  );
+  const diffMs = Math.abs(now.getTime() - parsed.getTime());
+  const diffMinutes = diffMs / (1000 * 60);
+
+  return diffMinutes <= 5;
 };

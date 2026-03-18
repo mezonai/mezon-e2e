@@ -95,11 +95,14 @@ export default class ProfileSelector {
 
   readonly shortProfile = {
     buttons: {
-      editCustomStatus: this.page.locator(generateE2eSelector('short_profile.action.button.base'), {
-        has: this.page.locator('li', {
-          hasText: /^(Set Custom Status|Edit Custom Status)$/,
-        }),
-      }),
+      editCustomStatus: this.page.locator(
+        generateE2eSelector('short_profile.action.button.status'),
+        {
+          has: this.page.locator('li', {
+            hasText: /^(Set Custom Status|Edit Custom Status)$/,
+          }),
+        }
+      ),
     },
     modal: {
       container: this.page.locator(
@@ -131,6 +134,7 @@ export default class ProfileSelector {
     },
     profileStatus: {
       triggerButton: this.page.locator(generateE2eSelector('short_profile.action.button.base')),
+      statusButton: this.page.locator(generateE2eSelector('short_profile.action.button.status')),
       status: this.page.locator(generateE2eSelector('icon.profile_status')),
     },
   };

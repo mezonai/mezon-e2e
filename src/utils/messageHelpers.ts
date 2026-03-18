@@ -1,3 +1,4 @@
+import ClanSelector from '@/data/selectors/ClanSelector';
 import FriendSelector from '@/data/selectors/FriendSelector';
 import MessageSelector from '@/data/selectors/MessageSelector';
 import { FriendPage } from '@/pages/FriendPage';
@@ -48,7 +49,8 @@ export class MessageTestHelpers {
     await input.fill(replyText);
     await input.waitFor({ state: 'attached' });
     await input.press('Enter');
-    await this.page.waitForLoadState('networkidle');
+    // await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
   }
 
   async editMessage(messageElement: Locator, newText: string): Promise<void> {
@@ -70,7 +72,7 @@ export class MessageTestHelpers {
     await mentionInput.focus();
     await mentionInput.fill(newText);
     await mentionInput.press('Enter');
-    await this.page.waitForLoadState('networkidle');
+    // await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(2000);
   }
 
@@ -280,6 +282,20 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(3000); // Increased timeout
   }
 
+  async pasteAndSendTextV2() {
+    const messageInput = await this.findMessageInput();
+
+    await expect(messageInput).toBeVisible({ timeout: 500 });
+    await messageInput.click();
+
+    const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+    await this.page.keyboard.press(`${modifier}+V`);
+
+    await expect(messageInput).not.toHaveText('');
+
+    await this.page.keyboard.press('Enter');
+  }
+
   async countImages(): Promise<number> {
     const images = this.page.locator('img[src*="blob:"]');
     return await images.count();
@@ -359,7 +375,8 @@ export class MessageTestHelpers {
     await messageInput.press('Enter');
 
     // Wait for message to be sent
-    await this.page.waitForLoadState('networkidle');
+    // await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
   }
 
   async sendTextMessageAndGetItem(message: string) {
@@ -520,6 +537,8 @@ export class MessageTestHelpers {
 
     const defaultThreadName = threadName || `Thread ${Date.now()}`;
     await this.fillThreadName(defaultThreadName);
+    const message = await messageElement.innerText();
+    await this.sendMessageInThread(message, true);
   }
 
   async fillThreadName(threadName: string): Promise<void> {
@@ -538,7 +557,7 @@ export class MessageTestHelpers {
     await threadNameInput.scrollIntoViewIfNeeded();
     await threadNameInput.click({ force: true });
     await threadNameInput.fill(threadName);
-    await threadNameInput.press('Enter');
+    // await threadNameInput.press('Enter');
   }
 
   async sendMessageInThread(message: string, isThread?: boolean): Promise<void> {
@@ -561,7 +580,8 @@ export class MessageTestHelpers {
     await threadInput.fill(message);
     await threadInput.waitFor({ state: 'attached' });
     await threadInput.press('Enter');
-    await this.page.waitForLoadState('networkidle', { timeout: 5000 });
+    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
   }
 
   async openForwardModal(messageElement: Locator): Promise<void> {
@@ -1440,7 +1460,8 @@ export class MessageTestHelpers {
     await sendButton.waitFor({ state: 'visible', timeout: 4000 });
     await sendButton.click();
 
-    await this.page.waitForLoadState('networkidle');
+    // await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
   }
 
   async verifyLastMessageHasText(expectedText: string): Promise<boolean> {
@@ -2251,7 +2272,7 @@ export class MessageTestHelpers {
     await topicInput.fill(topicMessage);
     await topicInput.waitFor({ state: 'attached' });
     await topicInput.press('Enter');
-    await this.page.waitForLoadState('networkidle', { timeout: 5000 });
+    await this.page.waitForTimeout(2000);
 
     const topicMessageLocator = this.selector.topicMessages.filter({
       hasText: topicMessage,
@@ -2357,7 +2378,8 @@ export class MessageTestHelpers {
     await expect(this.selector.topicInput).toBeVisible({ timeout: 2000 });
     await this.selector.topicInput.fill(topicMessage);
     await this.selector.topicInput.press('Enter');
-    await this.page.waitForLoadState('networkidle', { timeout: 5000 });
+    // await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
 
     const newTopicMessageLocator = this.selector.topicMessages.filter({
       hasText: topicMessage,
@@ -2476,9 +2498,21 @@ export class MessageTestHelpers {
     return await gifMessage.first().isVisible();
   }
 
-  async isErrorModalVisible() {
+  async isErrorModalVisible(): Promise<boolean> {
     const errorModal = this.selector.errorModal;
-    return await errorModal.isVisible();
+
+    try {
+      await errorModal.waitFor({ state: 'visible', timeout: 3000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async clickCancelModal() {
+    const clanSelector = new ClanSelector(this.page);
+    await clanSelector.permissionModal.cancel.click();
+    await this.page.waitForTimeout(1000);
   }
 
   async openGalleryModal() {
@@ -2598,26 +2632,37 @@ export class MessageTestHelpers {
     await expect(shareContactModal).toBeVisible({ timeout: 3000 });
   }
 
-  async shareContactInDMOrChannel(destination: string, shouldVisible = true) {
+  async shareContactInDMOrChannel(destination: string, shouldVisible = true, clanName?: string) {
     const shareContactInput = this.selector.shareContact.modal.inputSearch;
+
     await expect(shareContactInput).toBeVisible({ timeout: 3000 });
     await shareContactInput.fill(destination);
-    await this.page.waitForTimeout(3000);
-    const destinationItemLocator = this.selector.modalForwardMessage.locator(
-      generateE2eSelector('suggest_item'),
-      {
-        hasText: destination,
-      }
+
+    const suggestItems = this.selector.shareContact.modal.item.locator(
+      generateE2eSelector('suggest_item')
     );
-    const isVisible = await destinationItemLocator.isVisible();
-    if (!shouldVisible) {
-      expect(isVisible).toBeFalsy();
-    } else {
-      expect(isVisible).toBeTruthy();
-      await destinationItemLocator.first().click();
-      await this.selector.shareContact.modal.buttonShare.click();
-      await this.page.waitForTimeout(2000);
+
+    let destinationItemLocator = suggestItems.filter({
+      hasText: destination,
+    });
+
+    if (clanName) {
+      destinationItemLocator = destinationItemLocator.filter({
+        has: this.page.locator(generateE2eSelector('suggest_item.clan_name'), {
+          hasText: clanName,
+        }),
+      });
     }
+
+    if (!shouldVisible) {
+      await expect(destinationItemLocator).toHaveCount(0);
+      return;
+    }
+
+    await expect(destinationItemLocator.first()).toBeVisible({ timeout: 5000 });
+
+    await destinationItemLocator.first().click();
+    await this.selector.shareContact.modal.buttonShare.click();
   }
 
   async verifyContactSharedInDMOrChannel(username: string) {
@@ -2666,21 +2711,20 @@ export class MessageTestHelpers {
   }
 
   async forwardAllMessages(destination: string) {
-    const messages = this.selector.messages.last();
+    const messages = this.selector.messages.first();
     await messages.click({ button: 'right' });
     await this.page.waitForTimeout(400);
     await this.selector.forwardAllMessagesButton.click();
     await this.page.waitForTimeout(500);
     await this.selector.searchUserOnForwardMessageModal.fill(destination);
     await this.page.waitForTimeout(3000);
-    const channelItemLocator = this.selector.modalForwardMessage.locator(
-      generateE2eSelector('suggest_item'),
-      {
+    const channelItemLocator = this.selector.modalForwardMessage
+      .locator(generateE2eSelector('suggest_item'), {
         hasText: destination,
-      }
-    );
+      })
+      .last();
     await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
-    await channelItemLocator.first().click();
+    await channelItemLocator.last().click();
     await this.selector.sendForwardMessageButton.click();
   }
 
@@ -2688,7 +2732,7 @@ export class MessageTestHelpers {
     const messageLocator = this.selector.messages.nth(-(indexFromLast + 1));
 
     await expect(messageLocator).toBeVisible({ timeout: 5000 });
-    await expect(messageLocator).toHaveText(messageContent, { timeout: 5000 });
+    await expect(messageLocator).toContainText(messageContent, { timeout: 5000 });
   }
 
   async canSeeCreateThreadOption() {

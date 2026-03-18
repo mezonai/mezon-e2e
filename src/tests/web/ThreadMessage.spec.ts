@@ -70,6 +70,7 @@ test.describe('Thread in Public Channel', () => {
       const messageElement = await messageHelper.sendTextMessageAndGetItem(initMessage);
       messageLocator = messageElement;
       expect(await clanPage.verifyMessageSent(initMessage)).toBeTruthy();
+      await page.reload();
     });
 
     await AllureReporter.step('Attempt create thread with invalid name', async () => {
@@ -90,6 +91,7 @@ test.describe('Thread in Public Channel', () => {
     await AllureReporter.step('Fix thread name to valid and create', async () => {
       await messageHelper.fillThreadName(VALID_THREAD_NAME);
       await messageHelper.sendMessageInThread(threadReply, true);
+      await clanPage.openThreadByName(VALID_THREAD_NAME);
       const initMsgInThread = messageHelper.getThreadMessageItemByText(initMessage);
       await expect(initMsgInThread).toBeVisible({ timeout: 3000 });
       const existsValid = await clanPage.isNewThreadPresent(VALID_THREAD_NAME);
@@ -119,6 +121,7 @@ test.describe('Thread in Public Channel', () => {
 
     await AllureReporter.step('Create thread and send message in it', async () => {
       const messageElement = await messageHelper.sendTextMessageAndGetItem(initMessage);
+      await page.reload();
       await messageElement.hover();
       await messageElement.click({ button: 'right' });
       await messageHelper.createThreadByMessage();

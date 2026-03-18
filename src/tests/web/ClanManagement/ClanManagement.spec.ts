@@ -135,6 +135,7 @@ test.describe('Clan Management', () => {
 
     await AllureReporter.step(`Open DM with invited user`, async () => {
       await clanPage.openDirectMessageWithUser(inviteResult.username!);
+      await page.waitForTimeout(1000);
     });
 
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {

@@ -4,6 +4,7 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { ClanStatus, EventType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
@@ -95,8 +96,11 @@ test.describe('File Size Limits Validation - Module 3', () => {
       **Expected Result:** Under 1MB uploads successfully; over 1MB shows "Your files are too powerful" with "Max file size is 1 MB"
     `);
 
+    const unique = Date.now().toString(36).slice(-6);
+    const locationName = `location name - ${unique}`;
+
     await AllureReporter.step('Create Events', async () => {
-      await clanPage.createEvent();
+      await clanPage.addDataOnLocationTab(EventType.LOCATION, locationName, ClanStatus.PUBLIC);
     });
 
     const under1MbPath = await fileSizeHelpers.createFileWithSize(

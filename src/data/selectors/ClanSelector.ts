@@ -440,21 +440,19 @@ export default class ClanSelector {
       ),
       startDateInput: this.page.locator(`
         ${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_date')} 
-        div.react-datepicker-wrapper 
-        div.react-datepicker__input-container 
+        div.w-full 
         input
       `),
       startTime: this.page.locator(
-        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_time')} select`
+        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_time')} div`
       ),
       endDate: this.page.locator(
         `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_date')} 
-        div.react-datepicker-wrapper 
-        div.react-datepicker__input-container 
+        div.w-full 
         input`
       ),
       endTime: this.page.locator(
-        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_time')} select`
+        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_time')} div`
       ),
       description: this.page.locator(
         `${generateE2eSelector('clan_page.modal.create_event.event_info.input.description')} div textarea`
@@ -624,12 +622,13 @@ export default class ClanSelector {
         question: this.page.locator(
           generateE2eSelector('clan_page.settings.onboarding.input.question')
         ),
-        answerTitle: this.page.locator(`
-          ${generateE2eSelector('clan_page.settings.onboarding.input.answer')} input[placeholder="Enter an answer..."]
-        `),
-        answerDescription: this.page.locator(`
-          ${generateE2eSelector('clan_page.settings.onboarding.input.answer')} input[placeholder="Enter a description... (optional)"]
-        `),
+        answerTitle: this.page.locator(
+          `${generateE2eSelector('mention.input')}[placeholder="Enter an answer..."]`
+        ),
+
+        answerDescription: this.page.locator(
+          `${generateE2eSelector('mention.input')}[placeholder="Enter a description... (optional)"]`
+        ),
       },
       button: {
         confirmAnswer: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save' }),
@@ -665,7 +664,7 @@ export default class ClanSelector {
       },
       input: {
         taskTitle: this.page.locator(
-          generateE2eSelector('clan_page.settings.onboarding.clan_guide.input.title')
+          `${generateE2eSelector('mention.input')}[placeholder="Ex. Post a photo of your pet"]`
         ),
       },
     },

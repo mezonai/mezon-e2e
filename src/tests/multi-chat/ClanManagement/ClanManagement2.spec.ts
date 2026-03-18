@@ -12,24 +12,13 @@ import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
-import TestSuiteHelper from '@/utils/testSuite.helper';
 
 test.describe('Clan Management 2', () => {
   const accountA = AccountCredentials['account2-3'];
   const accountB = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
-  const clanFactory = new ClanFactory();
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
-
-  test.beforeAll(async ({ browser }) => {
-    await TestSuiteHelper.setupBeforeAll({
-      browser,
-      clanFactory,
-      configs: ClanSetupHelper.configs.clanManagement,
-      credentials: accountA,
-    });
-  });
 
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
@@ -49,14 +38,6 @@ test.describe('Clan Management 2', () => {
           credentials
         );
       },
-    });
-  });
-
-  test.afterAll(async ({ browser }) => {
-    await TestSuiteHelper.onAfterAll({
-      browser,
-      clanFactory,
-      credentials: accountA,
     });
   });
 
@@ -95,6 +76,10 @@ test.describe('Clan Management 2', () => {
     const clanPageB = new ClanPage(pageB);
     const roleName = `role-${Date.now().toString(36).slice(-8)}`;
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -118,11 +103,15 @@ test.describe('Clan Management 2', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
+    });
 
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
 
@@ -147,6 +136,10 @@ test.describe('Clan Management 2', () => {
       await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openThreadModalFromHeader();
       await clanPageB.verifyCreateThreadButtonIsOpen();
+    });
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
     });
   });
 
@@ -177,6 +170,10 @@ test.describe('Clan Management 2', () => {
     const messageHelperB = new MessageTestHelpers(pageB);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -200,11 +197,15 @@ test.describe('Clan Management 2', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
+    });
 
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
 
@@ -240,6 +241,10 @@ test.describe('Clan Management 2', () => {
         await messageHelperB.verifyUserCanDeleteMessage(userNameA);
       }
     );
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that user can transfer owenship to another member', async ({ dual }) => {
@@ -260,6 +265,10 @@ test.describe('Clan Management 2', () => {
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -281,10 +290,15 @@ test.describe('Clan Management 2', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
+    });
+
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
     await AllureReporter.step('User A transfer ownership to user B', async () => {
@@ -300,6 +314,10 @@ test.describe('Clan Management 2', () => {
       await clanPageB.openMemberList();
       const memberItem = await clanPageB.getMemberFromMemberList(userNameB);
       await clanPageB.verifyOwnerIconIsVisibleInMemberList(memberItem);
+    });
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageB);
     });
   });
 
@@ -323,6 +341,10 @@ test.describe('Clan Management 2', () => {
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -344,10 +366,15 @@ test.describe('Clan Management 2', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
+    });
+
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
     await AllureReporter.step('User A transfer ownership to user B', async () => {
@@ -366,6 +393,11 @@ test.describe('Clan Management 2', () => {
       await clanPageB.verifyOwnerCanKickMembers(userNameA);
       await clanPageB.verifyOwnerCannotLeaveClan();
       await clanPageB.verifyOwnerCanDeleteClan();
+      await clanPageB.closeSettingsClan();
+    });
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageB);
     });
   });
 
@@ -388,6 +420,10 @@ test.describe('Clan Management 2', () => {
     const clanPageB = new ClanPage(pageB);
     const profilePageB = new ProfilePage(pageB);
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -409,12 +445,18 @@ test.describe('Clan Management 2', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
+    });
+
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
+
     const timeJoin = new Date();
     await AllureReporter.step(
       'Verify that member since on short profile of user B display correct',
@@ -422,7 +464,7 @@ test.describe('Clan Management 2', () => {
         await pageB.reload();
         await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openMemberList();
-        const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
+        const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
         await memberItem.click();
         await profilePageB.verifyMemberSinceInShortProfile(timeJoin);
       }
@@ -435,6 +477,10 @@ test.describe('Clan Management 2', () => {
         await profilePageB.verifyMemberSinceJoinClanInMemberManagement(timeJoin);
       }
     );
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that member since in clan reflect correct when user join mezon', async ({
@@ -458,6 +504,10 @@ test.describe('Clan Management 2', () => {
     const clanPageB = new ClanPage(pageB);
     const profilePageB = new ProfilePage(pageB);
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -479,10 +529,15 @@ test.describe('Clan Management 2', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
+    });
+
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
     let memberSince: string | Date;
@@ -492,10 +547,11 @@ test.describe('Clan Management 2', () => {
         await pageB.reload();
         await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openMemberList();
-        const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
-        await memberItem.click({ button: 'right' });
-        const timeJoin = await clanPageA.getMemberSinceFromFullProfile();
+        const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
+        await clanPageB.openContextModalOnMemberList(memberItem);
+        const timeJoin = await clanPageB.getMemberSinceFromFullProfile();
         memberSince = timeJoin;
+        await pageB.keyboard.press('Escape');
       }
     );
 
@@ -506,5 +562,9 @@ test.describe('Clan Management 2', () => {
         await profilePageB.verifyMemberSinceJoinMezonInMemberManagement(memberSince);
       }
     );
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 });
