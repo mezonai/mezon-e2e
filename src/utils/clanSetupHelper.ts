@@ -265,6 +265,11 @@ export class ClanSetupHelper {
       clanNamePrefix: 'CreateCategoryTest',
       suiteName: 'Create Category',
     }),
+
+    markAsRead: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MarkAsReadTest',
+      suiteName: 'Mark As Read',
+    }),
   };
 }
 

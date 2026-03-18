@@ -93,6 +93,10 @@ test.describe('Direct Message', () => {
     nameGroupChat = `groupchat-${unique}`.slice(0, 20);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -137,6 +141,7 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.step('Verify group avatar is updated with user B on DM list', async () => {
+      await pageB.reload();
       const avtHashDMB = await messagePageB.getAvatarHashOnDMList(nameGroupChat);
       expect(avtHashDMB).toBe(profileHash);
     });
@@ -184,6 +189,10 @@ test.describe('Direct Message', () => {
     nameGroupChat = `groupchat-${unique}`.slice(0, 20);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -297,6 +306,10 @@ test.describe('Direct Message', () => {
     nameGroupChat = `groupchat-${unique}`.slice(0, 20);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -374,6 +387,10 @@ test.describe('Direct Message', () => {
     const userNameC = accountC.email.split('@')[0];
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -440,6 +457,10 @@ test.describe('Direct Message', () => {
       `);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -458,8 +479,8 @@ test.describe('Direct Message', () => {
     await AllureReporter.step('Verify both users see each other as friends', async () => {
       await friendPageA.assertAllFriend(userNameB);
       await friendPageB.assertAllFriend(userNameA);
-      await friendPageA.sendFriendRequestToUser(userNameC);
-      await friendPageA.verifySentRequestToast();
+      await friendPageB.sendFriendRequestToUser(userNameC);
+      await friendPageB.verifySentRequestToast();
     });
     await AllureReporter.step('User A create a DM with User B and send message', async () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
@@ -467,7 +488,7 @@ test.describe('Direct Message', () => {
     });
     await AllureReporter.step('User B mark the message as unread', async () => {
       await messagePageB.markMessageAsUnread(userNameA);
-      await friendPageB.createDM(userNameC);
+      await friendPageB.gotoFriendsPage();
       await messageHelperB.verifyUserOnDMHasHighlight(userNameA);
     });
   });

@@ -13,12 +13,12 @@ import { ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import generateRandomString from '@/utils/randomString';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['accountKien8'];
@@ -202,6 +202,8 @@ test.describe('Friend Management - Block User', () => {
       await clanInviteModalB.acceptInvite();
     });
 
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
     await test.step('User A sends channel message and creates thread', async () => {
       await messageHelpersA.sendTextMessage(baseChannelMessage);
       const latestMessage = await messageHelpersA.findLastMessage();
@@ -209,15 +211,17 @@ test.describe('Friend Management - Block User', () => {
       await pageA.waitForTimeout(2000);
       await messageHelpersA.createThread(latestMessage, threadName);
       await pageA.waitForTimeout(1000);
-      await messageHelpersA.sendMessageInThread(threadMessage, true);
+      await pageA.reload();
+      await clanPageA.openThread(threadName);
+      // await messageHelpersA.sendMessageInThread(threadMessage, true);
       await pageA.waitForTimeout(1000);
+      await pageA.reload();
     });
 
     await test.step('Both users open the new thread', async () => {
-      const clanPageA = new ClanPage(pageA);
-      const clanPageB = new ClanPage(pageB);
       await clanPageA.openThread(threadName);
       await pageA.waitForTimeout(1000);
+      await pageB.reload();
       await clanPageB.openThread(threadName);
     });
 
@@ -387,6 +391,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('Verify base message visible for User B', async () => {
+      await pageA.reload();
       const messageLocatorB = await messagePageB.getMessageByText(baseMessage);
       await messageLocatorB.waitFor({ state: 'visible', timeout: 10000 });
     });

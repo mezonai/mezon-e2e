@@ -1,5 +1,4 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
-import { ClanFactory } from '@/data/factories/ClanFactory';
 import { FriendPage } from '@/pages/FriendPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ROUTES } from '@/selectors';
@@ -16,7 +15,6 @@ test.describe('User settings', () => {
   const accountB = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
-  const clanFactory = new ClanFactory();
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
 
   test.beforeEach(async ({ dual }) => {
@@ -75,6 +73,10 @@ test.describe('User settings', () => {
     const status = `custom status - ${generateRandomString(10)}`;
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,

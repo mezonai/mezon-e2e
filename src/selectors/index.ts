@@ -53,6 +53,7 @@ export const DATA_E2E_IDENTIFIER = {
     action: {
       button: {
         base: '',
+        status: '',
       },
     },
     modal: {
@@ -998,6 +999,7 @@ export const DATA_E2E_IDENTIFIER = {
   },
   suggest_item: {
     username: '',
+    clan_name: '',
   },
   badge: {
     friend_pending: '',

@@ -11,10 +11,18 @@ export class OnboardingHelpers {
     const clanPage = new ClanPage(this.page);
 
     const clicked = await clanPage.clickCreateClanButton();
-    if (!clicked) return { clicked: false, created: false };
+    if (!clicked) {
+      return { clicked: false, created: false };
+    }
+
+    const createMyOwnClicked = await clanPage.clickCreateMyOwnClan();
+    if (!createMyOwnClicked) {
+      return { clicked: true, created: false };
+    }
 
     const created = await clanPage.createNewClan(clanName);
-    return { clicked, created };
+
+    return { clicked: true, created };
   }
 
   async ensureOnboardingGuideVisible(): Promise<void> {

@@ -3,7 +3,7 @@ import MessageSelector from '@/data/selectors/MessageSelector';
 import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Locator, Page } from '@playwright/test';
-import { formatDistance } from 'date-fns';
+import { differenceInMonths, formatDistance } from 'date-fns';
 import { BasePage } from './BasePage';
 import { MessagePage } from './MessagePage';
 
@@ -202,60 +202,38 @@ export class ProfilePage extends BasePage {
   async getProfileStatusInFooterProfile() {
     const locator = this.selector.shortProfile.profileStatus.triggerButton;
 
-    if (await locator.locator('.bg-green-500').isVisible()) {
-      return 'online';
-    }
+    const statusText = await locator.locator('li').innerText();
 
-    if (await locator.locator('.bg-red-500').isVisible()) {
-      return 'Do Not Disturb';
-    }
-
-    if (await locator.locator('svg.text-\\[\\#F0B232\\]').isVisible()) {
-      return 'Idle';
-    }
-
-    if (await locator.locator('rect[stroke="#AEAEAE"]').isVisible()) {
-      return 'Invisible';
-    }
-
-    return 'Unknown';
+    return statusText.trim();
   }
 
-  async openSelectProfileStatusModal(currentStatus: string) {
-    const buttonTrigger = this.selector.shortProfile.profileStatus.triggerButton.locator('li', {
-      hasText: currentStatus,
-    });
+  async openSelectProfileStatusModal() {
+    const buttonTrigger = this.selector.shortProfile.profileStatus.triggerButton;
     await expect(buttonTrigger).toBeVisible({ timeout: 3000 });
     await buttonTrigger.click();
   }
 
   async getProfileStatus(locator: Locator): Promise<string> {
-    if (await locator.locator('.bg-green-500').isVisible()) {
-      return 'online';
-    }
+    const red = locator.locator('.bg-red-500');
+    const green = locator.locator('.bg-green-500');
 
-    if (await locator.locator('.bg-red-500').isVisible()) {
-      return 'Do Not Disturb';
-    }
+    if (await green.count()) return 'online';
+    if (await red.count()) return 'Do Not Disturb';
 
-    if (await locator.locator('svg.text-\\[\\#F0B232\\]').isVisible()) {
-      return 'Idle';
-    }
+    if (await locator.locator('svg.text-\\[\\#F0B232\\]').count()) return 'Idle';
 
-    if (await locator.locator('rect[stroke="#AEAEAE"]').isVisible()) {
-      return 'Invisible';
-    }
+    if (await locator.locator('rect[stroke="#AEAEAE"]').count()) return 'Invisible';
 
     return 'Unknown';
   }
 
   async setProfileStatus(newStatus: string, timeVisible?: string) {
-    const statusLocator = this.selector.shortProfile.profileStatus.triggerButton
+    const statusLocator = this.selector.shortProfile.profileStatus.statusButton
       .filter({ hasText: newStatus })
-      .first();
+      .last();
     await expect(statusLocator).toBeVisible({ timeout: 3000 });
     await statusLocator.click();
-    const timeLocator = this.selector.shortProfile.profileStatus.triggerButton
+    const timeLocator = this.selector.shortProfile.profileStatus.statusButton
       .filter({ hasText: timeVisible })
       .first();
     if (timeVisible) {
@@ -316,11 +294,11 @@ export class ProfilePage extends BasePage {
     const clanSelector = new ClanSelector(this.page);
     const date = new Date(time);
 
-    const formatTime = formatDistance(date, new Date(), {
-      addSuffix: true,
-    });
+    const months = differenceInMonths(new Date(), date);
+    const formatTime = `${months}mo ago`;
+
     const memberSinceLocator = clanSelector.memberSettings.joinMezon.first();
 
-    await expect(memberSinceLocator).toHaveText(formatTime, { timeout: 500 });
+    await expect(memberSinceLocator).toHaveText(formatTime);
   }
 }

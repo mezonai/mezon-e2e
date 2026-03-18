@@ -89,7 +89,6 @@ test.describe('Clan Management - Module 2', () => {
       };
       await clanPage.verifyDataOnReviewTab(data);
       await clanPage.clickCreateEventButton();
-      await clanPage.waitForModalToBeHidden();
     });
 
     await AllureReporter.step('Verify event is present in event list', async () => {
@@ -105,7 +104,7 @@ test.describe('Clan Management - Module 2', () => {
     });
 
     await AllureReporter.step(
-      'Verify event information is match in event dertail modal',
+      'Verify event information is match in event detail modal',
       async () => {
         const isCreatedEvent = await clanPage.verifyInEventDetailModal({
           eventTopic: res.eventTopic,
@@ -187,7 +186,6 @@ test.describe('Clan Management - Module 2', () => {
       };
       await clanPage.verifyDataOnReviewTab(data);
       await clanPage.clickCreateEventButton();
-      await clanPage.waitForModalToBeHidden();
     });
 
     await AllureReporter.step('Verify event is present in event list', async () => {
@@ -260,7 +258,6 @@ test.describe('Clan Management - Module 2', () => {
       };
       await clanPage.verifyDataOnReviewTab(data);
       await clanPage.clickCreateEventButton();
-      await clanPage.waitForModalToBeHidden();
     });
     await AllureReporter.step('Verify event is present in event list', async () => {
       const isCreatedEvent = await clanPage.verifyLastEventData({

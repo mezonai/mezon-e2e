@@ -174,6 +174,8 @@ test.describe('Channel Message - Module 7', () => {
     const messagePage = new MessagePage(page);
 
     await AllureReporter.step('Enable anonymous mode and send message', async () => {
+      await messagePage.openAnonymous();
+      await messagePage.verifyAnonymousIsVisible();
       await messagePage.sendMessageWithAnonymous(messageText);
     });
 

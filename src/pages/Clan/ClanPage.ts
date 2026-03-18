@@ -305,7 +305,8 @@ export class ClanPage extends BasePage {
     }
     await this.selector.threadBox.threadInputMention.fill(threadName);
     await this.selector.threadBox.threadInputMention.press('Enter');
-    await this.page.waitForLoadState('networkidle');
+    // await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
   }
 
   async clickThreadItem(threadName: string): Promise<void> {
@@ -340,6 +341,17 @@ export class ClanPage extends BasePage {
     const addFriendLocator = this.selector.sidebarMemberList.addFriendButton;
     await addFriendLocator.waitFor({ state: 'visible', timeout: 5000 });
     await addFriendLocator.click();
+  }
+
+  async verifyAddFriendButtonVisibleOnModal(): Promise<boolean> {
+    const addFriendLocator = this.selector.sidebarMemberList.addFriendButton;
+
+    try {
+      await addFriendLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async isNewThreadPresent(threadName: string): Promise<boolean> {
@@ -545,7 +557,7 @@ export class ClanPage extends BasePage {
     return result.found;
   }
   async formatDateTimeFromInputs(startDate: string, startTime: string, locale = 'en-US') {
-    const [day, month, year] = startDate.split('/');
+    const [year, month, day] = startDate.split('-');
     const [hour, minute] = startTime.split(':');
 
     const rawDate = new Date(
@@ -582,14 +594,20 @@ export class ClanPage extends BasePage {
       const eventTopic = `E2E event ${Date.now()}`;
       const description = `This is an event created during E2E tests ${Date.now()}`;
       const startDate = await this.selector.createEventModal.input.startDateInput.inputValue();
-      const startTime = await this.selector.createEventModal.input.startTime.inputValue();
+      const startTime = await this.selector.createEventModal.input.startTime.innerText();
+      console.log(startDate);
+      console.log(startTime);
+
+      await this.page.waitForTimeout(2000);
 
       const { formattedDate, formattedTime } = await this.formatDateTimeFromInputs(
         startDate,
         startTime
       );
+
       await this.selector.createEventModal.input.eventTopic.fill(eventTopic);
       await this.selector.createEventModal.input.description.fill(description);
+      await this.page.waitForTimeout(2000);
 
       await this.selector.eventModal.nextButton.click();
 
@@ -627,7 +645,7 @@ export class ClanPage extends BasePage {
         await expect(descriptionLocator).toHaveText(description);
       }
 
-      const startDateTime = `${startDate} - ${startTime}`;
+      const startDateTime = `${startDate}, ${startTime}`;
       const startDateTimeLocator = this.selector.createEventModal.startTimeReview;
       await expect(startDateTimeLocator).toHaveText(startDateTime);
       const typeClanLocator = this.selector.createEventModal.typeClanReview;
@@ -667,9 +685,6 @@ export class ClanPage extends BasePage {
   }
 
   async getLastEventData(eventType: EventType) {
-    await this.selector.buttons.eventButton.click();
-    await this.selector.createEventModal.modalStart.waitFor({ state: 'visible', timeout: 5000 });
-
     const lastEvent = this.selector.createEventModal.eventManagementItem.last();
     await lastEvent.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -717,6 +732,22 @@ export class ClanPage extends BasePage {
     };
   }
 
+  parseStartTime(startTime: string): Date {
+    const [datePart, timePart] = startTime.split(' - ');
+
+    const currentYear = new Date().getFullYear();
+    const full = `${datePart} ${currentYear} ${timePart}`;
+
+    return new Date(full);
+  }
+
+  isWithin10Minutes(date: Date) {
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+
+    return diff > 0 && diff <= 10 * 60 * 1000;
+  }
+
   async verifyLastEventData(expected: {
     eventTopic: string;
     description?: string;
@@ -727,6 +758,8 @@ export class ClanPage extends BasePage {
     eventType: EventType;
   }): Promise<boolean> {
     const lastEvent = await this.getLastEventData(expected.eventType);
+    console.log(lastEvent);
+    console.log(expected);
 
     await expect(lastEvent.topic).toBe(expected.eventTopic);
 
@@ -743,7 +776,18 @@ export class ClanPage extends BasePage {
     }
 
     if (expected.startTime) {
-      await expect(lastEvent.startTime).toBe(expected.startTime);
+      const actual = lastEvent.startTime;
+
+      const expectedDate = this.parseStartTime(expected.startTime);
+      console.log(expectedDate);
+
+      console.log(this.isWithin10Minutes(expectedDate));
+
+      if (this.isWithin10Minutes(expectedDate)) {
+        expect(actual).toContain('will start in');
+      } else {
+        expect(actual).toBe(expected.startTime);
+      }
     }
 
     const typeClanLocator = lastEvent.type;
@@ -891,7 +935,7 @@ export class ClanPage extends BasePage {
 
     const [newPage] = await Promise.all([
       this.page.waitForEvent('popup'),
-      lastMessageLocator.getByText(url, { exact: false }).click(),
+      lastMessageLocator.getByText(url, { exact: false }).last().click(),
     ]);
 
     await newPage.waitForLoadState('domcontentloaded');
@@ -1146,6 +1190,15 @@ export class ClanPage extends BasePage {
     await channelLocator.click();
   }
 
+  async openThreadByName(threadName: string) {
+    const threadLocator = this.page.locator(
+      generateE2eSelector('clan_page.channel_list.thread_item.name'),
+      { hasText: threadName }
+    );
+    await expect(threadLocator).toBeVisible({ timeout: 3000 });
+    await threadLocator.click();
+  }
+
   async markChannelAsFavorite(channelName: string) {
     const channelLocator = this.page.locator(
       generateE2eSelector('clan_page.channel_list.item.name'),
@@ -1227,7 +1280,8 @@ export class ClanPage extends BasePage {
   private async selectSystemMessageChannel(channelName: string, categoryName: string) {
     await this.openSelectionSystemMessageChannel();
 
-    const wrapItem = this.selector.clanOverviewSettings.system_messages_channel.selection.wrap_item;
+    // const wrapItem = this.selector.clanOverviewSettings.system_messages_channel.selection.wrap_item;
+    const wrapItem = this.page.locator('div.rc-dropdown');
 
     const targetItem = wrapItem
       .filter({
@@ -1260,7 +1314,8 @@ export class ClanPage extends BasePage {
   }
 
   async verifySelectedSystemMessageChannelNotInDropdown(channelName: string, categoryName: string) {
-    const wrapItem = this.selector.clanOverviewSettings.system_messages_channel.selection.wrap_item;
+    // const wrapItem = this.selector.clanOverviewSettings.system_messages_channel.selection.wrap_item;
+    const wrapItem = this.page.locator('div.rc-dropdown');
 
     const exists = wrapItem.filter({ hasText: channelName }).filter({ hasText: categoryName });
 
@@ -1272,6 +1327,8 @@ export class ClanPage extends BasePage {
     await this.verifySelectedSystemMessageChannelNotInDropdown(channelName, categoryName);
     await this.verifySelectedSystemMessageChannel(channelName, categoryName);
 
+    await this.page.locator('body').click();
+
     await this.selector.buttons.saveChanges.click();
     await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
   }
@@ -1279,6 +1336,11 @@ export class ClanPage extends BasePage {
   async closeSettingsClan() {
     await this.selector.buttons.closeSettingClan.click();
     await expect(this.selector.buttons.closeSettingClan).toBeHidden({ timeout: 3000 });
+  }
+
+  async closeSettingsChannel() {
+    await this.selector.buttons.exitSettings.click();
+    await expect(this.selector.buttons.exitSettings).toBeHidden({ timeout: 3000 });
   }
 
   async verifySystemMessageIsSentOnUpdatedChannel(channelName: string, username: string) {
@@ -1459,17 +1521,20 @@ export class ClanPage extends BasePage {
     });
   }
 
-  async assertCanvasContent(title: string, content: string) {
+  async assertCanvasContent(title: string, content: string, shouldVisible = true) {
     const canvasTitle = this.selector.screen.canvasEditor.input.title;
     const canvasContent = this.selector.screen.canvasEditor.input.content;
-    await expect(canvasTitle).toHaveValue(title, { timeout: 3000 });
-    await expect(canvasContent).toHaveText(content, { timeout: 3000 });
+    if (shouldVisible) {
+      await expect(canvasTitle).toHaveValue(title, { timeout: 3000 });
+      await expect(canvasContent).toHaveText(content, { timeout: 3000 });
+    } else {
+      await expect(canvasTitle).not.toHaveValue(title, { timeout: 3000 });
+      await expect(canvasContent).not.toHaveText(content, { timeout: 3000 });
+    }
   }
 
   async copyCanvasLink(canvasTitle: string) {
-    const canvasItem = this.selector.modal.canvasManagement.item.filter({
-      has: this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle }),
-    });
+    const canvasItem = this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle });
     await expect(canvasItem).toBeVisible({ timeout: 3000 });
     await canvasItem.locator(this.selector.modal.canvasManagement.button.copyCanvasLink).click();
   }
@@ -1690,6 +1755,8 @@ export class ClanPage extends BasePage {
 
   async createRoleWithPermission(roleName: string, permission: string) {
     await this.selector.clanSettings.buttons.createRole.click();
+    await this.selector.clanSettings.buttons.permissionsRole.click();
+
     await expect(this.selector.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
 
     const permissionItem = this.selector.clanSettings.rolePermissionsItem.filter({
@@ -1749,7 +1816,7 @@ export class ClanPage extends BasePage {
   }
 
   async clickShareContactByName(username: string) {
-    const memberLocator = this.selector.sidebarMemberList.memberItems
+    const memberLocator = this.selector.secondarySideBar.member.item
       .filter({ hasText: username })
       .first();
     await expect(memberLocator).toBeVisible({ timeout: 3000 });
@@ -1847,11 +1914,12 @@ export class ClanPage extends BasePage {
     const messageSelector = new MessageSelector(this.page);
 
     const lastMessage = messageSelector.messages.last();
-    await expect(lastMessage).toBeVisible({ timeout: 3000 });
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
 
-    const gifMessage = lastMessage.locator('[id*=".gif"]');
+    const gifMessage = lastMessage.locator('img[src*=".gif"]');
 
-    await expect(gifMessage).toBeVisible();
+    await expect(gifMessage).toBeVisible({ timeout: 5000 });
+    return true;
   }
 
   async getMemberSinceFromFullProfile(): Promise<string> {

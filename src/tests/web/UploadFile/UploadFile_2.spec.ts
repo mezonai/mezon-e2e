@@ -94,6 +94,7 @@ test.describe('File Size Limits Validation - Module 2', () => {
 
     await AllureReporter.step('Navigate to Clan Profile settings', async () => {
       await clanPage.clickCreateClanButton();
+      await clanPage.clickCreateMyOwnClan();
     });
 
     const underLimitPath = await fileSizeHelpers.createFileWithSize(
@@ -331,7 +332,7 @@ test.describe('File Size Limits Validation - Module 2', () => {
         false
       );
       expect(result.success).toBe(false);
-      expect(result.errorMessage).toMatch('File too big, max 1MB');
+      expect(result.errorMessage).toMatch('Max file size is 1 MB, please!');
       await page.reload({ waitUntil: 'domcontentloaded' });
     });
   });

@@ -156,6 +156,9 @@ export class OnboardingPage extends BasePage {
     await this.selector.onboarding.clanGuideSettings.buttons.addTask.click();
     await this.selector.onboarding.clanGuideSettings.input.taskTitle.fill(taskName);
     await this.selector.onboarding.setupQuestion.button.confirmAnswer.click();
+    await expect(this.selector.onboarding.setupQuestion.button.confirmAnswer).toBeHidden({
+      timeout: 3000,
+    });
   }
 
   async clickBackOnboardingModal() {
@@ -193,20 +196,20 @@ export class OnboardingPage extends BasePage {
         if (!question) return;
 
         await expect(questionLocator).toHaveText(question);
-        await expect(titleLocator).toHaveText(title);
+        await expect(titleLocator.first()).toHaveText(title);
 
         if (description) {
-          await expect(descriptionLocator).toHaveText(description);
+          await expect(descriptionLocator.first()).toHaveText(description);
         }
         break;
       }
 
       case 'resource':
       case 'mission': {
-        await expect(titleLocator).toHaveText(title);
+        await expect(titleLocator.last()).toHaveText(title);
 
         if (description) {
-          await expect(descriptionLocator).toHaveText(description);
+          await expect(descriptionLocator.last()).toHaveText(description);
         }
         break;
       }

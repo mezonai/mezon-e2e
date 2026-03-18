@@ -56,8 +56,9 @@ test.describe('Create Clan', () => {
       for (let i = 0; i < createClansCount; i++) {
         const clanName = `Mezon E2E Clan ${createClansCount - i} ${generateRandomString(10)}`;
 
-        const createClanClicked = await clanPage.clickCreateClanButton();
-        if (createClanClicked) {
+        await clanPage.clickCreateClanButton();
+        const createMyOwnClicked = await clanPage.clickCreateMyOwnClan();
+        if (createMyOwnClicked) {
           await clanPage.createNewClan(clanName);
         }
         const isClanPresent = await clanPage.isClanPresent(clanName);
@@ -77,8 +78,9 @@ test.describe('Create Clan', () => {
     } else {
       await AllureReporter.step('Verify that show limit modal when create clan 51', async () => {
         const clanName = `Mezon E2E Clan LIMIT ${generateRandomString(10)}`;
-        const createClanClicked = await clanPage.clickCreateClanButton();
-        if (createClanClicked) {
+        await clanPage.clickCreateClanButton();
+        const createMyOwnClicked = await clanPage.clickCreateMyOwnClan();
+        if (createMyOwnClicked) {
           await clanPage.createNewClan(clanName);
         }
         const isClanPresent = await clanPage.isClanPresent(clanName);

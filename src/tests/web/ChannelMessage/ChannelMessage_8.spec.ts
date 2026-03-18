@@ -71,7 +71,8 @@ test.describe('Channel Message - Module 8', () => {
     const messageHelper = new MessageTestHelpers(page);
     const clanPage = new ClanPage(page);
 
-    const channelName = `auto-text-channel-${Date.now()}`;
+    const unique = Date.now().toString(36);
+    const channelName = `tc-${unique}`.slice(0, 20);
     const messages = [
       `Forward message 1 - ${Date.now()}`,
       `Forward message 2 - ${Date.now()}`,
@@ -124,7 +125,8 @@ test.describe('Channel Message - Module 8', () => {
     const messageHelper = new MessageTestHelpers(page);
     const messagePage = new MessagePage(page);
     const clanPage = new ClanPage(page);
-    const channelName = `auto-text-channel-${Date.now()}`;
+    const unique = Date.now().toString(36);
+    const channelName = `tc-${unique}`.slice(0, 20);
     const message = `Pin message- ${Date.now()}`;
 
     await AllureReporter.step('Create a new text channel', async () => {

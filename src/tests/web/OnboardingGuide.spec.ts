@@ -228,6 +228,7 @@ test.describe('Onboarding Guide Task Completion', () => {
 
     await AllureReporter.step('Verify onboarding is enable', async () => {
       await onboardingPage.verifyEnableOnboardingOnClanSettingsSidebar();
+      await clanPage.closeSettingsClan();
     });
   });
 
@@ -354,7 +355,9 @@ test.describe('Onboarding Guide Task Completion', () => {
     await AllureReporter.step(
       'Verify that onboarding settings is match on preview mode',
       async () => {
+        await onboardingPage.clickBackOnboardingModal();
         await onboardingPage.openOnboardingPreviewMode();
+        await onboardingPage.openOnboardingPage();
         await onboardingPage.verifyOnboardingSetupByType(
           'question',
           data.answerTitle,

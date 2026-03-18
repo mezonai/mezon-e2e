@@ -13,7 +13,6 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
-import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
@@ -23,21 +22,11 @@ test.describe('Channel Message 6', () => {
   const accountC = AccountCredentials['accountKien7'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
-  const clanFactory = new ClanFactory();
   const [userNameA, userNameB, userNameC] = getUsernamesFromEmails([
     accountA.email,
     accountB.email,
     accountC.email,
   ]);
-
-  test.beforeAll(async ({ browser }) => {
-    await TestSuiteHelper.setupBeforeAll({
-      browser,
-      clanFactory,
-      configs: ClanSetupHelper.configs.channelMessage1,
-      credentials: accountA,
-    });
-  });
 
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
@@ -57,14 +46,6 @@ test.describe('Channel Message 6', () => {
           credentials
         );
       },
-    });
-  });
-
-  test.afterAll(async ({ browser }) => {
-    await TestSuiteHelper.onAfterAll({
-      browser,
-      clanFactory,
-      credentials: accountA,
     });
   });
 
@@ -103,6 +84,10 @@ test.describe('Channel Message 6', () => {
         `);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -127,10 +112,18 @@ test.describe('Channel Message 6', () => {
       await friendPageB.assertAllFriend(userNameA);
     });
 
+    await test.step('Open DM between User A and User B', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage6, pageA);
+    });
+
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
 
@@ -146,7 +139,7 @@ test.describe('Channel Message 6', () => {
       await clanPageA.openCanvasManagementModal();
       await clanPageA.copyCanvasLink(canvasTitle);
       await clanPageA.openChannelByName('general');
-      await messageHelperA.pasteAndSendText();
+      await messageHelperA.pasteAndSendTextV2();
       await pageA.waitForTimeout(3000);
     });
 
@@ -163,6 +156,10 @@ test.describe('Channel Message 6', () => {
         await clanPageB.assertCanvasContent(canvasTitle, canvasContent);
       }
     );
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that user can open canvas from direct message when user is member of the clan', async ({
@@ -176,7 +173,6 @@ test.describe('Channel Message 6', () => {
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
     const messagePageA = new MessagePage(pageA);
-    const messagePageB = new MessagePage(pageB);
     const canvasTitle = `canvas title - ${generateRandomString(10)}`;
     const canvasContent = `canvas content - ${generateRandomString(10)}`;
 
@@ -192,6 +188,10 @@ test.describe('Channel Message 6', () => {
         `);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -215,11 +215,18 @@ test.describe('Channel Message 6', () => {
       await friendPageA.assertAllFriend(userNameB);
       await friendPageB.assertAllFriend(userNameA);
     });
+    await test.step('Open DM between User A and User B', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage6, pageA);
+    });
 
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
 
@@ -236,20 +243,20 @@ test.describe('Channel Message 6', () => {
       await messagePageA.openSearchModalbyPressCtrlK();
       await messageHelperA.openDMByNameOnsearchModal(userNameB);
       await pageA.waitForTimeout(1500);
-      await messageHelperA.pasteAndSendText();
+      await messageHelperA.pasteAndSendTextV2();
       await pageA.waitForTimeout(3000);
     });
     await AllureReporter.step(
       'User B clicks on the shared canvas link in direct message and can view the canvas content',
       async () => {
         await pageB.reload();
-        await messagePageB.openSearchModalbyPressCtrlK();
-        await messageHelperB.openDMByNameOnsearchModal(userNameA);
-        await pageB.waitForTimeout(1500);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
         await clanPageB.assertCanvasContent(canvasTitle, canvasContent);
       }
     );
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that user cannot open canvas from direct message when user is not member of the clan', async ({
@@ -278,6 +285,10 @@ test.describe('Channel Message 6', () => {
         `);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -302,8 +313,15 @@ test.describe('Channel Message 6', () => {
       await friendPageB.assertAllFriend(userNameA);
     });
 
+    await test.step('Open DM between User A and User B', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage6, pageA);
+    });
+
     await AllureReporter.step('Create a canvas', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageA.openCanvasManagementModal();
       await clanPageA.createCanvas();
       await clanPageA.fillCanvasTitle(canvasTitle);
@@ -316,21 +334,23 @@ test.describe('Channel Message 6', () => {
       await messagePageA.openSearchModalbyPressCtrlK();
       await messageHelperA.openDMByNameOnsearchModal(userNameB);
       await pageA.waitForTimeout(1500);
-      await messageHelperA.pasteAndSendText();
+      await messageHelperA.pasteAndSendTextV2();
       await pageA.waitForTimeout(3000);
     });
     await AllureReporter.step(
       'User B clicks on the shared canvas link in direct message and cannot view the canvas content',
       async () => {
         await pageB.reload();
-        await messagePageB.openSearchModalbyPressCtrlK();
-        await messageHelperB.openDMByNameOnsearchModal(userNameA);
-        await pageB.waitForTimeout(1500);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
         const errorModal = await messageHelperB.isErrorModalVisible();
         expect(errorModal).toBeTruthy();
+        await messageHelperB.clickCancelModal();
       }
     );
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Verify that user cannot access canvas on private channel when user is not a member', async ({
@@ -343,8 +363,6 @@ test.describe('Channel Message 6', () => {
     const messageHelperB = new MessageTestHelpers(pageB);
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const messagePageA = new MessagePage(pageA);
-    const messagePageB = new MessagePage(pageB);
     const canvasTitle = `canvas title - ${generateRandomString(10)}`;
     const canvasContent = `canvas content - ${generateRandomString(10)}`;
     const unique = Date.now().toString(36);
@@ -363,6 +381,10 @@ test.describe('Channel Message 6', () => {
         `);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
       await FriendHelper.cleanupMutualFriendRelationships(
         friendPageA,
         friendPageB,
@@ -387,10 +409,25 @@ test.describe('Channel Message 6', () => {
       await friendPageB.assertAllFriend(userNameA);
     });
 
+    await test.step('Open DM between User A and User B', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage6, pageA);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
     await AllureReporter.step(
       `User A create new private text channel: ${channelName}`,
       async () => {
-        await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageA.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
         const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
         expect(isNewChannelPresent).toBe(true);
@@ -409,20 +446,23 @@ test.describe('Channel Message 6', () => {
       await clanPageA.openCanvasManagementModal();
       await clanPageA.copyCanvasLink(canvasTitle);
       await clanPageA.openChannelByName('general');
-      await messageHelperA.pasteAndSendText();
+      await messageHelperA.pasteAndSendTextV2();
       await pageA.waitForTimeout(3000);
     });
 
     await AllureReporter.step(
       'User B clicks on the shared canvas link in channel and cannot view the canvas content',
       async () => {
+        await pageB.reload();
         await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
-        await clanPageB.openChannelByName('general');
         await messageHelperB.verifyMessageHasCanvasLink(canvasTitle);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
-        const errorModal = await messageHelperB.isErrorModalVisible();
-        expect(errorModal).toBeTruthy();
+        await clanPageB.assertCanvasContent(canvasTitle, canvasContent, false);
       }
     );
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 });

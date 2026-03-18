@@ -159,6 +159,7 @@ test.describe('Channel Message - Module 3', () => {
     await AllureReporter.step(
       'Verify the pinned message is in the pinned message list and is the latest message',
       async () => {
+        await pageWithClipboard.reload();
         await messageHelpers.verifyMessagePinnedOnList(indentityMessage);
       }
     );

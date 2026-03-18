@@ -27,6 +27,7 @@ export class ThreadTestHelpers {
       const isNewThreadPresent = await clanPage.isNewThreadPresent(threadName);
       expect(isNewThreadPresent).toBe(true);
 
+      await clanPage.openThreadByName(threadName);
       await this.page.reload();
 
       const isThreadStillPresent = await clanPage.isNewThreadPresent(threadName);
