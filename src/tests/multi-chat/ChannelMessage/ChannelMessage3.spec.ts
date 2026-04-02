@@ -122,6 +122,8 @@ test.describe('Channel Message 3', () => {
     });
 
     await AllureReporter.step('User A ban user B in channel', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       await clanPageA.banUserByName(userNameB);
     });
@@ -215,6 +217,8 @@ test.describe('Channel Message 3', () => {
     });
 
     await AllureReporter.step('User A send message to user B from short profile', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       await messageHelperA.clickMemberInList(userNameB);
       await messageHelperA.sendMessageFromShortProfile(testMessage);
@@ -373,6 +377,8 @@ test.describe('Channel Message 3', () => {
     });
 
     await AllureReporter.step('User A click share friend contact card to friend`s dm', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       await clanPageA.clickShareContactByName(userNameB);
       await messageHelperA.verifyShareContactModalVisible();
@@ -448,6 +454,8 @@ test.describe('Channel Message 3', () => {
     });
 
     await AllureReporter.step('User A click share friend contact card to friend`s dm', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       await clanPageA.clickShareContactByName(userNameB);
       await messageHelperA.verifyShareContactModalVisible();

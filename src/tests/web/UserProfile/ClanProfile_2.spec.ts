@@ -8,7 +8,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { getImageHash } from '@/utils/images';
+import { getImageHash, getImageId } from '@/utils/images';
 import { joinUrlPaths } from '@/utils/joinUrlPaths';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
@@ -16,6 +16,7 @@ import { expect, Locator, test } from '@playwright/test';
 test.describe('Clan Profile - Module 2', () => {
   let profileHash: string | null = null;
   let profilePage: ProfilePage;
+  let profileId: string | null = null;
   const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
@@ -78,6 +79,7 @@ test.describe('Clan Profile - Module 2', () => {
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const profileSrc = await profileAvatar.getAttribute('src');
     profileHash = await getImageHash(profileSrc || '');
+    profileId = getImageId(profileSrc || '');
 
     await context.close();
   });
@@ -175,12 +177,12 @@ test.describe('Clan Profile - Module 2', () => {
     );
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
-    const avatarHash = await getImageHash(avatarSrc || '');
+    await page.waitForTimeout(1000);
+    const avatarId = getImageId(avatarSrc);
+    expect(profileId).not.toBeNull();
+    expect(avatarId).not.toBeNull();
 
-    expect(profileHash).not.toBeNull();
-    expect(avatarHash).not.toBeNull();
-
-    expect(profileHash).toEqual(avatarHash);
+    expect(profileId).toEqual(avatarId);
   });
 
   test('Validate avatar in member settings page', async ({ page }) => {

@@ -26,7 +26,7 @@ test.describe('Direct Message', () => {
 
     const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      AccountCredentials.account2
+      AccountCredentials.account3
     );
     await AuthHelper.prepareBeforeTest(
       page,
@@ -133,7 +133,7 @@ test.describe('Direct Message', () => {
       await page.waitForTimeout(3000);
     });
 
-    await test.step('Verify group chat is ceated', async () => {
+    await test.step('Verify group chat is created', async () => {
       const groupCreated = await messagePage.isGroupCreated(prevGroupCount);
       expect(groupCreated).toBeTruthy();
     });
@@ -160,6 +160,9 @@ test.describe('Direct Message', () => {
     const messagePage = new MessagePage(page);
 
     await test.step(`Update name for group chat DM`, async () => {
+      await messagePage.createGroup();
+      const groupName = await messagePage.getGroupName();
+      await expect(groupName).toBeVisible({ timeout: 5000 });
       await messagePage.updateNameGroupChatDM(nameGroupChat);
       await page.waitForTimeout(3000);
     });

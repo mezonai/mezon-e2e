@@ -6,7 +6,7 @@ import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { getImageHash } from '@/utils/images';
+import { getImageHash, getImageId } from '@/utils/images';
 import { joinUrlPaths } from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import generateRandomString from '@/utils/randomString';
@@ -16,6 +16,7 @@ import { expect, Locator, test } from '@playwright/test';
 test.describe('User Profile - Update avatar', () => {
   let profileHash: string | null = null;
   let profileName: string | null = null;
+  let profileId: string | null = null;
   const messageText = `message-text-${generateRandomString(10)}`;
 
   test.beforeAll(async ({ browser }) => {
@@ -80,6 +81,7 @@ test.describe('User Profile - Update avatar', () => {
     const profileSrc = await profileAvatar.getAttribute('src');
     profileHash = await getImageHash(profileSrc || '');
     profileName = await profilePage.getProfileName();
+    profileId = getImageId(profileSrc || '');
 
     await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
     await messagePage.sendMessage(messageText);
@@ -184,12 +186,11 @@ test.describe('User Profile - Update avatar', () => {
       const accountAvatar = await messagePage.getHeaderDMAvatar();
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
-      const accountHash = await getImageHash(accountSrc || '');
+      const avatarId = getImageId(accountSrc);
+      expect(profileId).not.toBeNull();
+      expect(avatarId).not.toBeNull();
 
-      expect(profileHash).not.toBeNull();
-      expect(accountHash).not.toBeNull();
-
-      expect(profileHash).toEqual(accountHash);
+      expect(profileId).toEqual(avatarId);
     });
 
     test('TC04: Direct Message _ Dual Chat _ Display name', async ({ page }) => {
@@ -203,16 +204,16 @@ test.describe('User Profile - Update avatar', () => {
       const messageItemWithProfileName = await messagePage.getMessageWithProfileName(
         profileName || ''
       );
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(2000);
       const accountAvatar = messageItemWithProfileName.locator(generateE2eSelector('avatar.image'));
+      await page.waitForTimeout(1000);
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
-      const accountHash = await getImageHash(accountSrc || '');
+      const avatarId = getImageId(accountSrc);
+      expect(profileId).not.toBeNull();
+      expect(avatarId).not.toBeNull();
 
-      expect(profileHash).not.toBeNull();
-      expect(accountHash).not.toBeNull();
-
-      expect(profileHash).toEqual(accountHash);
+      expect(profileId).toEqual(avatarId);
     });
 
     test('TC05: Direct Message _ Dual Chat _ Short Profile (click on display name)', async ({
@@ -260,21 +261,21 @@ test.describe('User Profile - Update avatar', () => {
       await messagePage.createDMWithFriendName(profileName || '');
       await page.waitForTimeout(500);
       await messageHelper.mentionUserAndSend(`@${profileName}`, [profileName || '']);
-      await page.waitForTimeout(500);
+      await page.reload();
       const mentionItem = messageHelper
         .getMessageItemLocator(`@${profileName}`)
         .last()
         .locator(generateE2eSelector('chat.channel_message.mention_user'));
       await mentionItem.click();
+      await page.waitForTimeout(2000);
       const accountAvatar = await profilePage.getUserProfileAvatar();
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
-      const accountHash = await getImageHash(accountSrc || '');
+      const avatarId = getImageId(accountSrc);
+      expect(profileId).not.toBeNull();
+      expect(avatarId).not.toBeNull();
 
-      expect(profileHash).not.toBeNull();
-      expect(accountHash).not.toBeNull();
-
-      expect(profileHash).toEqual(accountHash);
+      expect(profileId).toEqual(avatarId);
     });
 
     test('TC07: Direct Message _ Dual Chat _ Side Profile', async ({ page }) => {

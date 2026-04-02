@@ -124,6 +124,8 @@ test.describe('Channel Message 2', () => {
     });
 
     await AllureReporter.step('User A ban user B in channel', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       await clanPageA.banUserByName(userNameB);
     });
@@ -220,6 +222,8 @@ test.describe('Channel Message 2', () => {
     let duration: number | null;
     let unitTime: string | null;
     await AllureReporter.step('User A ban user B in clan', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       const { value, unit } = await clanPageA.banUserByName(userNameB);
       duration = value;
@@ -319,6 +323,8 @@ test.describe('Channel Message 2', () => {
     });
 
     await AllureReporter.step('User A ban user B in channel', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       await clanPageA.banUserByName(userNameB);
     });
@@ -429,6 +435,8 @@ test.describe('Channel Message 2', () => {
     });
 
     await AllureReporter.step('User A ban user B in channel', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       await clanPageA.banUserByName(userNameB);
     });

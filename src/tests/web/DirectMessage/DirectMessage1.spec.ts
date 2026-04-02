@@ -3,6 +3,7 @@ import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import MessageSelector from '@/data/selectors/MessageSelector';
 import { ClanPage } from '@/pages/Clan/ClanPage';
+import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
 import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
@@ -166,5 +167,88 @@ test.describe('Direct Message 1 - Invoice Status', () => {
     );
 
     await AllureReporter.attachScreenshot(page, `Invoice Status - DM List & Header - ${userNameA}`);
+  });
+
+  test('Pin Conversation on direct message list', async ({ page }) => {
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can pin conversation on direct message
+      **Test Steps:**
+      1. Create a dm
+      2. Click pin conversation
+      3. Verify dm is in pin list
+
+      **Expected Result:** Verify that user can pin conversation on direct message
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['direct-message', 'pin-conversation'],
+    });
+
+    const friendPage = new FriendPage(page);
+    const messagePage = new MessagePage(page);
+    const messageHelpers = new MessageTestHelpers(page);
+    const account = AccountCredentials['account3'];
+    const [userNameB] = getUsernamesFromEmails([account.email]);
+
+    await AllureReporter.step('Add friend with a user and create dm', async () => {
+      await friendPage.cleanupFriendRelationships(userNameB);
+      await friendPage.sendFriendRequestToUser(userNameB);
+      await friendPage.verifySentRequestToast();
+      await messagePage.openSearchModalbyPressCtrlK();
+      await messageHelpers.openDMByNameOnsearchModal(userNameB);
+    });
+
+    await AllureReporter.step('Pin converation on DM', async () => {
+      await friendPage.pinConversation(userNameB);
+    });
+    await AllureReporter.step('Verify pinned conversation is visible on pin list', async () => {
+      await friendPage.verifyPinnedConversationInPinList(userNameB, true);
+      await friendPage.unpinConversation(userNameB);
+    });
+  });
+
+  test('Unpin Conversation on direct message list', async ({ page }) => {
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can unpin conversation on direct message
+      **Test Steps:**
+      1. Create a dm
+      2. Click pin conversation
+      3. Verify dm is in pin list
+      4. Unpin
+      4. Verify dm is not in pin list
+
+      **Expected Result:** Verify that user can unpin conversation on direct message
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['direct-message', 'pin-conversation'],
+    });
+
+    const friendPage = new FriendPage(page);
+    const messagePage = new MessagePage(page);
+    const messageHelpers = new MessageTestHelpers(page);
+    const account = AccountCredentials['account3'];
+    const [userNameB] = getUsernamesFromEmails([account.email]);
+
+    await AllureReporter.step('Add friend with a user and create dm', async () => {
+      await friendPage.cleanupFriendRelationships(userNameB);
+      await friendPage.sendFriendRequestToUser(userNameB);
+      await friendPage.verifySentRequestToast();
+      await messagePage.openSearchModalbyPressCtrlK();
+      await messageHelpers.openDMByNameOnsearchModal(userNameB);
+    });
+
+    await AllureReporter.step('Pin converation on DM', async () => {
+      await friendPage.pinConversation(userNameB);
+    });
+    await AllureReporter.step('Verify pinned conversation is visible on pin list', async () => {
+      await friendPage.verifyPinnedConversationInPinList(userNameB, true);
+    });
+    await AllureReporter.step('Unpin converation on DM', async () => {
+      await friendPage.unpinConversation(userNameB);
+    });
+    await AllureReporter.step('Verify pinned conversation is visible on pin list', async () => {
+      await friendPage.verifyPinnedConversationInPinList(userNameB, false);
+    });
   });
 });

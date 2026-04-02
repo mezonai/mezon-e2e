@@ -30,6 +30,7 @@ export enum UploadType {
   CLAN_LOGO = 'clanLogo',
   CLAN_LOGO_NEW_MODAL = 'clanLogoNewModal',
   CLAN_BANNER = 'clanBanner',
+  TIMELINE = 'timeline',
 }
 
 type UploadConfig = {
@@ -79,6 +80,9 @@ const UPLOAD_CONFIGS: Record<UploadType, UploadConfig> = {
   },
   [UploadType.CLAN_BANNER]: {
     selector: generateE2eSelector('clan_page.settings.upload.clan_banner_input'),
+  },
+  [UploadType.TIMELINE]: {
+    selector: generateE2eSelector('timeline.modal.input.attachment'),
   },
 };
 

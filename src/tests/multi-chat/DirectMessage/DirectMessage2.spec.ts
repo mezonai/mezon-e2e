@@ -1,4 +1,5 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
 import { ProfilePage } from '@/pages/ProfilePage';
@@ -265,6 +266,7 @@ test.describe('Direct Message', () => {
     const profilePageA = new ProfilePage(pageA);
     const friendPageB = new FriendPage(pageB);
     const friendPageA = new FriendPage(pageA);
+    const clanPageA = new ClanPage(pageA);
 
     await AllureReporter.addDescription(`
         **Test Objective:** Verify that profile status reflect correct on user settings
@@ -326,6 +328,7 @@ test.describe('Direct Message', () => {
         profileLocator,
         currentProfileStatus
       );
+      await clanPageA.closeSettingsClan();
     });
   });
 });

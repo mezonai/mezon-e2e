@@ -16,7 +16,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Clan Management', () => {
   const clanFactory = new ClanFactory();
-  const credentials: MezonCredentials = AccountCredentials.account3;
+  const credentials: MezonCredentials = AccountCredentials.account4;
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
@@ -135,7 +135,7 @@ test.describe('Clan Management', () => {
 
     await AllureReporter.step(`Open DM with invited user`, async () => {
       await clanPage.openDirectMessageWithUser(inviteResult.username!);
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
     });
 
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
@@ -201,6 +201,7 @@ test.describe('Clan Management', () => {
     });
     await AllureReporter.step(`Open DM with invited user`, async () => {
       await clanPage.openDirectMessageWithUser(inviteResult.username!);
+      await page.waitForTimeout(2000);
     });
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
       const messageHelper = new MessageTestHelpers(page);

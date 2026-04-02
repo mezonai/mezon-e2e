@@ -54,6 +54,7 @@ export const DATA_E2E_IDENTIFIER = {
       button: {
         base: '',
         status: '',
+        remove_friend: '',
       },
     },
     modal: {
@@ -521,6 +522,7 @@ export const DATA_E2E_IDENTIFIER = {
     },
     screen: {
       voice_room: {
+        channel_name: '',
         button: {
           join_voice: '',
         },
@@ -703,6 +705,7 @@ export const DATA_E2E_IDENTIFIER = {
       side_bar: {
         item: '',
       },
+      pin_list_container: '',
     },
     channel_message: {
       header: {
@@ -746,6 +749,7 @@ export const DATA_E2E_IDENTIFIER = {
           },
           chat: '',
           gallery: '',
+          timeline: '',
         },
         badge: '',
       },
@@ -1007,6 +1011,60 @@ export const DATA_E2E_IDENTIFIER = {
   full_profile: {
     about_me: '',
     member_since: '',
+  },
+  timeline: {
+    buttons: {
+      create_new: '',
+      add_description: '',
+      edit_title: '',
+      save: '',
+      back: '',
+    },
+    input: {
+      title: '',
+      description: '',
+    },
+    current_year: '',
+    list_year: '',
+    modal: {
+      input: {
+        title: '',
+        date: '',
+        description: '',
+        attachment: '',
+      },
+      attachments_list: {
+        item: {
+          button: {
+            remove: '',
+          },
+        },
+      },
+      button: {
+        save: '',
+      },
+    },
+    events: {
+      time: {
+        month: '',
+        day: '',
+        year: '',
+      },
+      trigger: {
+        event_detail: '',
+      },
+    },
+  },
+  invoice: {
+    button: {
+      component: '',
+    },
+  },
+  friend_remove_modal: {
+    button: {
+      cancel: '',
+      confirm: '',
+    },
   },
 };
 

@@ -118,13 +118,10 @@ test.describe('Member Management', () => {
       await clanFactory.setupClan(ClanSetupHelper.configs.memberManagement, pageA);
     });
 
-    await AllureReporter.step(
-      'User A send a fisrt message to user B and move to created clan and add a new role',
-      async () => {
-        await clanPageA.openRoleSettingsPage();
-        await clanPageA.addNewRoleOnClan(roleName);
-      }
-    );
+    await AllureReporter.step('User A move to created clan and add a new role', async () => {
+      await clanPageA.openRoleSettingsPage();
+      await clanPageA.addNewRoleOnClan(roleName);
+    });
 
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
@@ -365,7 +362,7 @@ test.describe('Member Management', () => {
       await pageB.reload();
       await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openMemberList();
-      const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
+      const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameA);
       await clanPageB.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(memberItem, roleStyle);
       await clanPageB.leaveClan();
     });
@@ -469,7 +466,7 @@ test.describe('Member Management', () => {
     });
 
     await AllureReporter.step(
-      'User A send a fisrt message to user B and move to created clan and add a new role',
+      'User A move to created clan and add a new role with color',
       async () => {
         await clanPageA.openRoleSettingsPage();
         const style = await clanPageA.addNewRoleWithColorOnClan(roleName);
@@ -495,7 +492,7 @@ test.describe('Member Management', () => {
         await pageB.reload();
         await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.sendFirstMessage('This is message');
-        await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameB);
+        await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameA);
         await clanPageB.leaveClan();
       }
     );

@@ -111,6 +111,34 @@ test.describe('Thread in Private Channel', () => {
     const threadTestHelpers = new ThreadTestHelpers(page);
     await threadTestHelpers.createAndVerifyThread(ThreadStatus.PRIVATE);
   });
+
+  test('Verify that I can delete a thread in a private channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63582',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can delete a thread in a private channel within a clan.
+      **Test Steps:**
+      1. Generate unique thread name
+      2. Create new thread in a private channel
+      3. Delete the created thread
+      4. Verify thread is removed from thread list
+      **Expected Result:** Thread is deleted and no longer visible in the clan's thread list.
+    `);
+    await AllureReporter.addLabels({
+      tag: ['thread-deletion', 'private-channel'],
+    });
+    const threadName = `thread-${generateRandomString(10)}`;
+    const threadTestHelpers = new ThreadTestHelpers(page);
+    await threadTestHelpers.createAndVerifyThread(ThreadStatus.PRIVATE);
+    await threadTestHelpers.deleteThread(threadName);
+    await threadTestHelpers.verifyThreadDeletion(threadName);
+  });
 });
 
 test.describe('Thread in Public Channel', () => {

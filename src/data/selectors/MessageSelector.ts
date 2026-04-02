@@ -11,7 +11,7 @@ export default class MessageSelector {
   );
   user = this.page
     .locator(generateE2eSelector('chat.direct_message.chat_list'))
-    .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
+    .filter({ hasNot: this.page.locator('p', { hasText: 'Member' }) })
     .first();
   addUserButton = this.page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
   listDMItems = this.page.locator(generateE2eSelector('chat.direct_message.chat_list'));
@@ -48,7 +48,7 @@ export default class MessageSelector {
   userNamesInDM = this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
   group = this.page
     .locator(generateE2eSelector('chat.direct_message.chat_list'))
-    .filter({ has: this.page.locator('p', { hasText: 'Members' }) })
+    .filter({ has: this.page.locator('p', { hasText: 'Member' }) })
     .first();
   secondClan = this.page.locator('div[title]').nth(1);
   messages = this.page.locator(generateE2eSelector('message.item'));
@@ -273,6 +273,7 @@ export default class MessageSelector {
     button: {
       addRole: this.page.locator(generateE2eSelector('short_profile.role.button.add')),
       editProfile: this.page.locator(generateE2eSelector('short_profile.button.edit_profile')),
+      voice: this.page.locator(generateE2eSelector('invoice.button.component')),
     },
     popoverRole: {
       item: this.page.locator(generateE2eSelector('short_profile.role.popover.item')),
@@ -354,4 +355,46 @@ export default class MessageSelector {
   };
 
   mentionUser = this.page.locator(generateE2eSelector('chat.channel_message.mention_user'));
+
+  readonly timeline = {
+    buttons: {
+      openTab: this.page.locator(
+        generateE2eSelector('chat.channel_message.header.button.timeline')
+      ),
+      create: this.page.locator(generateE2eSelector('timeline.buttons.create_new')),
+      uploadImage: this.page.locator(generateE2eSelector('timeline.modal.input.attachment')),
+      triggerEventDetail: this.page.locator(
+        generateE2eSelector('timeline.events.trigger.event_detail')
+      ),
+      addDescription: this.page.locator(generateE2eSelector('timeline.buttons.add_description')),
+      saveModal: this.page.locator(generateE2eSelector('timeline.modal.button.save')),
+      editTitle: this.page.locator(generateE2eSelector('timeline.buttons.edit_title')),
+      save: this.page.locator(generateE2eSelector('timeline.buttons.save')),
+      back: this.page.locator(generateE2eSelector('timeline.buttons.back')),
+    },
+    input: {
+      title: this.page.locator(generateE2eSelector('timeline.input.title')),
+      description: this.page.locator(generateE2eSelector('timeline.input.description')),
+    },
+    inputModals: {
+      eventTitle: this.page.locator(generateE2eSelector('timeline.modal.input.title')),
+      eventDate: this.page.locator(`${generateE2eSelector('timeline.modal.input.date')} input`),
+      eventDescription: this.page.locator(generateE2eSelector('timeline.modal.input.description')),
+    },
+    eventTimeDetail: {
+      item: this.page.locator(generateE2eSelector('timeline.events.time')),
+      month: this.page.locator(generateE2eSelector('timeline.events.time.month')),
+      day: this.page.locator(generateE2eSelector('timeline.events.time.day')),
+      year: this.page.locator(generateE2eSelector('timeline.events.time.year')),
+    },
+    triggerTab: {
+      eventDetailName: this.page.locator(
+        `${generateE2eSelector('timeline.events.trigger.event_detail')} h4`
+      ),
+      eventDetailDescription: this.page.locator(
+        `${generateE2eSelector('timeline.events.trigger.event_detail')} p`
+      ),
+    },
+    detail: {},
+  };
 }

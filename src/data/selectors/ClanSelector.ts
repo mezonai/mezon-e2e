@@ -394,6 +394,7 @@ export default class ClanSelector {
 
   readonly screen = {
     voiceRoom: {
+      channelName: this.page.locator('clan_page.screen.voice_room.channel_name'),
       joinButton: this.page.locator(
         generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
       ),
