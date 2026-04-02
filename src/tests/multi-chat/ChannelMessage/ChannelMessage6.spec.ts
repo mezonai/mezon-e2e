@@ -465,4 +465,116 @@ test.describe('Channel Message 6', () => {
       await clanFactory.cleanupClan(pageA);
     });
   });
+
+  test('Verify that user can join voice channel from short profile', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64645',
+      github_issue: '9816',
+    });
+
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that user can join voice channel from short profile
+  
+        **Test Steps:**
+        1. User A create new voice channel
+        2. User A Join voice channel
+        3. User B open user A short profile on channel members list
+        4. Verify voice button is visible
+        5. Click voice button and verify it navigate to voice channel link
+        6. Click join and verify user can join the same voice room with user A
+  
+        **Expected Result:** user can join voice channel from short profile
+      `);
+
+    await AllureReporter.addLabels({
+      tag: ['voice-channel', 'send-voice-channel-link'],
+    });
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const messageHelperA = new MessageTestHelpers(pageA);
+    const messageHelperB = new MessageTestHelpers(pageB);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await friendPageA.sendFriendRequestToUser(userNameC);
+      await friendPageA.verifySentRequestToast();
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage3, pageA);
+    });
+
+    const ran = Math.floor(Math.random() * 999) + 1;
+    const channelName = `voice-channel-${ran}`;
+
+    await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
+      await clanPageA.createNewChannel(ChannelType.VOICE, channelName);
+      const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
+      await clanPageB.joinClanByUrlInvite(url);
+      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+    });
+
+    await AllureReporter.step('Join voice channel', async () => {
+      await clanPageA.joinVoiceChannel(channelName);
+      const isUserInVoiceChannel = await clanPageA.isJoinVoiceChannel(channelName);
+      expect(isUserInVoiceChannel).toBe(true);
+    });
+
+    await AllureReporter.step('User open short profile', async () => {
+      await clanPageB.openMemberList();
+      const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameA);
+      await memberItem.click();
+      await messageHelperA.clickInvoiceButtonOnShortProfile();
+      await pageB.waitForTimeout(3000);
+    });
+
+    await AllureReporter.step('Verify voice channel screen is visible to User B', async () => {
+      const isVoiceChannelVisible = await clanPageB.verifyVoiceChannelScreenVisible(channelName);
+      expect(isVoiceChannelVisible).toBe(true);
+    });
+
+    await AllureReporter.step(
+      'User B clicks on voice channel button and joins the channel',
+      async () => {
+        await clanPageB.joinVoiceChannelOnVoiceChannelScreen();
+        const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
+        expect(isUserInVoiceChannel).toBe(true);
+      }
+    );
+  });
 });

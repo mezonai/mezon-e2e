@@ -492,6 +492,8 @@ test.describe('Channel Message 1', () => {
     });
 
     await AllureReporter.step('User A ban user B in channel', async () => {
+      await pageA.waitForTimeout(1000);
+      await pageA.reload();
       await clanPageA.openMemberList();
       await clanPageA.banUserByName(userNameB);
     });

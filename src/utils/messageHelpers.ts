@@ -2754,6 +2754,10 @@ export class MessageTestHelpers {
     await expect(canvasLinkLocator).toHaveText(canvasTitle, { timeout: 5000 });
     await canvasLinkLocator.click();
   }
+
+  async clickInvoiceButtonOnShortProfile() {
+    await this.selector.shortProfile.button.voice.click();
+  }
 }
 
 export const LINK_TEST_URLS = [

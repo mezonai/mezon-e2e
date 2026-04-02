@@ -134,6 +134,7 @@ test.describe('Clan Management 2', () => {
     await AllureReporter.step('Verify that user B can create thread after add role', async () => {
       await pageB.reload();
       await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await pageB.reload({ timeout: 2000 });
       await clanPageB.openThreadModalFromHeader();
       await clanPageB.verifyCreateThreadButtonIsOpen();
     });
@@ -238,6 +239,7 @@ test.describe('Clan Management 2', () => {
       async () => {
         await pageB.reload();
         await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await pageB.reload({ timeout: 2000 });
         await messageHelperB.verifyUserCanDeleteMessage(userNameA);
       }
     );

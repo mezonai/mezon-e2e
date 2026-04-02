@@ -732,7 +732,7 @@ export class ClanPage extends BasePage {
     };
   }
 
-  parseStartTime(startTime: string): Date {
+  parseTime(startTime: string): Date {
     const [datePart, timePart] = startTime.split(' - ');
 
     const currentYear = new Date().getFullYear();
@@ -778,7 +778,7 @@ export class ClanPage extends BasePage {
     if (expected.startTime) {
       const actual = lastEvent.startTime;
 
-      const expectedDate = this.parseStartTime(expected.startTime);
+      const expectedDate = this.parseTime(expected.startTime);
       console.log(expectedDate);
 
       console.log(this.isWithin10Minutes(expectedDate));
@@ -924,18 +924,23 @@ export class ClanPage extends BasePage {
 
   async joinClanByUrlInvite(url: string) {
     const messageSelector = new MessageSelector(this.page);
-    const lastMessageLocator = messageSelector.messages.last();
-    await expect(lastMessageLocator).toBeVisible({ timeout: 3000 });
 
-    const text = await lastMessageLocator.innerText();
+    const messageWithUrl = messageSelector.messages.last().filter({
+      hasText: url,
+    });
 
-    if (!text.includes(url)) {
-      throw new Error(`❌ Last message does not contain the invite URL: ${url}`);
+    try {
+      await expect(messageWithUrl.first()).toBeVisible({ timeout: 5000 });
+    } catch (e) {
+      const allTexts = await messageSelector.messages.allInnerTexts();
+      throw new Error(
+        `❌ No message contains URL after 5s.\nExpected: ${url}\nMessages:\n${allTexts.join('\n---\n')}`
+      );
     }
 
     const [newPage] = await Promise.all([
       this.page.waitForEvent('popup'),
-      lastMessageLocator.getByText(url, { exact: false }).last().click(),
+      messageWithUrl.getByText(url, { exact: false }).last().click(),
     ]);
 
     await newPage.waitForLoadState('domcontentloaded');
@@ -1928,5 +1933,21 @@ export class ClanPage extends BasePage {
 
     const memberSince = await locator.innerText();
     return memberSince.trim();
+  }
+
+  async verifyVoiceChannelScreenVisible(voiceChannelName: string) {
+    const channelNameLocator = this.selector.screen.voiceRoom.channelName;
+    await expect(channelNameLocator).toContainText(voiceChannelName, { timeout: 3000 });
+  }
+
+  async joinVoiceChannelOnVoiceChannelScreen(): Promise<boolean> {
+    const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
+    try {
+      await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await joinButtonLocator.click();
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

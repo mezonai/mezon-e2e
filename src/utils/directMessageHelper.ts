@@ -1,6 +1,6 @@
+import { MessagePage } from '@/pages/MessagePage';
 import { Page } from '@playwright/test';
 import { generateE2eSelector } from './generateE2eSelector';
-import { MessagePage } from '@/pages/MessagePage';
 
 export class DirectMessageHelper {
   private page: Page;
@@ -133,7 +133,7 @@ export class DirectMessageHelper {
       }
 
       const chatListContainer = await messagePage.getChatListContainer();
-      const reachedEnd = await chatListContainer.evaluate((el, step) => {
+      const reachedEnd = await chatListContainer.last().evaluate((el, step) => {
         const before = el.scrollTop;
         el.scrollBy(0, step);
         return el.scrollTop === before || el.scrollTop + el.clientHeight >= el.scrollHeight;

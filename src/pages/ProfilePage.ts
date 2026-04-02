@@ -214,15 +214,20 @@ export class ProfilePage extends BasePage {
   }
 
   async getProfileStatus(locator: Locator): Promise<string> {
+    console.log(await locator.getAttribute('class'));
+
+    await this.page.waitForTimeout(2000);
     const red = locator.locator('.bg-red-500');
     const green = locator.locator('.bg-green-500');
+    const gray = locator.locator('.bg-gray-400');
 
     if (await green.count()) return 'online';
     if (await red.count()) return 'Do Not Disturb';
 
     if (await locator.locator('svg.text-\\[\\#F0B232\\]').count()) return 'Idle';
 
-    if (await locator.locator('rect[stroke="#AEAEAE"]').count()) return 'Invisible';
+    if ((await locator.locator('rect[stroke="#AEAEAE"]').count()) || (await gray.count()))
+      return 'Invisible';
 
     return 'Unknown';
   }

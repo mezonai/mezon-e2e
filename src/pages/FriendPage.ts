@@ -29,8 +29,9 @@ export class FriendPage extends BasePage {
   }
 
   async getActiveDM(username: string) {
-    return this.selector.dm.items
-      .filter({ has: this.page.locator(`.${dmActivClass}`), hasText: username })
+    return this.page
+      .locator(`${generateE2eSelector('chat.direct_message.chat_list')}.${dmActivClass}`)
+      .filter({ hasText: username })
       .first();
   }
 
@@ -129,6 +130,8 @@ export class FriendPage extends BasePage {
     await friendItem
       .locator(generateE2eSelector('friend_page.button.reject_friend_request'))
       .click();
+    await this.page.waitForTimeout(300);
+    await this.confirmRemoveFriend();
     await this.page.waitForTimeout(500);
   }
 
@@ -138,6 +141,8 @@ export class FriendPage extends BasePage {
     await friendItem
       .locator(generateE2eSelector('friend_page.button.cancel_friend_request'))
       .click();
+    await this.page.waitForTimeout(300);
+    await this.confirmRemoveFriend();
     await this.page.waitForTimeout(500);
   }
 
@@ -159,6 +164,7 @@ export class FriendPage extends BasePage {
   async blockFriend(username: string): Promise<void> {
     await this.openMoreMenuForFriend(username);
     await this.page.getByRole('button', { name: /block/i }).last().click();
+
     await this.page.waitForTimeout(500);
   }
 
@@ -187,6 +193,13 @@ export class FriendPage extends BasePage {
     }
     await this.openMoreMenuForFriend(username);
     await this.page.getByRole('button', { name: /remove/i }).click();
+    await this.page.waitForTimeout(300);
+    await this.confirmRemoveFriend();
+    await this.page.waitForTimeout(500);
+  }
+
+  async confirmRemoveFriend(): Promise<void> {
+    await this.selector.buttons.confirmRemoveFriend.click();
     await this.page.waitForTimeout(500);
   }
 
@@ -207,6 +220,8 @@ export class FriendPage extends BasePage {
       const cancelButtonCount = await cancelButton.count();
       if (cancelButtonCount > 0) {
         await cancelButton.click();
+        await this.page.waitForTimeout(300);
+        await this.confirmRemoveFriend();
         await this.page.waitForTimeout(500);
         return;
       }
@@ -216,6 +231,8 @@ export class FriendPage extends BasePage {
       const rejectButtonCount = await rejectButton.count();
       if (rejectButtonCount > 0) {
         await rejectButton.click();
+        await this.page.waitForTimeout(300);
+        await this.confirmRemoveFriend();
         await this.page.waitForTimeout(500);
         return;
       }
@@ -340,5 +357,45 @@ export class FriendPage extends BasePage {
 
   async getDMByUsername(username: string) {
     return this.selector.dm.items.filter({ hasText: username }).first();
+  }
+
+  async pinConversation(username: string) {
+    const dmLocator = await this.getDMByUsername(username);
+    await expect(dmLocator).toBeVisible({ timeout: 3000 });
+    await this.page.waitForTimeout(2000);
+    await dmLocator.hover();
+    await dmLocator.click({ button: 'right' });
+    const pinConversationButton = this.selector.dmFriendMenu.pinConvesation;
+    await this.page.waitForTimeout(2000);
+    await pinConversationButton.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async verifyPinnedConversationInPinList(username: string, shouldVisible = true) {
+    const pinnedList = this.selector.dm.pinList;
+    const pinItemLocator = pinnedList.locator(
+      this.selector.dm.items.filter({ hasText: username }).first()
+    );
+    const isVisible = await pinItemLocator.isVisible({ timeout: 2000 });
+    if (shouldVisible) {
+      expect(isVisible).toBeTruthy();
+    } else {
+      expect(isVisible).toBeFalsy();
+    }
+  }
+
+  async unpinConversation(username: string) {
+    const pinnedList = this.selector.dm.pinList;
+    const dmLocator = pinnedList.locator(
+      this.selector.dm.items.filter({ hasText: username }).first()
+    );
+    await expect(dmLocator).toBeVisible({ timeout: 3000 });
+    await dmLocator.hover();
+    await this.page.waitForTimeout(2000);
+    await dmLocator.click({ button: 'right' });
+    const unpinConversationButton = this.selector.dmFriendMenu.unPinConvesation;
+    await this.page.waitForTimeout(2000);
+    await unpinConversationButton.click();
+    await this.page.waitForTimeout(1000);
   }
 }

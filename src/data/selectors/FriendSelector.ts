@@ -27,6 +27,10 @@ export default class FriendSelector {
     acceptFriendRequest: this.page.locator(
       generateE2eSelector('friend_page.button.accept_friend_request')
     ),
+    confirmRemoveFriend: this.page.locator(
+      generateE2eSelector('friend_remove_modal.button.confirm')
+    ),
+    cancelRemoveFriend: this.page.locator(generateE2eSelector('friend_remove_modal.button.cancel')),
   };
 
   readonly inputs = {
@@ -44,6 +48,7 @@ export default class FriendSelector {
 
   readonly dm = {
     items: this.page.locator(generateE2eSelector('chat.direct_message.chat_list')),
+    pinList: this.page.locator(generateE2eSelector('chat.direct_message.pin_list_container')),
   };
 
   readonly dmFriendMenu = {
@@ -54,6 +59,12 @@ export default class FriendSelector {
     markAsRead: this.page
       .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
       .filter({ hasText: 'Mark as Read' }),
+    pinConvesation: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({ hasText: 'Pin Conversation' }),
+    unPinConvesation: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({ hasText: 'Unpin Conversation' }),
   };
 
   readonly badge = {

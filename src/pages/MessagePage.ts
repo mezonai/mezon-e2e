@@ -173,7 +173,7 @@ export class MessagePage extends BasePage {
   async closeDM(username: string): Promise<void> {
     const user = await this.selector.listDMItems
       .filter({
-        hasNot: this.page.locator('p', { hasText: 'Members' }),
+        hasNot: this.page.locator('p', { hasText: 'Member' }),
         has: this.page.locator('span', {
           hasText: username,
         }),
@@ -538,7 +538,7 @@ export class MessagePage extends BasePage {
     while (true) {
       const group = chatList
         .filter({
-          has: this.page.locator('p', { hasText: 'Members' }),
+          has: this.page.locator('p', { hasText: 'Member' }),
         })
         .first();
 
@@ -568,7 +568,7 @@ export class MessagePage extends BasePage {
     const group = await this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({
-        has: this.page.locator('p', { hasText: 'Members' }),
+        has: this.page.locator('p', { hasText: 'Member' }),
       })
       .filter({
         has: this.page.locator('span', {
@@ -688,6 +688,28 @@ export class MessagePage extends BasePage {
 
   async getMessageByText(text: string): Promise<Locator> {
     return this.selector.messages.filter({ hasText: text }).first();
+  }
+
+  async getMessageSenderUsername(messageItem: Locator) {
+    const usernameLocator = await messageItem
+      .locator(generateE2eSelector('base_profile.display_name'))
+      .first();
+    await expect(usernameLocator).toBeVisible({ timeout: 5000 });
+    return usernameLocator;
+  }
+
+  async removeFriendFromShortProfile() {
+    const unfriendIconButton = this.page.locator(
+      generateE2eSelector('short_profile.action.button.remove_friend')
+    );
+    await expect(unfriendIconButton).toBeVisible({ timeout: 3000 });
+    await unfriendIconButton.click();
+    const unfriendButton = this.page
+      .locator(generateE2eSelector('clan_page.channel_list.panel.item'))
+      .filter({ hasText: 'Remove Friend' })
+      .first();
+    await expect(unfriendButton).toBeVisible({ timeout: 3000 });
+    await unfriendButton.click();
   }
 
   async getLastViewTopicButton() {
@@ -890,5 +912,77 @@ export class MessagePage extends BasePage {
 
   async getHeaderDM() {
     return this.selector.headerDM.first();
+  }
+
+  async openTimelineTab() {
+    await this.selector.timeline.buttons.openTab.click();
+  }
+
+  async createTimelineEvent(data: { title: string; description: string }) {
+    await this.selector.timeline.buttons.create.click();
+    await this.page.waitForTimeout(1000);
+    await this.selector.timeline.inputModals.eventTitle.fill(data.title);
+    await this.selector.timeline.inputModals.eventDescription.fill(data.description);
+    const date = await this.selector.timeline.inputModals.eventDate.inputValue();
+    await this.page.waitForTimeout(2000);
+    await this.selector.timeline.buttons.saveModal.click();
+    return date;
+  }
+
+  async openTimelineModal() {
+    await this.selector.timeline.buttons.create.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  getMonthShort(month: number) {
+    return new Date(0, month - 1).toLocaleString('en-US', { month: 'short' }).toUpperCase();
+  }
+
+  async verifyEventIsVisibleOnTab(data: { title: string; description: string }, date: string) {
+    const [year, month, day] = date.split('-');
+    const dateLocator = this.selector.timeline.eventTimeDetail.day;
+    const monthLocator = this.selector.timeline.eventTimeDetail.month;
+    const yearLocator = this.selector.timeline.eventTimeDetail.year;
+    const formatMonth = this.getMonthShort(Number(month));
+    const titleLocator = this.selector.timeline.triggerTab.eventDetailName;
+    const descriptionLocator = this.selector.timeline.triggerTab.eventDetailDescription;
+
+    await expect(dateLocator).toContainText(day, { timeout: 1000 });
+    await expect(monthLocator).toContainText(formatMonth, { timeout: 1000 });
+    await expect(yearLocator).toContainText(year, { timeout: 1000 });
+    await expect(titleLocator).toContainText(data.title, { timeout: 1000 });
+    await expect(descriptionLocator).toContainText(data.description, { timeout: 1000 });
+
+    return titleLocator;
+  }
+
+  async openTimelineEventDetail(eventLocator: Locator) {
+    await eventLocator.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async updatetimeline() {
+    const unique = Date.now().toString(36);
+    const data = {
+      title: `Timeline-title-${unique}`.slice(0, 20),
+      description: `Timeline-description-${unique}`.slice(0, 20),
+    };
+    const editTitleButton = this.selector.timeline.buttons.editTitle;
+    const addDescriptionButton = this.selector.timeline.buttons.addDescription;
+    const inputTitle = this.selector.timeline.input.title;
+    const inputDescription = this.selector.timeline.input.description;
+    await editTitleButton.click();
+    await expect(inputTitle).toBeVisible({ timeout: 3000 });
+    await inputTitle.fill(data.title);
+    await this.page.waitForTimeout(1000);
+    await addDescriptionButton.click();
+    await expect(inputDescription).toBeVisible({ timeout: 3000 });
+    await inputDescription.fill(data.description);
+    await this.page.waitForTimeout(1000);
+
+    await this.selector.timeline.buttons.save.click();
+    await this.page.waitForTimeout(1000);
+    await this.selector.timeline.buttons.back.click();
+    return data;
   }
 }

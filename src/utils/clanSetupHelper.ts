@@ -270,6 +270,11 @@ export class ClanSetupHelper {
       clanNamePrefix: 'MarkAsReadTest',
       suiteName: 'Mark As Read',
     }),
+
+    timeline: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'TimeLineTest',
+      suiteName: 'Timeline',
+    }),
   };
 }
 

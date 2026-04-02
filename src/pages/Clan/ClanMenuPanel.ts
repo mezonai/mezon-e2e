@@ -139,7 +139,7 @@ export class ClanMenuPanel extends BasePage {
 
   async assertCreateCategoryErrorMessageLengthVisible(): Promise<void> {
     const lengthErrorMessage =
-      'Please enter a valid category name (max 64 characters, only words, numbers, _ or -).';
+      'Please enter a category name (max 64 characters, only letters, numbers, _ or -).';
     await this.assertCreateCategoryErrorMessage(lengthErrorMessage);
   }
 
