@@ -1,0 +1,400 @@
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { Page } from '@playwright/test';
+
+export default class MessageSelector {
+  constructor(private readonly page: Page) {
+    this.page = page;
+  }
+
+  buttonCreateGroupSidebar = this.page.locator(
+    generateE2eSelector('chat.direct_message.button.button_plus')
+  );
+  user = this.page
+    .locator(generateE2eSelector('chat.direct_message.chat_list'))
+    .filter({ hasNot: this.page.locator('p', { hasText: 'Member' }) })
+    .first();
+  addUserButton = this.page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
+  listDMItems = this.page.locator(generateE2eSelector('chat.direct_message.chat_list'));
+  userItem = this.page
+    .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
+    .first();
+  friendItems = this.page.locator(
+    generateE2eSelector('chat.direct_message.friend_list.friend_item')
+  );
+  friendUsernames = this.page.locator(
+    generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
+  );
+  createGroupButton = this.page.locator(
+    generateE2eSelector('chat.direct_message.button.create_group')
+  );
+  userNameItem = this.userItem.locator(
+    generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
+  );
+  addToGroupButton = this.page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
+  sumMember = this.page.locator(generateE2eSelector('chat.direct_message.member_list.button'));
+  memberCount = this.page.locator(
+    generateE2eSelector('chat.direct_message.member_list.member_count')
+  );
+  closeFirstDMButton = this.user.locator(
+    generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+  );
+  friendListItems = this.page.locator(
+    generateE2eSelector('chat.direct_message.friend_list.all_friend')
+  );
+  firstUserAddDM = this.page
+    .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
+    .nth(0);
+  firstUserNameAddDM = this.page.locator(generateE2eSelector('base_profile.display_name')).nth(1);
+  userNamesInDM = this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
+  group = this.page
+    .locator(generateE2eSelector('chat.direct_message.chat_list'))
+    .filter({ has: this.page.locator('p', { hasText: 'Member' }) })
+    .first();
+  secondClan = this.page.locator('div[title]').nth(1);
+  messages = this.page.locator(generateE2eSelector('message.item'));
+  leaveGroupButton = this.group.locator(
+    generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+  );
+  confirmLeaveGroupButton = this.page.locator(
+    generateE2eSelector('chat.direct_message.leave_group.button')
+  );
+  messagesInTopic = this.page.locator('.thread-scroll .text-theme-message');
+  memberListInGroup = this.page.locator(
+    generateE2eSelector('chat.direct_message.member_list.member_count')
+  );
+  editGroupButton = this.page.locator(generateE2eSelector('chat.direct_message.edit_group.button'));
+  groupNameInput = this.page.locator('input[placeholder="Enter group name"]');
+  saveGroupNameButton = this.page.locator(generateE2eSelector('button.base'), {
+    hasText: 'Save',
+  });
+  leaveGroupButtonInPopup = this.page.locator(
+    generateE2eSelector('chat.direct_message.menu.leave_group.button')
+  );
+  pinMessageButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Pin message' });
+
+  unpinMessageButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Unpin Message' });
+
+  addToInboxButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Add To Inbox' });
+
+  markAsUnreadButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Mark Unread' });
+
+  confirmPinMessageButton = this.page.locator(
+    generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
+    { hasText: 'Oh yeah. Pin it' }
+  );
+
+  topicDiscussionButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Topic Discussion' });
+
+  copyTextButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Copy Text' });
+
+  deleteMessageButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Delete Message' });
+
+  editMessageButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Edit Message' });
+
+  forwardMessageButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Forward Message' });
+
+  forwardAllMessagesButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Forward All Messages' });
+
+  createThreadButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Create Thread' });
+
+  confirmDeleteMessageButton = this.page.locator(
+    generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
+    { hasText: 'Delete' }
+  );
+  displayListPinButton = this.page.locator(
+    generateE2eSelector('chat.channel_message.header.button.pin')
+  );
+  footerAvatar = this.page.locator(
+    `${generateE2eSelector('footer_profile.avatar')} ${generateE2eSelector('avatar.image')}`
+  );
+  pinnedMessages = this.page.locator(generateE2eSelector('common.pin_message'));
+  welcomeDM = this.page.locator(generateE2eSelector('chat_welcome'));
+  welcomeDMAvatar = this.welcomeDM.locator(generateE2eSelector('avatar.image'));
+  headerDM = this.page.locator(generateE2eSelector('chat.direct_message.header.left_container'));
+  headerDMAvatar = this.page.locator(
+    `${generateE2eSelector('chat.direct_message.header.left_container')} ${generateE2eSelector('avatar.image')}`
+  );
+  invoiceStatusDMHeader = this.page.locator(
+    generateE2eSelector('chat.direct_message.header.left_container.in_voice_status')
+  );
+  invoiceStatusFriendList = this.page.locator(
+    generateE2eSelector('chat.direct_message.chat_item.in_voice_status')
+  );
+  headerUserProfileButton = this.page.locator(
+    `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
+  );
+  groupName = this.page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+
+  dmHeaderCallAction = this.page.locator(
+    generateE2eSelector('chat.direct_message.header.right_container.call')
+  );
+  dmHeaderAddMemberAction = this.page.locator(
+    generateE2eSelector('chat.direct_message.header.right_container.add_member')
+  );
+  dmHeaderVideoCallAction = this.page.locator(
+    generateE2eSelector('chat.direct_message.header.right_container.video_call')
+  );
+  editGroupModal = this.page.locator(generateE2eSelector('chat.direct_message.edit_group'));
+  messageBuzzHeader = this.page.locator(
+    generateE2eSelector('chat.direct_message.message_buzz.header')
+  );
+  messageBuzzButtonClose = this.page.locator(
+    generateE2eSelector('chat.direct_message.message_buzz.button.close')
+  );
+  messageBuzzButtonSend = this.page.locator(
+    generateE2eSelector('chat.direct_message.message_buzz.button.send')
+  );
+  messageBuzzInputMessage = this.page.locator(
+    generateE2eSelector('chat.direct_message.message_buzz.input.message')
+  );
+  directMessageBlockButton = this.page.locator(
+    generateE2eSelector('chat.direct_message.block.button')
+  );
+  directMessageUnblockButton = this.page.locator(
+    generateE2eSelector('chat.direct_message.unblock.button')
+  );
+  DMItemOnSidebar = this.page.locator(generateE2eSelector('chat.direct_message.side_bar.item'));
+  modalForwardMessage = this.page.locator(generateE2eSelector('modal.forward_message'));
+  searchUserOnForwardMessageModal = this.page.locator(
+    generateE2eSelector('modal.forward_message.input.search')
+  );
+  cancelForwardMessageButton = this.page.locator(
+    generateE2eSelector('modal.forward_message.button.cancel')
+  );
+  sendForwardMessageButton = this.page.locator(
+    generateE2eSelector('modal.forward_message.button.send')
+  );
+  searchModal = this.page.locator(generateE2eSelector('modal.search'));
+  searchInput = this.page.locator(`${generateE2eSelector('modal.search.input')} input`);
+  searchTriggerButton = this.page.locator(generateE2eSelector('chat.direct_message.button.search'));
+  messageInput = this.page.locator(generateE2eSelector('mention.input'));
+  inboxMessages = this.page.locator(
+    `${generateE2eSelector('chat.channel_message.inbox.mentions')} div[class*="w-full"][class*="text-theme-message"]`
+  );
+  topicBox = this.page.locator(generateE2eSelector('discussion.box.topic'));
+  topicInput = this.page.locator(
+    `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
+  );
+  topicMessages = this.page.locator(
+    `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('message.item')}`
+  );
+  hoverEditMessageButton = this.page.locator(
+    `${generateE2eSelector('chat.hover_message_actions.button.base')}[title="Edit"]`
+  );
+  viewTopicButoon = this.page.locator(generateE2eSelector('chat.topic.button.view_topic'));
+  closeTopicBoxButton = this.page.locator(generateE2eSelector('chat.topic.header.button.close'));
+  pinBadge = this.page.locator(
+    generateE2eSelector('chat.channel_message.header.button.pin.pin_badge')
+  );
+  jumpToPinnedMessageButtonFromSystemMessage = this.page.locator(
+    generateE2eSelector('chat.system_message.pin_message.button.jump_to_message')
+  );
+  jumpToPinnedMessageButtonFromPinnedList = this.page.locator(
+    generateE2eSelector('common.pin_message.button.jump')
+  );
+  topicDiscussionMessageButton = this.page
+    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
+    .filter({ hasText: 'Topic Discussion' });
+  systemMessages = this.page.locator(generateE2eSelector('chat.system_message'));
+  messageActionModalItems = this.page.locator(
+    generateE2eSelector('chat.message_action_modal.button.base')
+  );
+  displayNameOnMessageChannel = this.page.locator(
+    `${generateE2eSelector('message.item')} ${generateE2eSelector('base_profile.display_name')}`
+  );
+  displayNameOnMessageTopic = this.page.locator(
+    `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('base_profile.display_name')}`
+  );
+  headerInboxButton = this.page.locator(
+    generateE2eSelector('chat.channel_message.header.button.inbox')
+  );
+  topicNumberReplies = this.page.locator(generateE2eSelector('chat.topic.number_replies'));
+  chatListContainer = this.page.locator(
+    generateE2eSelector('chat.direct_message.chat_list_container')
+  );
+  canvasMessage = this.page.locator(generateE2eSelector('message.hashtag.canvas'));
+  secondarySideBar = {
+    member: {
+      item: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
+      inVoice: this.page.locator(
+        generateE2eSelector('clan_page.secondary_side_bar.member.in_voice')
+      ),
+    },
+  };
+  avatar = this.page.locator(generateE2eSelector('avatar.image'));
+  displayName = this.page.locator(generateE2eSelector('base_profile.display_name'));
+  hoverMessageModal = this.page.locator(generateE2eSelector('chat.hover_message_actions'));
+  errorModal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
+  headerGalleryButton = this.page.locator(
+    generateE2eSelector('chat.channel_message.header.button.gallery')
+  );
+  waveToSayHiButton = this.page.locator(generateE2eSelector('chat.button.wave_to_say_hi'));
+
+  readonly anonymous = {
+    anonymousIcon: this.page.locator(generateE2eSelector('chat.anonymous')),
+    anonymousMessage: this.page.locator(generateE2eSelector('base_profile.anonymous')),
+    anonymousAvatar: this.page.locator(generateE2eSelector('base_profile.anonymous.avatar')),
+    anonymousName: this.page.locator(generateE2eSelector('base_profile.display_name'), {
+      hasText: 'Anonymous',
+    }),
+  };
+
+  readonly shortProfile = {
+    avatar: this.page.locator(
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+    ),
+    displayName: this.page.locator(generateE2eSelector('short_profile.display_name')),
+    username: this.page.locator(generateE2eSelector('short_profile.username')),
+    input: {
+      sendMessage: this.page.locator(generateE2eSelector('short_profile.input.send_message')),
+    },
+    button: {
+      addRole: this.page.locator(generateE2eSelector('short_profile.role.button.add')),
+      editProfile: this.page.locator(generateE2eSelector('short_profile.button.edit_profile')),
+      voice: this.page.locator(generateE2eSelector('invoice.button.component')),
+    },
+    popoverRole: {
+      item: this.page.locator(generateE2eSelector('short_profile.role.popover.item')),
+    },
+    itemRole: this.page.locator(
+      generateE2eSelector('clan_page.channel_list.members.role.role_name')
+    ),
+    itemRoleColor: this.page.locator(
+      generateE2eSelector('clan_page.channel_list.members.role.role_color')
+    ),
+  };
+
+  readonly repliedMessage = {
+    item: this.page.locator(generateE2eSelector('replied_message.item')),
+    username: this.page.locator(generateE2eSelector('replied_message.username')),
+  };
+
+  readonly gifsMessage = {
+    button: {
+      openPopover: this.page.locator(generateE2eSelector('mention.button.gif')),
+    },
+    popover: {
+      gifTrending: this.page.locator(generateE2eSelector('mention.popover.gifs.trending')),
+      gifCategory: this.page.locator(generateE2eSelector('mention.popover.gifs.category')),
+      gifItem: this.page.locator(generateE2eSelector('mention.popover.gifs.item')),
+    },
+  };
+
+  readonly galleryModal = {
+    container: this.page.locator(generateE2eSelector('clan_page.modal.gallery')),
+    tabs: {
+      all: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.all')),
+      images: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.image')),
+      videos: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.video')),
+    },
+    items: {
+      all: this.page.locator(generateE2eSelector('clan_page.modal.gallery.all')),
+      images: this.page.locator(generateE2eSelector('clan_page.modal.gallery.image')),
+      videos: this.page.locator(generateE2eSelector('clan_page.modal.gallery.video')),
+    },
+  };
+
+  readonly topicInboxPopover = {
+    item: {
+      container: this.page.locator(generateE2eSelector('chat.channel_message.inbox.topics')),
+      initMessage: this.page.locator(
+        generateE2eSelector('chat.channel_message.inbox.topics.init_message')
+      ),
+      lastReplyMessage: this.page.locator(
+        generateE2eSelector('chat.channel_message.inbox.topics.last_reply_message')
+      ),
+      buttonJump: this.page.locator(
+        generateE2eSelector('chat.channel_message.inbox.topics.button.jump')
+      ),
+    },
+    triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
+      hasText: 'Topics',
+    }),
+  };
+
+  readonly messageInboxPopover = {
+    triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
+      hasText: 'Messages',
+    }),
+  };
+
+  readonly shareContact = {
+    card: this.page.locator(generateE2eSelector('chat.share_contact')),
+    displayName: this.page.locator(generateE2eSelector('chat.share_contact.display_name')),
+    username: this.page.locator(generateE2eSelector('chat.share_contact.username')),
+    buttonCall: this.page.locator(generateE2eSelector('chat.share_contact.button.call')),
+    buttonMessage: this.page.locator(generateE2eSelector('chat.share_contact.button.message')),
+    modal: {
+      item: this.page.locator(generateE2eSelector('modal.share_contact')),
+      inputSearch: this.page.locator(generateE2eSelector('modal.share_contact.input.search')),
+      buttonCancel: this.page.locator(generateE2eSelector('modal.share_contact.button.cancel')),
+      buttonShare: this.page.locator(generateE2eSelector('modal.share_contact.button.share')),
+    },
+  };
+
+  mentionUser = this.page.locator(generateE2eSelector('chat.channel_message.mention_user'));
+
+  readonly timeline = {
+    buttons: {
+      openTab: this.page.locator(
+        generateE2eSelector('chat.channel_message.header.button.timeline')
+      ),
+      create: this.page.locator(generateE2eSelector('timeline.buttons.create_new')),
+      uploadImage: this.page.locator(generateE2eSelector('timeline.modal.input.attachment')),
+      triggerEventDetail: this.page.locator(
+        generateE2eSelector('timeline.events.trigger.event_detail')
+      ),
+      addDescription: this.page.locator(generateE2eSelector('timeline.buttons.add_description')),
+      saveModal: this.page.locator(generateE2eSelector('timeline.modal.button.save')),
+      editTitle: this.page.locator(generateE2eSelector('timeline.buttons.edit_title')),
+      save: this.page.locator(generateE2eSelector('timeline.buttons.save')),
+      back: this.page.locator(generateE2eSelector('timeline.buttons.back')),
+    },
+    input: {
+      title: this.page.locator(generateE2eSelector('timeline.input.title')),
+      description: this.page.locator(generateE2eSelector('timeline.input.description')),
+    },
+    inputModals: {
+      eventTitle: this.page.locator(generateE2eSelector('timeline.modal.input.title')),
+      eventDate: this.page.locator(`${generateE2eSelector('timeline.modal.input.date')} input`),
+      eventDescription: this.page.locator(generateE2eSelector('timeline.modal.input.description')),
+    },
+    eventTimeDetail: {
+      item: this.page.locator(generateE2eSelector('timeline.events.time')),
+      month: this.page.locator(generateE2eSelector('timeline.events.time.month')),
+      day: this.page.locator(generateE2eSelector('timeline.events.time.day')),
+      year: this.page.locator(generateE2eSelector('timeline.events.time.year')),
+    },
+    triggerTab: {
+      eventDetailName: this.page.locator(
+        `${generateE2eSelector('timeline.events.trigger.event_detail')} h4`
+      ),
+      eventDetailDescription: this.page.locator(
+        `${generateE2eSelector('timeline.events.trigger.event_detail')} p`
+      ),
+    },
+    detail: {},
+  };
+}

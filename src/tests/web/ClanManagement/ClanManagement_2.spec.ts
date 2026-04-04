@@ -67,6 +67,7 @@ test.describe('Clan Management - Module 2', () => {
     });
 
     const clanPage = new ClanPage(page);
+
     const unique = Date.now().toString(36).slice(-6);
     const locationName = `location name - ${unique}`;
     let res: {
@@ -87,8 +88,7 @@ test.describe('Clan Management - Module 2', () => {
         clanStatus: ClanStatus.PUBLIC,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanPage.eventModal.createEventButton.click();
-      await clanPage.waitForModalToBeHidden();
+      await clanPage.clickCreateEventButton();
     });
 
     await AllureReporter.step('Verify event is present in event list', async () => {
@@ -104,7 +104,7 @@ test.describe('Clan Management - Module 2', () => {
     });
 
     await AllureReporter.step(
-      'Verify event information is match in event dertail modal',
+      'Verify event information is match in event detail modal',
       async () => {
         const isCreatedEvent = await clanPage.verifyInEventDetailModal({
           eventTopic: res.eventTopic,
@@ -143,6 +143,7 @@ test.describe('Clan Management - Module 2', () => {
     });
 
     const clanPage = new ClanPage(page);
+
     const unique = Date.now().toString(36).slice(-6);
     const textChannelName = `ptc-${unique}`.slice(0, 20);
     const locationName = `location name - ${unique}`;
@@ -184,8 +185,7 @@ test.describe('Clan Management - Module 2', () => {
         textChannelName,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanPage.eventModal.createEventButton.click();
-      await clanPage.waitForModalToBeHidden();
+      await clanPage.clickCreateEventButton();
     });
 
     await AllureReporter.step('Verify event is present in event list', async () => {
@@ -257,10 +257,8 @@ test.describe('Clan Management - Module 2', () => {
         eventType: EventType.PRIVATE,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanPage.eventModal.createEventButton.click();
-      await clanPage.waitForModalToBeHidden();
+      await clanPage.clickCreateEventButton();
     });
-
     await AllureReporter.step('Verify event is present in event list', async () => {
       const isCreatedEvent = await clanPage.verifyLastEventData({
         eventTopic: res.eventTopic,

@@ -121,4 +121,55 @@ test.describe('File Size Limits Validation - Module 4', () => {
       await page.reload({ waitUntil: 'domcontentloaded' });
     });
   });
+
+  test('Verify that user can upload file when create a timeline', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can upload file when create a timeline
+
+      **Test Steps:**
+      1. Open timeline tab
+      2. Click create
+      3. Fill data
+      4. Upload file
+
+      **Expected Result:** Verify that user can upload file when create a timeline
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['timeline', 'create', 'upload-file'],
+    });
+
+    const messagePage = new MessagePage(page);
+
+    await AllureReporter.step(`Open timeline tab`, async () => {
+      await messagePage.openTimelineTab();
+      await page.waitForTimeout(1500);
+    });
+
+    await AllureReporter.step('Create First event', async () => {
+      await messagePage.openTimelineModal();
+    });
+    const under8MbGroupAvt = await fileSizeHelpers.createFileWithSize(
+      'direct_message_icon_under_8mb',
+      7 * 1024 * 1024,
+      'jpg'
+    );
+
+    await AllureReporter.step('Upload direct message icon under limit (7MB)', async () => {
+      const result = await fileSizeHelpers.uploadByTypeAndVerify(
+        under8MbGroupAvt,
+        UploadType.TIMELINE,
+        true
+      );
+      expect(result.success).toBe(true);
+    });
+
+    await AllureReporter.attachScreenshot(page, `file uploaded`);
+  });
 });

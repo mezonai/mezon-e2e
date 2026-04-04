@@ -166,11 +166,7 @@ test.describe('File Size Limits Validation', () => {
     `);
 
     await AllureReporter.step('Navigate to Profile settings', async () => {
-      await profilePage.buttons.userSettingProfile.waitFor({
-        state: 'visible',
-        timeout: 3000,
-      });
-      await profilePage.buttons.userSettingProfile.click();
+      await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
       await profilePage.openUserProfileTab();
     });
@@ -213,11 +209,7 @@ test.describe('File Size Limits Validation', () => {
     `);
 
     await AllureReporter.step('Navigate to Clan Profile settings', async () => {
-      await profilePage.buttons.userSettingProfile.waitFor({
-        state: 'visible',
-        timeout: 3000,
-      });
-      await profilePage.buttons.userSettingProfile.click();
+      await profilePage.openUserSettingProfile();
       await profilePage.openProfileTab();
       await profilePage.openClanProfileTab();
     });
@@ -262,10 +254,6 @@ test.describe('File Size Limits Validation', () => {
     `);
 
     await AllureReporter.step('Navigate to Clan Profile settings', async () => {
-      await profilePage.buttons.userSettingProfile.waitFor({
-        state: 'visible',
-        timeout: 3000,
-      });
       await clanPage.openClanSettings();
     });
 

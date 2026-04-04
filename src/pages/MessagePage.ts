@@ -1,53 +1,17 @@
+import MessageSelector from '@/data/selectors/MessageSelector';
 import { ROUTES } from '@/selectors';
 import { DirectMessageHelper } from '@/utils/directMessageHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { getImageHash } from '@/utils/images';
+import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { expect, Locator, Page } from '@playwright/test';
 import sleep from '@utils/sleep';
+import { BasePage } from './BasePage';
+import { ProfilePage } from './ProfilePage';
 
-export class MessagePage {
+export class MessagePage extends BasePage {
   private helpers: DirectMessageHelper;
-  readonly page: Page;
-  readonly user: Locator;
-  readonly listDMItems: Locator;
-  readonly addUserButton: Locator;
-  readonly userItem: Locator;
-  readonly friendItems: Locator;
-  readonly friendListItems: Locator;
-  readonly friendUsernames: Locator;
-  readonly createGroupButton: Locator;
-  readonly userNameItem: Locator;
-  readonly addToGroupButton: Locator;
-  readonly sumMember: Locator;
-  readonly memberCount: Locator;
-  readonly closeFirstDMButton: Locator;
-  readonly firstUserAddDM: Locator;
-  readonly firstUserNameAddDM: Locator;
-  readonly userNamesInDM: Locator;
-  readonly secondClan: Locator;
-  readonly messages: Locator;
-  readonly leaveGroupButton: Locator;
-  readonly confirmLeaveGroupButton: Locator;
-  readonly messagesInTopic: Locator;
-  readonly memberListInGroup: Locator;
-  readonly editGroupButton: Locator;
-  readonly groupNameInput: Locator;
-  readonly saveGroupNameButton: Locator;
-  readonly leaveGroupButtonInPopup: Locator;
-  readonly buttonCreateGroupSidebar: Locator;
-  readonly pinMessageButton: Locator;
-  readonly confirmPinMessageButton: Locator;
-  readonly deleteMessageButton: Locator;
-  readonly confirmDeleteMessageButton: Locator;
-  readonly displayListPinButton: Locator;
-  readonly footerAvatar: Locator;
-  readonly pinnedMessages: Locator;
-  readonly welcomeDM: Locator;
-  readonly welcomeDMAvatar: Locator;
-  readonly headerDMAvatar: Locator;
-  readonly headerUserProfileButton: Locator;
-  readonly groupName: Locator;
-  readonly editMessageButton: Locator;
-  readonly forwardMessageButton: Locator;
+  private selector: MessageSelector;
 
   firstUserNameText: string = '';
   secondUserNameText: string = '';
@@ -58,123 +22,23 @@ export class MessagePage {
   userNameItemText: string = '';
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.helpers = new DirectMessageHelper(page);
-    this.buttonCreateGroupSidebar = page.locator(
-      generateE2eSelector('chat.direct_message.button.button_plus')
-    );
-    this.user = this.page
-      .locator(generateE2eSelector('chat.direct_message.chat_list'))
-      .filter({ hasNot: this.page.locator('p', { hasText: 'Members' }) })
-      .first();
-    this.addUserButton = page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
-    this.listDMItems = page.locator(generateE2eSelector('chat.direct_message.chat_list'));
-    this.userItem = page
-      .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
-      .first();
-    this.friendItems = page.locator(
-      generateE2eSelector('chat.direct_message.friend_list.friend_item')
-    );
-    this.friendUsernames = page.locator(
-      generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
-    );
-    this.createGroupButton = page.locator(
-      generateE2eSelector('chat.direct_message.button.create_group')
-    );
-    this.userNameItem = this.userItem.locator(
-      generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
-    );
-    this.addToGroupButton = page.locator(
-      generateE2eSelector('chat.direct_message.button.add_user')
-    );
-    this.sumMember = page.locator(generateE2eSelector('chat.direct_message.member_list.button'));
-    this.memberCount = page.locator(
-      generateE2eSelector('chat.direct_message.member_list.member_count')
-    );
-    this.closeFirstDMButton = this.user.locator(
-      generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
-    );
-    this.friendListItems = page.locator(
-      generateE2eSelector('chat.direct_message.friend_list.all_friend')
-    );
-    this.firstUserAddDM = this.page
-      .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
-      .nth(0);
-    this.firstUserNameAddDM = this.page
-      .locator(generateE2eSelector('base_profile.display_name'))
-      .nth(1);
-    this.userNamesInDM = page.locator(
-      generateE2eSelector('chat.direct_message.chat_item.username')
-    );
-    this.secondClan = this.page.locator('div[title]').nth(1);
-    this.messages = this.page.locator(generateE2eSelector('chat.direct_message.message.item'));
-    this.leaveGroupButton = this.helpers.group.locator(
-      generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
-    );
-    this.confirmLeaveGroupButton = this.page.locator(
-      generateE2eSelector('chat.direct_message.leave_group.button')
-    );
-    this.messagesInTopic = page.locator('.thread-scroll .text-theme-message');
-    this.memberListInGroup = page.locator(
-      generateE2eSelector('chat.direct_message.member_list.member_count')
-    );
-    this.editGroupButton = page.locator(
-      generateE2eSelector('chat.direct_message.edit_group.button')
-    );
-    this.groupNameInput = page.locator('input[placeholder="Enter group name"]');
-    this.saveGroupNameButton = page.locator('button:has-text("Save")');
-    this.leaveGroupButtonInPopup = page.locator(
-      generateE2eSelector('chat.direct_message.menu.leave_group.button')
-    );
-    this.pinMessageButton = page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'Pin message' });
-    this.confirmPinMessageButton = page.locator(
-      generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
-      { hasText: 'Oh yeah. Pin it' }
-    );
-    this.deleteMessageButton = page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'Delete Message' });
+    this.selector = new MessageSelector(page);
+  }
 
-    this.editMessageButton = page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'Edit Message' });
-
-    this.forwardMessageButton = page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'Forward Message' });
-
-    this.confirmDeleteMessageButton = page.locator(
-      generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
-      { hasText: 'Delete' }
-    );
-    this.displayListPinButton = page.locator(
-      generateE2eSelector('chat.channel_message.header.button.pin')
-    );
-    this.footerAvatar = page.locator(
-      `${generateE2eSelector('footer_profile.avatar')} ${generateE2eSelector('avatar.image')}`
-    );
-    this.pinnedMessages = page.locator(generateE2eSelector('common.pin_message'));
-    this.welcomeDM = page.locator(generateE2eSelector('chat_welcome'));
-    this.welcomeDMAvatar = this.welcomeDM.locator(generateE2eSelector('avatar.image'));
-    this.headerDMAvatar = this.page.locator(
-      `${generateE2eSelector('chat.direct_message.header.left_container')} ${generateE2eSelector('avatar.image')}`
-    );
-    this.headerUserProfileButton = this.page.locator(
-      `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
-    );
-    this.groupName = page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+  async getFirstMessage(): Promise<Locator> {
+    return this.selector.messages.first();
   }
 
   async createDM(): Promise<string> {
     try {
-      await this.buttonCreateGroupSidebar.click();
+      await this.selector.buttonCreateGroupSidebar.click();
 
-      const firstUser = (await this.userItem.first().innerText()).trim();
-      await this.userItem.hover();
-      await this.userItem.click();
-      await this.createGroupButton.click();
+      const firstUser = (await this.selector.userItem.first().innerText()).trim();
+      await this.selector.userItem.hover();
+      await this.selector.userItem.click();
+      await this.selector.createGroupButton.click();
 
       return firstUser;
     } catch (error) {
@@ -185,11 +49,13 @@ export class MessagePage {
 
   async createDMByName(userName: string): Promise<void> {
     try {
-      await this.buttonCreateGroupSidebar.click();
-
-      await this.userItem.filter({ hasText: userName }).hover();
-      await this.userItem.filter({ hasText: userName }).click();
-      await this.createGroupButton.click();
+      await this.selector.buttonCreateGroupSidebar.click();
+      await expect(this.selector.friendItems.filter({ hasText: userName })).toBeVisible({
+        timeout: 5000,
+      });
+      await this.selector.friendItems.filter({ hasText: userName }).first().hover();
+      await this.selector.friendItems.filter({ hasText: userName }).first().click();
+      await this.selector.createGroupButton.click();
     } catch (error) {
       console.error('Error creating DM:', error);
       throw error;
@@ -197,8 +63,8 @@ export class MessagePage {
   }
 
   async isDMCreated(): Promise<boolean> {
-    await this.userNamesInDM.first().waitFor({ state: 'visible', timeout: 5000 });
-    return (await this.userNamesInDM.allInnerTexts()).some(
+    await this.selector.userNamesInDM.first().waitFor({ state: 'visible', timeout: 5000 });
+    return (await this.selector.userNamesInDM.allInnerTexts()).some(
       name =>
         name.includes(this.firstUserNameText.replace(/^A/, '')) ||
         name.includes(this.firstUserNameText)
@@ -216,38 +82,38 @@ export class MessagePage {
   }
 
   async clickEditButton(): Promise<void> {
-    await this.editGroupButton.click();
+    await this.selector.editGroupButton.click();
   }
 
-  private async openSelectFriendsModal(): Promise<void> {
-    await this.buttonCreateGroupSidebar.click();
+  async openSelectFriendsModal(): Promise<void> {
+    await this.selector.buttonCreateGroupSidebar.click();
   }
 
-  private async pickFriends(count: number): Promise<void> {
+  async pickFriends(count: number): Promise<void> {
     const start = Date.now();
-    while ((await this.friendItems.count()) < count) {
+    while ((await this.selector.friendItems.count()) < count) {
       if (Date.now() - start > 10000) {
         throw new Error(
-          `Not enough friends to create group: need ${count}, have ${await this.friendItems.count()}`
+          `Not enough friends to create group: need ${count}, have ${await this.selector.friendItems.count()}`
         );
       }
       await this.page.waitForTimeout(3000);
     }
 
-    const first = this.friendItems.nth(0);
-    const second = this.friendItems.nth(1);
+    const first = this.selector.friendItems.nth(0);
+    const second = this.selector.friendItems.nth(1);
 
     await first.click();
     await second.click();
 
-    const u0 = ((await this.friendUsernames.nth(0).textContent()) || '').trim();
-    const u1 = ((await this.friendUsernames.nth(1).textContent()) || '').trim();
+    const u0 = ((await this.selector.friendUsernames.nth(0).textContent()) || '').trim();
+    const u1 = ((await this.selector.friendUsernames.nth(1).textContent()) || '').trim();
     this.firstUserNameText = u0;
     this.secondUserNameText = u1;
   }
 
-  private async submitCreate(): Promise<void> {
-    await this.createGroupButton.click();
+  async submitCreate(): Promise<void> {
+    await this.selector.createGroupButton.click();
   }
 
   async isGroupCreated(prevGroupCount: number): Promise<boolean> {
@@ -261,7 +127,7 @@ export class MessagePage {
     const current = await this.helpers.countGroups();
     if (current >= prevGroupCount + 1) return true;
 
-    const groupName = await this.helpers.groupName.innerText();
+    const groupName = await this.selector.groupName.innerText();
     if (!groupName) return false;
     const containsFirst = !!this.firstUserNameText && groupName.includes(this.firstUserNameText);
     const containsSecond = !!this.secondUserNameText && groupName.includes(this.secondUserNameText);
@@ -269,20 +135,20 @@ export class MessagePage {
   }
 
   async addMoreMemberToGroup(): Promise<void> {
-    await this.helpers.group.click();
-    await this.addUserButton.click();
+    await this.selector.group.click();
+    await this.selector.addUserButton.click();
     await this.page.waitForTimeout(5000);
-    await this.userItem.click();
-    this.userNameItemText = (await this.userNameItem.textContent()) ?? '';
-    await this.addToGroupButton.click();
+    await this.selector.userItem.click();
+    this.userNameItemText = (await this.selector.userNameItem.textContent()) ?? '';
+    await this.selector.addToGroupButton.click();
     await this.page.waitForTimeout(3000);
   }
 
   async getMemberCount(): Promise<number> {
-    await this.helpers.group.click();
-    await this.sumMember.click();
+    await this.selector.group.click();
+    await this.selector.sumMember.click();
 
-    const memberItems = this.memberCount;
+    const memberItems = this.selector.memberCount;
     return await memberItems.count();
   }
 
@@ -290,14 +156,14 @@ export class MessagePage {
     const start = Date.now();
     let newCount = previousCount;
     while (Date.now() - start < 8000) {
-      await this.helpers.group.click();
-      await this.sumMember.click();
-      newCount = await this.memberCount.count();
+      await this.selector.group.click();
+      await this.selector.sumMember.click();
+      newCount = await this.selector.memberCount.count();
       if (newCount >= previousCount + 1) return true;
       await this.page.waitForTimeout(3000);
     }
 
-    const names = (await this.memberListInGroup.allTextContents())
+    const names = (await this.selector.memberListInGroup.allTextContents())
       .flatMap(t => t.split(','))
       .map(s => s.trim())
       .filter(Boolean);
@@ -305,10 +171,9 @@ export class MessagePage {
   }
 
   async closeDM(username: string): Promise<void> {
-    const user = await this.page
-      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+    const user = await this.selector.listDMItems
       .filter({
-        hasNot: this.page.locator('p', { hasText: 'Members' }),
+        hasNot: this.page.locator('p', { hasText: 'Member' }),
         has: this.page.locator('span', {
           hasText: username,
         }),
@@ -325,9 +190,9 @@ export class MessagePage {
   }
 
   async isDMClosed(username: string): Promise<boolean> {
-    const count = await this.userNamesInDM.count();
+    const count = await this.selector.userNamesInDM.count();
     for (let i = 0; i < count; i++) {
-      const text = (await this.userNamesInDM.nth(i).innerText()).trim();
+      const text = (await this.selector.userNamesInDM.nth(i).innerText()).trim();
       if (text === username) {
         return false;
       }
@@ -336,44 +201,44 @@ export class MessagePage {
   }
 
   async leaveGroupByXBtn(): Promise<string> {
-    const rawText = await this.helpers.group.innerText();
+    const rawText = await this.selector.group.innerText();
     const groupName = rawText.split('\n')[0].trim();
 
-    await this.helpers.group.hover();
-    await this.leaveGroupButton.click({ force: true });
-    await this.confirmLeaveGroupButton.click();
+    await this.selector.group.hover();
+    await this.selector.leaveGroupButton.click({ force: true });
+    await this.selector.confirmLeaveGroupButton.click();
 
     return groupName;
   }
 
   async leaveGroupByLeaveGroupBtn(): Promise<void> {
-    await this.helpers.group.dispatchEvent('contextmenu');
+    await this.selector.group.dispatchEvent('contextmenu');
   }
 
   async getFriendItemFromFriendList(friendName: string): Promise<Locator> {
-    return this.friendListItems.filter({ hasText: friendName }).first();
+    return this.selector.friendListItems.filter({ hasText: friendName }).first();
   }
 
   async createDMWithFriendName(friendName: string): Promise<void> {
-    const friendItem = this.friendListItems.filter({ hasText: friendName }).first();
+    const friendItem = this.selector.friendListItems.filter({ hasText: friendName }).first();
     await friendItem.click();
     await this.page.waitForTimeout(500);
   }
 
   async openUserProfile(): Promise<void> {
-    await this.headerUserProfileButton.click();
+    await this.selector.headerUserProfileButton.click();
     await this.page.waitForTimeout(500);
   }
 
   getFriendItemFromListDM(friendName: string): Locator {
-    const dmItem = this.listDMItems;
+    const dmItem = this.selector.listDMItems;
     return dmItem.filter({ hasText: friendName }).first();
   }
 
   async isLeavedGroup(groupName: string): Promise<boolean> {
-    const count = await this.userNamesInDM.count();
+    const count = await this.selector.userNamesInDM.count();
     for (let i = 0; i < count; i++) {
-      const text = (await this.userNamesInDM.nth(i).innerText()).trim();
+      const text = (await this.selector.userNamesInDM.nth(i).innerText()).trim();
       if (text === groupName) {
         return false;
       }
@@ -383,25 +248,25 @@ export class MessagePage {
 
   async sendMessage(message: string): Promise<void> {
     this.message = message;
-    await this.firstUserAddDM.click();
-    await this.helpers.textarea.click();
-    await this.helpers.textarea.fill(message);
-    await this.helpers.textarea.press('Enter');
+    await this.selector.firstUserAddDM.click();
+    await this.selector.messageInput.click();
+    await this.selector.messageInput.fill(message);
+    await this.selector.messageInput.press('Enter');
   }
 
   async getMessageWithProfileName(profileName: string): Promise<Locator> {
-    return this.messages.filter({ hasText: profileName }).last();
+    return this.selector.messages.filter({ hasText: profileName }).last();
   }
 
   async sendMessageWhenInDM(message: string): Promise<void> {
     this.message = message;
-    await this.helpers.textarea.click();
-    await this.helpers.textarea.fill(message);
-    await this.helpers.textarea.press('Enter');
+    await this.selector.messageInput.click();
+    await this.selector.messageInput.fill(message);
+    await this.selector.messageInput.press('Enter');
   }
 
   async isMessageSend(): Promise<boolean> {
-    const lastMessage = this.messages.last();
+    const lastMessage = this.selector.messages.last();
     const text = await lastMessage.innerText();
 
     return text.includes(this.message);
@@ -410,61 +275,714 @@ export class MessagePage {
   async updateNameGroupChatDM(groupName: string): Promise<void> {
     this.groupNameText = groupName;
 
-    await this.helpers.group.click();
-    await this.editGroupButton.click();
-    await this.groupNameInput.click();
-    await this.groupNameInput.fill('');
-    await this.groupNameInput.fill(groupName);
-    await this.saveGroupNameButton.click();
+    await this.selector.group.click();
+    await this.selector.editGroupButton.click();
+    await this.selector.groupNameInput.click();
+    await this.selector.groupNameInput.fill('');
+    await this.selector.groupNameInput.fill(groupName);
+    await this.selector.saveGroupNameButton.click();
   }
 
   async isGroupNameDMUpdated(): Promise<boolean> {
-    const groupName = (await this.helpers.groupName.innerText()).trim();
+    const groupName = (await this.selector.groupName.innerText()).trim();
     return groupName === this.groupNameText;
   }
 
   async pinLastMessage() {
-    const lastMessage = this.messages.last();
+    const lastMessage = this.selector.messages.last();
     await lastMessage.click({ button: 'right' });
-    await this.pinMessageButton.click();
-    await this.confirmPinMessageButton.click();
+    await this.selector.pinMessageButton.click();
+    await this.selector.confirmPinMessageButton.click();
   }
 
   async pinSpecificMessage(messageItem: Locator) {
     await messageItem.click({ button: 'right' });
-    await this.pinMessageButton.click();
-    await this.confirmPinMessageButton.click();
+    await this.selector.pinMessageButton.click();
+    await this.selector.confirmPinMessageButton.click();
   }
 
   async getLastMessageWithProfileName(profileName: string): Promise<Locator> {
-    return this.messages.filter({ hasText: profileName }).last();
+    return this.selector.messages.filter({ hasText: profileName }).last();
   }
 
   async deleteLastMessage() {
-    const lastMessage = this.messages.last();
+    const lastMessage = this.selector.messages.last();
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
     await lastMessage.click({ button: 'right' });
-    await this.deleteMessageButton.click();
-    await this.confirmDeleteMessageButton.click();
+    await this.page.waitForTimeout(1000);
+    await this.selector.deleteMessageButton.click();
+    await this.page.waitForTimeout(1000);
+    await this.selector.confirmDeleteMessageButton.click();
   }
 
   async isMessageStillPinned(messageIdentity: string): Promise<boolean> {
-    await this.displayListPinButton.click();
-    const pinnedMessage = this.pinnedMessages.filter({ hasText: messageIdentity });
+    await this.selector.displayListPinButton.click();
+    const pinnedMessage = this.selector.pinnedMessages.filter({ hasText: messageIdentity });
     return (await pinnedMessage.count()) > 0;
   }
 
   async editMessage(messageItem: Locator, newText: string) {
     await messageItem.click({ button: 'right' });
-    await this.editMessageButton.click();
-    const textarea = this.page.locator('#editorReactMentionChannel');
+    await this.selector.editMessageButton.click();
+    const textarea = this.page.locator('div[class*="mention-input-editor"]').first();
     await textarea.fill(newText);
     await textarea.press('Enter');
     await sleep(1000);
-    return this.messages.filter({ hasText: newText });
+    return this.selector.messages.filter({ hasText: newText });
   }
 
   async forwardMessage(messageItem: Locator) {
     await messageItem.click({ button: 'right' });
-    await this.forwardMessageButton.click();
+    await this.selector.forwardMessageButton.click();
+  }
+
+  private async assertVisibleLocators(locator: Locator | Locator[]): Promise<void> {
+    const locators = Array.isArray(locator) ? locator : [locator];
+    const [head, ...tail] = locators;
+    if (!head) return;
+    expect(head).toBeVisible();
+    expect(head).toHaveCount(1);
+    return this.assertVisibleLocators(tail);
+  }
+
+  async assertDMHeaderCallVisible(): Promise<void> {
+    await this.assertVisibleLocators(this.selector.dmHeaderCallAction);
+  }
+
+  async assertDMHeaderVideoCallVisible(): Promise<void> {
+    await this.assertVisibleLocators(this.selector.dmHeaderVideoCallAction);
+  }
+
+  async assertDMHeaderAddMemberVisible(): Promise<void> {
+    await this.assertVisibleLocators(this.selector.dmHeaderAddMemberAction);
+  }
+
+  private async assertNotVisibleLocators(locator: Locator | Locator[]): Promise<void> {
+    const locators = Array.isArray(locator) ? locator : [locator];
+    const [head, ...tail] = locators;
+    if (!head) return;
+    expect(head).not.toBeVisible();
+    expect(head).toHaveCount(0);
+    return this.assertNotVisibleLocators(tail);
+  }
+
+  async assertDMHeaderCallNotVisible(): Promise<void> {
+    await this.assertNotVisibleLocators(this.selector.dmHeaderCallAction);
+  }
+
+  async assertDMHeaderVideoCallNotVisible(): Promise<void> {
+    await this.assertNotVisibleLocators(this.selector.dmHeaderVideoCallAction);
+  }
+
+  async assertDMHeaderAddMemberNotVisible(): Promise<void> {
+    await this.assertNotVisibleLocators(this.selector.dmHeaderAddMemberAction);
+  }
+
+  async openGroupFromName(name: string) {
+    const messagePage = new MessagePage(this.page);
+    const groupLocator = messagePage.selector.userNamesInDM
+      .filter({ hasText: name.slice(0, 15) })
+      .first();
+    await expect(groupLocator).toBeVisible({ timeout: 3000 });
+    await groupLocator.first().click();
+  }
+
+  async updateAvatarForGroup(groupName: string): Promise<void> {
+    const fileSizeHelpers = new FileSizeTestHelpers(this.page);
+
+    await this.selector.group.click();
+    await this.selector.editGroupButton.click();
+    const groupAvt = await fileSizeHelpers.createFileWithSize(
+      'direct_message_icon',
+      5 * 1024 * 1024,
+      'jpg'
+    );
+
+    const result = await fileSizeHelpers.uploadByTypeAndVerify(
+      groupAvt,
+      UploadType.GROUP_AVATAR,
+      true
+    );
+    expect(result.success).toBe(true);
+    await this.selector.groupNameInput.click();
+    await this.selector.groupNameInput.fill('');
+    await this.selector.groupNameInput.fill(groupName);
+    await expect(this.selector.saveGroupNameButton).toBeVisible({ timeout: 3000 });
+    await this.selector.saveGroupNameButton.click();
+    await expect(this.selector.editGroupModal).toBeHidden({ timeout: 10000 });
+  }
+
+  async getAvatarHashOnDMList(groupName: string): Promise<string> {
+    const avatarLocator = this.selector.listDMItems
+      .filter({
+        hasText: groupName.slice(0, 15),
+      })
+      .locator(generateE2eSelector('avatar.image'))
+      .first();
+
+    await expect
+      .poll(
+        async () => {
+          return await avatarLocator.getAttribute('src');
+        },
+        { timeout: 8000 }
+      )
+      .toMatch(/^https?:\/\//);
+
+    const avatarSrc = await avatarLocator.getAttribute('src');
+
+    if (!avatarSrc) {
+      throw new Error('Avatar src is null or undefined');
+    }
+    return (await getImageHash(avatarSrc)) ?? '';
+  }
+
+  async getAvatarHashOnHeaderChat(): Promise<string> {
+    const avatarLocator = this.selector.headerDMAvatar;
+    await expect
+      .poll(
+        async () => {
+          return await avatarLocator.getAttribute('src');
+        },
+        { timeout: 8000 }
+      )
+      .toMatch(/^https?:\/\//);
+    const avatarSrc = await avatarLocator.getAttribute('src');
+
+    if (!avatarSrc) {
+      throw new Error('Avatar src is null or undefined');
+    }
+    return (await getImageHash(avatarSrc)) ?? '';
+  }
+
+  async openForwardMessageModal(): Promise<void> {
+    await this.selector.messages.last().click({ button: 'right' });
+    await this.selector.forwardMessageButton.click();
+    await expect(this.selector.modalForwardMessage).toBeVisible({ timeout: 5000 });
+  }
+
+  async getAvatarHashOnForwardPopup(groupName: string): Promise<string> {
+    await expect(this.selector.searchUserOnForwardMessageModal).toBeVisible({ timeout: 5000 });
+    await this.selector.searchUserOnForwardMessageModal.fill(groupName);
+    await this.page.waitForTimeout(3000);
+    const groupItemLocator = this.selector.modalForwardMessage.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: groupName,
+      }
+    );
+    await expect(groupItemLocator).toBeVisible({ timeout: 5000 });
+
+    const avatarLocator = groupItemLocator.locator('img').first();
+    await expect
+      .poll(async () => await avatarLocator.getAttribute('src'), {
+        timeout: 8000,
+      })
+      .toMatch(/^https?:\/\//);
+
+    const avatarSrc = await avatarLocator.getAttribute('src');
+
+    if (!avatarSrc) {
+      throw new Error('Avatar src is null or undefined');
+    }
+
+    return (await getImageHash(avatarSrc)) ?? '';
+  }
+
+  async openSearchModalbyPressCtrlK(): Promise<void> {
+    await this.page.keyboard.press('Control+K');
+    await expect(this.selector.searchModal).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
+  async openSearchModalbyClickSearchButton(): Promise<void> {
+    await this.selector.searchTriggerButton.click();
+    await expect(this.selector.searchModal).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
+  async getAvatarHashOnSearchModal(groupName: string): Promise<string> {
+    await expect(this.selector.searchInput).toBeVisible({ timeout: 5000 });
+    await this.selector.searchInput.fill(groupName);
+    await this.page.waitForTimeout(3000);
+    const groupItemLocator = this.selector.searchModal.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: groupName,
+      }
+    );
+    await expect(groupItemLocator).toBeVisible({ timeout: 5000 });
+    const avatarLocator = groupItemLocator.locator('img').first();
+    await expect
+      .poll(async () => await avatarLocator.getAttribute('src'), {
+        timeout: 8000,
+      })
+      .toMatch(/^https?:\/\//);
+    const avatarSrc = await avatarLocator.getAttribute('src');
+
+    if (!avatarSrc) {
+      throw new Error('Avatar src is null or undefined');
+    }
+    return (await getImageHash(avatarSrc)) ?? '';
+  }
+
+  async leaveAllGroup() {
+    const profilePage = new ProfilePage(this.page);
+    await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+
+    const chatList = this.selector.listDMItems;
+    await expect(chatList.first()).toBeVisible({ timeout: 10000 });
+
+    while (true) {
+      const group = chatList
+        .filter({
+          has: this.page.locator('p', { hasText: 'Member' }),
+        })
+        .first();
+
+      const groupCount = await group.count();
+      if (groupCount === 0) {
+        console.log('✅ No more groups to leave.');
+        break;
+      }
+
+      await group.hover();
+      const leaveGroupButton = group.locator(
+        generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+      );
+
+      await leaveGroupButton.click({ force: true });
+      const confirmLeaveGroupButton = this.page.locator(
+        generateE2eSelector('chat.direct_message.leave_group.button')
+      );
+      await confirmLeaveGroupButton.click();
+
+      await this.page.waitForTimeout(400);
+      await expect(confirmLeaveGroupButton).toBeHidden({ timeout: 3000 });
+    }
+  }
+
+  async leaveGroupByName(groupName: string) {
+    const group = await this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_list'))
+      .filter({
+        has: this.page.locator('p', { hasText: 'Member' }),
+      })
+      .filter({
+        has: this.page.locator('span', {
+          hasText: groupName,
+        }),
+      })
+      .first();
+    await expect(group).toBeVisible({ timeout: 3000 });
+    await group.hover();
+    const leaveGroupButton = group.locator(
+      generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
+    );
+
+    await leaveGroupButton.click({ force: true });
+    const confirmLeaveGroupButton = this.page.locator(
+      generateE2eSelector('chat.direct_message.leave_group.button')
+    );
+    await confirmLeaveGroupButton.click();
+
+    await this.page.waitForTimeout(400);
+    await expect(confirmLeaveGroupButton).toBeHidden({ timeout: 3000 });
+  }
+
+  async isChannelPresentOnForwardModal(channelName: string) {
+    await expect(this.selector.searchUserOnForwardMessageModal).toBeVisible({ timeout: 5000 });
+    await this.selector.searchUserOnForwardMessageModal.fill(channelName);
+    await this.page.waitForTimeout(3000);
+    const channelItemLocator = this.selector.modalForwardMessage.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: channelName,
+      }
+    );
+
+    try {
+      await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async forwardMessageToChannel(channelName: string) {
+    await expect(this.selector.searchUserOnForwardMessageModal).toBeVisible({ timeout: 5000 });
+    await this.selector.searchUserOnForwardMessageModal.fill(channelName);
+    await this.page.waitForTimeout(3000);
+    const channelItemLocator = this.selector.modalForwardMessage.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: channelName,
+      }
+    );
+    await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
+    await channelItemLocator.first().click();
+    await this.selector.sendForwardMessageButton.click();
+  }
+
+  async isChannelPresentOnSearchModal(channelName: string) {
+    await expect(this.selector.searchInput).toBeVisible({ timeout: 5000 });
+    await this.selector.searchInput.fill(channelName);
+    await this.page.waitForTimeout(3000);
+    const channelItemLocator = this.selector.searchModal.locator(
+      generateE2eSelector('suggest_item'),
+      {
+        hasText: channelName,
+      }
+    );
+
+    try {
+      await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async closeModalForwardMessage() {
+    await this.selector.cancelForwardMessageButton.click();
+    await expect(this.selector.searchUserOnForwardMessageModal).toBeHidden({ timeout: 5000 });
+  }
+
+  async getMessageBuzzHeader() {
+    return this.selector.messageBuzzHeader;
+  }
+
+  async clickMessageBuzzCloseButton() {
+    await this.selector.messageBuzzButtonClose.click();
+  }
+
+  async fillMessageBuzzInputMessage(message: string) {
+    await this.selector.messageBuzzInputMessage.fill(message);
+  }
+
+  async clickMessageBuzzSendButton() {
+    await this.selector.messageBuzzButtonSend.click();
+  }
+
+  async getListDMItems() {
+    return this.selector.listDMItems;
+  }
+
+  async getChatListContainer() {
+    return this.selector.chatListContainer;
+  }
+
+  async getWelcomeDM() {
+    return this.selector.welcomeDM;
+  }
+
+  async getDirectMessageBlockButton() {
+    return this.selector.directMessageBlockButton;
+  }
+
+  async getDirectMessageUnblockButton() {
+    return this.selector.directMessageUnblockButton;
+  }
+
+  async getMessageByText(text: string): Promise<Locator> {
+    return this.selector.messages.filter({ hasText: text }).first();
+  }
+
+  async getMessageSenderUsername(messageItem: Locator) {
+    const usernameLocator = await messageItem
+      .locator(generateE2eSelector('base_profile.display_name'))
+      .first();
+    await expect(usernameLocator).toBeVisible({ timeout: 5000 });
+    return usernameLocator;
+  }
+
+  async removeFriendFromShortProfile() {
+    const unfriendIconButton = this.page.locator(
+      generateE2eSelector('short_profile.action.button.remove_friend')
+    );
+    await expect(unfriendIconButton).toBeVisible({ timeout: 3000 });
+    await unfriendIconButton.click();
+    const unfriendButton = this.page
+      .locator(generateE2eSelector('clan_page.channel_list.panel.item'))
+      .filter({ hasText: 'Remove Friend' })
+      .first();
+    await expect(unfriendButton).toBeVisible({ timeout: 3000 });
+    await unfriendButton.click();
+  }
+
+  async getLastViewTopicButton() {
+    return this.selector.viewTopicButoon.last();
+  }
+
+  async getTopicInput() {
+    return this.selector.topicInput;
+  }
+
+  async getGroupName() {
+    return this.selector.groupName;
+  }
+
+  async getUserNamesInDMByGroupName(groupName: string) {
+    return this.selector.userNamesInDM.filter({ hasText: groupName });
+  }
+
+  async getLastMessage() {
+    return this.selector.messages.last();
+  }
+
+  async getFirstUserNameAddDM() {
+    return this.selector.firstUserNameAddDM;
+  }
+
+  async getFooterAvatar() {
+    return this.selector.footerAvatar;
+  }
+
+  async getHeaderDMAvatar() {
+    return this.selector.headerDMAvatar;
+  }
+
+  async removeUserFromGroup(username: string) {
+    const showMemberButton = this.selector.sumMember;
+    await expect(showMemberButton).toBeVisible({ timeout: 3000 });
+    await showMemberButton.click();
+
+    const userLocator = this.selector.secondarySideBar.member.item.filter({
+      has: this.page.locator('span').filter({ hasText: username }),
+    });
+
+    await expect(userLocator).toBeVisible({ timeout: 3000 });
+    await userLocator.click({ button: 'right' });
+
+    const popup = this.page.locator('div.contexify.z-50.rounded-lg.border-theme-primary');
+    await expect(popup).toBeVisible({ timeout: 5000 });
+
+    const removeUserButton = popup.locator(
+      generateE2eSelector('chat.direct_message.menu.leave_group.button')
+    );
+
+    await expect(removeUserButton).toBeVisible({ timeout: 3000 });
+    await removeUserButton.click();
+
+    await expect(userLocator).toBeHidden({ timeout: 3000 });
+  }
+
+  async getFriendItemList(username: string) {
+    return this.selector.friendItems.filter({ hasText: username });
+  }
+
+  async pickFriendByName(username: string) {
+    return this.selector.friendItems.filter({ hasText: username }).first().click();
+  }
+
+  async addUserToGroup(username: string) {
+    await this.selector.addUserButton.click();
+    await this.selector.userItem.filter({ hasText: username }).first().click();
+    await this.selector.createGroupButton.click();
+  }
+
+  async showMemberGroup() {
+    await this.selector.sumMember.click();
+  }
+
+  async verifyUserInMemberGroup(username: string) {
+    await expect(
+      this.selector.secondarySideBar.member.item.filter({ hasText: username })
+    ).toBeVisible({ timeout: 3000 });
+  }
+  async getLastUserSendMessage() {
+    return this.selector.displayNameOnMessageChannel.last();
+  }
+
+  async getShortProfileDisplayName() {
+    return this.selector.shortProfile.displayName.innerText();
+  }
+
+  async getShortProfileUsername() {
+    return this.selector.shortProfile.username.innerText();
+  }
+
+  async getShortProfileInputSendMessage() {
+    return this.selector.shortProfile.input.sendMessage.getAttribute('placeholder');
+  }
+
+  async verifyShortProfileUsernameWithInputChat() {
+    const displayName = await this.getShortProfileDisplayName();
+    const inputChat = await this.getShortProfileInputSendMessage();
+    expect(inputChat).toContain(displayName);
+  }
+
+  async mentionByText(text: string) {
+    await this.selector.messageInput.fill(`@${text}`);
+    await this.page.waitForTimeout(1000);
+    await this.selector.messageInput.press('Enter');
+    await this.page.waitForTimeout(1000);
+    await this.selector.messageInput.press('Enter');
+    await this.page.waitForTimeout(2000);
+  }
+
+  async verifyShortProfileIsUnknownUser() {
+    expect(this.selector.shortProfile.displayName).toBeHidden({ timeout: 2000 });
+    expect(this.selector.shortProfile.username).toBeHidden({ timeout: 2000 });
+    await expect(this.selector.anonymous.anonymousAvatar).toBeVisible({ timeout: 2000 });
+  }
+
+  async openAnonymous() {
+    await this.page.keyboard.down('Control');
+    await this.page.waitForTimeout(1000);
+    await this.page.keyboard.down('Shift');
+    await this.page.waitForTimeout(1000);
+    await this.page.keyboard.press('Enter');
+    await this.page.waitForTimeout(1000);
+    await this.page.keyboard.up('Shift');
+    await this.page.keyboard.up('Control');
+
+    await this.page.waitForTimeout(3000);
+  }
+
+  async verifyAnonymousIsVisible() {
+    await this.selector.anonymous.anonymousIcon.waitFor({ state: 'visible', timeout: 5000 });
+  }
+
+  async sendMessageWithAnonymous(message: string): Promise<void> {
+    try {
+      await this.selector.messageInput.click();
+      await this.selector.messageInput.fill(message);
+      await this.selector.messageInput.press('Enter');
+      // await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(2000);
+
+      this.message = message;
+    } catch (error) {
+      console.error('Error sending anonymous message:', error);
+      throw error;
+    }
+  }
+
+  async isAnonymousIconVisible(): Promise<boolean> {
+    try {
+      await this.selector.anonymous.anonymousIcon.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isAnonymousMessageSent(): Promise<boolean> {
+    try {
+      const messageLocator = this.page.locator(`text="${this.message}"`);
+      await messageLocator.waitFor({ state: 'visible', timeout: 5000 });
+
+      await this.selector.anonymous.anonymousMessage.waitFor({ state: 'visible', timeout: 5000 });
+
+      await this.selector.anonymous.anonymousName.waitFor({ state: 'visible', timeout: 5000 });
+
+      return true;
+    } catch (error) {
+      console.error('Error verifying anonymous message:', error);
+      return false;
+    }
+  }
+
+  async unpinLastMessage() {
+    const lastMessage = this.selector.messages.last();
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
+    await lastMessage.click({ button: 'right' });
+    await this.page.waitForTimeout(1000);
+    await this.selector.unpinMessageButton.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async verifyMessageIsUnpinned(message: string): Promise<boolean> {
+    await this.selector.displayListPinButton.click();
+    const pinnedMessage = this.selector.pinnedMessages.filter({ hasText: message });
+    return (await pinnedMessage.count()) === 0;
+  }
+
+  async markMessageAsUnread(username: string) {
+    const lastMessage = this.selector.messages.filter({ hasText: username }).last();
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
+    await lastMessage.click({ button: 'right' });
+    await this.page.waitForTimeout(1000);
+    await this.selector.markAsUnreadButton.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async getHeaderDM() {
+    return this.selector.headerDM.first();
+  }
+
+  async openTimelineTab() {
+    await this.selector.timeline.buttons.openTab.click();
+  }
+
+  async createTimelineEvent(data: { title: string; description: string }) {
+    await this.selector.timeline.buttons.create.click();
+    await this.page.waitForTimeout(1000);
+    await this.selector.timeline.inputModals.eventTitle.fill(data.title);
+    await this.selector.timeline.inputModals.eventDescription.fill(data.description);
+    const date = await this.selector.timeline.inputModals.eventDate.inputValue();
+    await this.page.waitForTimeout(2000);
+    await this.selector.timeline.buttons.saveModal.click();
+    return date;
+  }
+
+  async openTimelineModal() {
+    await this.selector.timeline.buttons.create.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  getMonthShort(month: number) {
+    return new Date(0, month - 1).toLocaleString('en-US', { month: 'short' }).toUpperCase();
+  }
+
+  async verifyEventIsVisibleOnTab(data: { title: string; description: string }, date: string) {
+    const [year, month, day] = date.split('-');
+    const dateLocator = this.selector.timeline.eventTimeDetail.day;
+    const monthLocator = this.selector.timeline.eventTimeDetail.month;
+    const yearLocator = this.selector.timeline.eventTimeDetail.year;
+    const formatMonth = this.getMonthShort(Number(month));
+    const titleLocator = this.selector.timeline.triggerTab.eventDetailName;
+    const descriptionLocator = this.selector.timeline.triggerTab.eventDetailDescription;
+
+    await expect(dateLocator).toContainText(day, { timeout: 1000 });
+    await expect(monthLocator).toContainText(formatMonth, { timeout: 1000 });
+    await expect(yearLocator).toContainText(year, { timeout: 1000 });
+    await expect(titleLocator).toContainText(data.title, { timeout: 1000 });
+    await expect(descriptionLocator).toContainText(data.description, { timeout: 1000 });
+
+    return titleLocator;
+  }
+
+  async openTimelineEventDetail(eventLocator: Locator) {
+    await eventLocator.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async updatetimeline() {
+    const unique = Date.now().toString(36);
+    const data = {
+      title: `Timeline-title-${unique}`.slice(0, 20),
+      description: `Timeline-description-${unique}`.slice(0, 20),
+    };
+    const editTitleButton = this.selector.timeline.buttons.editTitle;
+    const addDescriptionButton = this.selector.timeline.buttons.addDescription;
+    const inputTitle = this.selector.timeline.input.title;
+    const inputDescription = this.selector.timeline.input.description;
+    await editTitleButton.click();
+    await expect(inputTitle).toBeVisible({ timeout: 3000 });
+    await inputTitle.fill(data.title);
+    await this.page.waitForTimeout(1000);
+    await addDescriptionButton.click();
+    await expect(inputDescription).toBeVisible({ timeout: 3000 });
+    await inputDescription.fill(data.description);
+    await this.page.waitForTimeout(1000);
+
+    await this.selector.timeline.buttons.save.click();
+    await this.page.waitForTimeout(1000);
+    await this.selector.timeline.buttons.back.click();
+    return data;
   }
 }

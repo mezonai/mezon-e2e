@@ -2,10 +2,9 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { splitDomainAndPath } from '@/utils/domain';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test as base, expect, Page } from '@playwright/test';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
-import { joinUrlPaths } from '../../../utils/joinUrlPaths';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 const test = base.extend<{
@@ -24,31 +23,42 @@ const test = base.extend<{
 
 test.describe('Channel Message - Module 2', () => {
   let messageHelpers: MessageTestHelpers;
-  let clanPath: string;
-
+  const credentials = AccountCredentials.account2;
   const clanFactory = new ClanFactory();
+
+  test.beforeAll(async ({ browser }) => {
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.channelMessage2,
+      credentials,
+    });
+  });
 
   test.beforeEach(async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      pageWithClipboard,
-      AccountCredentials.account2
-    );
-
-    if (!clanPath) {
-      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageWithClipboard);
-      clanPath = splitDomainAndPath(clanFactory.getClanUrl()).path;
-
-      clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPath));
-    }
-    await AuthHelper.prepareBeforeTest(pageWithClipboard, clanFactory.getClanUrl(), credentials);
-
-    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+    await TestSuiteHelper.setupBeforeEach({
+      page: pageWithClipboard,
+      clanFactory,
+      credentials,
+    });
   });
 
-  test('React to a message with multiple emojis', async ({ pageWithClipboard, context }) => {
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ pageWithClipboard }) => {
+    await AuthHelper.logout(pageWithClipboard);
+  });
+
+  test('React to a message with multiple emojis', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63400',
     });
@@ -141,26 +151,5 @@ test.describe('Channel Message - Module 2', () => {
 
     const topicMessages = await messageHelpers.getMessagesFromTopicDrawer();
     expect(emojiMsg).toEqual(topicMessages[topicMessages.length - 1].content);
-  });
-  test('Send message from short profile in clan channel', async ({ pageWithClipboard }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63403',
-    });
-    const clanWithFriendAddedUrl = joinUrlPaths(
-      WEBSITE_CONFIGS.MEZON.baseURL,
-      'chat/clans/1786228934740807680/channels/1786228934753390593'
-    );
-    const addedFriendUsername = 'nguyen.nguyen';
-    await pageWithClipboard.goto(clanWithFriendAddedUrl, { waitUntil: 'domcontentloaded' });
-    await pageWithClipboard.waitForLoadState('networkidle');
-    messageHelpers = new MessageTestHelpers(pageWithClipboard);
-    await messageHelpers.clickMembersButton();
-    await messageHelpers.clickMemberInList(addedFriendUsername);
-    const testMessage = `Send Message From Short Profile ${Date.now()}`;
-    await messageHelpers.sendMessageFromShortProfile(testMessage);
-    await pageWithClipboard.waitForTimeout(2000);
-    const messageHelper = new MessageTestHelpers(pageWithClipboard);
-    const lastMessage = await messageHelper.getLastMessageInChat();
-    expect(lastMessage).toContain(testMessage);
   });
 });

@@ -30,6 +30,7 @@ export enum UploadType {
   CLAN_LOGO = 'clanLogo',
   CLAN_LOGO_NEW_MODAL = 'clanLogoNewModal',
   CLAN_BANNER = 'clanBanner',
+  TIMELINE = 'timeline',
 }
 
 type UploadConfig = {
@@ -79,6 +80,9 @@ const UPLOAD_CONFIGS: Record<UploadType, UploadConfig> = {
   },
   [UploadType.CLAN_BANNER]: {
     selector: generateE2eSelector('clan_page.settings.upload.clan_banner_input'),
+  },
+  [UploadType.TIMELINE]: {
+    selector: generateE2eSelector('timeline.modal.input.attachment'),
   },
 };
 
@@ -228,38 +232,15 @@ export class FileSizeTestHelpers {
     uploadType?: UploadType
   ): Promise<UploadVerificationResult> {
     const size = (await stat(filePath)).size;
-    let errorMessage: string | undefined;
-
-    if (uploadType === UploadType.VOICE_STICKER) {
-      const config = UPLOAD_CONFIGS[uploadType];
-      if (config.errorSelector) {
-        const error = this.page.locator(config.errorSelector);
-        if (await error.isVisible({ timeout: 3000 })) {
-          errorMessage = await error.innerText();
-        }
-      }
-    } else {
-      errorMessage = await this.waitForErrorModal();
-    }
+    const errorMessage = await this.waitForErrorModal();
 
     const success = !errorMessage;
 
     if (expectedSuccess) {
       await this.page.waitForTimeout(500);
-
-      if (uploadType === UploadType.VOICE_STICKER && UPLOAD_CONFIGS[uploadType].errorSelector) {
-        const error = this.page.locator(UPLOAD_CONFIGS[uploadType].errorSelector!);
-        if (await error.isVisible({ timeout: 1000 })) {
-          const lateError = await error.innerText();
-          if (lateError) {
-            return { success: false, fileSize: size, errorMessage: lateError };
-          }
-        }
-      } else {
-        const lateError = await this.waitForErrorModal();
-        if (lateError) {
-          return { success: false, fileSize: size, errorMessage: lateError };
-        }
+      const lateError = await this.waitForErrorModal();
+      if (lateError) {
+        return { success: false, fileSize: size, errorMessage: lateError };
       }
 
       await this.waitForSuccessIndicator();

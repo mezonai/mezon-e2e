@@ -147,6 +147,21 @@ export class ClanSetupHelper {
       suiteName: 'Channel Message - Module 5',
     }),
 
+    channelMessage6: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 6',
+    }),
+
+    channelMessage7: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 7',
+    }),
+
+    channelMessage8: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MessageTestClan',
+      suiteName: 'Channel Message - Module 8',
+    }),
+
     clanManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ClanManagementTest',
       suiteName: 'Clan Management',
@@ -226,6 +241,11 @@ export class ClanSetupHelper {
       suiteName: 'Direct Message',
     }),
 
+    directMessage1: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'DirectMessageTest',
+      suiteName: 'Direct Message 1',
+    }),
+
     topicMessage: ClanSetupHelper.createConfig({
       clanNamePrefix: 'TopicMessageTest',
       suiteName: 'Topic Message',
@@ -234,6 +254,26 @@ export class ClanSetupHelper {
     blockUser: ClanSetupHelper.createConfig({
       clanNamePrefix: 'BlockUserTest',
       suiteName: 'Block User',
+    }),
+
+    memberManagement: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MemberManagementTest',
+      suiteName: 'Member Management',
+    }),
+
+    createCategory: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'CreateCategoryTest',
+      suiteName: 'Create Category',
+    }),
+
+    markAsRead: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'MarkAsReadTest',
+      suiteName: 'Mark As Read',
+    }),
+
+    timeline: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'TimeLineTest',
+      suiteName: 'Timeline',
     }),
   };
 }

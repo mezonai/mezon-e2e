@@ -1,78 +1,38 @@
+import FriendSelector from '@/data/selectors/FriendSelector';
+import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { ROUTES } from '@/selectors';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import sleep from '@/utils/sleep';
-import { Page, expect } from '@playwright/test';
+import { Locator, Page, expect } from '@playwright/test';
 import { ToastSelector } from './../data/selectors/ToastSelectort';
 import { BasePage } from './BasePage';
-
 const SUCCESS_MESSAGE = 'Friend request sent successfully!';
 const ALREADY_SENT_MESSAGE = 'You have already sent a friend request to this user!';
-const ALREADY_FRIEND_MESSAGE = "You're already friends with this user!";
+const ALREADY_FRIEND_MESSAGE = "You're already friends with that user!";
 type Tabs = 'all' | 'online' | 'pending' | 'block';
 const dmActivClass = 'text-theme-primary-active';
 export class FriendPage extends BasePage {
+  private readonly toasts: ToastSelector;
+  private readonly selector: FriendSelector;
   constructor(page: Page) {
     super(page);
     this.toasts = new ToastSelector(this.page);
+    this.selector = new FriendSelector(this.page);
   }
-  private readonly baseTab = this.page.locator(generateE2eSelector('friend_page.tab'));
-
-  readonly tabs = {
-    all: this.baseTab.filter({ hasText: 'All' }),
-    online: this.baseTab.filter({ hasText: 'Online' }),
-    pending: this.baseTab.filter({ hasText: 'Pending' }),
-    block: this.baseTab.filter({ hasText: 'Block' }),
-  };
-  readonly toasts;
-
-  readonly buttons = {
-    addFriend: this.page
-      .locator(generateE2eSelector('button.base'))
-      .filter({ hasText: 'Add Friend' }),
-
-    sendFriendRequest: this.page
-      .locator(generateE2eSelector('button.base'))
-      .filter({ hasText: 'Send Friend Request' }),
-
-    acceptFriendRequest: this.page.locator(
-      generateE2eSelector('friend_page.button.accept_friend_request')
-    ),
-  };
-
-  readonly inputs = {
-    search: this.page.locator(generateE2eSelector('friend_page.input.search')),
-    addFriend: this.page.locator(generateE2eSelector('friend_page.input.add_friend')),
-    error: this.page.locator(generateE2eSelector('friend_page.input.error')),
-    permissionDenied: this.page.locator(
-      generateE2eSelector('chat.message_box.input.no_permission')
-    ),
-  };
-
-  readonly lists = {
-    friendAll: this.page.locator(generateE2eSelector('chat.direct_message.friend_list.all_friend')),
-  };
-
-  readonly dm = {
-    items: this.page.locator(generateE2eSelector('chat.direct_message.chat_list')),
-  };
-
-  readonly dmFriendMenu = {
-    item: this.page.locator(generateE2eSelector('chat.channel_message.member_list.item.actions')),
-    blockButton: this.page
-      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
-      .filter({ hasText: 'Block' }),
-  };
 
   async getFriend(username: string) {
-    return this.lists.friendAll.filter({ hasText: username }).first();
+    return this.selector.lists.friendAll.filter({ hasText: username }).first();
   }
 
   async getFriends(username: string) {
-    return this.lists.friendAll.filter({ hasText: username });
+    return this.selector.lists.friendAll.filter({ hasText: username });
   }
 
-  async getActiveDM() {
-    return this.dm.items.filter({ has: this.page.locator(`.${dmActivClass}`) }).first();
+  async getActiveDM(username: string) {
+    return this.page
+      .locator(`${generateE2eSelector('chat.direct_message.chat_list')}.${dmActivClass}`)
+      .filter({ hasText: username })
+      .first();
   }
 
   private async baseAssertFriendTab(username: string, tab: Tabs) {
@@ -91,8 +51,8 @@ export class FriendPage extends BasePage {
 
   async friendExistsInTab(username: string, tab: Tabs) {
     await this.gotoFriendsPage();
-    await this.page.waitForTimeout(500);
-    await this.tabs[tab].click();
+    await this.page.waitForTimeout(2000);
+    await this.selector.tabs[tab].click();
     return this.getFriend(username);
   }
 
@@ -101,16 +61,16 @@ export class FriendPage extends BasePage {
   }
 
   async clickAddFriendButton(): Promise<void> {
-    await this.buttons.addFriend.click();
-    await this.inputs.addFriend.waitFor({ state: 'visible', timeout: 5000 });
+    await this.selector.buttons.addFriend.click();
+    await this.selector.inputs.addFriend.waitFor({ state: 'visible', timeout: 5000 });
   }
 
   async enterUsername(username: string): Promise<void> {
-    await this.inputs.addFriend.fill(username);
+    await this.selector.inputs.addFriend.fill(username);
   }
 
   async clickSendFriendRequest(): Promise<void> {
-    await this.buttons.sendFriendRequest.click();
+    await this.selector.buttons.sendFriendRequest.click();
   }
 
   async sendFriendRequestToUser(username: string): Promise<void> {
@@ -137,15 +97,15 @@ export class FriendPage extends BasePage {
   }
 
   async searchFriend(keyword: string): Promise<void> {
-    await this.inputs.search.fill(keyword);
+    await this.selector.inputs.search.fill(keyword);
   }
 
   async clearSearch(): Promise<void> {
-    await this.inputs.search.clear();
+    await this.selector.inputs.search.clear();
   }
 
   async clickPendingTab() {
-    await this.tabs.pending.click();
+    await this.selector.tabs.pending.click();
   }
 
   async acceptFirstFriendRequest(): Promise<void> {
@@ -153,7 +113,7 @@ export class FriendPage extends BasePage {
     await this.clickPendingTab();
     await this.waitForFriendListVisible();
     await sleep(300);
-    await this.buttons.acceptFriendRequest.first().click();
+    await this.selector.buttons.acceptFriendRequest.first().click();
   }
 
   async acceptFriendRequestFromUser(username: string): Promise<void> {
@@ -170,6 +130,8 @@ export class FriendPage extends BasePage {
     await friendItem
       .locator(generateE2eSelector('friend_page.button.reject_friend_request'))
       .click();
+    await this.page.waitForTimeout(300);
+    await this.confirmRemoveFriend();
     await this.page.waitForTimeout(500);
   }
 
@@ -179,15 +141,17 @@ export class FriendPage extends BasePage {
     await friendItem
       .locator(generateE2eSelector('friend_page.button.cancel_friend_request'))
       .click();
+    await this.page.waitForTimeout(300);
+    await this.confirmRemoveFriend();
     await this.page.waitForTimeout(500);
   }
 
   async isSendRequestDisabled(): Promise<boolean> {
-    return this.buttons.sendFriendRequest.isDisabled();
+    return this.selector.buttons.sendFriendRequest.isDisabled();
   }
 
   async waitForFriendListVisible(): Promise<void> {
-    await this.lists.friendAll.first().waitFor({ state: 'visible', timeout: 20000 });
+    await this.selector.lists.friendAll.first().waitFor({ state: 'visible', timeout: 20000 });
   }
 
   async openMoreMenuForFriend(username: string): Promise<void> {
@@ -200,15 +164,16 @@ export class FriendPage extends BasePage {
   async blockFriend(username: string): Promise<void> {
     await this.openMoreMenuForFriend(username);
     await this.page.getByRole('button', { name: /block/i }).last().click();
+
     await this.page.waitForTimeout(500);
   }
 
-  async blockFriendFromDM(): Promise<void> {
-    const activeDM = await this.getActiveDM();
+  async blockFriendFromDM(username: string): Promise<void> {
+    const activeDM = await this.getActiveDM(username);
     await activeDM.waitFor({ state: 'visible', timeout: 1000 });
     await activeDM.click({ button: 'right' });
 
-    const blockButton = this.dmFriendMenu.blockButton;
+    const blockButton = this.selector.dmFriendMenu.blockButton;
     await blockButton.waitFor({ state: 'visible', timeout: 1000 });
     await blockButton.click();
     await this.page.waitForTimeout(500);
@@ -228,6 +193,13 @@ export class FriendPage extends BasePage {
     }
     await this.openMoreMenuForFriend(username);
     await this.page.getByRole('button', { name: /remove/i }).click();
+    await this.page.waitForTimeout(300);
+    await this.confirmRemoveFriend();
+    await this.page.waitForTimeout(500);
+  }
+
+  async confirmRemoveFriend(): Promise<void> {
+    await this.selector.buttons.confirmRemoveFriend.click();
     await this.page.waitForTimeout(500);
   }
 
@@ -236,7 +208,7 @@ export class FriendPage extends BasePage {
     if (!existFriend) {
       return;
     }
-    await this.tabs.pending.click();
+    await this.selector.tabs.pending.click();
     await this.page.waitForTimeout(500);
     const friendItems = await this.getFriends(username);
     const friendItemsCount = await friendItems.count();
@@ -248,6 +220,8 @@ export class FriendPage extends BasePage {
       const cancelButtonCount = await cancelButton.count();
       if (cancelButtonCount > 0) {
         await cancelButton.click();
+        await this.page.waitForTimeout(300);
+        await this.confirmRemoveFriend();
         await this.page.waitForTimeout(500);
         return;
       }
@@ -257,6 +231,8 @@ export class FriendPage extends BasePage {
       const rejectButtonCount = await rejectButton.count();
       if (rejectButtonCount > 0) {
         await rejectButton.click();
+        await this.page.waitForTimeout(300);
+        await this.confirmRemoveFriend();
         await this.page.waitForTimeout(500);
         return;
       }
@@ -265,7 +241,7 @@ export class FriendPage extends BasePage {
 
   async assertAlreadySentRequestError(): Promise<void> {
     await this.page.waitForTimeout(300);
-    const errorMessage = this.inputs.error;
+    const errorMessage = this.selector.inputs.error;
     expect(errorMessage).toHaveCount(1);
     expect(errorMessage).toBeVisible();
     expect(errorMessage).toHaveText(ALREADY_SENT_MESSAGE);
@@ -273,7 +249,7 @@ export class FriendPage extends BasePage {
 
   async assertAlreadyFriendError(): Promise<void> {
     await this.page.waitForTimeout(300);
-    const errorMessage = this.inputs.error;
+    const errorMessage = this.selector.inputs.error;
     expect(errorMessage).toHaveCount(1);
     expect(errorMessage).toBeVisible();
     expect(errorMessage).toHaveText(ALREADY_FRIEND_MESSAGE);
@@ -313,7 +289,7 @@ export class FriendPage extends BasePage {
   }
 
   async clearAddFriendInput(): Promise<void> {
-    await this.inputs.addFriend.clear();
+    await this.selector.inputs.addFriend.clear();
   }
 
   async cleanupFriendRelationships(otherUsername: string): Promise<void> {
@@ -329,7 +305,97 @@ export class FriendPage extends BasePage {
   }
 
   async isChatDenied(): Promise<boolean> {
-    const permissionDenied = this.inputs.permissionDenied;
+    const permissionDenied = this.selector.inputs.permissionDenied;
     return (await permissionDenied.count()) > 0;
+  }
+
+  async getPermissionDeniedInput(): Promise<Locator> {
+    return this.selector.inputs.permissionDenied;
+  }
+
+  async clickTabAll(): Promise<void> {
+    await this.selector.tabs.all.click();
+  }
+
+  async clickTabBlock(): Promise<void> {
+    await this.selector.tabs.block.click();
+  }
+
+  async getFriendAllUserItemByUsername(username: string): Promise<Locator> {
+    return this.selector.lists.friendAll.filter({ hasText: username });
+  }
+
+  async getFriendPendingBadgeCount(): Promise<number> {
+    try {
+      await this.selector.badge.friendPending.waitFor({ state: 'visible', timeout: 3000 });
+      const friendPendingBadgeCount = await this.selector.badge.friendPending.innerText();
+      return parseInt(friendPendingBadgeCount);
+    } catch {
+      return 0;
+    }
+  }
+
+  async verifyFriendPendingBadgeIsDisplayed(prevCount = 0): Promise<void> {
+    const currentCount = await this.getFriendPendingBadgeCount();
+    expect(currentCount - prevCount).toBe(1);
+  }
+
+  async verifyFriendPendingBadgeIsDisappeared(prevCount = 1): Promise<void> {
+    const currentCount = await this.getFriendPendingBadgeCount();
+    expect(prevCount - currentCount).toBe(1);
+  }
+
+  async verifyUserCustomStatusInFriendList(username: string, status: string): Promise<void> {
+    const profileSelector = new ProfileSelector(this.page);
+    const friendItem = await this.friendExistsInTab(username, 'all');
+    await friendItem.waitFor({ state: 'visible', timeout: 20000 });
+    const statusLocator = friendItem
+      .locator(profileSelector.profiles.userStatus)
+      .filter({ hasText: status });
+    await expect(statusLocator).toBeVisible({ timeout: 5000 });
+  }
+
+  async getDMByUsername(username: string) {
+    return this.selector.dm.items.filter({ hasText: username }).first();
+  }
+
+  async pinConversation(username: string) {
+    const dmLocator = await this.getDMByUsername(username);
+    await expect(dmLocator).toBeVisible({ timeout: 3000 });
+    await this.page.waitForTimeout(2000);
+    await dmLocator.hover();
+    await dmLocator.click({ button: 'right' });
+    const pinConversationButton = this.selector.dmFriendMenu.pinConvesation;
+    await this.page.waitForTimeout(2000);
+    await pinConversationButton.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async verifyPinnedConversationInPinList(username: string, shouldVisible = true) {
+    const pinnedList = this.selector.dm.pinList;
+    const pinItemLocator = pinnedList.locator(
+      this.selector.dm.items.filter({ hasText: username }).first()
+    );
+    const isVisible = await pinItemLocator.isVisible({ timeout: 2000 });
+    if (shouldVisible) {
+      expect(isVisible).toBeTruthy();
+    } else {
+      expect(isVisible).toBeFalsy();
+    }
+  }
+
+  async unpinConversation(username: string) {
+    const pinnedList = this.selector.dm.pinList;
+    const dmLocator = pinnedList.locator(
+      this.selector.dm.items.filter({ hasText: username }).first()
+    );
+    await expect(dmLocator).toBeVisible({ timeout: 3000 });
+    await dmLocator.hover();
+    await this.page.waitForTimeout(2000);
+    await dmLocator.click({ button: 'right' });
+    const unpinConversationButton = this.selector.dmFriendMenu.unPinConvesation;
+    await this.page.waitForTimeout(2000);
+    await unpinConversationButton.click();
+    await this.page.waitForTimeout(1000);
   }
 }

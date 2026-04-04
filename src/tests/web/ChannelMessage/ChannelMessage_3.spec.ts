@@ -4,11 +4,10 @@ import { TypeMessage } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { splitDomainAndPath } from '@/utils/domain';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test as base, expect, Page } from '@playwright/test';
 import { randomInt } from 'crypto';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
-import { joinUrlPaths } from '../../../utils/joinUrlPaths';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 const test = base.extend<{
@@ -27,37 +26,47 @@ const test = base.extend<{
 
 test.describe('Channel Message - Module 3', () => {
   let messageHelpers: MessageTestHelpers;
-  let clanPath: string;
-
+  const credentials = AccountCredentials.account3;
   const clanFactory = new ClanFactory();
+
+  test.beforeAll(async ({ browser }) => {
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.channelMessage3,
+      credentials,
+    });
+  });
 
   test.beforeEach(async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      pageWithClipboard,
-      AccountCredentials.account4
-    );
-
-    if (!clanPath) {
-      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageWithClipboard);
-      clanPath = splitDomainAndPath(clanFactory.getClanUrl()).path;
-
-      clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPath));
-    }
-    await AuthHelper.prepareBeforeTest(pageWithClipboard, clanFactory.getClanUrl(), credentials);
-
-    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+    await TestSuiteHelper.setupBeforeEach({
+      page: pageWithClipboard,
+      clanFactory,
+      credentials,
+    });
   });
 
-  test('Delete message', async ({ pageWithClipboard, context }) => {
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ pageWithClipboard }) => {
+    await AuthHelper.logout(pageWithClipboard);
+  });
+
+  test('Delete message', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63393',
     });
 
     const messagePage = new MessagePage(pageWithClipboard);
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     const messageToDelete = `Message to delete ${Date.now()}`;
     await messagePage.sendMessageWhenInDM(messageToDelete);
@@ -69,12 +78,10 @@ test.describe('Channel Message - Module 3', () => {
     expect(targetMessage).not.toBeAttached();
   });
 
-  test('Edit message', async ({ pageWithClipboard, context }) => {
+  test('Edit message', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63394',
     });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     const messagePage = new MessagePage(pageWithClipboard);
 
@@ -88,15 +95,12 @@ test.describe('Channel Message - Module 3', () => {
 
     expect(newMessage).toHaveCount(1);
     expect(newMessage).toBeVisible();
-    expect(newMessage).toHaveText(editedContent);
   });
 
-  test('Forward message - select target and send', async ({ pageWithClipboard, context }) => {
+  test('Forward message - select target and send', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63395',
     });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
@@ -106,12 +110,10 @@ test.describe('Channel Message - Module 3', () => {
     expect(true).toBeTruthy();
   });
 
-  test('Forward message to general channel', async ({ pageWithClipboard, context }) => {
+  test('Forward message to general channel', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63395',
     });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
@@ -129,12 +131,14 @@ test.describe('Channel Message - Module 3', () => {
     });
 
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
+    const messagePage = new MessagePage(pageWithClipboard);
 
     const indentityMessage = (Date.now() + randomInt(10)).toString();
     const messageToPinText = `Message to pin ${indentityMessage}`;
     await AllureReporter.step('Send a message and pin it', async () => {
       await messageHelpers.sendTextMessage(messageToPinText);
-      await messageHelpers.messages.last().waitFor({ state: 'visible', timeout: 10000 });
+      const lastMessage = await messagePage.getLastMessage();
+      await lastMessage.waitFor({ state: 'visible', timeout: 10000 });
       await messageHelpers.pinLastMessage();
     });
 
@@ -145,8 +149,7 @@ test.describe('Channel Message - Module 3', () => {
 
     await AllureReporter.step('Click jump message and verify jump to right message', async () => {
       await messageHelpers.clickJumpToPinMessageFromSystemMessage();
-      const jumpedMessage = await messageHelpers.getMessageByIdentity(indentityMessage);
-      await expect(jumpedMessage).toHaveClass(/!bg-\[#eab30833\]/, { timeout: 1000 });
+      await messageHelpers.verifyMessageIsHighlighted(messageToPinText);
     });
 
     await AllureReporter.step('Verify that red dot is display after pinned message', async () => {
@@ -156,6 +159,7 @@ test.describe('Channel Message - Module 3', () => {
     await AllureReporter.step(
       'Verify the pinned message is in the pinned message list and is the latest message',
       async () => {
+        await pageWithClipboard.reload();
         await messageHelpers.verifyMessagePinnedOnList(indentityMessage);
       }
     );

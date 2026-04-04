@@ -26,7 +26,7 @@ test.describe('Direct Message', () => {
 
     const credentials = await AuthHelper.setupAuthWithEmailPassword(
       page,
-      AccountCredentials.account4
+      AccountCredentials.account3
     );
     await AuthHelper.prepareBeforeTest(
       page,
@@ -70,7 +70,8 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.step('Verify that i can open a DM', async () => {
       const firstUser = await messagePage.createDM();
-      await expect(messagePage.groupName).toHaveText(firstUser, { timeout: 5000 });
+      const groupName = await messagePage.getGroupName();
+      await expect(groupName).toHaveText(firstUser, { timeout: 5000 });
     });
 
     await AllureReporter.attachScreenshot(page, 'Direct Message Created');
@@ -132,7 +133,7 @@ test.describe('Direct Message', () => {
       await page.waitForTimeout(3000);
     });
 
-    await test.step('Verify group chat is ceated', async () => {
+    await test.step('Verify group chat is created', async () => {
       const groupCreated = await messagePage.isGroupCreated(prevGroupCount);
       expect(groupCreated).toBeTruthy();
     });
@@ -159,6 +160,9 @@ test.describe('Direct Message', () => {
     const messagePage = new MessagePage(page);
 
     await test.step(`Update name for group chat DM`, async () => {
+      await messagePage.createGroup();
+      const groupName = await messagePage.getGroupName();
+      await expect(groupName).toBeVisible({ timeout: 5000 });
       await messagePage.updateNameGroupChatDM(nameGroupChat);
       await page.waitForTimeout(3000);
     });
@@ -180,12 +184,14 @@ test.describe('Direct Message', () => {
       username = firstUser;
       const isVisible = await helpers.scrollUntilVisible(username);
       expect(isVisible).toBeTruthy();
-      await expect(messagePage.groupName).toHaveText(firstUser, { timeout: 5000 });
+      const groupName = await messagePage.getGroupName();
+      await expect(groupName).toHaveText(firstUser, { timeout: 5000 });
     });
 
     await AllureReporter.step(`Close direct message`, async () => {
       await messagePage.closeDM(username);
-      await expect(messagePage.groupName).toBeHidden({ timeout: 5000 });
+      const groupName = await messagePage.getGroupName();
+      await expect(groupName).toBeHidden({ timeout: 5000 });
     });
 
     await AllureReporter.step('Verify direct message is closed', async () => {
@@ -205,10 +211,11 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.step('Create group and update an unique name', async () => {
       await messagePage.createGroup();
-      await expect(messagePage.groupName).toBeVisible({ timeout: 5000 });
+      const groupName = await messagePage.getGroupName();
+      await expect(groupName).toBeVisible({ timeout: 5000 });
       await messagePage.updateNameGroupChatDM(nameUpdate);
-      await expect(messagePage.groupName).toHaveText(nameUpdate, { timeout: 5000 });
-      const groupNameText = (await messagePage.groupName.innerText()).trim();
+      await expect(groupName).toHaveText(nameUpdate, { timeout: 5000 });
+      const groupNameText = (await groupName.innerText()).trim();
       expect(groupNameText).toBe(nameUpdate);
     });
 
@@ -218,7 +225,8 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.step('Verify group chat is left', async () => {
-      await expect(messagePage.userNamesInDM.filter({ hasText: groupName })).toHaveCount(0, {
+      const userNamesInDM = await messagePage.getUserNamesInDMByGroupName(groupName);
+      await expect(userNamesInDM).toHaveCount(0, {
         timeout: 5000,
       });
       const groupLeaved = await messagePage.isLeavedGroup(groupName);
@@ -237,7 +245,8 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.step('Send a message and pin it', async () => {
       await messagePage.sendMessage(messageToPinText);
-      await messagePage.messages.last().waitFor({ state: 'visible', timeout: 10000 });
+      const lastMessage = await messagePage.getLastMessage();
+      await lastMessage.waitFor({ state: 'visible', timeout: 10000 });
       await messagePage.pinLastMessage();
     });
 
@@ -280,7 +289,8 @@ test.describe('Direct Message', () => {
     let username: string;
 
     await AllureReporter.step('Create a direct message', async () => {
-      const firstUser = (await messagePage.firstUserNameAddDM.innerText()).trim();
+      const firstUserNameAddDM = await messagePage.getFirstUserNameAddDM();
+      const firstUser = (await firstUserNameAddDM.innerText()).trim();
       username = firstUser;
       const isDMExist = await helpers.scrollUntilVisible(username);
       if (!isDMExist) {

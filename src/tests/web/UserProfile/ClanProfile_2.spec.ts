@@ -8,7 +8,7 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { getImageHash } from '@/utils/images';
+import { getImageHash, getImageId } from '@/utils/images';
 import { joinUrlPaths } from '@/utils/joinUrlPaths';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
@@ -16,6 +16,7 @@ import { expect, Locator, test } from '@playwright/test';
 test.describe('Clan Profile - Module 2', () => {
   let profileHash: string | null = null;
   let profilePage: ProfilePage;
+  let profileId: string | null = null;
   const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
@@ -37,9 +38,8 @@ test.describe('Clan Profile - Module 2', () => {
     );
 
     profilePage = new ProfilePage(page);
-
     await AllureReporter.step('Open user settings profile', async () => {
-      await profilePage.buttons.userSettingProfile.click();
+      await profilePage.openUserSettingProfile();
     });
 
     const fileSizeHelpers = new FileSizeTestHelpers(page);
@@ -72,13 +72,14 @@ test.describe('Clan Profile - Module 2', () => {
     );
 
     await fileSizeHelpers.uploadFileDefault(smallAvatarPath);
-    await profilePage.buttons.applyImageAvatar.click();
-    await profilePage.buttons.saveChangesClanProfile.click();
+    await profilePage.applyImageAvatar();
+    await profilePage.saveChangesClanProfile();
 
-    const profileAvatar: Locator = profilePage.clanProfile.avatar;
+    const profileAvatar: Locator = await profilePage.getClanProfileAvatar();
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const profileSrc = await profileAvatar.getAttribute('src');
     profileHash = await getImageHash(profileSrc || '');
+    profileId = getImageId(profileSrc || '');
 
     await context.close();
   });
@@ -113,7 +114,7 @@ test.describe('Clan Profile - Module 2', () => {
     await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
-    const userName = await clanPage.footerProfile.userName.textContent();
+    const userName = await clanPage.getFooterProfileUserName();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
     const memberAvatar = memberItem.locator(generateE2eSelector('avatar.image'));
     await expect(memberAvatar).toBeVisible({ timeout: 5000 });
@@ -134,7 +135,7 @@ test.describe('Clan Profile - Module 2', () => {
     await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
-    const userName = await clanPage.footerProfile.userName.textContent();
+    const userName = await clanPage.getFooterProfileUserName();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
     memberItem.click();
     const popup = page.locator('div.fixed.z-50');
@@ -160,7 +161,7 @@ test.describe('Clan Profile - Module 2', () => {
     await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
-    const userName = await clanPage.footerProfile.userName.textContent();
+    const userName = await clanPage.getFooterProfileUserName();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
     await memberItem.click({ button: 'right' });
     await page
@@ -176,12 +177,12 @@ test.describe('Clan Profile - Module 2', () => {
     );
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
-    const avatarHash = await getImageHash(avatarSrc || '');
+    await page.waitForTimeout(1000);
+    const avatarId = getImageId(avatarSrc);
+    expect(profileId).not.toBeNull();
+    expect(avatarId).not.toBeNull();
 
-    expect(profileHash).not.toBeNull();
-    expect(avatarHash).not.toBeNull();
-
-    expect(profileHash).toEqual(avatarHash);
+    expect(profileId).toEqual(avatarId);
   });
 
   test('Validate avatar in member settings page', async ({ page }) => {
@@ -193,9 +194,7 @@ test.describe('Clan Profile - Module 2', () => {
     const clanPage = new ClanPage(page);
     await clanPage.openMemberListSetting();
 
-    const profileAvatar = clanPage.memberSettings.usersInfo.locator(
-      generateE2eSelector('avatar.image')
-    );
+    const profileAvatar = await clanPage.getMemberSettingsUsersInfoAvatar();
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
     const avatarHash = await getImageHash(avatarSrc || '');

@@ -16,7 +16,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Clan Management', () => {
   const clanFactory = new ClanFactory();
-  const credentials: MezonCredentials = AccountCredentials.account3;
+  const credentials: MezonCredentials = AccountCredentials.account4;
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
@@ -135,6 +135,7 @@ test.describe('Clan Management', () => {
 
     await AllureReporter.step(`Open DM with invited user`, async () => {
       await clanPage.openDirectMessageWithUser(inviteResult.username!);
+      await page.waitForTimeout(2000);
     });
 
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
@@ -200,6 +201,7 @@ test.describe('Clan Management', () => {
     });
     await AllureReporter.step(`Open DM with invited user`, async () => {
       await clanPage.openDirectMessageWithUser(inviteResult.username!);
+      await page.waitForTimeout(2000);
     });
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
       const messageHelper = new MessageTestHelpers(page);
@@ -233,6 +235,7 @@ test.describe('Clan Management', () => {
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `vc-${unique}`.slice(0, 20);
     const clanPage = new ClanPage(page);
+
     await AllureReporter.addParameter('channelName', channelName);
     await AllureReporter.addParameter('channelType', ChannelType.VOICE);
     await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
@@ -263,7 +266,7 @@ test.describe('Clan Management', () => {
         eventType: EventType.VOICE,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanPage.eventModal.createEventButton.click();
+      await clanPage.clickCreateEventButton();
       await clanPage.waitForModalToBeHidden();
     });
 
@@ -321,6 +324,7 @@ test.describe('Clan Management', () => {
     const voiceChannelName = `vc-${unique}`.slice(0, 20);
     const textChannelName = `ptc-${unique}`.slice(0, 20);
     const clanPage = new ClanPage(page);
+
     await AllureReporter.addParameter('voiceChannelName', voiceChannelName);
     await AllureReporter.addParameter('voiceChannelType', ChannelType.VOICE);
     await AllureReporter.addParameter('voiceChannelStatus', ChannelStatus.PUBLIC);
@@ -371,7 +375,7 @@ test.describe('Clan Management', () => {
         textChannelName,
       };
       await clanPage.verifyDataOnReviewTab(data);
-      await clanPage.eventModal.createEventButton.click();
+      await clanPage.clickCreateEventButton();
       await clanPage.waitForModalToBeHidden();
     });
 

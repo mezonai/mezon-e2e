@@ -1,5 +1,6 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { expect, test } from '@/fixtures/dual.fixture';
 import { ClanInviteFriendModal } from '@/pages/Clan/ClanInviteFriendModal';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { FriendPage } from '@/pages/FriendPage';
@@ -9,14 +10,13 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { test } from '../../../fixtures/dual.fixture';
-import { expect } from './../../../fixtures/dual.fixture';
+import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Friend Management - Block User', () => {
-  const accountA = AccountCredentials['account8'];
-  const accountB = AccountCredentials['account9'];
-  const userNameA = accountA.email.split('@')[0];
-  const userNameB = accountB.email.split('@')[0];
+  const accountA = AccountCredentials['accountKien2'];
+  const accountB = AccountCredentials['accountKien3'];
+  const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
+
   test.beforeEach(async ({ dual }) => {
     await dual.parallel({
       A: async () => {
@@ -126,7 +126,6 @@ test.describe('Friend Management - Block User', () => {
     });
     const { pageA } = dual;
     const friendPageA = new FriendPage(pageA);
-    const userNameB = accountB.email.split('@')[0];
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a blocked user is not shown in the clan invite list.
@@ -165,6 +164,10 @@ test.describe('Friend Management - Block User', () => {
         waitUntil: 'domcontentloaded',
       });
     });
+
+    await test.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
   });
 
   test('Blocked User should not invite blocker user to clan', async ({ dual }) => {
@@ -173,7 +176,6 @@ test.describe('Friend Management - Block User', () => {
     });
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
-    const userNameB = accountB.email.split('@')[0];
 
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that a blocked user is not shown in the clan invite list.
@@ -212,6 +214,10 @@ test.describe('Friend Management - Block User', () => {
         waitUntil: 'domcontentloaded',
       });
     });
+
+    await test.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageB);
+    });
   });
 
   test('Should realtime disable chat in DM', async ({ dual }) => {
@@ -221,17 +227,16 @@ test.describe('Friend Management - Block User', () => {
     const { pageA, pageB } = dual;
 
     await AllureReporter.addDescription(`
-      **Test Objective:** Verify that a blocked user is not shown in the clan invite list.
+      **Test Objective:** Verify that realtime chat is disabled in DM when a user blocks another user.
       
       **Test Steps:**
       1. Establish friendship between User A and User B
       2. User A blocks User B
       3. Verify User B appears in the Block tab
-      4. User A creates a clan
-      5. User A opens the invite people modal
-      6. Verify that blocked User B is not shown in the invite list
+      4. User A opens the invite people modal
+      5. Verify that blocked User B is not shown in the invite list
       
-      **Expected Result:** Blocked users should not appear in the clan invite friend list.
+      **Expected Result:** Real-time chat should be disabled in DM when a user blocks another user.
     `);
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
@@ -248,7 +253,7 @@ test.describe('Friend Management - Block User', () => {
     });
 
     await test.step('User A blocks User B directly from DM', async () => {
-      await friendPageA.blockFriendFromDM();
+      await friendPageA.blockFriendFromDM(userNameB);
       await friendPageA.page.waitForTimeout(1000);
     });
 

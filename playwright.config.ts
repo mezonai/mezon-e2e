@@ -21,7 +21,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
-    ['./libs/mezon-reporter/mezon-reporter.ts'],
+    // ['./libs/mezon-reporter/mezon-reporter.ts'],
     [
       'allure-playwright',
       {

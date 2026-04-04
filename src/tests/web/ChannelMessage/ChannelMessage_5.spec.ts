@@ -2,10 +2,9 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { splitDomainAndPath } from '@/utils/domain';
+import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test as base, expect, Page } from '@playwright/test';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
-import { joinUrlPaths } from '../../../utils/joinUrlPaths';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../../utils/messageHelpers';
 
 const test = base.extend<{
@@ -24,31 +23,42 @@ const test = base.extend<{
 
 test.describe('Channel Message - Module 5', () => {
   let messageHelpers: MessageTestHelpers;
-  let clanPath: string;
-
+  const credentials = AccountCredentials.account5;
   const clanFactory = new ClanFactory();
+
+  test.beforeAll(async ({ browser }) => {
+    await TestSuiteHelper.setupBeforeAll({
+      browser,
+      clanFactory,
+      configs: ClanSetupHelper.configs.channelMessage5,
+      credentials,
+    });
+  });
 
   test.beforeEach(async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
-    const credentials = await AuthHelper.setupAuthWithEmailPassword(
-      pageWithClipboard,
-      AccountCredentials.account2
-    );
-
-    if (!clanPath) {
-      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageWithClipboard);
-      clanPath = splitDomainAndPath(clanFactory.getClanUrl()).path;
-
-      clanFactory.setClanUrl(joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, clanPath));
-    }
-    await AuthHelper.prepareBeforeTest(pageWithClipboard, clanFactory.getClanUrl(), credentials);
-
-    await AllureReporter.addParameter('clanName', clanFactory.getClanName());
+    await TestSuiteHelper.setupBeforeEach({
+      page: pageWithClipboard,
+      clanFactory,
+      credentials,
+    });
   });
 
-  test('Send Message With Markdown', async ({ pageWithClipboard, context }) => {
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
+
+  test.afterEach(async ({ pageWithClipboard }) => {
+    await AuthHelper.logout(pageWithClipboard);
+  });
+
+  test('Send Message With Markdown', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63404',
     });
@@ -99,7 +109,7 @@ test.describe('Channel Message - Module 5', () => {
     await pageWithClipboard.waitForTimeout(2000);
   });
 
-  test('Send message with hashtag', async ({ pageWithClipboard, context }) => {
+  test('Send message with hashtag', async ({ pageWithClipboard }) => {
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const baseMessage = `Hashtag test ${Date.now()}`;

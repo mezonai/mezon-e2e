@@ -1,10 +1,9 @@
-import { BasePage } from '@/pages/BasePage';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Locator, Page } from '@playwright/test';
 
-export default class ClanSelector extends BasePage {
-  constructor(page: Page) {
-    super(page);
+export default class ClanSelector {
+  constructor(private readonly page: Page) {
+    this.page = page;
   }
 
   readonly buttons = {
@@ -18,6 +17,12 @@ export default class ClanSelector extends BasePage {
     createClanConfirm: this.page.locator(
       `${generateE2eSelector('clan_page.modal.create_clan')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Create' }
+    ),
+    createMyOwnClan: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_clan.template.item.create_my_own')
+    ),
+    createTemplateClan: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_clan.template.item.name')
     ),
     invitePeopleFromHeaderMenu: this.page.locator(
       generateE2eSelector('clan_page.header.modal_panel.item'),
@@ -37,6 +42,23 @@ export default class ClanSelector extends BasePage {
     channelManagementButton: this.page.locator(
       generateE2eSelector('clan_page.side_bar.button.channels')
     ),
+    clanSettings: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Clan Settings',
+    }),
+    closeSettingClan: this.page.locator(generateE2eSelector('user_setting.account.exit_setting')),
+    leaveClan: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Leave Clan',
+    }),
+    cancel: this.page.locator(generateE2eSelector('modal.confirm_modal.button.cancel')),
+    confirm: this.page.locator(generateE2eSelector('modal.confirm_modal.button.confirm')),
+    reset: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Reset' }),
+    markAsRead: this.page.locator(generateE2eSelector('clan_page.header.modal_panel.item'), {
+      hasText: 'Mark as Read',
+    }),
+    badge: this.page.locator(generateE2eSelector('clan_page.badge')),
+    preventAnoSettings: this.page.locator(
+      `${generateE2eSelector('clan_page.settings.overview.prevent_anonymous')} ${generateE2eSelector('input.base')}`
+    ),
   };
 
   readonly sidebarMemberList = {
@@ -46,10 +68,57 @@ export default class ClanSelector extends BasePage {
       .filter({
         hasText: 'Profile',
       }),
+    banButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Ban',
+      }),
+    kickButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Kick',
+      }),
+    shareContactButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Share this contact',
+      }),
+    addFriendButton: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+      .filter({
+        hasText: 'Add Friend',
+      }),
+  };
+
+  readonly sidePanel = {
+    thread: {
+      item: this.page.locator(
+        generateE2eSelector('chat.channel_message.header.button.thread.item')
+      ),
+    },
   };
 
   readonly memberSettings = {
+    userContainer: this.page.locator(generateE2eSelector('clan_page.member_list')),
+    memberSince: this.page.locator(generateE2eSelector('clan_page.member_list.member_since')),
+    joinMezon: this.page.locator(generateE2eSelector('clan_page.member_list.join_mezon')),
     usersInfo: this.page.locator(generateE2eSelector('clan_page.member_list.user_info')),
+    userDisplayName: this.page.locator(
+      generateE2eSelector('clan_page.member_list.user_info.display_name')
+    ),
+    username: this.page.locator(generateE2eSelector('clan_page.member_list.user_info.username')),
+    actionsButton: this.page.locator(generateE2eSelector('clan_page.member_list.actions')),
+    transferOwnershipModal: {
+      container: this.page.locator(
+        generateE2eSelector('clan_page.member_list.transfer_owner_modal')
+      ),
+      confirmTransferInput: this.page.locator(
+        generateE2eSelector('clan_page.member_list.transfer_owner_modal.input.confirm_transfer')
+      ),
+      confirmTransferButton: this.page.locator(generateE2eSelector('button.base'), {
+        hasText: 'Transfer Ownership',
+      }),
+    },
   };
 
   readonly footerProfile = {
@@ -110,7 +179,7 @@ export default class ClanSelector extends BasePage {
     },
   };
 
-  protected input = {
+  readonly input = {
     clanName: this.page.locator(generateE2eSelector('clan_page.modal.create_clan.input.clan_name')),
     urlInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.url_invite')),
     delete: this.page.locator(generateE2eSelector('clan_page.settings.modal.delete_clan.input')),
@@ -118,20 +187,99 @@ export default class ClanSelector extends BasePage {
       `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
     ),
     mention: this.page.locator(generateE2eSelector('mention.input')),
+    messageBanned: this.page.locator(generateE2eSelector('mention.banned')),
+    topicBanned: this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.banned')}`
+    ),
+    messageBannedTime: this.page.locator(generateE2eSelector('mention.banned.time')),
+    topicBannedTime: this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.banned.time')}`
+    ),
+    topicInput: this.page.locator(
+      `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
+    ),
   };
 
-  protected settings = {
+  readonly clanSettings = {
     clanName: this.page.locator(generateE2eSelector('clan_page.settings.overview.input.clan_name')),
+    settings_page: this.page.locator(generateE2eSelector('clan_page.settings')),
+    buttons: {
+      sidebarItem: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item')),
+      roleSettings: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item'), {
+        hasText: 'Roles',
+      }),
+      integrations: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item'), {
+        hasText: 'Integrations',
+      }),
+      createRole: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Create Role' }),
+      displayRoleOption: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_option.display')
+      ),
+      permissionsRole: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_option.permissions')
+      ),
+      roleColor: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_color')
+      ),
+      deleteClan: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.delete')),
+    },
+    input: {
+      roleName: this.page.locator(
+        `${generateE2eSelector('clan_page.settings.role.container.name_input')} input`
+      ),
+    },
+    roleContainer: this.page.locator(generateE2eSelector('clan_page.settings.role.container')),
+    rolePermissionsItem: this.page.locator(
+      generateE2eSelector('clan_page.settings.role.container.role_option.permissions.item')
+    ),
+    rolePermissionsSwitch: this.page.locator(
+      generateE2eSelector('clan_page.settings.role.container.role_option.permissions.item.switch')
+    ),
+    sidebarTitle: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.title')),
+    roleList: {
+      item: this.page.locator(generateE2eSelector('clan_page.settings.role.item')),
+      roleName: this.page.locator(generateE2eSelector('clan_page.settings.role.item.role_name')),
+      memberCount: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.item.member_count')
+      ),
+      buttons: {
+        edit: this.page.locator(generateE2eSelector('clan_page.settings.role.item.button.edit')),
+        view: this.page.locator(generateE2eSelector('clan_page.settings.role.item.button.view')),
+        delete: this.page.locator(
+          generateE2eSelector('clan_page.settings.role.item.button.delete')
+        ),
+      },
+    },
   };
 
   readonly sidebar = {
+    DMItem: this.page.locator(generateE2eSelector('clan_page.side_bar.DM_item')),
     clanItem: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item')),
     clanItems: {
       clanName: this.page.locator(generateE2eSelector('clan_page.side_bar.clan_item.name')),
     },
     channelItem: {
+      item: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.item.name')),
       icon: this.page.locator(generateE2eSelector('clan_page.channel_list.item.icon')),
+      iconHashtagLock: this.page.locator(
+        generateE2eSelector('clan_page.channel_list.item.icon.hashtag_lock')
+      ),
+      iconHashtag: this.page.locator(
+        generateE2eSelector('clan_page.channel_list.item.icon.hashtag')
+      ),
+      userList: {
+        item: this.page.locator(generateE2eSelector('clan_page.channel_list.item.user_list.item')),
+      },
+      userListCollapsed: {
+        item: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item')
+        ),
+        itemCount: this.page.locator(
+          generateE2eSelector('clan_page.channel_list.item.user_list_collapsed.item_count')
+        ),
+      },
+      badge: this.page.locator(generateE2eSelector('clan_page.channel_list.item.badge')),
     },
     threadItem: {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
@@ -152,10 +300,13 @@ export default class ClanSelector extends BasePage {
       ),
       member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
       pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
+      canvas: this.page.locator(generateE2eSelector('chat.channel_message.header.button.canvas')),
     },
+    badge: this.page.locator(generateE2eSelector('chat.channel_message.header.badge')),
   };
 
   readonly threadBox = {
+    container: this.page.locator(generateE2eSelector('discussion.box.thread')),
     threadNameInput: this.page.locator(
       generateE2eSelector('chat.channel_message.thread_box.input.thread_name')
     ),
@@ -165,20 +316,106 @@ export default class ClanSelector extends BasePage {
     threadInputMention: this.page.locator(
       `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('mention.input')}`
     ),
+    messageItem: this.page.locator(
+      `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('message.item')}`
+    ),
+    reopenMessageItem: this.page.locator(`${generateE2eSelector('message.item')}`),
+    button: {
+      closeCreateThreadModal: this.page.locator(
+        generateE2eSelector('discussion.header.button.close')
+      ),
+    },
   };
 
   readonly modal = {
     limitCreation: {
       title: this.page.locator(generateE2eSelector('clan_page.modal.limit_creation.title')),
     },
+    voiceManagement: {
+      item: this.page.locator(generateE2eSelector('modal.voice_management')),
+      button: {
+        copyLink: this.page.locator(
+          `${generateE2eSelector('modal.voice_management')} ${generateE2eSelector('button.copy')}`
+        ),
+        controlItem: this.page.locator(
+          generateE2eSelector('modal.voice_management.button.control_item')
+        ),
+        endCall: this.page.locator(generateE2eSelector('icon.end_call')),
+      },
+    },
+    canvasManagement: {
+      modal: this.page.locator(
+        generateE2eSelector('chat.channel_message.header.button.canvas.modal.canvas_management')
+      ),
+      item: this.page.locator(
+        generateE2eSelector('chat.channel_message.header.button.canvas.item')
+      ),
+      button: {
+        createCanvas: this.page.locator(
+          generateE2eSelector(
+            'chat.channel_message.header.button.canvas.modal.canvas_management.button.create_canvas'
+          )
+        ),
+        copyCanvasLink: this.page.locator(generateE2eSelector('button.copy')),
+        deleteCanvas: this.page.locator(
+          generateE2eSelector('chat.channel_message.header.button.canvas.item.button.delete')
+        ),
+      },
+    },
+    aboutMe: this.page.locator(generateE2eSelector('full_profile.about_me')),
+    memberSince: this.page.locator(generateE2eSelector('full_profile.member_since')),
   };
 
-  protected modalInvite = {
+  readonly modalInvite = {
     userInvite: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.user_item')),
     container: this.page.locator(generateE2eSelector('clan_page.modal.invite_people.container')),
+    searchInput: this.page.locator(
+      generateE2eSelector('clan_page.modal.invite_people.search_input')
+    ),
+    button: {
+      close: this.page.locator(generateE2eSelector('button.base'), { hasText: '×' }),
+    },
   };
 
-  protected createEventModal = {
+  readonly secondarySideBar = {
+    container: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar')),
+    member: {
+      item: this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')),
+      inVoice: this.page.locator(
+        generateE2eSelector('clan_page.secondary_side_bar.member.in_voice')
+      ),
+      customStatus: this.page.locator(
+        generateE2eSelector('clan_page.secondary_side_bar.member.user_status')
+      ),
+      username: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username')),
+      ownerIcon: this.page.locator(generateE2eSelector('icon.owner')),
+    },
+  };
+
+  readonly screen = {
+    voiceRoom: {
+      channelName: this.page.locator('clan_page.screen.voice_room.channel_name'),
+      joinButton: this.page.locator(
+        generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
+      ),
+    },
+    canvasEditor: {
+      input: {
+        title: this.page.locator(generateE2eSelector('clan_page.screen.canvas_editor.input.title')),
+        content: this.page.locator(
+          generateE2eSelector('clan_page.screen.canvas_editor.input.content')
+        ),
+      },
+      button: {
+        save: this.page.locator(generateE2eSelector('clan_page.screen.canvas_editor.button.save')),
+        discardChanges: this.page.locator(
+          generateE2eSelector('clan_page.screen.canvas_editor.button.discard_changes')
+        ),
+      },
+    },
+  };
+
+  readonly createEventModal = {
     modal: this.page.locator(generateE2eSelector('clan_page.modal.create_event')),
     modalStart: this.page.locator(generateE2eSelector('clan_page.modal.create_event.start_modal')),
     type: {
@@ -194,7 +431,7 @@ export default class ClanSelector extends BasePage {
       private: this.page.locator(
         generateE2eSelector('clan_page.modal.create_event.location.type'),
         {
-          hasText: 'Create Private Event',
+          hasText: 'Create External Event',
         }
       ),
     },
@@ -204,21 +441,19 @@ export default class ClanSelector extends BasePage {
       ),
       startDateInput: this.page.locator(`
         ${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_date')} 
-        div.react-datepicker-wrapper 
-        div.react-datepicker__input-container 
+        div.w-full 
         input
       `),
       startTime: this.page.locator(
-        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_time')} select`
+        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.start_time')} div`
       ),
       endDate: this.page.locator(
         `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_date')} 
-        div.react-datepicker-wrapper 
-        div.react-datepicker__input-container 
+        div.w-full 
         input`
       ),
       endTime: this.page.locator(
-        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_time')} select`
+        `${generateE2eSelector('clan_page.modal.create_event.event_info.input.end_time')} div`
       ),
       description: this.page.locator(
         `${generateE2eSelector('clan_page.modal.create_event.event_info.input.description')} div textarea`
@@ -227,6 +462,9 @@ export default class ClanSelector extends BasePage {
         generateE2eSelector('clan_page.modal.create_event.location.input')
       ),
     },
+    selectVoiceChannel: this.page.locator(
+      `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select Voice channel")`
+    ),
     selectChannel: this.page.locator(
       `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select channel")`
     ),
@@ -274,7 +512,7 @@ export default class ClanSelector extends BasePage {
     },
   };
 
-  protected eventDetailModal = {
+  readonly eventDetailModal = {
     modal: this.page.locator(
       generateE2eSelector('clan_page.modal.create_event.event_management.item.modal_detail_item')
     ),
@@ -315,6 +553,140 @@ export default class ClanSelector extends BasePage {
     ),
   };
 
+  readonly clanOverviewSettings = {
+    system_messages_channel: {
+      selection: {
+        container: this.page.locator(
+          generateE2eSelector('clan_page.settings.overview.system_messages_channel')
+        ),
+        wrap_item: this.page.locator(
+          generateE2eSelector('clan_page.settings.overview.system_messages_channel.selection.item')
+        ),
+        item: {
+          channel_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.item.channel_name'
+            )
+          ),
+          category_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.item.category_name'
+            )
+          ),
+        },
+        selected: {
+          channel_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.selected.channel_name'
+            )
+          ),
+          category_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.selected.category_name'
+            )
+          ),
+        },
+      },
+    },
+  };
+
+  readonly kickMemberModal = {
+    reasonInput: this.page.locator(generateE2eSelector('clan_page.modal.kick_member.reason_input')),
+    button: {
+      kick: this.page.locator(generateE2eSelector('clan_page.modal.kick_member.button.kick')),
+      cancel: this.page.locator(generateE2eSelector('clan_page.modal.kick_member.button.cancel')),
+    },
+  };
+
+  readonly onboarding = {
+    status: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.onboarding_status')),
+    buttons: {
+      enableOnboarding: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.enable_onboarding')
+      ),
+      back: this.page.locator(generateE2eSelector('clan_page.settings.onboarding.button.back')),
+      disableOnboarding: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.disable_onboarding')
+      ),
+      openPreviewMode: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.open_preview_mode')
+      ),
+      closePreviewMode: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.close_preview_mode')
+      ),
+    },
+    setupQuestion: {
+      item: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.setup_question')
+      ),
+      input: {
+        question: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.input.question')
+        ),
+        answerTitle: this.page.locator(
+          `${generateE2eSelector('mention.input')}[placeholder="Enter an answer..."]`
+        ),
+
+        answerDescription: this.page.locator(
+          `${generateE2eSelector('mention.input')}[placeholder="Enter a description... (optional)"]`
+        ),
+      },
+      button: {
+        confirmAnswer: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save' }),
+        saveQuestion: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.save_change')
+        ),
+        addQuestion: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.add_question')
+        ),
+        addAnswer: this.page.locator(generateE2eSelector('button.base'), {
+          hasText: 'Add an Answer',
+        }),
+        removeQuestion: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.remove_question')
+        ),
+        removeAnswer: this.page.locator(generateE2eSelector('button.base'), { hasText: 'Remove' }),
+        questionItem: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.question.item')
+        ),
+        saveAll: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.save_all')
+        ),
+      },
+    },
+    clanGuideSettings: {
+      item: this.page.locator(
+        generateE2eSelector('clan_page.settings.onboarding.button.clan_guide')
+      ),
+      buttons: {
+        addTask: this.page.locator(
+          generateE2eSelector('clan_page.settings.onboarding.button.add_task')
+        ),
+      },
+      input: {
+        taskTitle: this.page.locator(
+          `${generateE2eSelector('mention.input')}[placeholder="Ex. Post a photo of your pet"]`
+        ),
+      },
+    },
+    clanGuidePage: {
+      sidebar: this.page.locator(generateE2eSelector('clan_page.side_bar.button.clan_guide')),
+      questionLabel: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.label'), {
+        hasText: 'Questions',
+      }),
+      resourceLabel: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.label'), {
+        hasText: 'Resources',
+      }),
+      missionLabel: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.label'), {
+        hasText: 'Missions',
+      }),
+      title: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.title')),
+      description: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.description')),
+      action: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.action')),
+      question: this.page.locator(generateE2eSelector('onboarding.clan_guide_page.question')),
+    },
+  };
+
   /**
    * Find a clan item by its title attribute
    * @param clanName The exact title of the clan to find
@@ -338,6 +710,13 @@ export default class ClanSelector extends BasePage {
   getMessageCountByNameOnCMTab(channelItem: Locator): Locator {
     return channelItem.locator(
       generateE2eSelector('clan_page.channel_management.channel_item.messages_count')
+    );
+  }
+
+  getMemberonMemberSettingsbyUsername(username: string) {
+    return this.page.locator(
+      `${generateE2eSelector('clan_page.member_list.user_info')} ${generateE2eSelector('clan_page.member_list.user_info.username')} span`,
+      { hasText: username }
     );
   }
 }
