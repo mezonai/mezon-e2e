@@ -66,6 +66,7 @@ export class ThreadTestHelpers {
 
   async verifyThreadDeletion(threadName: string) {
     const clanPage = new ClanPage(this.page);
+    await this.page.waitForTimeout(1000);
     const isThreadPresent = await clanPage.isNewThreadPresent(threadName);
     expect(isThreadPresent).toBe(false);
   }

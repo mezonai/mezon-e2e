@@ -3,7 +3,7 @@ import MessageSelector from '@/data/selectors/MessageSelector';
 import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Locator, Page } from '@playwright/test';
-import { differenceInMonths, formatDistance } from 'date-fns';
+import { differenceInDays, differenceInMonths, differenceInYears, formatDistance } from 'date-fns';
 import { BasePage } from './BasePage';
 import { MessagePage } from './MessagePage';
 
@@ -214,7 +214,7 @@ export class ProfilePage extends BasePage {
   }
 
   async getProfileStatus(locator: Locator): Promise<string> {
-    console.log(await locator.getAttribute('class'));
+    // console.log(await locator.getAttribute('class'));
 
     await this.page.waitForTimeout(2000);
     const red = locator.locator('.bg-red-500');
@@ -250,6 +250,8 @@ export class ProfilePage extends BasePage {
     const previewStatus = this.selector.shortProfile.modal.container.locator(
       this.selector.shortProfile.profileStatus.status
     );
+
+    console.log(previewStatus);
 
     const actualStatus = await this.getProfileStatus(previewStatus);
 
@@ -297,10 +299,23 @@ export class ProfilePage extends BasePage {
 
   async verifyMemberSinceJoinMezonInMemberManagement(time: string | Date) {
     const clanSelector = new ClanSelector(this.page);
-    const date = new Date(time);
 
-    const months = differenceInMonths(new Date(), date);
-    const formatTime = `${months}mo ago`;
+    const date = new Date(time);
+    const now = new Date();
+
+    const years = differenceInYears(now, date);
+    const months = differenceInMonths(now, date);
+    const days = differenceInDays(now, date);
+
+    let formatTime = '';
+
+    if (years > 0) {
+      formatTime = `${years}y ago`;
+    } else if (months > 0) {
+      formatTime = `${months}mo ago`;
+    } else {
+      formatTime = `${days}d ago`;
+    }
 
     const memberSinceLocator = clanSelector.memberSettings.joinMezon.first();
 

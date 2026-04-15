@@ -309,6 +309,10 @@ export const DATA_E2E_IDENTIFIER = {
             button: {
               open_detail_modal: '',
               close_detail_modal: '',
+              open_panel: '',
+              confirm_cancel_event: '',
+              share_event: '',
+              close_modal_copy_link: '',
             },
           },
         },
@@ -1064,6 +1068,39 @@ export const DATA_E2E_IDENTIFIER = {
     button: {
       cancel: '',
       confirm: '',
+    },
+  },
+  poll: {
+    button: {
+      open_modal: '',
+      option: '',
+    },
+    modal: {
+      input: {
+        question: '',
+        answer: '',
+        allow_multi_answer: '',
+      },
+      button: {
+        add_answer: '',
+        open_duration: '',
+        choose_duration: '',
+        delete_answer: '',
+        post: '',
+      },
+    },
+    card: {
+      question: '',
+      ended: '',
+      answer_description: '',
+      answer: '',
+      voted: '',
+      total_votes: '',
+      button: {
+        show_result: '',
+        vote: '',
+        remove_vote: '',
+      },
     },
   },
 };

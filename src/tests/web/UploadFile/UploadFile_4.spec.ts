@@ -19,7 +19,7 @@ test.describe('File Size Limits Validation - Module 4', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     //This test need account have friends to create group chat
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account4);
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account2);
     await clanFactory.setupClan(ClanSetupHelper.configs.uploadFile4, page);
 
     clanFactory.setClanUrl(
