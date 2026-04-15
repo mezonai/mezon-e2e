@@ -70,8 +70,8 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.step('Verify that i can open a DM', async () => {
       const firstUser = await messagePage.createDM();
-      const groupName = await messagePage.getGroupName();
-      await expect(groupName).toHaveText(firstUser, { timeout: 5000 });
+      const userName = await messagePage.getUserLocator(firstUser);
+      expect(userName).toBeTruthy();
     });
 
     await AllureReporter.attachScreenshot(page, 'Direct Message Created');

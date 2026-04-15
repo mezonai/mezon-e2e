@@ -423,6 +423,7 @@ export class ClanPage extends BasePage {
       }
 
       await this.selector.buttons.invitePeople.first().click();
+      await this.page.waitForTimeout(2000);
 
       await this.selector.buttons.closeInviteModal.click();
 
@@ -645,7 +646,7 @@ export class ClanPage extends BasePage {
         await expect(descriptionLocator).toHaveText(description);
       }
 
-      const startDateTime = `${startDate}, ${startTime}`;
+      const startDateTime = `${startDate} - ${startTime}`;
       const startDateTimeLocator = this.selector.createEventModal.startTimeReview;
       await expect(startDateTimeLocator).toHaveText(startDateTime);
       const typeClanLocator = this.selector.createEventModal.typeClanReview;
@@ -691,6 +692,8 @@ export class ClanPage extends BasePage {
     const startTime = await lastEvent
       .locator(this.selector.createEventModal.startTimeReview)
       .textContent();
+    console.log(startTime);
+
     const type = await lastEvent
       .locator(this.selector.createEventModal.typeClanReview)
       .textContent();
@@ -836,6 +839,7 @@ export class ClanPage extends BasePage {
   }
 
   async countChannelsOnChannelList() {
+    await this.page.waitForTimeout(3000);
     return await this.selector.sidebar.channelsList.count();
   }
 
@@ -851,6 +855,7 @@ export class ClanPage extends BasePage {
   }
 
   async countMessagesOnChannel() {
+    await this.page.waitForTimeout(3000);
     const messageSelector = new MessageSelector(this.page);
     return (await messageSelector.messages.count()) + 1;
   }
@@ -1526,6 +1531,12 @@ export class ClanPage extends BasePage {
     });
   }
 
+  async deleteCanvas(canvasTitle: string) {
+    const canvasItem = this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle });
+    await expect(canvasItem).toBeVisible({ timeout: 3000 });
+    await canvasItem.locator(this.selector.modal.canvasManagement.button.deleteCanvas).click();
+  }
+
   async assertCanvasContent(title: string, content: string, shouldVisible = true) {
     const canvasTitle = this.selector.screen.canvasEditor.input.title;
     const canvasContent = this.selector.screen.canvasEditor.input.content;
@@ -1949,5 +1960,22 @@ export class ClanPage extends BasePage {
     } catch {
       return false;
     }
+  }
+
+  async cancelEvent() {
+    await this.selector.createEventModal.button.openPanel.click();
+    await this.selector.createEventModal.button.cancelEvent.click();
+    const confirmButton = this.selector.createEventModal.button.confirmCancelEvent;
+    await expect(confirmButton).toBeVisible({ timeout: 3000 });
+    await confirmButton.click();
+    await this.selector.createEventModal.button.closeContainerModal.click();
+  }
+
+  async clickCopyLinkFromShareButton() {
+    await this.selector.createEventModal.button.shareEvent.click();
+    await expect(this.selector.createEventModal.button.copyLink).toBeVisible({ timeout: 3000 });
+    await this.selector.createEventModal.button.copyLink.click();
+    await this.selector.createEventModal.button.closeModalCopyLink.click();
+    await this.selector.createEventModal.button.closeContainerModal.click();
   }
 }

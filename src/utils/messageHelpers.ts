@@ -519,7 +519,8 @@ export class MessageTestHelpers {
       .locator(
         `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('message.item')}`
       )
-      .filter({ hasText: text });
+      .filter({ hasText: text })
+      .last();
   }
 
   verifyInitMessageInThread(text: string): Locator {
@@ -2616,6 +2617,7 @@ export class MessageTestHelpers {
   }
 
   async verifyUserCanDeleteMessage(username: string, canDelete = true) {
+    await this.page.reload();
     const message = this.selector.messages.filter({ hasText: username }).last();
     await expect(message).toBeVisible({ timeout: 5000 });
     await message.click({ button: 'right' });
@@ -2668,7 +2670,7 @@ export class MessageTestHelpers {
   async verifyContactSharedInDMOrChannel(username: string) {
     const lastMessage = this.selector.messages.last();
     const contactLocator = lastMessage.locator(this.selector.shareContact.card);
-    await expect(contactLocator).toBeVisible({ timeout: 3000 });
+    await expect(contactLocator).toBeVisible({ timeout: 10000 });
     const nameLocator = contactLocator.locator(this.selector.shareContact.username);
     await expect(nameLocator).toHaveText(username, { timeout: 3000 });
   }

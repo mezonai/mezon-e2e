@@ -21,6 +21,11 @@ export class ClanFactory {
     return this.clanUrl;
   }
 
+  getClanExcludeDomain() {
+    const url = new URL(this.clanUrl);
+    return url.pathname;
+  }
+
   setClanUrl(clanUrl: string) {
     this.clanUrl = clanUrl;
   }

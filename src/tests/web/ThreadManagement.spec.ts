@@ -135,7 +135,7 @@ test.describe('Thread in Private Channel', () => {
     });
     const threadName = `thread-${generateRandomString(10)}`;
     const threadTestHelpers = new ThreadTestHelpers(page);
-    await threadTestHelpers.createAndVerifyThread(ThreadStatus.PRIVATE);
+    await threadTestHelpers.createAndVerifyThread(ThreadStatus.PRIVATE, threadName);
     await threadTestHelpers.deleteThread(threadName);
     await threadTestHelpers.verifyThreadDeletion(threadName);
   });

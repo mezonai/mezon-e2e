@@ -12,9 +12,9 @@ import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
 test.describe('Direct Message', () => {
-  const accountA = AccountCredentials['account2-3'];
-  const accountB = AccountCredentials['account2-4'];
-  const accountC = AccountCredentials['account2-2'];
+  const accountA = AccountCredentials['account5'];
+  const accountB = AccountCredentials['account6'];
+  const accountC = AccountCredentials['account7'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   let nameGroupChat: string;

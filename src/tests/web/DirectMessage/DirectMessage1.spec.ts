@@ -5,6 +5,7 @@ import MessageSelector from '@/data/selectors/MessageSelector';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
+import { ROUTES } from '@/selectors';
 import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -249,6 +250,30 @@ test.describe('Direct Message 1 - Invoice Status', () => {
     });
     await AllureReporter.step('Verify pinned conversation is visible on pin list', async () => {
       await friendPage.verifyPinnedConversationInPinList(userNameB, false);
+    });
+  });
+
+  test('Verify that button call is hidden on group header', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
+    const messagePage = new MessagePage(page);
+
+    await AllureReporter.step(`Create group chat`, async () => {
+      await page.goto(ROUTES.DIRECT_FRIENDS);
+      await messagePage.createGroup();
+      await page.waitForTimeout(3000);
+    });
+
+    await AllureReporter.step('Verify call button is hidden on group header', async () => {
+      const callButtonVisible = await messagePage.isCallButtonVisibleOnGroupHeader();
+      expect(callButtonVisible).toBe(false);
+    });
+
+    await AllureReporter.step('Verify video call button is hidden on group header', async () => {
+      const videoCallButtonVisible = await messagePage.isVideoCallButtonVisibleOnGroupHeader();
+      expect(videoCallButtonVisible).toBe(false);
     });
   });
 });

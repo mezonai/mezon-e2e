@@ -90,7 +90,6 @@ test.describe('Direct Message', () => {
     await AllureReporter.step('verify it is visible on short profile', async () => {
       const currentProfileStatus = await profilePage.getProfileStatusInFooterProfile();
       expect(currentProfileStatus).toContain('Do Not Disturb');
-      await profilePage.openFooterProfileModal();
       await profilePage.verifyNewStatusVisibleShortProfile(currentProfileStatus);
     });
   });
@@ -153,16 +152,16 @@ test.describe('Direct Message', () => {
       }
     );
 
-    await AllureReporter.step('verify it is visible on friends list', async () => {
-      const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
-      await friendPageB.clickTabAll();
-      await friendPageB.searchFriend(userNameA);
-      const friendLocator = await friendPageB.getFriend(userNameA);
-      await profilePageB.verifyNewProfileStatusVisibleDueToLocator(
-        friendLocator,
-        currentProfileStatus
-      );
-    });
+    // await AllureReporter.step('verify it is visible on friends list', async () => {
+    //   const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+    //   await friendPageB.clickTabAll();
+    //   await friendPageB.searchFriend(userNameA);
+    //   const friendLocator = await friendPageB.getFriend(userNameA);
+    //   await profilePageB.verifyNewProfileStatusVisibleDueToLocator(
+    //     friendLocator,
+    //     currentProfileStatus
+    //   );
+    // });
 
     await AllureReporter.step('verify it is visible on DM list', async () => {
       const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();

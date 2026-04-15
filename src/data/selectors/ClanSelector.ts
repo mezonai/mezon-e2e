@@ -509,6 +509,32 @@ export default class ClanSelector {
           'clan_page.modal.create_event.event_management.item.button.close_detail_modal'
         )
       ),
+      openPanel: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.open_panel')
+      ),
+      editEvent: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+        hasText: 'Edit Event',
+      }),
+      cancelEvent: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+        hasText: 'Cancel Event',
+      }),
+      copyEventLink: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+        hasText: 'Copy Event Link',
+      }),
+      confirmCancelEvent: this.page.locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.button.confirm_cancel_event'
+        )
+      ),
+      shareEvent: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.share_event')
+      ),
+      copyLink: this.page.locator(generateE2eSelector('button.copy')),
+      closeModalCopyLink: this.page.locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.button.close_modal_copy_link'
+        )
+      ),
     },
   };
 

@@ -553,7 +553,7 @@ export class MessagePage extends BasePage {
         generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
       );
 
-      await leaveGroupButton.click({ force: true });
+      await leaveGroupButton.first().click({ force: true });
       const confirmLeaveGroupButton = this.page.locator(
         generateE2eSelector('chat.direct_message.leave_group.button')
       );
@@ -671,7 +671,7 @@ export class MessagePage extends BasePage {
   }
 
   async getChatListContainer() {
-    return this.selector.chatListContainer;
+    return this.selector.chatListContainer.last();
   }
 
   async getWelcomeDM() {
@@ -722,6 +722,9 @@ export class MessagePage extends BasePage {
 
   async getGroupName() {
     return this.selector.groupName;
+  }
+  async getUserLocator(username: string) {
+    return this.selector.userNamesInDM.filter({ hasText: username }).first();
   }
 
   async getUserNamesInDMByGroupName(groupName: string) {
@@ -918,15 +921,18 @@ export class MessagePage extends BasePage {
     await this.selector.timeline.buttons.openTab.click();
   }
 
-  async createTimelineEvent(data: { title: string; description: string }) {
+  async fillTitleAndDescription(data: { title: string; description: string }) {
     await this.selector.timeline.buttons.create.click();
     await this.page.waitForTimeout(1000);
     await this.selector.timeline.inputModals.eventTitle.fill(data.title);
     await this.selector.timeline.inputModals.eventDescription.fill(data.description);
     const date = await this.selector.timeline.inputModals.eventDate.inputValue();
     await this.page.waitForTimeout(2000);
-    await this.selector.timeline.buttons.saveModal.click();
     return date;
+  }
+
+  async clickSave() {
+    await this.selector.timeline.buttons.saveModal.click();
   }
 
   async openTimelineModal() {
@@ -984,5 +990,109 @@ export class MessagePage extends BasePage {
     await this.page.waitForTimeout(1000);
     await this.selector.timeline.buttons.back.click();
     return data;
+  }
+
+  async isCallButtonVisibleOnGroupHeader(): Promise<boolean> {
+    try {
+      await this.selector.dmHeaderCallAction.first().waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isVideoCallButtonVisibleOnGroupHeader(): Promise<boolean> {
+    try {
+      await this.selector.dmHeaderVideoCallAction
+        .first()
+        .waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async uploadAttachmentToTimelineEvent() {
+    const fileSizeHelpers = new FileSizeTestHelpers(this.page);
+    const file = await fileSizeHelpers.createFileWithSize(
+      'timeline_attachment',
+      5 * 1024 * 1024,
+      'jpg'
+    );
+    const result = await fileSizeHelpers.uploadByTypeAndVerify(file, UploadType.TIMELINE, true);
+    expect(result.success).toBe(true);
+
+    await this.page.waitForTimeout(3000);
+  }
+
+  async openCreatePoll() {
+    await this.selector.poll.button.openModal.click();
+    await this.selector.poll.button.option.filter({ hasText: 'Create Poll' }).first().click();
+    await expect(this.selector.poll.modal.input.question).toBeVisible();
+  }
+
+  async clickPollOptionByIndex(index: number) {
+    const option = this.selector.poll.button.option.nth(index);
+    await expect(option).toBeVisible();
+    await option.click();
+  }
+
+  async createPoll(question: string, answers: string[], allowMulti = false) {
+    await this.selector.poll.modal.input.question.fill(question);
+    for (let i = 0; i < answers.length; i++) {
+      if (i > 0) {
+        await this.selector.poll.modal.button.addAnswer.click();
+      }
+
+      await this.selector.poll.modal.input.answer.nth(i).fill(answers[i]);
+    }
+
+    if (allowMulti) {
+      await this.selector.poll.modal.input.allowMultiAnswer.click();
+    }
+    await this.selector.poll.modal.button.post.click();
+  }
+
+  async verifyPollCard(question: string, answers: string[]) {
+    const pollCard = this.selector.poll.card;
+
+    await expect(pollCard.question).toHaveText(question);
+
+    for (let i = 0; i < answers.length; i++) {
+      await expect(pollCard.answer.nth(i)).toHaveText(answers[i]);
+    }
+
+    await expect(pollCard.totalVotes).toBeVisible();
+    await expect(pollCard.button.vote).toBeVisible();
+  }
+
+  async votePollByIndex(answerIndex: number) {
+    const answer = this.selector.poll.card.answer.nth(answerIndex);
+    await expect(answer).toBeVisible();
+    await answer.click();
+
+    await this.selector.poll.card.button.vote.click();
+  }
+
+  async verifyUserVoted(index: number) {
+    const answer = this.selector.poll.card.answer.nth(index);
+    const voted = answer.locator(this.selector.poll.card.voted);
+    await expect(voted).toBeVisible({ timeout: 3000 });
+    const removeVoteBtn = this.selector.poll.card.button.removeVote;
+    await expect(removeVoteBtn).toBeVisible();
+  }
+
+  async removeVote() {
+    await this.selector.poll.card.button.removeVote.click();
+  }
+
+  async endPoll() {
+    await this.selector.poll.card.question.first().click({ button: 'right' });
+    await this.selector.poll.button.endPoll.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async verifyPollEnded() {
+    await expect(this.selector.poll.card.ended).toBeVisible();
   }
 }
