@@ -135,6 +135,8 @@ test.describe('Friend Management', () => {
 
     await AllureReporter.step('User B accepts friend request', async () => {
       await friendPageB.acceptFriendRequestFromUser(userNameA);
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
 
@@ -143,6 +145,7 @@ test.describe('Friend Management', () => {
       await pageA.waitForTimeout(1000);
       await profilePageA.openShortProfileFromUsernameOnChat(userNameB);
       await messagePageA.removeFriendFromShortProfile();
+      await friendPageA.confirmRemoveFriend();
     });
   });
 });
