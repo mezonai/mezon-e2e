@@ -187,6 +187,7 @@ export default class ClanSelector {
       `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
     ),
     mention: this.page.locator(generateE2eSelector('mention.input')),
+    selectedFile: this.page.locator(generateE2eSelector('mention.selected_file')),
     messageBanned: this.page.locator(generateE2eSelector('mention.banned')),
     topicBanned: this.page.locator(
       `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.banned')}`
