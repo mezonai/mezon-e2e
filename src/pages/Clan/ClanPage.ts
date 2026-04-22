@@ -1550,7 +1550,9 @@ export class ClanPage extends BasePage {
   }
 
   async copyCanvasLink(canvasTitle: string) {
-    const canvasItem = this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle });
+    const canvasItem = this.selector.modal.canvasManagement.item
+      .filter({ hasText: canvasTitle })
+      .last();
     await expect(canvasItem).toBeVisible({ timeout: 3000 });
     await canvasItem.locator(this.selector.modal.canvasManagement.button.copyCanvasLink).click();
   }

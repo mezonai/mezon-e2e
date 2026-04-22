@@ -1023,6 +1023,9 @@ export const DATA_E2E_IDENTIFIER = {
       edit_title: '',
       save: '',
       back: '',
+      add_media: '',
+      calendar: '',
+      selected_year: '',
     },
     input: {
       title: '',
@@ -1056,6 +1059,11 @@ export const DATA_E2E_IDENTIFIER = {
       },
       trigger: {
         event_detail: '',
+      },
+      card: {
+        title: '',
+        description: '',
+        created_time: '',
       },
     },
   },

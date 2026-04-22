@@ -15,7 +15,7 @@ import { randomInt } from 'crypto';
 
 test.describe('Topic message', () => {
   const clanFactory = new ClanFactory();
-  const credentials = AccountCredentials['account2-5'];
+  const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,

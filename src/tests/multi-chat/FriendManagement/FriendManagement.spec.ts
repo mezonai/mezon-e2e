@@ -11,8 +11,8 @@ import { test } from '../../../fixtures/dual.fixture';
 import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Friend Management', () => {
-  const accountA = AccountCredentials['account8'];
-  const accountB = AccountCredentials['account9'];
+  const accountA = AccountCredentials['accountKien9'];
+  const accountB = AccountCredentials['accountKien10'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const VERIFY_REQUEST_EXISTS_STEP_NAME = 'Verify friend request exists on both sides';

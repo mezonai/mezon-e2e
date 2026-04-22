@@ -837,10 +837,11 @@ export class MessagePage extends BasePage {
     await this.page.waitForTimeout(1000);
     await this.page.keyboard.down('Shift');
     await this.page.waitForTimeout(1000);
-    await this.page.keyboard.press('Enter');
+    await this.page.keyboard.down('Enter');
     await this.page.waitForTimeout(1000);
-    await this.page.keyboard.up('Shift');
     await this.page.keyboard.up('Control');
+    await this.page.keyboard.up('Shift');
+    await this.page.keyboard.up('Enter');
 
     await this.page.waitForTimeout(3000);
   }
@@ -992,6 +993,44 @@ export class MessagePage extends BasePage {
     return data;
   }
 
+  async openCalendar() {
+    await this.selector.timeline.buttons.openCalender.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async getSelectedYear(): Promise<string> {
+    const year = await this.selector.timeline.buttons.selectedYear.textContent();
+    return year?.trim() || '';
+  }
+
+  private extractYearFromDate(date: string): string {
+    const parsed = new Date(date);
+    return parsed.getFullYear().toString();
+  }
+
+  async verifyEventInCalendar(
+    data: { title: string; description: string },
+    date: string,
+    selectedYear: string
+  ) {
+    const eventYear = this.extractYearFromDate(date);
+
+    if (eventYear !== selectedYear) {
+      throw new Error(`Year mismatch: event=${eventYear}, selected=${selectedYear}`);
+    }
+
+    const titleLocator = this.selector.timeline.card.title.filter({
+      hasText: data.title,
+    });
+
+    const descriptionLocator = this.selector.timeline.card.description.filter({
+      hasText: data.description,
+    });
+
+    await titleLocator.first().waitFor({ state: 'visible', timeout: 5000 });
+    await descriptionLocator.first().waitFor({ state: 'visible', timeout: 5000 });
+  }
+
   async isCallButtonVisibleOnGroupHeader(): Promise<boolean> {
     try {
       await this.selector.dmHeaderCallAction.first().waitFor({ state: 'visible', timeout: 5000 });
@@ -1090,6 +1129,12 @@ export class MessagePage extends BasePage {
     await this.selector.poll.card.question.first().click({ button: 'right' });
     await this.selector.poll.button.endPoll.click();
     await this.page.waitForTimeout(1000);
+  }
+
+  async verifyEndPollOptionVisible() {
+    await this.selector.poll.card.question.first().click({ button: 'right' });
+    const endPollButton = this.selector.poll.button.endPoll;
+    return await endPollButton.isVisible({ timeout: 1000 });
   }
 
   async verifyPollEnded() {

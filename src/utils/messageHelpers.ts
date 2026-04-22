@@ -2346,6 +2346,13 @@ export class MessageTestHelpers {
     await expect(tooltip).toBeVisible({ timeout: 5000 });
   }
 
+  async openChatBox() {
+    const chatButton = this.selector.headerChatButton.first();
+    await chatButton.hover();
+    await chatButton.click();
+    await this.page.waitForTimeout(2000);
+  }
+
   async openMessageTabInInbox() {
     await expect(this.selector.messageInboxPopover.triggerTab).toBeVisible({ timeout: 5000 });
     await this.selector.messageInboxPopover.triggerTab.click();
@@ -2758,7 +2765,9 @@ export class MessageTestHelpers {
   }
 
   async clickInvoiceButtonOnShortProfile() {
-    await this.selector.shortProfile.button.voice.click();
+    const button = this.selector.shortProfile.button.voice.first();
+    await button.hover({ timeout: 10000 });
+    await button.click();
   }
 }
 

@@ -13,7 +13,7 @@ import { Locator, test } from '@playwright/test';
 
 test.describe('Timeline 1', () => {
   const clanFactory = new ClanFactory();
-  const credentials: MezonCredentials = AccountCredentials.accountKien9;
+  const credentials: MezonCredentials = AccountCredentials.account5;
   const [userNameA] = getUsernamesFromEmails([credentials.email]);
 
   test.beforeAll(async ({ browser }) => {
@@ -217,6 +217,48 @@ test.describe('Timeline 1', () => {
     });
     await AllureReporter.step('Open timeline detail', async () => {
       await messagePage.openTimelineEventDetail(detailLocator);
+    });
+  });
+
+  test('Verify that user can view timeline event on calendar', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+
+    const messagePage = new MessagePage(page);
+
+    const unique = Date.now().toString(36);
+    const data = {
+      title: `Timeline-title-${unique}`.slice(0, 20),
+      description: `Timeline-description-${unique}`.slice(0, 20),
+    };
+
+    let date: string;
+    let year: string;
+
+    await AllureReporter.step(`Open timeline tab`, async () => {
+      await messagePage.openTimelineTab();
+      await page.waitForTimeout(1500);
+    });
+
+    await AllureReporter.step(`Create timeline event`, async () => {
+      const dateData = await messagePage.fillTitleAndDescription(data);
+      await messagePage.clickSave();
+      date = dateData;
+    });
+
+    await AllureReporter.step(`Open calendar`, async () => {
+      await messagePage.openCalendar();
+    });
+
+    await AllureReporter.step(`Get selected year`, async () => {
+      year = await messagePage.getSelectedYear();
+    });
+
+    await AllureReporter.step(`Verify event is visible in calendar`, async () => {
+      await messagePage.verifyEventInCalendar(data, date, year);
     });
   });
 });

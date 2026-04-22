@@ -69,8 +69,8 @@ export class ProfilePage extends BasePage {
   }
 
   async sendMessage(mentionText: string) {
-    await this.selector.inputs.mention.fill(mentionText);
-    await this.selector.inputs.mention.press('Enter');
+    await this.selector.inputs.mention.first().fill(mentionText);
+    await this.selector.inputs.mention.first().press('Enter');
     await this.page.waitForTimeout(500);
   }
 
