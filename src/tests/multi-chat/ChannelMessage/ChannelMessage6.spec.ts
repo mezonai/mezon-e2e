@@ -17,9 +17,9 @@ import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
 test.describe('Channel Message 6', () => {
-  const accountA = AccountCredentials['accountKien5'];
-  const accountB = AccountCredentials['accountKien6'];
-  const accountC = AccountCredentials['accountKien7'];
+  const accountA = AccountCredentials['accountKien8'];
+  const accountB = AccountCredentials['accountKien9'];
+  const accountC = AccountCredentials['accountKien10'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB, userNameC] = getUsernamesFromEmails([
@@ -559,6 +559,7 @@ test.describe('Channel Message 6', () => {
       await clanPageB.openMemberList();
       const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameA);
       await memberItem.click();
+      await pageB.waitForTimeout(1000);
       await messageHelperA.clickInvoiceButtonOnShortProfile();
       await pageB.waitForTimeout(3000);
     });

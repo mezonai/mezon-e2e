@@ -14,8 +14,8 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 
 test.describe('Clan Context Menu - Create Category', () => {
-  const managerAccount = AccountCredentials['account1'];
-  const memberAccount = AccountCredentials['account4'];
+  const managerAccount = AccountCredentials['account2-5'];
+  const memberAccount = AccountCredentials['accountKien1'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB] = getUsernamesFromEmails([

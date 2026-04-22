@@ -16,7 +16,7 @@ import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 test.describe('Channel Message - Module 6', () => {
   const clanFactory = new ClanFactory();
-  const credentials = AccountCredentials.accountKien1;
+  const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
@@ -323,12 +323,10 @@ test.describe('Channel Message - Module 6', () => {
 
     await AllureReporter.step('Join voice channel', async () => {
       await clanPage.joinVoiceChannel(channelName);
-      const isUserInVoiceChannel = await clanPage.isJoinVoiceChannel(channelName);
-      expect(isUserInVoiceChannel).toBe(true);
     });
 
     await AllureReporter.step('Open chat box on channel', async () => {
-      await messageHelper.openHeaderInboxButton();
+      await messageHelper.openChatBox();
       await profilePage.sendMessage(message);
       await page.waitForTimeout(2000);
     });

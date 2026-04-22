@@ -13,7 +13,7 @@ import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 test.describe('Channel Message - Module 8', () => {
   const clanFactory = new ClanFactory();
-  const credentials = AccountCredentials.accountKien2;
+  const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
