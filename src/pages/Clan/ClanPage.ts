@@ -1980,4 +1980,8 @@ export class ClanPage extends BasePage {
     await this.selector.createEventModal.button.closeModalCopyLink.click();
     await this.selector.createEventModal.button.closeContainerModal.click();
   }
+
+  async getSelectedFilePreview() {
+    return this.selector.input.selectedFile;
+  }
 }
