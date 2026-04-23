@@ -496,6 +496,13 @@ export class MessagePage extends BasePage {
     });
   }
 
+  async closeSearchModal(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await expect(this.selector.searchModal).toBeHidden({
+      timeout: 5000,
+    });
+  }
+
   async openSearchModalbyClickSearchButton(): Promise<void> {
     await this.selector.searchTriggerButton.click();
     await expect(this.selector.searchModal).toBeVisible({
