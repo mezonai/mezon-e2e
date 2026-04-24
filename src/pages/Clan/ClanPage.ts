@@ -1140,12 +1140,14 @@ export class ClanPage extends BasePage {
 
   async leaveVoiceChannel(channelName: string): Promise<boolean> {
     await this.selector.sidebar.channelItem.name.filter({ hasText: channelName }).click();
-    const leaveButtonLocator = this.selector.modal.voiceManagement.button.controlItem.filter({
-      has: this.selector.modal.voiceManagement.button.endCall,
-    });
+    const leaveButtonLocator = this.selector.modal.voiceManagement.button.endCall.first();
+    const controlBar = this.selector.screen.voiceRoom.controlBar.first();
     try {
+      await controlBar.waitFor({ state: 'visible', timeout: 5000 });
+      await controlBar.hover();
       await leaveButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
       await leaveButtonLocator.click();
+      await this.page.waitForTimeout(500);
       return true;
     } catch {
       return false;
