@@ -527,6 +527,7 @@ export const DATA_E2E_IDENTIFIER = {
     screen: {
       voice_room: {
         channel_name: '',
+        control_bar: '',
         button: {
           join_voice: '',
         },

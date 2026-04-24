@@ -184,7 +184,7 @@ export class ChannelSettingPage extends BasePage {
     });
   }
 
-  async addMembersAndRolesForPrivateChannel(roleName: string, username: string) {
+  async addMembersAndRolesForPrivateChannel(roleName: string, username?: string) {
     const modal = this.selector.permissions.section.member_role_management.modal_container;
 
     await expect(modal).toBeVisible({ timeout: 3000 });
@@ -213,7 +213,7 @@ export class ChannelSettingPage extends BasePage {
     const memberCount = await members.count();
     for (let i = 0; i < memberCount; i++) {
       const name = (await memberUsernames.nth(i).innerText()).trim().toLowerCase();
-      if (name === username.trim().toLowerCase()) {
+      if (username && name === username.trim().toLowerCase()) {
         await memberCheckboxes.nth(i).check();
         console.log(`✅ Checked member: ${name}`);
         break;

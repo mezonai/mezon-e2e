@@ -399,6 +399,7 @@ export default class ClanSelector {
       joinButton: this.page.locator(
         generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
       ),
+      controlBar: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.control_bar')),
     },
     canvasEditor: {
       input: {
