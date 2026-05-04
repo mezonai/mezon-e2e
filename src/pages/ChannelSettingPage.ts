@@ -1,4 +1,5 @@
 import ChannelSettingSelector from '@/data/selectors/ChannelSettingSelector';
+import ClanSelector from '@/data/selectors/ClanSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
@@ -222,6 +223,21 @@ export class ChannelSettingPage extends BasePage {
 
     await this.selector.permissions.button.submit.click();
     await expect(modal).toBeHidden({ timeout: 3000 });
+  }
+
+  async overridePermissionsForPrivateChannel() {
+    const clanSelector = new ClanSelector(this.page);
+    const advancedPermissionsSection =
+      this.selector.permissions.section.advanced_permissions_section;
+    await expect(advancedPermissionsSection).toBeVisible({ timeout: 3000 });
+    const overrideDeleteButton = advancedPermissionsSection
+      .locator(clanSelector.clanSettings.roleList.override.item, {
+        hasText: 'Delete Messages',
+      })
+      .locator(clanSelector.clanSettings.roleList.override.button.remove)
+      .first();
+    await expect(overrideDeleteButton).toBeVisible({ timeout: 3000 });
+    await overrideDeleteButton.click();
   }
 
   async verifyRoleAndMemberExistBeforeSave(roleName: string, memberName: string) {

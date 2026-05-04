@@ -173,10 +173,9 @@ export class MessagePage extends BasePage {
   async closeDM(username: string): Promise<void> {
     const user = await this.selector.listDMItems
       .filter({
-        hasNot: this.page.locator('p', { hasText: 'Member' }),
-        has: this.page.locator('span', {
-          hasText: username,
-        }),
+        has: this.page
+          .locator(generateE2eSelector('chat.direct_message.chat_item.username'))
+          .filter({ hasText: username }),
       })
       .first();
 
@@ -545,7 +544,7 @@ export class MessagePage extends BasePage {
     while (true) {
       const group = chatList
         .filter({
-          has: this.page.locator('p', { hasText: 'Member' }),
+          has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name')),
         })
         .first();
 
@@ -575,10 +574,7 @@ export class MessagePage extends BasePage {
     const group = await this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({
-        has: this.page.locator('p', { hasText: 'Member' }),
-      })
-      .filter({
-        has: this.page.locator('span', {
+        has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name'), {
           hasText: groupName,
         }),
       })
@@ -958,8 +954,8 @@ export class MessagePage extends BasePage {
     const monthLocator = this.selector.timeline.eventTimeDetail.month;
     const yearLocator = this.selector.timeline.eventTimeDetail.year;
     const formatMonth = this.getMonthShort(Number(month));
-    const titleLocator = this.selector.timeline.triggerTab.eventDetailName;
-    const descriptionLocator = this.selector.timeline.triggerTab.eventDetailDescription;
+    const titleLocator = this.selector.timeline.triggerTab.eventDetailName.first();
+    const descriptionLocator = this.selector.timeline.triggerTab.eventDetailDescription.first();
 
     await expect(dateLocator).toContainText(day, { timeout: 1000 });
     await expect(monthLocator).toContainText(formatMonth, { timeout: 1000 });
@@ -1006,7 +1002,7 @@ export class MessagePage extends BasePage {
   }
 
   async getSelectedYear(): Promise<string> {
-    const year = await this.selector.timeline.buttons.selectedYear.textContent();
+    const year = await this.selector.timeline.buttons.selectedYear.first().textContent();
     return year?.trim() || '';
   }
 

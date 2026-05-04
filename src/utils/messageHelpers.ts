@@ -2551,7 +2551,7 @@ export class MessageTestHelpers {
     } = this.selector.topicInboxPopover.item;
 
     await expect(initMessageLocator.first()).toContainText(initMessage);
-    await expect(lastReplyMessage).toContainText(lastReply);
+    await expect(lastReplyMessage.first()).toContainText(lastReply);
 
     return container;
   }

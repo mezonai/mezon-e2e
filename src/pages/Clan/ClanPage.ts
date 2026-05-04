@@ -1202,6 +1202,16 @@ export class ClanPage extends BasePage {
     await channelLocator.click();
   }
 
+  async isMessageInputDisabled() {
+    const messageInput = this.selector.input.mention;
+    try {
+      await messageInput.waitFor({ state: 'visible', timeout: 5000 });
+      return await messageInput.isDisabled();
+    } catch {
+      return false;
+    }
+  }
+
   async openThreadByName(threadName: string) {
     const threadLocator = this.page.locator(
       generateE2eSelector('clan_page.channel_list.thread_item.name'),

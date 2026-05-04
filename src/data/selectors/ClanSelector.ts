@@ -250,6 +250,17 @@ export default class ClanSelector {
           generateE2eSelector('clan_page.settings.role.item.button.delete')
         ),
       },
+      override: {
+        item: this.page.locator(generateE2eSelector('clan_page.settings.role.override.item')),
+        button: {
+          remove: this.page.locator(
+            generateE2eSelector('clan_page.settings.role.override.item.button.remove')
+          ),
+          tick: this.page.locator(
+            generateE2eSelector('clan_page.settings.role.override.item.button.tick')
+          ),
+        },
+      },
     },
   };
 

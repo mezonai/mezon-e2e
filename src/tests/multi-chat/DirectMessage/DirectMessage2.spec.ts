@@ -1,4 +1,4 @@
-import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { AccountCredentials, MEZON_DEV, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
@@ -8,7 +8,11 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { getImageHash } from '@/utils/images';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
+import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
@@ -328,6 +332,129 @@ test.describe('Direct Message', () => {
         currentProfileStatus
       );
       await clanPageA.closeSettingsClan();
+    });
+  });
+
+  test('Verify message avatar remains tied to the avatar version at send-time after user updates avatar in dev', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const profilePageA = new ProfilePage(pageA);
+    const messageHelperA = new MessageTestHelpers(pageA);
+    const fileSizeHelpers = new FileSizeTestHelpers(pageA);
+
+    const firstMessage = `First message before avatar change ${Date.now()}`;
+    const secondMessage = `Second message after avatar change ${Date.now()}`;
+
+    let firstAvatarHash: string | null = null;
+    let secondAvatarHash: string | null = null;
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that when a user updates their avatar in dev, each message keeps the avatar version that existed at the time the message was sent.
+
+        **Test Steps:**
+        1. Clean up any existing friend relationships between users
+        2. User A sends a friend request to User B
+        3. User B accepts the request
+        4. User A creates a DM with User B and sends a first message
+        5. User A navigates to dev and updates their avatar
+        6. User A returns to DM and sends a second message
+        7. Verify first message keeps the old avatar and second message uses the new avatar
+
+        **Expected Result:** Each message shows the avatar version that was active when it was sent.
+      `);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+
+    await AllureReporter.step('User A creates DM with User B and sends first message', async () => {
+      await friendPageA.createDM(userNameB);
+      await messageHelperA.sendTextMessage(firstMessage);
+
+      const firstMessageItem = messageHelperA.getMessageItemLocator(firstMessage).last();
+      const firstAvatar = firstMessageItem.locator(generateE2eSelector('avatar.image'));
+      await expect(firstAvatar).toBeVisible({ timeout: 5000 });
+      const firstAvatarSrc = await firstAvatar.getAttribute('src');
+      firstAvatarHash = await getImageHash(firstAvatarSrc || '');
+      expect(firstAvatarHash).not.toBeNull();
+    });
+
+    await AllureReporter.step('User A navigates to dev and updates avatar', async () => {
+      await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+      await dual.pageA.waitForTimeout(10000);
+
+      await profilePageA.openUserSettingProfile();
+      await profilePageA.openProfileTab();
+      await profilePageA.openUserProfileTab();
+
+      const newAvatarPath = await fileSizeHelpers.createFileWithSize(
+        'update_avatar_dev',
+        5 * 1024 * 1024,
+        'jpg'
+      );
+      await fileSizeHelpers.uploadFileDefault(newAvatarPath);
+      await profilePageA.applyImageAvatar();
+      await profilePageA.saveChangesUserProfile();
+      await dual.pageA.waitForTimeout(3000);
+    });
+
+    await AllureReporter.step('User A returns to the DM and sends second message', async () => {
+      await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+      await dual.pageA.waitForTimeout(5000);
+      await friendPageA.createDM(userNameB);
+
+      await messageHelperA.sendTextMessage(secondMessage);
+
+      const secondMessageItem = messageHelperA.getMessageItemLocator(secondMessage).last();
+      const secondAvatar = secondMessageItem.locator(generateE2eSelector('avatar.image'));
+      await expect(secondAvatar).toBeVisible({ timeout: 5000 });
+      const secondAvatarSrc = await secondAvatar.getAttribute('src');
+      secondAvatarHash = await getImageHash(secondAvatarSrc || '');
+      expect(secondAvatarHash).not.toBeNull();
+    });
+
+    await AllureReporter.step('Verify avatar hashes match each message send-time', async () => {
+      expect(firstAvatarHash).not.toBeNull();
+      expect(secondAvatarHash).not.toBeNull();
+      expect(firstAvatarHash).not.toEqual(secondAvatarHash);
+
+      const firstMessageItem = messageHelperA.getMessageItemLocator(firstMessage).first();
+      const firstAvatarAfter = firstMessageItem.locator(generateE2eSelector('avatar.image'));
+      const firstAvatarAfterSrc = await firstAvatarAfter.getAttribute('src');
+      const firstAvatarAfterHash = await getImageHash(firstAvatarAfterSrc || '');
+
+      expect(firstAvatarAfterHash).toBe(firstAvatarHash);
     });
   });
 });
