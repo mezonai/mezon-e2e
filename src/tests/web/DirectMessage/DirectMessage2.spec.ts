@@ -2,6 +2,7 @@ import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import MessageSelector from '@/data/selectors/MessageSelector';
 import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
+import { ROUTES } from '@/selectors';
 import { MezonCredentials } from '@/types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -77,6 +78,45 @@ test.describe('Direct Message 2', () => {
 
     await AllureReporter.step('Close search modal', async () => {
       await messagePage.closeSearchModal();
+    });
+  });
+
+  test('Verify that the search bar is not overlapped when opening another one', async ({
+    page,
+  }) => {
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that search bar is overlapped by opening another one
+      **Test Steps:**
+      1. Click on search bar at top of DM list (chat-direct_message-button-search)
+      2. Save locator of search modal before pressing Ctrl K
+      3. Press Ctrl + K to open a new search modal
+      4. Verify that only 1 search modal exists
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['direct-message', 'search-modal'],
+    });
+
+    const messagePage = new MessagePage(page);
+    const messageSelector = new MessageSelector(page);
+
+    await AllureReporter.step('Click on search bar at top of DM list', async () => {
+      await page.goto(ROUTES.DIRECT_FRIENDS);
+      await messageSelector.searchTriggerButton.click();
+    });
+
+    await AllureReporter.step('Save locator of search modal before pressing Ctrl K', async () => {
+      const searchModalLocatorBefore = messageSelector.searchModal;
+      await expect(searchModalLocatorBefore).toBeVisible();
+    });
+
+    await AllureReporter.step('Press Ctrl + K to open a new search modal', async () => {
+      await messagePage.openSearchModalbyPressCtrlK(false);
+    });
+
+    await AllureReporter.step('Verify that only 1 search modal exists', async () => {
+      const searchModalCount = await messageSelector.searchModal.count();
+      expect(searchModalCount).toBe(1);
     });
   });
 });

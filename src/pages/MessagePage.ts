@@ -489,11 +489,13 @@ export class MessagePage extends BasePage {
     return (await getImageHash(avatarSrc)) ?? '';
   }
 
-  async openSearchModalbyPressCtrlK(): Promise<void> {
+  async openSearchModalbyPressCtrlK(checkVisible: boolean = true): Promise<void> {
     await this.page.keyboard.press('Control+K');
-    await expect(this.selector.searchModal).toBeVisible({
-      timeout: 5000,
-    });
+    if (checkVisible) {
+      await expect(this.selector.searchModal).toBeVisible({
+        timeout: 5000,
+      });
+    }
   }
 
   async closeSearchModal(): Promise<void> {
