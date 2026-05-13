@@ -5,7 +5,6 @@ import { CategorySettingPage } from '@/pages/CategorySettingPage';
 import { ROUTES } from '@/selectors';
 import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
 import { BasePage } from '../BasePage';
@@ -106,7 +105,7 @@ export class ClanPage extends BasePage {
         continue;
       }
       await this.deleteClan(clanName || '');
-      await this.page.goto(joinUrlPaths(this.page.url(), ROUTES.DIRECT_FRIENDS));
+      // await this.page.goto(joinUrlPaths(this.page.url(), ROUTES.DIRECT_FRIENDS));
       await this.page.waitForLoadState('domcontentloaded');
     }
     return true;
@@ -145,8 +144,8 @@ export class ClanPage extends BasePage {
       await categorySettingPage.fillDeleteInput(clanName || '');
       await categorySettingPage.clickConfirmDeleteButton();
       await this.page.waitForLoadState('domcontentloaded');
-      if (await this.selector.permissionModal.isVisible()) {
-        await this.selector.permissionModal.cancel.click();
+      while (await this.selector.permissionModal.isVisible()) {
+        await this.selector.permissionModal.cancel.first().click();
       }
       return true;
     } catch (error) {
@@ -1140,11 +1139,8 @@ export class ClanPage extends BasePage {
 
   async leaveVoiceChannel(channelName: string): Promise<boolean> {
     await this.selector.sidebar.channelItem.name.filter({ hasText: channelName }).click();
-    const leaveButtonLocator = this.selector.modal.voiceManagement.button.endCall.first();
-    const controlBar = this.selector.screen.voiceRoom.controlBar.first();
+    const leaveButtonLocator = this.selector.modal.voiceManagement.button.controlItem.last();
     try {
-      await controlBar.waitFor({ state: 'visible', timeout: 5000 });
-      await controlBar.hover();
       await leaveButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
       await leaveButtonLocator.click();
       await this.page.waitForTimeout(500);
@@ -1547,6 +1543,16 @@ export class ClanPage extends BasePage {
     const canvasItem = this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle });
     await expect(canvasItem).toBeVisible({ timeout: 3000 });
     await canvasItem.locator(this.selector.modal.canvasManagement.button.deleteCanvas).click();
+    await this.selector.modal.canvasManagement.button.confirmDelete.first().click();
+  }
+
+  async verifyCanvasExists(canvasTitle: string, shouldExist = true) {
+    const canvasItem = this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle });
+    if (shouldExist) {
+      await expect(canvasItem).toBeVisible({ timeout: 3000 });
+    } else {
+      await expect(canvasItem).toBeHidden({ timeout: 3000 });
+    }
   }
 
   async assertCanvasContent(title: string, content: string, shouldVisible = true) {

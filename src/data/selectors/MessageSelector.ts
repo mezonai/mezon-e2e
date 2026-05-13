@@ -46,7 +46,7 @@ export default class MessageSelector {
   firstUserAddDM = this.page
     .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
     .nth(0);
-  firstUserNameAddDM = this.page.locator(generateE2eSelector('base_profile.display_name')).nth(1);
+  firstUserNameAddDM = this.page.locator(generateE2eSelector('base_profile.display_name')).nth(0);
   userNamesInDM = this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
   groupNamesInDM = this.page.locator(
     generateE2eSelector('chat.direct_message.chat_item.group_name')

@@ -372,6 +372,10 @@ export default class ClanSelector {
         deleteCanvas: this.page.locator(
           generateE2eSelector('chat.channel_message.header.button.canvas.item.button.delete')
         ),
+        confirmDelete: this.page.locator(
+          generateE2eSelector('modal.confirm_modal.button.confirm'),
+          { hasText: 'Delete' }
+        ),
       },
     },
     aboutMe: this.page.locator(generateE2eSelector('full_profile.about_me')),

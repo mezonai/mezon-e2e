@@ -484,6 +484,13 @@ export const DATA_E2E_IDENTIFIER = {
           },
         },
       },
+      archived_channels: {
+        item: {
+          channel_name: '',
+          active_time: '',
+          restore_button: '',
+        },
+      },
     },
     channel_list: {
       item: {

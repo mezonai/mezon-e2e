@@ -200,6 +200,7 @@ test.describe('Timeline 1', () => {
 
     await AllureReporter.step(`Open timeline tab`, async () => {
       await page.goto(joinUrlPaths(MEZON_DEV || '', clanFactory.getClanExcludeDomain()));
+      await page.waitForTimeout(1500);
       await messagePage.openTimelineTab();
       await page.waitForTimeout(1500);
     });

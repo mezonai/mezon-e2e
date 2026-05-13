@@ -144,6 +144,7 @@ test.describe('Clan Management 3', () => {
         await channelSettingsA.openPermissionsTab();
         await channelSettingsA.updateChannelStatusAndOpenAddMembersRolesModal();
         await channelSettingsA.addMembersAndRolesForPrivateChannel(roleName);
+        await channelSettingsA.savePermissionChanges();
         await channelSettingsA.closeChannelSettings();
       }
     );
@@ -252,6 +253,7 @@ test.describe('Clan Management 3', () => {
         await channelSettingsA.openPermissionsTab();
         await channelSettingsA.updateChannelStatusAndOpenAddMembersRolesModal();
         await channelSettingsA.addMembersAndRolesForPrivateChannel(roleName);
+        await channelSettingsA.savePermissionChanges();
       }
     );
 
@@ -259,6 +261,7 @@ test.describe('Clan Management 3', () => {
       'User A override permissions (cannot send messages) for User B on private channel',
       async () => {
         await channelSettingsA.overridePermissionsForPrivateChannel();
+        await channelSettingsA.savePermissionChanges();
         await channelSettingsA.closeChannelSettings();
       }
     );

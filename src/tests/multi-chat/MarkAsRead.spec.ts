@@ -145,7 +145,7 @@ test.describe('Mark as read', () => {
     );
 
     await AllureReporter.step('Verify that channels with new mentions have badges', async () => {
-      // await pageB.reload();
+      await pageB.reload();
       for (const name of channelNames) {
         await clanPageB.verifyChannelHasBadge(name);
       }

@@ -232,7 +232,7 @@ export class ChannelSettingPage extends BasePage {
     await expect(advancedPermissionsSection).toBeVisible({ timeout: 3000 });
     const overrideDeleteButton = advancedPermissionsSection
       .locator(clanSelector.clanSettings.roleList.override.item, {
-        hasText: 'Delete Messages',
+        hasText: 'Send Messages',
       })
       .locator(clanSelector.clanSettings.roleList.override.button.remove)
       .first();
@@ -256,12 +256,16 @@ export class ChannelSettingPage extends BasePage {
     console.log(`✅ Member "${memberName}" is visible in the list`);
   }
 
-  async verifyRoleAndMemberExistAfterSave(roleName: string, memberName: string) {
-    const { member_role_management } = this.selector.permissions.section;
+  async savePermissionChanges() {
     const save_changes = this.selector.permissions.modal.ask_change.button.save_changes;
     await expect(save_changes).toBeVisible({ timeout: 3000 });
     await save_changes.click();
     await this.page.waitForTimeout(2000);
+  }
+
+  async verifyRoleAndMemberExistAfterSave(roleName: string, memberName: string) {
+    const { member_role_management } = this.selector.permissions.section;
+    await this.savePermissionChanges();
 
     const roleItem = member_role_management.role_item.filter({ hasText: roleName });
     await expect(roleItem, `❌ Role "${roleName}" not found in the list`).toBeVisible({
@@ -308,5 +312,52 @@ export class ChannelSettingPage extends BasePage {
     } catch {
       return false;
     }
+  }
+
+  async archiveChannel(channelName: string, isThread = false) {
+    if (isThread) {
+      const threadItem = this.selector.sidebar.threadItem.name.filter({ hasText: channelName });
+      await threadItem.first().click({ button: 'right' });
+      await this.selector.archived_channels.archive_thread_button.click();
+    } else {
+      const channelItem = this.selector.sidebar.channelItem.item.filter({ hasText: channelName });
+      await channelItem.first().click({ button: 'right' });
+      await this.selector.archived_channels.archive_channel_button.click();
+    }
+    const confirmButton = this.selector.archived_channels.modal.confirm_button;
+    await expect(confirmButton).toBeVisible({ timeout: 5000 });
+    await confirmButton.click();
+    await expect(confirmButton).toBeHidden({ timeout: 5000 });
+    await this.page.waitForTimeout(2000);
+  }
+
+  async isChannelInArchivedList(channelName: string): Promise<boolean> {
+    const clanSeletor = new ClanSelector(this.page);
+    await clanSeletor.buttons.clanName.click();
+    await clanSeletor.buttons.clanSettings.click();
+    await clanSeletor.clanSettings.buttons.sidebarItem
+      .filter({ hasText: 'Archived Channels' })
+      .click();
+    const archivedChannelItem = this.selector.archived_channels.item.channel_name.filter({
+      hasText: channelName,
+    });
+    try {
+      await expect(archivedChannelItem).toBeVisible({ timeout: 3000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async restoreArchivedChannel(channelName: string): Promise<void> {
+    const archivedChannelItem = this.selector.archived_channels.item.container.filter({
+      hasText: channelName,
+    });
+    await expect(archivedChannelItem).toBeVisible({ timeout: 3000 });
+    const restoreButton = archivedChannelItem
+      .locator(generateE2eSelector('clan_page.settings.archived_channels.item.restore_button'))
+      .first();
+    await restoreButton.click();
+    await this.page.waitForTimeout(2000);
   }
 }
