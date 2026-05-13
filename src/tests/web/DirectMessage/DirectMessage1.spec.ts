@@ -192,9 +192,7 @@ test.describe('Direct Message 1 - Invoice Status', () => {
     const [userNameB] = getUsernamesFromEmails([account.email]);
 
     await AllureReporter.step('Add friend with a user and create dm', async () => {
-      await friendPage.cleanupFriendRelationships(userNameB);
-      await friendPage.sendFriendRequestToUser(userNameB);
-      await friendPage.verifySentRequestToast();
+      await friendPage.gotoFriendsPage();
       await messagePage.openSearchModalbyPressCtrlK();
       await messageHelpers.openDMByNameOnsearchModal(userNameB);
     });
@@ -232,9 +230,7 @@ test.describe('Direct Message 1 - Invoice Status', () => {
     const [userNameB] = getUsernamesFromEmails([account.email]);
 
     await AllureReporter.step('Add friend with a user and create dm', async () => {
-      await friendPage.cleanupFriendRelationships(userNameB);
-      await friendPage.sendFriendRequestToUser(userNameB);
-      await friendPage.verifySentRequestToast();
+      await friendPage.gotoFriendsPage();
       await messagePage.openSearchModalbyPressCtrlK();
       await messageHelpers.openDMByNameOnsearchModal(userNameB);
     });

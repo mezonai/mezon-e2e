@@ -69,9 +69,9 @@ export class DirectMessageHelper {
 
     while (scrolled < maxScroll) {
       const target = listDMItems.filter({
-        has: this.page.locator(
-          `${generateE2eSelector('chat.direct_message.chat_item.username')}:text-is("${name}")`
-        ),
+        has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username'), {
+          hasText: name,
+        }),
       });
 
       if (await target.count()) {

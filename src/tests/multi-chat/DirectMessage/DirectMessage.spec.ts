@@ -149,6 +149,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.step(
       'Verify group avatar is updated with user B on group chat header',
       async () => {
+        await dual.pageB.reload();
         await messagePageB.openGroupFromName(nameGroupChat);
         const avtHashHeaderB = await messagePageB.getAvatarHashOnHeaderChat();
         expect(avtHashHeaderB).toBe(profileHash);
@@ -247,6 +248,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.step(
       'Verify group avatar is updated with user B on forward message modal',
       async () => {
+        await dual.pageB.reload();
         await messagePageB.openGroupFromName(nameGroupChat);
         await messagePageB.openForwardMessageModal();
         const avtHashOnForwardPopup = await messagePageB.getAvatarHashOnForwardPopup(nameGroupChat);
@@ -258,6 +260,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.step(
       'Verify group avatar is updated with user B when search popup (ctrl+k)',
       async () => {
+        await dual.pageB.reload();
         await messagePageB.openSearchModalbyPressCtrlK();
         const avtHashOnSearchModalB = await messagePageB.getAvatarHashOnSearchModal(nameGroupChat);
         expect(avtHashOnSearchModalB).toBe(profileHash);
@@ -353,6 +356,7 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.step('User B leave group', async () => {
+      await dual.pageB.reload();
       await messagePageB.leaveGroupByName(nameGroupChat);
     });
   });

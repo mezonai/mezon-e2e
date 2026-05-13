@@ -7,7 +7,6 @@ import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { expect, Locator, Page } from '@playwright/test';
 import sleep from '@utils/sleep';
 import { BasePage } from './BasePage';
-import { ProfilePage } from './ProfilePage';
 
 export class MessagePage extends BasePage {
   private helpers: DirectMessageHelper;
@@ -35,9 +34,17 @@ export class MessagePage extends BasePage {
     try {
       await this.selector.buttonCreateGroupSidebar.click();
 
-      const firstUser = (await this.selector.userItem.first().innerText()).trim();
-      await this.selector.userItem.hover();
-      await this.selector.userItem.click();
+      const userItem = this.selector.userItem.first();
+
+      await userItem.waitFor({
+        state: 'visible',
+      });
+
+      const firstUser =
+        (await userItem.locator('span:not([data-e2e])').textContent())?.trim() ?? '';
+
+      await userItem.click();
+
       await this.selector.createGroupButton.click();
 
       return firstUser;
@@ -173,10 +180,9 @@ export class MessagePage extends BasePage {
   async closeDM(username: string): Promise<void> {
     const user = await this.selector.listDMItems
       .filter({
-        hasNot: this.page.locator('p', { hasText: 'Member' }),
-        has: this.page.locator('span', {
-          hasText: username,
-        }),
+        has: this.page
+          .locator(generateE2eSelector('chat.direct_message.chat_item.username'))
+          .filter({ hasText: username }),
       })
       .first();
 
@@ -380,17 +386,16 @@ export class MessagePage extends BasePage {
 
   async openGroupFromName(name: string) {
     const messagePage = new MessagePage(this.page);
-    const groupLocator = messagePage.selector.userNamesInDM
-      .filter({ hasText: name.slice(0, 15) })
+    const groupLocator = messagePage.selector.groupNamesInDM
+      .filter({ hasText: name.slice(0, 20) })
       .first();
-    await expect(groupLocator).toBeVisible({ timeout: 3000 });
+    await expect(groupLocator).toBeVisible({ timeout: 10000 });
     await groupLocator.first().click();
   }
 
   async updateAvatarForGroup(groupName: string): Promise<void> {
     const fileSizeHelpers = new FileSizeTestHelpers(this.page);
 
-    await this.selector.group.click();
     await this.selector.editGroupButton.click();
     const groupAvt = await fileSizeHelpers.createFileWithSize(
       'direct_message_icon',
@@ -490,7 +495,9 @@ export class MessagePage extends BasePage {
   }
 
   async openSearchModalbyPressCtrlK(): Promise<void> {
+    await this.page.waitForTimeout(1000);
     await this.page.keyboard.press('Control+K');
+    await this.page.waitForTimeout(1000);
     await expect(this.selector.searchModal).toBeVisible({
       timeout: 5000,
     });
@@ -536,16 +543,13 @@ export class MessagePage extends BasePage {
   }
 
   async leaveAllGroup() {
-    const profilePage = new ProfilePage(this.page);
-    await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
-
     const chatList = this.selector.listDMItems;
     await expect(chatList.first()).toBeVisible({ timeout: 10000 });
 
     while (true) {
       const group = chatList
         .filter({
-          has: this.page.locator('p', { hasText: 'Member' }),
+          has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name')),
         })
         .first();
 
@@ -575,10 +579,7 @@ export class MessagePage extends BasePage {
     const group = await this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({
-        has: this.page.locator('p', { hasText: 'Member' }),
-      })
-      .filter({
-        has: this.page.locator('span', {
+        has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name'), {
           hasText: groupName,
         }),
       })
@@ -954,12 +955,12 @@ export class MessagePage extends BasePage {
 
   async verifyEventIsVisibleOnTab(data: { title: string; description: string }, date: string) {
     const [year, month, day] = date.split('-');
-    const dateLocator = this.selector.timeline.eventTimeDetail.day;
-    const monthLocator = this.selector.timeline.eventTimeDetail.month;
-    const yearLocator = this.selector.timeline.eventTimeDetail.year;
+    const dateLocator = this.selector.timeline.eventTimeDetail.day.first();
+    const monthLocator = this.selector.timeline.eventTimeDetail.month.first();
+    const yearLocator = this.selector.timeline.eventTimeDetail.year.first();
     const formatMonth = this.getMonthShort(Number(month));
-    const titleLocator = this.selector.timeline.triggerTab.eventDetailName;
-    const descriptionLocator = this.selector.timeline.triggerTab.eventDetailDescription;
+    const titleLocator = this.selector.timeline.triggerTab.eventDetailName.first();
+    const descriptionLocator = this.selector.timeline.triggerTab.eventDetailDescription.first();
 
     await expect(dateLocator).toContainText(day, { timeout: 1000 });
     await expect(monthLocator).toContainText(formatMonth, { timeout: 1000 });
@@ -1006,7 +1007,7 @@ export class MessagePage extends BasePage {
   }
 
   async getSelectedYear(): Promise<string> {
-    const year = await this.selector.timeline.buttons.selectedYear.textContent();
+    const year = await this.selector.timeline.buttons.selectedYear.first().textContent();
     return year?.trim() || '';
   }
 

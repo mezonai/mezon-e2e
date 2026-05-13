@@ -250,6 +250,17 @@ export default class ClanSelector {
           generateE2eSelector('clan_page.settings.role.item.button.delete')
         ),
       },
+      override: {
+        item: this.page.locator(generateE2eSelector('clan_page.settings.role.override.item')),
+        button: {
+          remove: this.page.locator(
+            generateE2eSelector('clan_page.settings.role.override.item.button.remove')
+          ),
+          tick: this.page.locator(
+            generateE2eSelector('clan_page.settings.role.override.item.button.tick')
+          ),
+        },
+      },
     },
   };
 
@@ -360,6 +371,10 @@ export default class ClanSelector {
         copyCanvasLink: this.page.locator(generateE2eSelector('button.copy')),
         deleteCanvas: this.page.locator(
           generateE2eSelector('chat.channel_message.header.button.canvas.item.button.delete')
+        ),
+        confirmDelete: this.page.locator(
+          generateE2eSelector('modal.confirm_modal.button.confirm'),
+          { hasText: 'Delete' }
         ),
       },
     },

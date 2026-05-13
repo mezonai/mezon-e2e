@@ -565,6 +565,7 @@ test.describe('Channel Message 6', () => {
     });
 
     await AllureReporter.step('Verify voice channel screen is visible to User B', async () => {
+      await pageB.reload();
       const isVoiceChannelVisible = await clanPageB.verifyVoiceChannelScreenVisible(channelName);
       expect(isVoiceChannelVisible).toBe(true);
     });

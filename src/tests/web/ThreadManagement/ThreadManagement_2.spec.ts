@@ -10,7 +10,7 @@ import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { ThreadTestHelpers } from '@/utils/threadHelpers';
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test.describe('Thread Management - Module 2', () => {
   const clanFactory = new ClanFactory();
@@ -92,8 +92,7 @@ test.describe('Thread Management - Module 2', () => {
     });
 
     await AllureReporter.step('Verify canvas is created successfully', async () => {
-      const isCanvasVisible = await clanPage.assertCanvasContent(canvasTitle, canvasContent, true);
-      expect(isCanvasVisible).toBeTruthy();
+      await clanPage.assertCanvasContent(canvasTitle, canvasContent, true);
     });
   });
 });

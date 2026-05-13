@@ -120,6 +120,7 @@ test.describe('Clan Management - Module 3', () => {
 
     await AllureReporter.step('Mark the general channel as favorite', async () => {
       await clanPage.markChannelAsFavorite('general');
+      await page.waitForTimeout(1000);
     });
 
     await AllureReporter.step('Verify the general channel is marked as favorite', async () => {
@@ -128,6 +129,7 @@ test.describe('Clan Management - Module 3', () => {
 
     await AllureReporter.step('Unmark the general channel', async () => {
       await clanPage.unmarkChannelAsFavorite('general');
+      await page.waitForTimeout(1000);
     });
 
     await AllureReporter.step('Verify the general channel is not marked as favorite', async () => {
@@ -302,7 +304,7 @@ test.describe('Clan Management - Module 3', () => {
     });
 
     await AllureReporter.step('Verify the canvas is deleted', async () => {
-      const isCanvasVisible = await clanPage.assertCanvasContent(canvasTitle, canvasContent, false);
+      const isCanvasVisible = await clanPage.verifyCanvasExists(canvasTitle, false);
       expect(isCanvasVisible).toBeFalsy();
     });
   });

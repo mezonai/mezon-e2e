@@ -11,7 +11,9 @@ export default class MessageSelector {
   );
   user = this.page
     .locator(generateE2eSelector('chat.direct_message.chat_list'))
-    .filter({ hasNot: this.page.locator('p', { hasText: 'Member' }) })
+    .filter({
+      has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username')),
+    })
     .first();
   addUserButton = this.page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
   listDMItems = this.page.locator(generateE2eSelector('chat.direct_message.chat_list'));
@@ -44,11 +46,16 @@ export default class MessageSelector {
   firstUserAddDM = this.page
     .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
     .nth(0);
-  firstUserNameAddDM = this.page.locator(generateE2eSelector('base_profile.display_name')).nth(1);
+  firstUserNameAddDM = this.page.locator(generateE2eSelector('base_profile.display_name')).nth(0);
   userNamesInDM = this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
+  groupNamesInDM = this.page.locator(
+    generateE2eSelector('chat.direct_message.chat_item.group_name')
+  );
   group = this.page
     .locator(generateE2eSelector('chat.direct_message.chat_list'))
-    .filter({ has: this.page.locator('p', { hasText: 'Member' }) })
+    .filter({
+      has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name')),
+    })
     .first();
   secondClan = this.page.locator('div[title]').nth(1);
   messages = this.page.locator(generateE2eSelector('message.item'));

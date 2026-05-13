@@ -2,29 +2,15 @@ import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
-import { ClanPage } from '@/pages/Clan/ClanPage';
-import { ClanInviteFriendModal } from '@/pages/Clan/ClanInviteFriendModal';
-import { ClanInviteModal } from '@/pages/Modal/ClanInviteModal';
-import { MezonCredentials } from '@/types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import TestSuiteHelper from '@/utils/testSuite.helper';
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, test } from '@playwright/test';
 
 test.describe('Clan Context Menu - Create Category', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials['account1'];
-
-  test.beforeAll(async ({ browser }) => {
-    await TestSuiteHelper.setupBeforeAll({
-      browser,
-      clanFactory,
-      configs: ClanSetupHelper.configs.channelManagement,
-      credentials,
-    });
-  });
 
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({

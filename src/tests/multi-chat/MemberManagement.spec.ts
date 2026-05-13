@@ -492,7 +492,7 @@ test.describe('Member Management', () => {
         await pageB.reload();
         await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.sendFirstMessage('This is message');
-        await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameA);
+        await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameB);
         await clanPageB.leaveClan();
       }
     );
