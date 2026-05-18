@@ -1520,11 +1520,13 @@ export class ClanPage extends BasePage {
 
   async fillCanvasTitle(title: string) {
     await this.selector.screen.canvasEditor.input.title.fill(title);
+    await this.page.waitForTimeout(500);
   }
 
   async fillCanvasContent(content: string) {
     await this.selector.screen.canvasEditor.input.content.click();
     await this.page.keyboard.type(content);
+    await this.page.waitForTimeout(1000);
   }
 
   async saveCanvas() {
@@ -1564,6 +1566,7 @@ export class ClanPage extends BasePage {
     } else {
       await expect(canvasTitle).not.toHaveValue(title, { timeout: 3000 });
       await expect(canvasContent).not.toHaveText(content, { timeout: 3000 });
+      await this.selector.permissionModal.cancel.first().click();
     }
   }
 

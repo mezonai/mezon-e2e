@@ -61,8 +61,9 @@ export class AuthHelper {
   static async clearAuth(page: Page) {
     await page.evaluate(() => {
       localStorage.removeItem('persist:auth');
-      localStorage.removeItem('mezon_session');
-      localStorage.removeItem('mezon_refresh_session');
+      localStorage.removeItem('persist:wallet');
+      // localStorage.removeItem('mezon_session');
+      // localStorage.removeItem('mezon_refresh_session');
     });
   }
 
