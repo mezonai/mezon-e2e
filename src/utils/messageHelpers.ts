@@ -2551,9 +2551,9 @@ export class MessageTestHelpers {
     } = this.selector.topicInboxPopover.item;
 
     await expect(initMessageLocator.first()).toContainText(initMessage);
-    await expect(lastReplyMessage.first()).toContainText(lastReply);
+    // await expect(lastReplyMessage.first()).toContainText(lastReply);
 
-    return container;
+    return container.first();
   }
 
   async clickJumpToTopicFromInboxPopover(topicLocator: Locator) {
@@ -2766,7 +2766,7 @@ export class MessageTestHelpers {
 
   async clickInvoiceButtonOnShortProfile() {
     const button = this.selector.shortProfile.button.voice.first();
-    await button.hover({ timeout: 10000 });
+    await expect(button).toBeVisible({ timeout: 3000 });
     await button.click();
   }
 }

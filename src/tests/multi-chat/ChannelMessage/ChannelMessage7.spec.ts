@@ -3,6 +3,7 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { ROUTES } from '@/selectors';
 import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -15,6 +16,7 @@ import {
 } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
@@ -261,5 +263,145 @@ test.describe('Channel Message 7', () => {
         await expect(endPollButtonVisible).toBeFalsy();
       }
     );
+  });
+  test('Verify that user can not share contact for themselves.', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
+    const profilePageB = new ProfilePage(pageB);
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that user can not share contact for themselves.
+        **Steps:**
+        1. User A create clan
+        2. User A invite user B
+        3. User B accept invite
+        4. User A send message to user B
+        5. User B click on user A avatar to open short profile and share friend contact card from short profile on direct message
+          6. Verify cannot share contact with themselves
+        **Expected Result:** User can not share contact for themselves.
+      `);
+
+    await AllureReporter.addLabels({
+      tag: ['group', 'contact-card', 'share', 'short-profile'],
+    });
+    const messageHelperB = new MessageTestHelpers(pageB);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+    await AllureReporter.step('User A create DM with user B, send a message', async () => {
+      await messagePageA.createDMByName(userNameB);
+      await messagePageB.createDMByName(userNameA);
+      await messagePageA.sendMessageWhenInDM('This is a message to forward');
+      await dual.pageA.waitForTimeout(1000);
+    });
+    await AllureReporter.step(
+      'User B open short profile of User A and share contact card to DM',
+      async () => {
+        await profilePageB.openShortProfileFromUsernameOnChat(userNameA);
+        await messagePageB.clickShareContactButtonOnShortProfile();
+        await messageHelperB.verifyShareContactModalVisible();
+      }
+    );
+    await AllureReporter.step('Verify cannot share contact with themselves', async () => {
+      await messageHelperB.shareContactInDMOrChannel(userNameB, false);
+      await pageA.keyboard.press('Escape');
+    });
+  });
+
+  test('Verify that user can not share contact for the person`s contact.', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
+    const profilePageB = new ProfilePage(pageB);
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that user can not share contact for person's contact.
+        **Steps:**
+        1. User A create clan
+        2. User A invite user B
+        3. User B accept invite
+        4. User A send message to user B
+        5. User B click on user A avatar to open short profile and share friend contact card from short profile on direct message
+        **Expected Result:** User can not share contact for person's contact
+      `);
+
+    await AllureReporter.addLabels({
+      tag: ['group', 'contact-card', 'share', 'short-profile'],
+    });
+    const messageHelperB = new MessageTestHelpers(pageB);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+    await AllureReporter.step('User A create DM with user B, send a message', async () => {
+      await messagePageA.createDMByName(userNameB);
+      await messagePageB.createDMByName(userNameA);
+      await messagePageA.sendMessageWhenInDM('This is a message to forward');
+      await dual.pageA.waitForTimeout(1000);
+    });
+    await AllureReporter.step(
+      'User B open short profile of User A and share contact card to DM',
+      async () => {
+        await profilePageB.openShortProfileFromUsernameOnChat(userNameA);
+        await messagePageB.clickShareContactButtonOnShortProfile();
+        await messageHelperB.verifyShareContactModalVisible();
+      }
+    );
+    await AllureReporter.step('Verify cannot share contact for the person`s contact.', async () => {
+      await messageHelperB.shareContactInDMOrChannel(userNameA, false);
+      await pageA.keyboard.press('Escape');
+    });
   });
 });

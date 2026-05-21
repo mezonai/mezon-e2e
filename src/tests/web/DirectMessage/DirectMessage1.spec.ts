@@ -193,6 +193,7 @@ test.describe('Direct Message 1 - Invoice Status', () => {
 
     await AllureReporter.step('Add friend with a user and create dm', async () => {
       await friendPage.gotoFriendsPage();
+      await page.waitForTimeout(2000);
       await messagePage.openSearchModalbyPressCtrlK();
       await messageHelpers.openDMByNameOnsearchModal(userNameB);
     });
@@ -231,6 +232,7 @@ test.describe('Direct Message 1 - Invoice Status', () => {
 
     await AllureReporter.step('Add friend with a user and create dm', async () => {
       await friendPage.gotoFriendsPage();
+      await page.waitForTimeout(2000);
       await messagePage.openSearchModalbyPressCtrlK();
       await messageHelpers.openDMByNameOnsearchModal(userNameB);
     });
