@@ -1148,4 +1148,12 @@ export class MessagePage extends BasePage {
   async verifyPollEnded() {
     await expect(this.selector.poll.card.ended).toBeVisible();
   }
+
+  async clickShareContactButtonOnShortProfile() {
+    const shareContactButton = this.page.locator(
+      generateE2eSelector('short_profile.action.button.share_contact')
+    );
+    await expect(shareContactButton).toBeVisible({ timeout: 3000 });
+    await shareContactButton.click();
+  }
 }

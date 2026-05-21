@@ -55,6 +55,7 @@ export const DATA_E2E_IDENTIFIER = {
         base: '',
         status: '',
         remove_friend: '',
+        share_contact: '',
       },
     },
     modal: {

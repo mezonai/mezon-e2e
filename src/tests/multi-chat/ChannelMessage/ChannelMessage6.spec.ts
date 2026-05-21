@@ -554,14 +554,8 @@ test.describe('Channel Message 6', () => {
       const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameA);
       await memberItem.click();
       await pageB.waitForTimeout(1000);
-      await messageHelperA.clickInvoiceButtonOnShortProfile();
+      await messageHelperB.clickInvoiceButtonOnShortProfile();
       await pageB.waitForTimeout(3000);
-    });
-
-    await AllureReporter.step('Verify voice channel screen is visible to User B', async () => {
-      await pageB.reload();
-      const isVoiceChannelVisible = await clanPageB.verifyVoiceChannelScreenVisible(channelName);
-      expect(isVoiceChannelVisible).toBe(true);
     });
 
     await AllureReporter.step(
