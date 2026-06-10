@@ -262,6 +262,13 @@ export default class ClanSelector {
         },
       },
     },
+    category: {
+      input: {
+        categoryName: this.page.locator(
+          generateE2eSelector('clan_page.settings.category.input.category_name')
+        ),
+      },
+    },
   };
 
   readonly sidebar = {
@@ -300,6 +307,7 @@ export default class ClanSelector {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
     channelsList: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
+    category: this.page.locator(generateE2eSelector('clan_page.side_bar.channel_list.category')),
   };
 
   readonly header = {

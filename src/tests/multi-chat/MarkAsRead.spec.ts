@@ -122,8 +122,8 @@ test.describe('Mark as read', () => {
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
+      await pageB.waitForTimeout(1000);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step(
@@ -265,7 +265,6 @@ test.describe('Mark as read', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('Verify that channels with new messages have highlight', async () => {
@@ -371,7 +370,6 @@ test.describe('Mark as read', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('Verify that channels with new messages have highlight', async () => {
@@ -463,7 +461,6 @@ test.describe('Mark as read', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step(

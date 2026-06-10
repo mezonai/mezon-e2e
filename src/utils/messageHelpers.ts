@@ -799,8 +799,8 @@ export class MessageTestHelpers {
 
     for (const selector of mainChatSelectors) {
       const chatContainer = this.page.locator(selector);
-      if (await chatContainer.isVisible({ timeout: 2000 })) {
-        const chatText = await chatContainer.textContent();
+      if (await chatContainer.last().isVisible({ timeout: 2000 })) {
+        const chatText = await chatContainer.last().textContent();
         if (chatText) {
           const shortText = messageText.substring(0, 15);
           const searchTerms = [

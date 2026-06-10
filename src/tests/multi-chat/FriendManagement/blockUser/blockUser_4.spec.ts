@@ -88,32 +88,28 @@ test.describe('Friend Management - Block User', () => {
     const clanMenuPanelA = new ClanMenuPanel(pageA);
     const messagePageA = new MessagePage(pageA);
     const messagePageB = new MessagePage(pageB);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
 
     await test.step('User A sends a message in clan channel', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
       const helpers = new OnboardingHelpers(pageA);
       const { sent } = await helpers.sendTestMessage();
       expect(sent).toBe(true);
     });
-    let inviteLink: string = '';
+
     await test.step('User A invite User B to clan', async () => {
-      await clanMenuPanelA.openInvitePeopleModal();
-      const clanInviteFriendModalA = new ClanInviteFriendModal(pageA);
-      inviteLink = await clanInviteFriendModalA.getInviteLink();
-      expect(inviteLink).not.toBe('');
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
+      await clanPageB.joinClanByUrlInvite(url);
     });
 
     await test.step('User A blocks User B', async () => {
       await friendPageA.blockFriend(userNameB);
-    });
-
-    await test.step('User B joins the clan', async () => {
+      await pageA.waitForTimeout(1000);
       await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
-      await friendPageB.page.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      const clanInviteModalB = new ClanInviteModal(pageB);
-      await clanInviteModalB.acceptInvite();
     });
 
     await test.step('User B should not shown in forward message list', async () => {
@@ -133,6 +129,9 @@ test.describe('Friend Management - Block User', () => {
       const forwardMessageModalB = new ForwardMessageModal(pageB);
       const isUserBShown = await forwardMessageModalB.isUserShownInList(userNameA);
       expect(isUserBShown).toBeFalsy();
+      await pageB.reload({
+        waitUntil: 'domcontentloaded',
+      });
     });
 
     await clanFactory.cleanupClan(pageA);
@@ -185,10 +184,6 @@ test.describe('Friend Management - Block User', () => {
     await test.step('User A blocks User B', async () => {
       await friendPageA.blockFriend(userNameB);
       await friendPageA.assertBlockFriend(userNameB);
-    });
-
-    await test.step('User B go to the clan', async () => {
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await test.step('User A sends channel message and creates thread', async () => {
@@ -360,10 +355,6 @@ test.describe('Friend Management - Block User', () => {
     await test.step('User A blocks User B', async () => {
       await friendPageA.blockFriend(userNameB);
       await friendPageA.assertBlockFriend(userNameB);
-    });
-
-    await test.step('User B go to the clan', async () => {
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await test.step('User A sends message and creates topic discussion', async () => {

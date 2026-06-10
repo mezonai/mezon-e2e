@@ -17,7 +17,7 @@ export default class ChannelSettingSelector {
       generateE2eSelector('channel_setting_page.side_bar.channel_label')
     ),
     quick_menu: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
-      hasText: 'Quick Menu',
+      hasText: 'Quick Actions',
     }),
     deleteChannel: this.page.locator(generateE2eSelector('button.base'), {
       hasText: 'Delete Channel',

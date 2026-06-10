@@ -55,6 +55,7 @@ export class ClanFactory {
     if (!clanExists) {
       throw new Error(`Failed to create clan: ${clanName}`);
     }
+    await page.waitForTimeout(3000);
 
     this.clanUrl = page.url();
     this.clanName = clanName;

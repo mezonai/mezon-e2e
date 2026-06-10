@@ -113,7 +113,7 @@ test.describe('Clan Management 2', () => {
       'Verify that user B cannot create thread before add role',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openThreadModalFromHeader();
         await clanPageB.verifyCreateThreadButtonIsOpen(false);
       }
@@ -127,7 +127,7 @@ test.describe('Clan Management 2', () => {
 
     await AllureReporter.step('Verify that user B can create thread after add role', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await pageB.reload({ timeout: 2000 });
       await clanPageB.openThreadModalFromHeader();
       await clanPageB.verifyCreateThreadButtonIsOpen();
@@ -214,7 +214,7 @@ test.describe('Clan Management 2', () => {
       'Verify that user B cannot delete other message before add role',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await messageHelperB.verifyUserCanDeleteMessage(userNameA, false);
       }
     );
@@ -232,7 +232,7 @@ test.describe('Clan Management 2', () => {
       'Verify that user B can delete other message after add role',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await pageB.reload({ timeout: 2000 });
         await messageHelperB.verifyUserCanDeleteMessage(userNameA);
       }
@@ -306,7 +306,7 @@ test.describe('Clan Management 2', () => {
 
     await AllureReporter.step('Verify user B is the owner of clan', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openMemberList();
       const memberItem = await clanPageB.getMemberFromMemberList(userNameB);
       await clanPageB.verifyOwnerIconIsVisibleInMemberList(memberItem);
@@ -382,7 +382,7 @@ test.describe('Clan Management 2', () => {
 
     await AllureReporter.step('Verify user B is has full admin privileges', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openMemberList();
       const memberItem = await clanPageB.getMemberFromMemberList(userNameB);
       await clanPageB.verifyOwnerIconIsVisibleInMemberList(memberItem);
@@ -458,7 +458,7 @@ test.describe('Clan Management 2', () => {
       'Verify that member since on short profile of user B display correct',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openMemberList();
         const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
         await memberItem.click();
@@ -541,7 +541,7 @@ test.describe('Clan Management 2', () => {
       'Verify that member since on short profile of user B display correct',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openMemberList();
         const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
         await clanPageB.openContextModalOnMemberList(memberItem);

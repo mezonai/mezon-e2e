@@ -9,7 +9,6 @@ import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
 import { BasePage } from '../BasePage';
 import { ChannelSettingPage } from '../ChannelSettingPage';
-import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
 
 interface SelectorResult {
@@ -269,6 +268,27 @@ export class ClanPage extends BasePage {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  async editCategoryName(categoryName: string, newCategoryName: string): Promise<void> {
+    try {
+      const categoryLocator = this.selector.sidebar.category.filter({ hasText: categoryName });
+      await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await categoryLocator.click({ button: 'right' });
+      await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Category' }).click();
+      await this.page.waitForTimeout(500);
+
+      await this.selector.clanSettings.category.input.categoryName.waitFor({
+        state: 'visible',
+        timeout: 5000,
+      });
+      await this.selector.clanSettings.category.input.categoryName.fill(newCategoryName);
+      await this.selector.buttons.saveChanges.click();
+      await this.selector.buttons.exitSettings.click();
+      await this.page.waitForTimeout(500);
+    } catch (error) {
+      console.error(`Error editing category name: ${error}`);
     }
   }
 
@@ -908,16 +928,51 @@ export class ClanPage extends BasePage {
 
   async inviteUserToClanByUsername(username: string) {
     try {
+      const messageSelector = new MessageSelector(this.page);
+      const currentClanUrl = this.page.url();
+
       await this.selector.modalInvite.searchInput.fill(username);
 
       await expect(this.selector.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
       await expect(this.selector.input.urlInvite).toHaveValue(/http/);
 
       const urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
+
+      /*
+      Old flow: invite user directly from invite modal.
       await this.selector.buttons.invitePeople.first().click();
+      */
 
       await this.selector.buttons.closeInviteModal.click();
       await this.selector.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
+
+      await this.page.keyboard.press('Control+K');
+      await expect(messageSelector.searchModal).toBeVisible({ timeout: 5000 });
+      await expect(messageSelector.searchInput).toBeVisible({ timeout: 5000 });
+
+      await messageSelector.searchInput.fill(username);
+
+      const userLocator = messageSelector.searchModal
+        .locator(generateE2eSelector('suggest_item'), {
+          hasText: username,
+        })
+        .first();
+
+      await expect(userLocator).toBeVisible({ timeout: 5000 });
+      await userLocator.click();
+      await this.page.waitForTimeout(1000);
+
+      await expect(messageSelector.messageInput).toBeVisible({ timeout: 5000 });
+      await messageSelector.messageInput.fill(urlInvite);
+      await this.page.waitForTimeout(1000);
+      await messageSelector.messageInput.press('Enter');
+
+      await expect(messageSelector.messages.filter({ hasText: urlInvite }).last()).toBeVisible({
+        timeout: 5000,
+      });
+      await this.page.waitForTimeout(2000);
+      await this.page.goto(currentClanUrl, { waitUntil: 'domcontentloaded' });
+      await this.page.waitForTimeout(3000);
 
       return urlInvite;
     } catch (error) {
@@ -927,6 +982,7 @@ export class ClanPage extends BasePage {
   }
 
   async joinClanByUrlInvite(url: string) {
+    await this.page.waitForTimeout(2000);
     const messageSelector = new MessageSelector(this.page);
 
     const messageWithUrl = messageSelector.messages.last().filter({
@@ -941,7 +997,17 @@ export class ClanPage extends BasePage {
         `❌ No message contains URL after 5s.\nExpected: ${url}\nMessages:\n${allTexts.join('\n---\n')}`
       );
     }
+    await this.page.waitForTimeout(2000);
 
+    const messageItem = messageWithUrl.last();
+    const gotoClanButton = messageItem.locator(generateE2eSelector('invite_card.button.goto_clan'));
+
+    await expect(gotoClanButton).toBeVisible({ timeout: 10000 });
+    await gotoClanButton.click();
+    await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+
+    /*
+    Old flow: click invite URL, open invite page in a new tab, then accept invite.
     const [newPage] = await Promise.all([
       this.page.waitForEvent('popup'),
       messageWithUrl.getByText(url, { exact: false }).last().click(),
@@ -959,6 +1025,7 @@ export class ClanPage extends BasePage {
     ]);
 
     await redirectedPage.waitForLoadState('networkidle');
+    */
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {

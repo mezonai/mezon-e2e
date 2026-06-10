@@ -138,7 +138,7 @@ test.describe('Channel Message 6', () => {
     });
 
     await AllureReporter.step('User B can see the shared canvas on channel', async () => {
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openChannelByName('general');
       await messageHelperB.verifyMessageHasCanvasLink(canvasTitle);
     });
@@ -448,7 +448,7 @@ test.describe('Channel Message 6', () => {
       'User B clicks on the shared canvas link in channel and cannot view the canvas content',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await messageHelperB.verifyMessageHasCanvasLink(canvasTitle);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
         await clanPageB.assertCanvasContent(canvasTitle, canvasContent, false);
@@ -540,7 +540,7 @@ test.describe('Channel Message 6', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('Join voice channel', async () => {
