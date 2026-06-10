@@ -128,7 +128,7 @@ test.describe('Clan Context Menu - Create Category', () => {
 
     await test.step('Non-manager context menu hides Create Category entry', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const memberMenuPanel = new ClanMenuPanel(pageB);
       await memberMenuPanel.openPanel();
       await expect(memberMenuPanel.buttons.invitePeople).toBeVisible();

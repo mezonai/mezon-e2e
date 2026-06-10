@@ -59,6 +59,11 @@ export default class MessageSelector {
     .first();
   secondClan = this.page.locator('div[title]').nth(1);
   messages = this.page.locator(generateE2eSelector('message.item'));
+  inviteCard = {
+    button: {
+      gotoClan: this.page.locator(generateE2eSelector('invite_card.button.goto_clan')),
+    },
+  };
   leaveGroupButton = this.group.locator(
     generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
   );

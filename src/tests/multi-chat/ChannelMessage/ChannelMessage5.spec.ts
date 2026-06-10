@@ -443,6 +443,7 @@ test.describe('Channel Message 5', () => {
     });
 
     await test.step('User A blocks User B from the DM', async () => {
+      await friendPageB.createDM(userNameA);
       await friendPageB.blockFriendFromDM(userNameA);
       await friendPageB.page.waitForTimeout(1000);
     });

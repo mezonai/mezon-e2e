@@ -131,7 +131,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('Verify user B can not send message on topic', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isMessageInputVisible = await clanPageB.isMessageInputVisible(true);
@@ -231,7 +231,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('User B is banned can not send message on topic', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isBannedInputVisible = await clanPageB.isBannedItemVisible(true);
@@ -332,7 +332,7 @@ test.describe('Channel Message 2', () => {
       'Verify user B can not react or open context menu on topic message',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await messageHelperB.openTopicBoxByMessage(testMessage);
         const isReactionVisible = await clanPageB.isHoverMessageModalVisible(true);
         expect(isReactionVisible).toBe(false);
@@ -437,7 +437,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('Verify user B can not forward message to channel', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
 
       await messageHelperB.sendTextMessage(testMessage);
       await messagePageB.openForwardMessageModal();
@@ -544,7 +544,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('User B check inbox for role mention notification', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await pageB.waitForTimeout(3000);
       await messageHelperB.openHeaderInboxButton();
       await messageHelperB.assertMessageInInboxByContent(`@${roleName}`);

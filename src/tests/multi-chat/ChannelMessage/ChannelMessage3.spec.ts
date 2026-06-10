@@ -15,6 +15,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, test } from '../../../fixtures/dual.fixture';
+import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('Channel Message 3', () => {
   const accountA = AccountCredentials['accountKien2'];
@@ -129,7 +130,7 @@ test.describe('Channel Message 3', () => {
 
     await AllureReporter.step('Verify user B can not send message on topic', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isMessageInputVisible = await clanPageB.isMessageInputVisible(true);
@@ -169,6 +170,7 @@ test.describe('Channel Message 3', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     const testMessage = `Test message - ${Date.now()}`;
+    const messagePageB = new MessagePage(pageB);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await Promise.allSettled([
@@ -221,6 +223,9 @@ test.describe('Channel Message 3', () => {
 
     await AllureReporter.step('Verify message is visible on DM', async () => {
       await pageB.reload();
+      await pageB.waitForTimeout(2000);
+      await messagePageB.openSearchModalbyPressCtrlK();
+      await messageHelperB.openDMByNameOnsearchModal(userNameA);
       const lastMessage = await messageHelperB.getLastMessageInChat();
       expect(lastMessage).toContain(testMessage);
     });
@@ -300,7 +305,7 @@ test.describe('Channel Message 3', () => {
     });
     await AllureReporter.step('Verify contact card message is visible on destination', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameB}`);
     });
 
@@ -458,7 +463,7 @@ test.describe('Channel Message 3', () => {
 
     await AllureReporter.step('Verify contact card message has not call item', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameB}`);
       await messageHelperB.verifyCallItemVisibleInShareContactCard(`@${userNameB}`, false);
     });

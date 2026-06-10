@@ -3,7 +3,7 @@ import MessageSelector from '@/data/selectors/MessageSelector';
 import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Locator, Page } from '@playwright/test';
-import { differenceInDays, differenceInMonths, differenceInYears, formatDistance } from 'date-fns';
+import { format } from 'date-fns';
 import { BasePage } from './BasePage';
 import { MessagePage } from './MessagePage';
 
@@ -286,36 +286,17 @@ export class ProfilePage extends BasePage {
   async verifyMemberSinceJoinClanInMemberManagement(time: string | Date) {
     const clanSelector = new ClanSelector(this.page);
 
-    const date = new Date(time);
-
-    const formatTime = formatDistance(date, new Date(), {
-      addSuffix: true,
-    });
+    const formatTime = format(new Date(time), 'MMM dd, yyyy');
 
     const memberSinceLocator = clanSelector.memberSettings.memberSince.first();
 
-    await expect(memberSinceLocator).toHaveText(formatTime, { timeout: 500 });
+    await expect(memberSinceLocator).toHaveText(formatTime);
   }
 
   async verifyMemberSinceJoinMezonInMemberManagement(time: string | Date) {
     const clanSelector = new ClanSelector(this.page);
 
-    const date = new Date(time);
-    const now = new Date();
-
-    const years = differenceInYears(now, date);
-    const months = differenceInMonths(now, date);
-    const days = differenceInDays(now, date);
-
-    let formatTime = '';
-
-    if (years > 0) {
-      formatTime = `${years}y ago`;
-    } else if (months > 0) {
-      formatTime = `${months}mo ago`;
-    } else {
-      formatTime = `${days}d ago`;
-    }
+    const formatTime = format(new Date(time), 'MMM dd, yyyy');
 
     const memberSinceLocator = clanSelector.memberSettings.joinMezon.first();
 

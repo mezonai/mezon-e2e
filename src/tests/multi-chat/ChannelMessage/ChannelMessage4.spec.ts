@@ -331,7 +331,7 @@ test.describe('Channel Message 4', () => {
 
     await AllureReporter.step('Verify voice channel link is visible to User B', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const isVoiceChannelLinkSent = await messageHelperB.verifyLastMessageHasText(channelName);
       expect(isVoiceChannelLinkSent).toBe(true);
     });

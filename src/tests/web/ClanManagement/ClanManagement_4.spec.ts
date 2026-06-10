@@ -1,6 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { MessagePage } from '@/pages/MessagePage';
 import { MezonCredentials } from '@/types';
@@ -180,5 +181,50 @@ test.describe('Clan Management - Module 4', () => {
       const lastMessage = await messagePage.getLastMessage();
       expect(lastMessage).toContainText(channelName);
     });
+  });
+  test('Verify that user can edit category name', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64058',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.MINOR,
+    });
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully edit the category name within a clan.
+    **Test Steps:**
+      1. Create new category
+      2. Edit category name
+    **Expected Result:** The category name is updated successfully and reflected in the category list.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['edit-category', 'clan-management'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const menuPanel = new ClanMenuPanel(page);
+
+    const unique = Date.now().toString(36).slice(-6);
+    const categoryName = `cateName - ${unique}`;
+    const newCategoryName = `newCateName - ${unique}`;
+
+    await AllureReporter.addParameter('categoryName', categoryName);
+    await AllureReporter.addParameter('newCategoryName', newCategoryName);
+    await AllureReporter.step(`Create new category: ${categoryName}`, async () => {
+      await menuPanel.createCategory(categoryName);
+    });
+
+    await AllureReporter.step(`Edit category name to: ${newCategoryName}`, async () => {
+      await clanPage.editCategoryName(categoryName, newCategoryName);
+    });
+
+    await AllureReporter.step(
+      'Verify that category name is updated in the category list',
+      async () => {
+        const isNewCategoryPresent = await menuPanel.isCategoryPresent(newCategoryName);
+        expect(isNewCategoryPresent).toBe(true);
+      }
+    );
   });
 });

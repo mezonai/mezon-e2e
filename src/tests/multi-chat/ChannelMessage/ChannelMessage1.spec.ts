@@ -130,7 +130,8 @@ test.describe('Channel Message 1', () => {
 
     await AllureReporter.step('User B find mention message on inbox', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await pageB.waitForTimeout(1000);
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openHeaderInboxButton();
       await messageHelperB.assertMessageInInboxByContent(uniqueMessage);
     });
@@ -223,7 +224,7 @@ test.describe('Channel Message 1', () => {
 
     await AllureReporter.step('Verify user can not send message on channel', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const isMessageInputVisible = await clanPageB.isMessageInputVisible();
       expect(isMessageInputVisible).toBe(false);
     });
@@ -308,7 +309,7 @@ test.describe('Channel Message 1', () => {
 
     await AllureReporter.step('Banned item is visible on channel of user banned', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const isBannedInputVisible = await clanPageB.isBannedItemVisible();
       expect(isBannedInputVisible).toBe(true);
       await pageB.reload();
@@ -403,7 +404,8 @@ test.describe('Channel Message 1', () => {
       'Verify user can not open context menu and hover message modal on banned channel',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await pageB.waitForTimeout(1000);
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         const isReactionVisible = await clanPageB.isHoverMessageModalVisible();
         expect(isReactionVisible).toBe(false);
         const isContextMenuVisible = await clanPageB.isContextMenuVisible();
@@ -494,7 +496,8 @@ test.describe('Channel Message 1', () => {
 
     await AllureReporter.step('Verify user B can not buzz on channel', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await pageB.waitForTimeout(1000);
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
 
       await messageHelperB.openBuzzMessageModal();
 

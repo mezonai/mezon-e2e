@@ -2,6 +2,7 @@ import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
+import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -13,6 +14,7 @@ import {
 } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { test } from '../../fixtures/dual.fixture';
 
 test.describe('Member Management', () => {
@@ -131,7 +133,7 @@ test.describe('Member Management', () => {
 
     await AllureReporter.step('User B verify that it has new role and leave clan', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openMemberListSetting();
       await clanPageB.verifyUserHasRoleOnMemberSettings(userNameB, roleName);
       await clanPageB.leaveClan();
@@ -142,7 +144,10 @@ test.describe('Member Management', () => {
       async () => {
         await clanPageA.clickButtonInvitePeopleFromMenu();
         const url = await clanPageA.inviteUserToClanByUsername(userNameB);
-        await friendPageB.createDM(userNameA);
+        const messagePageB = new MessagePage(pageB);
+        const messageHelperB = new MessageTestHelpers(pageB);
+        await messagePageB.openSearchModalbyPressCtrlK();
+        await messageHelperB.openDMByNameOnsearchModal(userNameA);
         await clanPageB.joinClanByUrlInvite(url);
         await clanPageA.verifyUserHasRoleOnMemberSettings(userNameB, roleName, false);
       }
@@ -354,7 +359,7 @@ test.describe('Member Management', () => {
 
     await AllureReporter.step('User B verify that it has new role and leave clan', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openMemberList();
       const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameA);
       await clanPageB.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(memberItem, roleStyle);
@@ -366,10 +371,14 @@ test.describe('Member Management', () => {
       async () => {
         await clanPageA.clickButtonInvitePeopleFromMenu();
         const url = await clanPageA.inviteUserToClanByUsername(userNameB);
-        await friendPageB.createDM(userNameA);
+        const messagePageB = new MessagePage(pageB);
+        const messageHelperB = new MessageTestHelpers(pageB);
+        await messagePageB.openSearchModalbyPressCtrlK();
+        await messageHelperB.openDMByNameOnsearchModal(userNameA);
         await clanPageB.joinClanByUrlInvite(url);
+        await pageB.waitForTimeout(1000);
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
         await clanPageB.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(
           memberItem,
@@ -484,7 +493,8 @@ test.describe('Member Management', () => {
       'User B send a message, verify role color visible on username of chatbox and leave clan',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await pageB.waitForTimeout(1000);
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.sendFirstMessage('This is message');
         await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameB);
         await clanPageB.leaveClan();
@@ -496,10 +506,14 @@ test.describe('Member Management', () => {
       async () => {
         await clanPageA.clickButtonInvitePeopleFromMenu();
         const url = await clanPageA.inviteUserToClanByUsername(userNameB);
-        await friendPageB.createDM(userNameA);
+        const messagePageB = new MessagePage(pageB);
+        const messageHelperB = new MessageTestHelpers(pageB);
+        await messagePageB.openSearchModalbyPressCtrlK();
+        await messageHelperB.openDMByNameOnsearchModal(userNameA);
         await clanPageB.joinClanByUrlInvite(url);
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await pageB.waitForTimeout(1000);
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameB, false);
       }
     );

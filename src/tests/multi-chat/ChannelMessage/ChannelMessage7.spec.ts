@@ -137,7 +137,6 @@ test.describe('Channel Message 7', () => {
       await clanPageB.joinClanByUrlInvite(url);
 
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('User A creates poll', async () => {
@@ -245,7 +244,6 @@ test.describe('Channel Message 7', () => {
       await clanPageB.joinClanByUrlInvite(url);
 
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('User A creates poll', async () => {
@@ -331,7 +329,7 @@ test.describe('Channel Message 7', () => {
     );
     await AllureReporter.step('Verify cannot share contact with themselves', async () => {
       await messageHelperB.shareContactInDMOrChannel(userNameB, false);
-      await pageA.keyboard.press('Escape');
+      await pageB.keyboard.press('Escape');
     });
   });
 
@@ -401,7 +399,7 @@ test.describe('Channel Message 7', () => {
     );
     await AllureReporter.step('Verify cannot share contact for the person`s contact.', async () => {
       await messageHelperB.shareContactInDMOrChannel(userNameA, false);
-      await pageA.keyboard.press('Escape');
+      await pageB.keyboard.press('Escape');
     });
   });
 });
