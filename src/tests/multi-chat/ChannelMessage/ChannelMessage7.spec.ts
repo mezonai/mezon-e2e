@@ -402,4 +402,71 @@ test.describe('Channel Message 7', () => {
       await pageB.keyboard.press('Escape');
     });
   });
+
+  test('Verify thatshows count badge in search modal for unread DM', async ({ dual }) => {
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that shows count badge in search modal for unread DM
+
+    **Test Steps:**
+    1. User A and User B become friends
+    2. User A creates DM with User B
+    3. User A sends a message to User B
+    4. User B opens search modal and verifies badge on suggest_item
+
+    **Expected Result:** Badge is displayed in search modal for unread DM
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'badge', 'search-modal', 'suggest_item'],
+    });
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+
+    await AllureReporter.step('User A create DM with user B and send a message', async () => {
+      await messagePageA.createDMByName(userNameB);
+      await pageB.goto(directFriendsUrl);
+      await pageB.waitForTimeout(2000);
+      await messagePageA.sendMessageWhenInDM('Test message for badge');
+      await pageA.waitForTimeout(2000);
+    });
+
+    await AllureReporter.step(
+      'User B opens search modal and verifies badge on suggest_item',
+      async () => {
+        await messagePageB.verifyBadgeOnSearchModal(userNameA, true);
+      }
+    );
+  });
 });

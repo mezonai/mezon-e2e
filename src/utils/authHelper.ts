@@ -39,7 +39,7 @@ export class AuthHelper {
   static async setAuthForSuite(page: Page, credentials: any = null) {
     const endpoint = WEBSITE_CONFIGS.MEZON.baseURL || '';
     await page.waitForTimeout(1000);
-    await page.goto(endpoint);
+    await page.goto(`${endpoint}`);
     await page.waitForLoadState('domcontentloaded');
     this.clearAuth(page);
     await page.waitForTimeout(1000);
@@ -48,9 +48,11 @@ export class AuthHelper {
     await page.waitForTimeout(1000);
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
-    const homePage = new HomePage(page);
-    await homePage.clickLogin();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
+    await page.goto(`${endpoint}chat`);
+    // const homePage = new HomePage(page);
+    // await homePage.clickLogin();
+    await page.waitForTimeout(1500);
     await page.waitForLoadState('domcontentloaded');
   }
 

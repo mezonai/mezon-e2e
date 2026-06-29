@@ -292,6 +292,19 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async deleteCategory(categoryName: string): Promise<void> {
+    try {
+      const categoryLocator = this.selector.sidebar.category.filter({ hasText: categoryName });
+      await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await categoryLocator.click({ button: 'right' });
+      await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Category' }).click();
+      await this.page.waitForTimeout(500);
+      await this.selector.buttons.deleteCategory.click();
+    } catch (error) {
+      console.error(`Error deleting category: ${error}`);
+    }
+  }
+
   async closeCreateThreadModal(): Promise<void> {
     await this.selector.threadBox.button.closeCreateThreadModal.waitFor({
       state: 'visible',
@@ -964,7 +977,7 @@ export class ClanPage extends BasePage {
 
       await expect(messageSelector.messageInput).toBeVisible({ timeout: 5000 });
       await messageSelector.messageInput.fill(urlInvite);
-      await this.page.waitForTimeout(1000);
+      await this.page.waitForTimeout(2000);
       await messageSelector.messageInput.press('Enter');
 
       await expect(messageSelector.messages.filter({ hasText: urlInvite }).last()).toBeVisible({

@@ -59,6 +59,9 @@ export default class ClanSelector {
     preventAnoSettings: this.page.locator(
       `${generateE2eSelector('clan_page.settings.overview.prevent_anonymous')} ${generateE2eSelector('input.base')}`
     ),
+    deleteCategory: this.page.locator(
+      generateE2eSelector('clan_page.modal.delete_category.button.delete')
+    ),
   };
 
   readonly sidebarMemberList = {

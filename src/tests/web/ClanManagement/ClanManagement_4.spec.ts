@@ -1,6 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { ToastSelector } from '@/data/selectors/ToastSelectort';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { MessagePage } from '@/pages/MessagePage';
@@ -224,6 +225,49 @@ test.describe('Clan Management - Module 4', () => {
       async () => {
         const isNewCategoryPresent = await menuPanel.isCategoryPresent(newCategoryName);
         expect(isNewCategoryPresent).toBe(true);
+      }
+    );
+  });
+
+  test('Verify that user can not delete category contain system channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64058',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.MINOR,
+    });
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can not delete a category that contains a system channel.
+    **Test Steps:**
+      1. Create new category
+      2. Attempt to delete category
+    **Expected Result:** The category cannot be deleted and an error message is displayed.
+  `);
+    await AllureReporter.addLabels({
+      tag: ['delete-category', 'clan-management'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const menuPanel = new ClanMenuPanel(page);
+    const toastSelector = new ToastSelector(page);
+
+    const unique = Date.now().toString(36).slice(-6);
+    const categoryName = `cateName - ${unique}`;
+
+    await AllureReporter.addParameter('categoryName', categoryName);
+    await AllureReporter.step(`Create new category: ${categoryName}`, async () => {
+      await menuPanel.createCategory(categoryName);
+    });
+
+    await AllureReporter.step(
+      `Click delete category, verify that category cannot be deleted and error message is displayed`,
+      async () => {
+        await clanPage.deleteCategory('Public Channels');
+        const message = 'This category has welcome channel';
+        await toastSelector.verifyErrorToast(message);
+        await clanPage.closeSettingsChannel();
       }
     );
   });

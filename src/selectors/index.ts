@@ -260,6 +260,11 @@ export const DATA_E2E_IDENTIFIER = {
       limit_creation: {
         title: '',
       },
+      delete_category: {
+        button: {
+          delete: '',
+        },
+      },
       create_event: {
         start_modal: '',
         button_create: '',
@@ -1031,6 +1036,7 @@ export const DATA_E2E_IDENTIFIER = {
   suggest_item: {
     username: '',
     clan_name: '',
+    count_badge: '',
   },
   badge: {
     friend_pending: '',

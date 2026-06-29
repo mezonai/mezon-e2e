@@ -151,6 +151,15 @@ export class MessagePage extends BasePage {
     await this.page.waitForTimeout(3000);
   }
 
+  async addMemberToCurrentConversation(): Promise<void> {
+    await this.selector.addUserButton.click();
+    await this.page.waitForTimeout(3000);
+    await this.selector.userItem.click();
+    this.userNameItemText = (await this.selector.userNameItem.textContent()) ?? '';
+    await this.selector.createGroupButton.click();
+    await this.page.waitForTimeout(3000);
+  }
+
   async getMemberCount(): Promise<number> {
     await this.selector.group.click();
     await this.selector.sumMember.click();
@@ -508,6 +517,24 @@ export class MessagePage extends BasePage {
     await expect(this.selector.searchModal).toBeHidden({
       timeout: 5000,
     });
+  }
+
+  async verifyBadgeOnSearchModal(username: string, shouldHaveBadge = true): Promise<void> {
+    await this.openSearchModalbyPressCtrlK();
+    await expect(this.selector.searchInput).toBeVisible({ timeout: 5000 });
+    await this.selector.searchInput.fill(username);
+    await this.page.waitForTimeout(3000);
+    const suggestItem = this.selector.searchModal.locator(generateE2eSelector('suggest_item'), {
+      hasText: username,
+    });
+    await expect(suggestItem.first()).toBeVisible({ timeout: 5000 });
+    const badge = suggestItem.first().locator(generateE2eSelector('suggest_item.count_badge'));
+    if (shouldHaveBadge) {
+      await expect(badge).toBeVisible({ timeout: 3000 });
+    } else {
+      await expect(badge).toBeHidden({ timeout: 3000 });
+    }
+    await this.closeSearchModal();
   }
 
   async openSearchModalbyClickSearchButton(): Promise<void> {
