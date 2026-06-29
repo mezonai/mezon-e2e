@@ -167,6 +167,7 @@ test.describe('Channel Message 6', () => {
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
     const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
     const canvasTitle = `canvas title - ${generateRandomString(10)}`;
     const canvasContent = `canvas content - ${generateRandomString(10)}`;
 
@@ -243,7 +244,8 @@ test.describe('Channel Message 6', () => {
     await AllureReporter.step(
       'User B clicks on the shared canvas link in direct message and can view the canvas content',
       async () => {
-        await pageB.reload();
+        await messagePageB.openSearchModalbyPressCtrlK();
+        await messageHelperB.openDMByNameOnsearchModal(userNameA);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
         await clanPageB.assertCanvasContent(canvasTitle, canvasContent);
       }
