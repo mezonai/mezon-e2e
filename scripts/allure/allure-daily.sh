@@ -135,13 +135,19 @@ if [ ! -f "$VERCEL_JSON" ]; then
   log "📄 Creating vercel.json..."
   cat > "$VERCEL_JSON" <<'EOF'
 {
-  "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": true
 }
 EOF
   log "✅ vercel.json created"
 else
-  log "ℹ️  vercel.json already exists, skipping"
+  # Always overwrite to ensure latest config is applied
+  log "♻️  Overwriting vercel.json to ensure clean config..."
+  cat > "$VERCEL_JSON" <<'EOF'
+{
+  "trailingSlash": true
+}
+EOF
+  log "✅ vercel.json updated"
 fi
 
 # ---------------------------------------------------------------------------
