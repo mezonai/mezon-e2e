@@ -46,12 +46,12 @@ jobs:
         run: yarn install
 
       # -----------------------------------------------------------------------
-      # 5. Install Playwright browsers
+      # 3. Install Playwright browsers
       # -----------------------------------------------------------------------
       - name: Install Playwright browsers
-        run: npx playwright install chromium
         env:
-          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 'true'
+          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
+        run: npx playwright install chromium --with-deps
 
       # -----------------------------------------------------------------------
       # 4. Check Java runtime (required by allure-commandline)
