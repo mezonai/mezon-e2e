@@ -31,6 +31,15 @@ jobs:
           # Bỏ cache: 'yarn' vì nó gây ra lỗi không tìm thấy File trên self-hosted runner
 
       # -----------------------------------------------------------------------
+      # 2b. Enable Yarn via Corepack (self-hosted runner không có yarn cài sẵn)
+      # -----------------------------------------------------------------------
+      - name: Enable Yarn via Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@stable --activate
+          yarn --version
+
+      # -----------------------------------------------------------------------
       # 3. Install dependencies
       # -----------------------------------------------------------------------
       - name: Install dependencies
