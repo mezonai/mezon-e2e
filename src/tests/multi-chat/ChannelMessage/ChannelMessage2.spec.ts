@@ -8,7 +8,11 @@ import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
@@ -20,26 +24,16 @@ test.describe('Channel Message 2', () => {
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -137,7 +131,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('Verify user B can not send message on topic', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isMessageInputVisible = await clanPageB.isMessageInputVisible(true);
@@ -237,7 +231,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('User B is banned can not send message on topic', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isBannedInputVisible = await clanPageB.isBannedItemVisible(true);
@@ -338,7 +332,7 @@ test.describe('Channel Message 2', () => {
       'Verify user B can not react or open context menu on topic message',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await messageHelperB.openTopicBoxByMessage(testMessage);
         const isReactionVisible = await clanPageB.isHoverMessageModalVisible(true);
         expect(isReactionVisible).toBe(false);
@@ -443,7 +437,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('Verify user B can not forward message to channel', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
 
       await messageHelperB.sendTextMessage(testMessage);
       await messagePageB.openForwardMessageModal();
@@ -550,7 +544,7 @@ test.describe('Channel Message 2', () => {
 
     await AllureReporter.step('User B check inbox for role mention notification', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await pageB.waitForTimeout(3000);
       await messageHelperB.openHeaderInboxButton();
       await messageHelperB.assertMessageInInboxByContent(`@${roleName}`);

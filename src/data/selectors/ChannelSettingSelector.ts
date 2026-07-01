@@ -17,7 +17,7 @@ export default class ChannelSettingSelector {
       generateE2eSelector('channel_setting_page.side_bar.channel_label')
     ),
     quick_menu: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
-      hasText: 'Quick Menu',
+      hasText: 'Quick Actions',
     }),
     deleteChannel: this.page.locator(generateE2eSelector('button.base'), {
       hasText: 'Delete Channel',
@@ -259,5 +259,40 @@ export default class ChannelSettingSelector {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
     channelsList: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
+  };
+
+  readonly archived_channels = {
+    item: {
+      container: this.page.locator(
+        generateE2eSelector('clan_page.settings.archived_channels.item')
+      ),
+      channel_name: this.page.locator(
+        generateE2eSelector('clan_page.settings.archived_channels.item.channel_name')
+      ),
+      active_time: this.page.locator(
+        generateE2eSelector('clan_page.settings.archived_channels.item.active_time')
+      ),
+      restore_button: this.page.locator(
+        generateE2eSelector('clan_page.settings.archived_channels.item.restore_button')
+      ),
+    },
+    archive_channel_button: this.page.locator(
+      generateE2eSelector('clan_page.channel_list.panel.item'),
+      {
+        hasText: 'Archive Channel',
+      }
+    ),
+
+    archive_thread_button: this.page.locator(
+      generateE2eSelector('clan_page.channel_list.panel.item'),
+      {
+        hasText: 'Archive Thread',
+      }
+    ),
+    modal: {
+      confirm_button: this.page.locator(generateE2eSelector('modal.confirm_modal.button.confirm'), {
+        hasText: 'Archive',
+      }),
+    },
   };
 }

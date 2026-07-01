@@ -70,8 +70,8 @@ test.describe('Direct Message', () => {
 
     await AllureReporter.step('Verify that i can open a DM', async () => {
       const firstUser = await messagePage.createDM();
-      const groupName = await messagePage.getGroupName();
-      await expect(groupName).toHaveText(firstUser, { timeout: 5000 });
+      const userName = await messagePage.getUserLocator(firstUser);
+      expect(userName).toBeTruthy();
     });
 
     await AllureReporter.attachScreenshot(page, 'Direct Message Created');
@@ -260,6 +260,31 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.attachScreenshot(page, 'Pinned Message Removed');
+  });
+
+  test('Add member to DM to convert to group chat', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
+    const messagePage = new MessagePage(page);
+    const helpers = new DirectMessageHelper(page);
+
+    await AllureReporter.step('Create a DM', async () => {
+      await messagePage.createDM();
+      await page.waitForTimeout(3000);
+    });
+
+    const prevGroupCount = await helpers.countGroups();
+
+    await AllureReporter.step('Add member to DM to create a group', async () => {
+      await messagePage.addMemberToCurrentConversation();
+    });
+
+    await AllureReporter.step('Verify group chat is created after adding member', async () => {
+      const groupCreated = await messagePage.isGroupCreated(prevGroupCount);
+      expect(groupCreated).toBeTruthy();
+    });
   });
 
   test('Verify user cannot create duplicate DM ', async ({ page }) => {

@@ -5,12 +5,10 @@ import { CategorySettingPage } from '@/pages/CategorySettingPage';
 import { ROUTES } from '@/selectors';
 import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
 import { BasePage } from '../BasePage';
 import { ChannelSettingPage } from '../ChannelSettingPage';
-import { ClanInviteModal } from '../Modal/ClanInviteModal';
 import { ClanMenuPanel } from './ClanMenuPanel';
 
 interface SelectorResult {
@@ -106,7 +104,7 @@ export class ClanPage extends BasePage {
         continue;
       }
       await this.deleteClan(clanName || '');
-      await this.page.goto(joinUrlPaths(this.page.url(), ROUTES.DIRECT_FRIENDS));
+      // await this.page.goto(joinUrlPaths(this.page.url(), ROUTES.DIRECT_FRIENDS));
       await this.page.waitForLoadState('domcontentloaded');
     }
     return true;
@@ -145,8 +143,8 @@ export class ClanPage extends BasePage {
       await categorySettingPage.fillDeleteInput(clanName || '');
       await categorySettingPage.clickConfirmDeleteButton();
       await this.page.waitForLoadState('domcontentloaded');
-      if (await this.selector.permissionModal.isVisible()) {
-        await this.selector.permissionModal.cancel.click();
+      while (await this.selector.permissionModal.isVisible()) {
+        await this.selector.permissionModal.cancel.first().click();
       }
       return true;
     } catch (error) {
@@ -270,6 +268,40 @@ export class ClanPage extends BasePage {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  async editCategoryName(categoryName: string, newCategoryName: string): Promise<void> {
+    try {
+      const categoryLocator = this.selector.sidebar.category.filter({ hasText: categoryName });
+      await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await categoryLocator.click({ button: 'right' });
+      await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Category' }).click();
+      await this.page.waitForTimeout(500);
+
+      await this.selector.clanSettings.category.input.categoryName.waitFor({
+        state: 'visible',
+        timeout: 5000,
+      });
+      await this.selector.clanSettings.category.input.categoryName.fill(newCategoryName);
+      await this.selector.buttons.saveChanges.click();
+      await this.selector.buttons.exitSettings.click();
+      await this.page.waitForTimeout(500);
+    } catch (error) {
+      console.error(`Error editing category name: ${error}`);
+    }
+  }
+
+  async deleteCategory(categoryName: string): Promise<void> {
+    try {
+      const categoryLocator = this.selector.sidebar.category.filter({ hasText: categoryName });
+      await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await categoryLocator.click({ button: 'right' });
+      await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Category' }).click();
+      await this.page.waitForTimeout(500);
+      await this.selector.buttons.deleteCategory.click();
+    } catch (error) {
+      console.error(`Error deleting category: ${error}`);
     }
   }
 
@@ -423,6 +455,7 @@ export class ClanPage extends BasePage {
       }
 
       await this.selector.buttons.invitePeople.first().click();
+      await this.page.waitForTimeout(2000);
 
       await this.selector.buttons.closeInviteModal.click();
 
@@ -645,7 +678,7 @@ export class ClanPage extends BasePage {
         await expect(descriptionLocator).toHaveText(description);
       }
 
-      const startDateTime = `${startDate}, ${startTime}`;
+      const startDateTime = `${startDate} - ${startTime}`;
       const startDateTimeLocator = this.selector.createEventModal.startTimeReview;
       await expect(startDateTimeLocator).toHaveText(startDateTime);
       const typeClanLocator = this.selector.createEventModal.typeClanReview;
@@ -691,6 +724,8 @@ export class ClanPage extends BasePage {
     const startTime = await lastEvent
       .locator(this.selector.createEventModal.startTimeReview)
       .textContent();
+    console.log(startTime);
+
     const type = await lastEvent
       .locator(this.selector.createEventModal.typeClanReview)
       .textContent();
@@ -836,6 +871,7 @@ export class ClanPage extends BasePage {
   }
 
   async countChannelsOnChannelList() {
+    await this.page.waitForTimeout(3000);
     return await this.selector.sidebar.channelsList.count();
   }
 
@@ -851,6 +887,7 @@ export class ClanPage extends BasePage {
   }
 
   async countMessagesOnChannel() {
+    await this.page.waitForTimeout(3000);
     const messageSelector = new MessageSelector(this.page);
     return (await messageSelector.messages.count()) + 1;
   }
@@ -904,16 +941,51 @@ export class ClanPage extends BasePage {
 
   async inviteUserToClanByUsername(username: string) {
     try {
+      const messageSelector = new MessageSelector(this.page);
+      const currentClanUrl = this.page.url();
+
       await this.selector.modalInvite.searchInput.fill(username);
 
       await expect(this.selector.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
       await expect(this.selector.input.urlInvite).toHaveValue(/http/);
 
       const urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
+
+      /*
+      Old flow: invite user directly from invite modal.
       await this.selector.buttons.invitePeople.first().click();
+      */
 
       await this.selector.buttons.closeInviteModal.click();
       await this.selector.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
+
+      await this.page.keyboard.press('Control+K');
+      await expect(messageSelector.searchModal).toBeVisible({ timeout: 5000 });
+      await expect(messageSelector.searchInput).toBeVisible({ timeout: 5000 });
+
+      await messageSelector.searchInput.fill(username);
+
+      const userLocator = messageSelector.searchModal
+        .locator(generateE2eSelector('suggest_item'), {
+          hasText: username,
+        })
+        .first();
+
+      await expect(userLocator).toBeVisible({ timeout: 5000 });
+      await userLocator.click();
+      await this.page.waitForTimeout(1000);
+
+      await expect(messageSelector.messageInput).toBeVisible({ timeout: 5000 });
+      await messageSelector.messageInput.fill(urlInvite);
+      await this.page.waitForTimeout(2000);
+      await messageSelector.messageInput.press('Enter');
+
+      await expect(messageSelector.messages.filter({ hasText: urlInvite }).last()).toBeVisible({
+        timeout: 5000,
+      });
+      await this.page.waitForTimeout(2000);
+      await this.page.goto(currentClanUrl, { waitUntil: 'domcontentloaded' });
+      await this.page.waitForTimeout(3000);
 
       return urlInvite;
     } catch (error) {
@@ -923,6 +995,7 @@ export class ClanPage extends BasePage {
   }
 
   async joinClanByUrlInvite(url: string) {
+    await this.page.waitForTimeout(2000);
     const messageSelector = new MessageSelector(this.page);
 
     const messageWithUrl = messageSelector.messages.last().filter({
@@ -937,7 +1010,17 @@ export class ClanPage extends BasePage {
         `❌ No message contains URL after 5s.\nExpected: ${url}\nMessages:\n${allTexts.join('\n---\n')}`
       );
     }
+    await this.page.waitForTimeout(2000);
 
+    const messageItem = messageWithUrl.last();
+    const gotoClanButton = messageItem.locator(generateE2eSelector('invite_card.button.goto_clan'));
+
+    await expect(gotoClanButton).toBeVisible({ timeout: 10000 });
+    await gotoClanButton.click();
+    await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+
+    /*
+    Old flow: click invite URL, open invite page in a new tab, then accept invite.
     const [newPage] = await Promise.all([
       this.page.waitForEvent('popup'),
       messageWithUrl.getByText(url, { exact: false }).last().click(),
@@ -955,6 +1038,7 @@ export class ClanPage extends BasePage {
     ]);
 
     await redirectedPage.waitForLoadState('networkidle');
+    */
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {
@@ -1135,12 +1219,11 @@ export class ClanPage extends BasePage {
 
   async leaveVoiceChannel(channelName: string): Promise<boolean> {
     await this.selector.sidebar.channelItem.name.filter({ hasText: channelName }).click();
-    const leaveButtonLocator = this.selector.modal.voiceManagement.button.controlItem.filter({
-      has: this.selector.modal.voiceManagement.button.endCall,
-    });
+    const leaveButtonLocator = this.selector.modal.voiceManagement.button.controlItem.last();
     try {
       await leaveButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
       await leaveButtonLocator.click();
+      await this.page.waitForTimeout(500);
       return true;
     } catch {
       return false;
@@ -1193,6 +1276,16 @@ export class ClanPage extends BasePage {
     );
     await expect(channelLocator).toBeVisible({ timeout: 3000 });
     await channelLocator.click();
+  }
+
+  async isMessageInputDisabled() {
+    const messageInput = this.selector.input.mention;
+    try {
+      await messageInput.waitFor({ state: 'visible', timeout: 5000 });
+      return await messageInput.isDisabled();
+    } catch {
+      return false;
+    }
   }
 
   async openThreadByName(threadName: string) {
@@ -1507,11 +1600,13 @@ export class ClanPage extends BasePage {
 
   async fillCanvasTitle(title: string) {
     await this.selector.screen.canvasEditor.input.title.fill(title);
+    await this.page.waitForTimeout(500);
   }
 
   async fillCanvasContent(content: string) {
     await this.selector.screen.canvasEditor.input.content.click();
     await this.page.keyboard.type(content);
+    await this.page.waitForTimeout(1000);
   }
 
   async saveCanvas() {
@@ -1526,6 +1621,22 @@ export class ClanPage extends BasePage {
     });
   }
 
+  async deleteCanvas(canvasTitle: string) {
+    const canvasItem = this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle });
+    await expect(canvasItem).toBeVisible({ timeout: 3000 });
+    await canvasItem.locator(this.selector.modal.canvasManagement.button.deleteCanvas).click();
+    await this.selector.modal.canvasManagement.button.confirmDelete.first().click();
+  }
+
+  async verifyCanvasExists(canvasTitle: string, shouldExist = true) {
+    const canvasItem = this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle });
+    if (shouldExist) {
+      await expect(canvasItem).toBeVisible({ timeout: 3000 });
+    } else {
+      await expect(canvasItem).toBeHidden({ timeout: 3000 });
+    }
+  }
+
   async assertCanvasContent(title: string, content: string, shouldVisible = true) {
     const canvasTitle = this.selector.screen.canvasEditor.input.title;
     const canvasContent = this.selector.screen.canvasEditor.input.content;
@@ -1535,11 +1646,14 @@ export class ClanPage extends BasePage {
     } else {
       await expect(canvasTitle).not.toHaveValue(title, { timeout: 3000 });
       await expect(canvasContent).not.toHaveText(content, { timeout: 3000 });
+      await this.selector.permissionModal.cancel.first().click();
     }
   }
 
   async copyCanvasLink(canvasTitle: string) {
-    const canvasItem = this.selector.modal.canvasManagement.item.filter({ hasText: canvasTitle });
+    const canvasItem = this.selector.modal.canvasManagement.item
+      .filter({ hasText: canvasTitle })
+      .last();
     await expect(canvasItem).toBeVisible({ timeout: 3000 });
     await canvasItem.locator(this.selector.modal.canvasManagement.button.copyCanvasLink).click();
   }
@@ -1949,5 +2063,26 @@ export class ClanPage extends BasePage {
     } catch {
       return false;
     }
+  }
+
+  async cancelEvent() {
+    await this.selector.createEventModal.button.openPanel.click();
+    await this.selector.createEventModal.button.cancelEvent.click();
+    const confirmButton = this.selector.createEventModal.button.confirmCancelEvent;
+    await expect(confirmButton).toBeVisible({ timeout: 3000 });
+    await confirmButton.click();
+    await this.selector.createEventModal.button.closeContainerModal.click();
+  }
+
+  async clickCopyLinkFromShareButton() {
+    await this.selector.createEventModal.button.shareEvent.click();
+    await expect(this.selector.createEventModal.button.copyLink).toBeVisible({ timeout: 3000 });
+    await this.selector.createEventModal.button.copyLink.click();
+    await this.selector.createEventModal.button.closeModalCopyLink.click();
+    await this.selector.createEventModal.button.closeContainerModal.click();
+  }
+
+  async getSelectedFilePreview() {
+    return this.selector.input.selectedFile;
   }
 }

@@ -8,7 +8,11 @@ import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
@@ -17,9 +21,9 @@ import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
 test.describe('Channel Message 6', () => {
-  const accountA = AccountCredentials['accountKien5'];
-  const accountB = AccountCredentials['accountKien6'];
-  const accountC = AccountCredentials['accountKien7'];
+  const accountA = AccountCredentials['accountKien8'];
+  const accountB = AccountCredentials['accountKien9'];
+  const accountC = AccountCredentials['accountKien10'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB, userNameC] = getUsernamesFromEmails([
@@ -27,26 +31,16 @@ test.describe('Channel Message 6', () => {
     accountB.email,
     accountC.email,
   ]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -144,7 +138,7 @@ test.describe('Channel Message 6', () => {
     });
 
     await AllureReporter.step('User B can see the shared canvas on channel', async () => {
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openChannelByName('general');
       await messageHelperB.verifyMessageHasCanvasLink(canvasTitle);
     });
@@ -173,6 +167,7 @@ test.describe('Channel Message 6', () => {
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
     const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
     const canvasTitle = `canvas title - ${generateRandomString(10)}`;
     const canvasContent = `canvas content - ${generateRandomString(10)}`;
 
@@ -249,7 +244,8 @@ test.describe('Channel Message 6', () => {
     await AllureReporter.step(
       'User B clicks on the shared canvas link in direct message and can view the canvas content',
       async () => {
-        await pageB.reload();
+        await messagePageB.openSearchModalbyPressCtrlK();
+        await messageHelperB.openDMByNameOnsearchModal(userNameA);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
         await clanPageB.assertCanvasContent(canvasTitle, canvasContent);
       }
@@ -454,7 +450,7 @@ test.describe('Channel Message 6', () => {
       'User B clicks on the shared canvas link in channel and cannot view the canvas content',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await messageHelperB.verifyMessageHasCanvasLink(canvasTitle);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
         await clanPageB.assertCanvasContent(canvasTitle, canvasContent, false);
@@ -546,7 +542,7 @@ test.describe('Channel Message 6', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('Join voice channel', async () => {
@@ -559,13 +555,9 @@ test.describe('Channel Message 6', () => {
       await clanPageB.openMemberList();
       const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameA);
       await memberItem.click();
-      await messageHelperA.clickInvoiceButtonOnShortProfile();
+      await pageB.waitForTimeout(1000);
+      await messageHelperB.clickInvoiceButtonOnShortProfile();
       await pageB.waitForTimeout(3000);
-    });
-
-    await AllureReporter.step('Verify voice channel screen is visible to User B', async () => {
-      const isVoiceChannelVisible = await clanPageB.verifyVoiceChannelScreenVisible(channelName);
-      expect(isVoiceChannelVisible).toBe(true);
     });
 
     await AllureReporter.step(

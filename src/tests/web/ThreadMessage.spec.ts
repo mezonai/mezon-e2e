@@ -91,7 +91,6 @@ test.describe('Thread in Public Channel', () => {
     await AllureReporter.step('Fix thread name to valid and create', async () => {
       await messageHelper.fillThreadName(VALID_THREAD_NAME);
       await messageHelper.sendMessageInThread(threadReply, true);
-      await clanPage.openThreadByName(VALID_THREAD_NAME);
       const initMsgInThread = messageHelper.getThreadMessageItemByText(initMessage);
       await expect(initMsgInThread).toBeVisible({ timeout: 3000 });
       const existsValid = await clanPage.isNewThreadPresent(VALID_THREAD_NAME);
@@ -105,7 +104,7 @@ test.describe('Thread in Public Channel', () => {
 
     await AllureReporter.step('Re-open thread from thread list', async () => {
       await clanPage.closeCreateThreadModal();
-      await clanPage.openThread(VALID_THREAD_NAME);
+      await clanPage.openThreadByName(VALID_THREAD_NAME);
       const initMsgReopened = messageHelper.verifyInitMessageInThread(initMessage);
       await expect(initMsgReopened).toBeVisible({ timeout: 3000 });
     });

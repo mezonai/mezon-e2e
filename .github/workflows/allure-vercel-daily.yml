@@ -1,0 +1,104 @@
+name: 'Allure Daily Report - Deploy to Vercel'
+
+on:
+  # 19:00 UTC = 02:00 AM next day Vietnam time (UTC+7)
+  schedule:
+    - cron: '0 19 * * *'
+  # Allow manual trigger for testing before trusting the cron schedule
+  workflow_dispatch: {}
+
+jobs:
+  allure-daily:
+    runs-on: mezon-e2e
+
+    env:
+      ALLURE_VERCEL_ROOT: /home/nccsoft/allure-vercel-reports
+
+    steps:
+      # -----------------------------------------------------------------------
+      # 1. Checkout source code
+      # -----------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # 2. Set up Node.js with yarn cache
+      # -----------------------------------------------------------------------
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      # -----------------------------------------------------------------------
+      # 3. Install dependencies
+      # -----------------------------------------------------------------------
+      - name: Install dependencies
+        run: yarn install
+
+      # -----------------------------------------------------------------------
+      # 4. Install Playwright browsers
+      # -----------------------------------------------------------------------
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      # -----------------------------------------------------------------------
+      # 5. Check Java runtime (required by allure-commandline)
+      #    continue-on-error is intentionally false — missing Java will cause
+      #    the report generation step to fail anyway, so fail fast here.
+      # -----------------------------------------------------------------------
+      - name: Check Java runtime
+        run: |
+          command -v java || (
+            echo "Java not found, installing..."
+            sudo apt-get update -qq
+            sudo apt-get install -y default-jre
+          )
+          java -version
+
+      # -----------------------------------------------------------------------
+      # 6. Create .env file
+      # -----------------------------------------------------------------------
+      - name: Create environment file
+        run: |
+          cat > .env << EOF
+          BASE_URL=https://dev-mezon.nccsoft.vn
+          WORKERS=12
+          CI=true
+          EOF
+
+      # -----------------------------------------------------------------------
+      # 7. Run Playwright tests
+      #    continue-on-error: true — test failures must NOT block report generation
+      # -----------------------------------------------------------------------
+      - name: Run Playwright tests
+        id: run-tests
+        run: xvfb-run yarn test
+        continue-on-error: true
+
+      # -----------------------------------------------------------------------
+      # 8. Generate Allure report and deploy to Vercel
+      #    if: always() — runs even when the test step above fails
+      # -----------------------------------------------------------------------
+      - name: Generate Allure report and deploy to Vercel
+        if: always()
+        env:
+          ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          bash scripts/allure/allure-daily.sh
+
+      # -----------------------------------------------------------------------
+      # 9. Upload allure-results as artifact for debugging if deploy fails
+      #    if-no-files-found: ignore — the folder may already be deleted by
+      #    allure-daily.sh if everything succeeded
+      # -----------------------------------------------------------------------
+      - name: Upload allure-results artifact (debug fallback)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ github.run_id }}
+          path: allure-results/
+          retention-days: 3
+          if-no-files-found: ignore

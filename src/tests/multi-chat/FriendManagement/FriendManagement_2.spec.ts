@@ -5,36 +5,30 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { test } from '../../../fixtures/dual.fixture';
 
 test.describe('Friend Management', () => {
-  const accountA = AccountCredentials['account8'];
-  const accountB = AccountCredentials['account9'];
+  const accountA = AccountCredentials['accountKien9'];
+  const accountB = AccountCredentials['accountKien10'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
@@ -135,6 +129,8 @@ test.describe('Friend Management', () => {
 
     await AllureReporter.step('User B accepts friend request', async () => {
       await friendPageB.acceptFriendRequestFromUser(userNameA);
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
 
@@ -143,6 +139,7 @@ test.describe('Friend Management', () => {
       await pageA.waitForTimeout(1000);
       await profilePageA.openShortProfileFromUsernameOnChat(userNameB);
       await messagePageA.removeFriendFromShortProfile();
+      await friendPageA.confirmRemoveFriend();
     });
   });
 });

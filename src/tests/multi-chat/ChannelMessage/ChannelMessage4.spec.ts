@@ -3,12 +3,17 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { ROUTES } from '@/selectors';
 import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
@@ -26,26 +31,16 @@ test.describe('Channel Message 4', () => {
     accountB.email,
     accountC.email,
   ]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -336,7 +331,7 @@ test.describe('Channel Message 4', () => {
 
     await AllureReporter.step('Verify voice channel link is visible to User B', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const isVoiceChannelLinkSent = await messageHelperB.verifyLastMessageHasText(channelName);
       expect(isVoiceChannelLinkSent).toBe(true);
     });
@@ -430,6 +425,76 @@ test.describe('Channel Message 4', () => {
 
     await AllureReporter.step('Cleanup clan', async () => {
       await clanFactory.cleanupClan(pageA);
+    });
+  });
+
+  test('Verify that user can share contact from short profile', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
+    const profilePageB = new ProfilePage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can share contact from short profile
+      **Steps:**
+      1. User A create clan
+      2. User A invite user B
+      3. User B accept invite
+      4. User A share friend contact card from short profile on direct message
+      **Expected Result:** User can share contact from short profile
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['group', 'contact-card', 'share', 'short-profile'],
+    });
+    const messageHelperB = new MessageTestHelpers(pageB);
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+    await AllureReporter.step('User B accepts the friend request', async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+    await AllureReporter.step('Verify both users see each other as friends', async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+    await AllureReporter.step('User A create DM with user B, send a message', async () => {
+      await messagePageA.createDMByName(userNameB);
+      await messagePageB.createDMByName(userNameA);
+      await messagePageA.sendMessageWhenInDM('This is a message to forward');
+      await dual.pageA.waitForTimeout(1000);
+    });
+    await AllureReporter.step(
+      'User B open short profile of User A and share contact card to DM',
+      async () => {
+        await profilePageB.openShortProfileFromUsernameOnChat(userNameA);
+        await messagePageB.clickShareContactButtonOnShortProfile();
+        await messageHelperB.verifyShareContactModalVisible();
+        await messageHelperB.shareContactInDMOrChannel(userNameC);
+      }
+    );
+    await AllureReporter.step('Verify contact card message is visible on DM', async () => {
+      await messagePageB.createDMByName(userNameC);
+      await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameA}`);
     });
   });
 });

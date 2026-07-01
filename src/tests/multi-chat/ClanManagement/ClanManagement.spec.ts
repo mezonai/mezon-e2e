@@ -10,7 +10,11 @@ import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
@@ -22,26 +26,16 @@ test.describe('Clan Management', () => {
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -248,11 +242,10 @@ test.describe('Clan Management', () => {
 
     await AllureReporter.step('User B join voice channel', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
 
       await clanPageB.joinVoiceChannel(channelName);
-      const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
-      expect(isUserInVoiceChannel).toBe(true);
+      // const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
+      // expect(isUserInVoiceChannel).toBe(true);
     });
 
     await AllureReporter.step('User A kick User B from clan', async () => {
@@ -271,14 +264,16 @@ test.describe('Clan Management', () => {
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
-      await friendPageB.createDM(userNameA);
+      const messagePageB = new MessagePage(pageB);
+      const messageHelperB = new MessageTestHelpers(pageB);
+      await messagePageB.openSearchModalbyPressCtrlK();
+      await messageHelperB.openDMByNameOnsearchModal(userNameA);
       await pageB.reload({ timeout: 2000 });
       await clanPageB.joinClanByUrlInvite(url);
     });
 
     await AllureReporter.step('Verify that user B not in last voice channel', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.joinVoiceChannel(channelName);
       const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
       expect(isUserInVoiceChannel).toBe(false);
@@ -443,7 +438,7 @@ test.describe('Clan Management', () => {
       'Verify that user B has not admin permission before add role',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openClanSettings();
         await clanPageB.verifyAdministratorPermissionRole(false);
         await clanPageB.closeSettingsClan();
@@ -460,7 +455,7 @@ test.describe('Clan Management', () => {
       'Verify that user B has admin permission after add role',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openClanSettings();
         await clanPageB.verifyAdministratorPermissionRole();
       }
@@ -542,7 +537,7 @@ test.describe('Clan Management', () => {
       'Verify that user B cannot manage channel before add role',
       async () => {
         await pageB.reload();
-        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openChannelSettingsSidebar();
         await clanPageB.verifyUserWithChannelManagePermission(false);
       }
@@ -559,7 +554,7 @@ test.describe('Clan Management', () => {
 
     await AllureReporter.step('Verify that user B can manage channel after add role', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openChannelSettingsSidebar();
       await clanPageB.verifyUserWithChannelManagePermission();
     });

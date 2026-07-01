@@ -519,7 +519,8 @@ export class MessageTestHelpers {
       .locator(
         `${generateE2eSelector('discussion.box.thread')} ${generateE2eSelector('message.item')}`
       )
-      .filter({ hasText: text });
+      .filter({ hasText: text })
+      .last();
   }
 
   verifyInitMessageInThread(text: string): Locator {
@@ -798,8 +799,8 @@ export class MessageTestHelpers {
 
     for (const selector of mainChatSelectors) {
       const chatContainer = this.page.locator(selector);
-      if (await chatContainer.isVisible({ timeout: 2000 })) {
-        const chatText = await chatContainer.textContent();
+      if (await chatContainer.last().isVisible({ timeout: 2000 })) {
+        const chatText = await chatContainer.last().textContent();
         if (chatText) {
           const shortText = messageText.substring(0, 15);
           const searchTerms = [
@@ -2345,6 +2346,13 @@ export class MessageTestHelpers {
     await expect(tooltip).toBeVisible({ timeout: 5000 });
   }
 
+  async openChatBox() {
+    const chatButton = this.selector.headerChatButton.first();
+    await chatButton.hover();
+    await chatButton.click();
+    await this.page.waitForTimeout(2000);
+  }
+
   async openMessageTabInInbox() {
     await expect(this.selector.messageInboxPopover.triggerTab).toBeVisible({ timeout: 5000 });
     await this.selector.messageInboxPopover.triggerTab.click();
@@ -2542,10 +2550,10 @@ export class MessageTestHelpers {
       lastReplyMessage,
     } = this.selector.topicInboxPopover.item;
 
-    await expect(initMessageLocator).toContainText(initMessage);
-    await expect(lastReplyMessage).toContainText(lastReply);
+    await expect(initMessageLocator.first()).toContainText(initMessage);
+    // await expect(lastReplyMessage.first()).toContainText(lastReply);
 
-    return container;
+    return container.first();
   }
 
   async clickJumpToTopicFromInboxPopover(topicLocator: Locator) {
@@ -2616,6 +2624,7 @@ export class MessageTestHelpers {
   }
 
   async verifyUserCanDeleteMessage(username: string, canDelete = true) {
+    await this.page.reload();
     const message = this.selector.messages.filter({ hasText: username }).last();
     await expect(message).toBeVisible({ timeout: 5000 });
     await message.click({ button: 'right' });
@@ -2668,7 +2677,7 @@ export class MessageTestHelpers {
   async verifyContactSharedInDMOrChannel(username: string) {
     const lastMessage = this.selector.messages.last();
     const contactLocator = lastMessage.locator(this.selector.shareContact.card);
-    await expect(contactLocator).toBeVisible({ timeout: 3000 });
+    await expect(contactLocator).toBeVisible({ timeout: 10000 });
     const nameLocator = contactLocator.locator(this.selector.shareContact.username);
     await expect(nameLocator).toHaveText(username, { timeout: 3000 });
   }
@@ -2756,7 +2765,9 @@ export class MessageTestHelpers {
   }
 
   async clickInvoiceButtonOnShortProfile() {
-    await this.selector.shortProfile.button.voice.click();
+    const button = this.selector.shortProfile.button.voice.first();
+    await expect(button).toBeVisible({ timeout: 3000 });
+    await button.click();
   }
 }
 

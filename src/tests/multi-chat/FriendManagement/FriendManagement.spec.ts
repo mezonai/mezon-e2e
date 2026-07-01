@@ -4,41 +4,35 @@ import { FriendPage } from '@/pages/FriendPage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
 
 test.describe('Friend Management', () => {
-  const accountA = AccountCredentials['account8'];
-  const accountB = AccountCredentials['account9'];
+  const accountA = AccountCredentials['accountKien9'];
+  const accountB = AccountCredentials['accountKien10'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const VERIFY_REQUEST_EXISTS_STEP_NAME = 'Verify friend request exists on both sides';
   const CANCEL_REQUEST_STEP_NAME = 'User A cancels the friend request';
   const VERIFY_REQUEST_REMOVED_STEP_NAME =
     'Verify friend request is no longer visible on both sides';
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);

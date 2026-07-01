@@ -57,7 +57,9 @@ export class FriendPage extends BasePage {
   }
 
   async gotoFriendsPage(): Promise<void> {
-    await this.navigate(ROUTES.DIRECT_FRIENDS);
+    if (this.page.url() !== `${this.baseURL}${ROUTES.DIRECT_FRIENDS}`) {
+      await this.navigate(ROUTES.DIRECT_FRIENDS);
+    }
   }
 
   async clickAddFriendButton(): Promise<void> {

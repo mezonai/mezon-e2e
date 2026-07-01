@@ -1,11 +1,11 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { test } from '@/fixtures/dual.fixture';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
-import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
-import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
+import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
@@ -16,13 +16,11 @@ import {
 } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import pressEsc from '@/utils/pressEsc';
 import { expect } from '@playwright/test';
-import { test } from '../../fixtures/dual.fixture';
 
-test.describe('Channel Management', () => {
-  const accountA = AccountCredentials['account2-1'];
-  const accountB = AccountCredentials['account2-2'];
+test.describe('Clan Management 3', () => {
+  const accountA = AccountCredentials['account2-3'];
+  const accountB = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
@@ -49,38 +47,32 @@ test.describe('Channel Management', () => {
     });
   });
 
-  test('Verify that I can add members and roles to channel when update channel from public to private', async ({
+  test('Verify that I can add role to private channel and verify that user is visible on member lists of channel', async ({
     dual,
   }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '64609',
+      tms: '64954',
+      github_issue: '9685',
     });
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
     await AllureReporter.addDescription(`
-      **Test Objective:** Verify that I can add members and roles to channel when update channel from public to private.
-      
-      **Test Steps:**
-      1. Create a public text channel
-      2. Create new role
-      3. Invite people to clan
-      4. Open settings channel
-      5. Open permission tab
-      6. Update channel status to private
-      7. Add members and roles
-      
-      **Expected Result:** I can add members and roles to channel when update channel from public to private.
-    `);
+      **Test Objective:** Verify that I can add role to private channel and verify that user is visible on member lists of channel.
 
-    await AllureReporter.addLabels({
-      tag: ['text-channel', 'private-channel', 'members', 'roles'],
-    });
+      **Test Steps:**
+      1. Invite User B to clan
+      2. Add new role with delete message permissions to User B
+      3. Create public channel
+      4. Change permission of channel to private
+      5. Add role to channel
+      **Expected Result:** I can add role to private channel and verify that user is visible on member lists of channel.
+    `);
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
+    const roleName = `role-${Date.now().toString(36).slice(-8)}`;
     const unique = Date.now().toString(36);
-    const roleName = `Role-${unique}`.slice(0, 20);
     const channelName = `tc-${unique}`.slice(0, 20);
     const channelSettingsA = new ChannelSettingPage(pageA);
 
@@ -112,16 +104,9 @@ test.describe('Channel Management', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
-
     const clanFactory = new ClanFactory();
-
-    await test.step('User A creates a clan', async () => {
-      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageA);
-    });
-
-    await AllureReporter.step('User A add a new role', async () => {
-      await clanPageA.openRoleSettingsPage();
-      await clanPageA.addNewRoleOnClan(roleName);
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
     });
 
     await AllureReporter.step(`User A create new text channel: ${channelName}`, async () => {
@@ -138,59 +123,67 @@ test.describe('Channel Management', () => {
     });
 
     await AllureReporter.step(
+      'Add new role with delete message permissions to User B',
+      async () => {
+        await clanPageA.openRoleSettingsPage();
+        await clanPageA.createRoleWithPermission(roleName, 'Delete Messages');
+        await clanPageA.addRoleForUserByUsername(userNameB, roleName);
+      }
+    );
+
+    await AllureReporter.step(
       'User A update channel to private and add members, roles',
       async () => {
         await clanPageA.openChannelSettings(channelName);
         await channelSettingsA.openPermissionsTab();
         await channelSettingsA.updateChannelStatusAndOpenAddMembersRolesModal();
-        await channelSettingsA.addMembersAndRolesForPrivateChannel(roleName, userNameB);
-      }
-    );
-
-    await AllureReporter.step(
-      'Verify that added roles and members is visible on permission tab of channels settings',
-      async () => {
-        await channelSettingsA.verifyRoleAndMemberExistBeforeSave(roleName, userNameB);
-        await channelSettingsA.verifyRoleAndMemberExistAfterSave(roleName, userNameB);
+        await channelSettingsA.addMembersAndRolesForPrivateChannel(roleName);
+        await channelSettingsA.savePermissionChanges();
         await channelSettingsA.closeChannelSettings();
       }
     );
 
-    await test.step('Cleanup clan', async () => {
+    await AllureReporter.step(
+      'Verify that user B is visible on member list of channel',
+      async () => {
+        await clanPageA.openChannelByName(channelName);
+        await clanPageA.openMemberList();
+        const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
+        expect(memberItem).toBeVisible({ timeout: 3000 });
+      }
+    );
+
+    await AllureReporter.step('Cleanup clan', async () => {
       await clanFactory.cleanupClan(pageA);
     });
   });
 
-  test('Verify that I can not access to private channel when i am not owner and not been invited', async ({
-    dual,
-  }) => {
+  test('Verify that I can override permission on private channel', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '64609',
+      tms: '64954',
+      github_issue: '9685',
     });
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
     await AllureReporter.addDescription(`
-      **Test Objective:** Verify that I can not access to private channel when i am not owner and not been invited
-      
-      **Test Steps:**
-      1. User A create a private channel
-      2. User B find channel
-      3. Verify that user B cannot find that channel
-      
-      **Expected Result:** I can not access to private channel when i am not owner and not been invited
-    `);
+      **Test Objective:** Verify that I can add role to private channel and verify that user is visible on member lists of channel.
 
-    await AllureReporter.addLabels({
-      tag: ['text-channel', 'private-channel', 'members', 'roles'],
-    });
+      **Test Steps:**
+      1. Invite User B to clan
+      2. Add new role with delete message permissions to User B
+      3. Create public channel
+      4. Change permission of channel to private
+      5. Add role to channel
+      **Expected Result:** I can add role to private channel and verify that user is visible on member lists of channel.
+    `);
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
+    const roleName = `role-${Date.now().toString(36).slice(-8)}`;
     const unique = Date.now().toString(36);
     const channelName = `tc-${unique}`.slice(0, 20);
-    const messagePageB = new MessagePage(pageB);
-    const clanFactory = new ClanFactory();
+    const channelSettingsA = new ChannelSettingPage(pageA);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await Promise.allSettled([
@@ -220,19 +213,16 @@ test.describe('Channel Management', () => {
       await friendPageB.assertAllFriend(userNameA);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
-
-    await test.step('User A creates a clan', async () => {
-      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageA);
+    const clanFactory = new ClanFactory();
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
     });
 
-    await AllureReporter.step(
-      `User A create new private text channel: ${channelName}`,
-      async () => {
-        await clanPageA.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
-        const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
-        expect(isNewChannelPresent).toBe(true);
-      }
-    );
+    await AllureReporter.step(`User A create new text channel: ${channelName}`, async () => {
+      await clanPageA.createNewChannel(ChannelType.TEXT, channelName);
+      const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
 
     await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
@@ -242,17 +232,44 @@ test.describe('Channel Management', () => {
     });
 
     await AllureReporter.step(
-      'User B search channel name and verify that the channel not visible',
+      'Add new role with delete message permissions to User B',
       async () => {
-        await messagePageB.openSearchModalbyPressCtrlK();
-        const isNewChannelPresentOnSearchModal =
-          await messagePageB.isChannelPresentOnSearchModal(channelName);
-        expect(isNewChannelPresentOnSearchModal).toBe(false);
-        await pressEsc(pageB);
+        await clanPageA.openRoleSettingsPage();
+        await clanPageA.createRoleWithPermission(roleName, 'Delete Messages');
+        await clanPageA.addRoleForUserByUsername(userNameB, roleName);
       }
     );
 
-    await test.step('Cleanup clan', async () => {
+    await AllureReporter.step(
+      'User A update channel to private and add members, roles',
+      async () => {
+        await clanPageA.openChannelSettings(channelName);
+        await channelSettingsA.openPermissionsTab();
+        await channelSettingsA.updateChannelStatusAndOpenAddMembersRolesModal();
+        await channelSettingsA.addMembersAndRolesForPrivateChannel(roleName);
+        await channelSettingsA.savePermissionChanges();
+      }
+    );
+
+    await AllureReporter.step(
+      'User A override permissions (cannot send messages) for User B on private channel',
+      async () => {
+        await channelSettingsA.overridePermissionsForPrivateChannel();
+        await channelSettingsA.savePermissionChanges();
+        await channelSettingsA.closeChannelSettings();
+      }
+    );
+
+    await AllureReporter.step(
+      'Verify that user B cannot send message on private channel',
+      async () => {
+        await clanPageA.openChannelByName(channelName);
+        const isMessageInputDisabled = await clanPageA.isMessageInputDisabled();
+        expect(isMessageInputDisabled).toBe(true);
+      }
+    );
+
+    await AllureReporter.step('Cleanup clan', async () => {
       await clanFactory.cleanupClan(pageA);
     });
   });

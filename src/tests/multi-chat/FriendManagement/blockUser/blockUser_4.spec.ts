@@ -13,7 +13,11 @@ import { ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
@@ -24,27 +28,17 @@ test.describe('Friend Management - Block User', () => {
   const accountA = AccountCredentials['accountKien8'];
   const accountB = AccountCredentials['accountKien9'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupOptions = { delayBeforeBMs: 200 };
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        await dual.pageB.waitForTimeout(200);
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl, setupOptions);
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
@@ -94,32 +88,28 @@ test.describe('Friend Management - Block User', () => {
     const clanMenuPanelA = new ClanMenuPanel(pageA);
     const messagePageA = new MessagePage(pageA);
     const messagePageB = new MessagePage(pageB);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
 
     await test.step('User A sends a message in clan channel', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
       const helpers = new OnboardingHelpers(pageA);
       const { sent } = await helpers.sendTestMessage();
       expect(sent).toBe(true);
     });
-    let inviteLink: string = '';
+
     await test.step('User A invite User B to clan', async () => {
-      await clanMenuPanelA.openInvitePeopleModal();
-      const clanInviteFriendModalA = new ClanInviteFriendModal(pageA);
-      inviteLink = await clanInviteFriendModalA.getInviteLink();
-      expect(inviteLink).not.toBe('');
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
+      await clanPageB.joinClanByUrlInvite(url);
     });
 
     await test.step('User A blocks User B', async () => {
       await friendPageA.blockFriend(userNameB);
-    });
-
-    await test.step('User B joins the clan', async () => {
+      await pageA.waitForTimeout(1000);
       await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
-      await friendPageB.page.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      const clanInviteModalB = new ClanInviteModal(pageB);
-      await clanInviteModalB.acceptInvite();
     });
 
     await test.step('User B should not shown in forward message list', async () => {
@@ -139,6 +129,9 @@ test.describe('Friend Management - Block User', () => {
       const forwardMessageModalB = new ForwardMessageModal(pageB);
       const isUserBShown = await forwardMessageModalB.isUserShownInList(userNameA);
       expect(isUserBShown).toBeFalsy();
+      await pageB.reload({
+        waitUntil: 'domcontentloaded',
+      });
     });
 
     await clanFactory.cleanupClan(pageA);
@@ -152,15 +145,14 @@ test.describe('Friend Management - Block User', () => {
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
     const clanFactory = new ClanFactory();
-    const clanMenuPanelA = new ClanMenuPanel(pageA);
     const messageHelpersA = new MessageTestHelpers(pageA);
     const forwardMessageModalA = new ForwardMessageModal(pageA);
     const forwardMessageModalB = new ForwardMessageModal(pageB);
     const threadName = `${ThreadStatus.PUBLIC.toLowerCase()}-thread-${generateRandomString(10)}`;
     const baseChannelMessage = `Thread base message ${Date.now()}`;
     const threadMessage = `Thread message ${Date.now()}`;
-
-    let inviteLink: string = '';
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
 
     await AllureReporter.addDescription(`
       **Test Objective:** Ensure blocked friends are excluded from the forward suggestion list inside a thread. 
@@ -178,14 +170,15 @@ test.describe('Friend Management - Block User', () => {
     `);
 
     await test.step('Setup clan for thread test', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
     });
 
     await test.step('User A invite User B to clan', async () => {
-      await clanMenuPanelA.openInvitePeopleModal();
-      const clanInviteFriendModalA = new ClanInviteFriendModal(pageA);
-      inviteLink = await clanInviteFriendModalA.getInviteLink();
-      expect(inviteLink).not.toBe('');
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
+      await clanPageB.joinClanByUrlInvite(url);
     });
 
     await test.step('User A blocks User B', async () => {
@@ -193,18 +186,8 @@ test.describe('Friend Management - Block User', () => {
       await friendPageA.assertBlockFriend(userNameB);
     });
 
-    await test.step('User B joins the clan', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
-      await friendPageB.page.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      const clanInviteModalB = new ClanInviteModal(pageB);
-      await clanInviteModalB.acceptInvite();
-    });
-
-    const clanPageA = new ClanPage(pageA);
-    const clanPageB = new ClanPage(pageB);
     await test.step('User A sends channel message and creates thread', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelpersA.sendTextMessage(baseChannelMessage);
       const latestMessage = await messageHelpersA.findLastMessage();
       await expect(latestMessage).toBeVisible({ timeout: 10000 });
@@ -331,7 +314,6 @@ test.describe('Friend Management - Block User', () => {
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
     const clanFactory = new ClanFactory();
-    const clanMenuPanelA = new ClanMenuPanel(pageA);
     const messagePageA = new MessagePage(pageA);
     const messagePageB = new MessagePage(pageB);
     const messageHelpersA = new MessageTestHelpers(pageA);
@@ -339,7 +321,8 @@ test.describe('Friend Management - Block User', () => {
     const forwardMessageModalA = new ForwardMessageModal(pageA);
     const forwardMessageModalB = new ForwardMessageModal(pageB);
     const topicMessage = `Topic forward message ${Date.now()}`;
-    let inviteLink = '';
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
     let baseMessage = '';
 
     await AllureReporter.addDescription(`
@@ -358,14 +341,15 @@ test.describe('Friend Management - Block User', () => {
     `);
 
     await test.step('Setup clan for topic test', async () => {
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
       await clanFactory.setupClan(ClanSetupHelper.configs.blockUser, pageA);
     });
 
-    await test.step('User A generates invite link for clan', async () => {
-      await clanMenuPanelA.openInvitePeopleModal();
-      const clanInviteFriendModalA = new ClanInviteFriendModal(pageA);
-      inviteLink = await clanInviteFriendModalA.getInviteLink();
-      expect(inviteLink).not.toBe('');
+    await test.step('User A invite User B to clan', async () => {
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await pageB.waitForTimeout(1000);
+      await clanPageB.joinClanByUrlInvite(url);
     });
 
     await test.step('User A blocks User B', async () => {
@@ -373,16 +357,8 @@ test.describe('Friend Management - Block User', () => {
       await friendPageA.assertBlockFriend(userNameB);
     });
 
-    await test.step('User B joins the clan via invite link', async () => {
-      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
-      await friendPageB.page.goto(inviteLink, {
-        waitUntil: 'domcontentloaded',
-      });
-      const clanInviteModalB = new ClanInviteModal(pageB);
-      await clanInviteModalB.acceptInvite();
-    });
-
     await test.step('User A sends message and creates topic discussion', async () => {
+      await pageA.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const onboardingHelpersA = new OnboardingHelpers(pageA);
       const { sent, message } = await onboardingHelpersA.sendTestMessage();
       expect(sent).toBe(true);

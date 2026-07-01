@@ -120,6 +120,7 @@ test.describe('Clan Management - Module 3', () => {
 
     await AllureReporter.step('Mark the general channel as favorite', async () => {
       await clanPage.markChannelAsFavorite('general');
+      await page.waitForTimeout(1000);
     });
 
     await AllureReporter.step('Verify the general channel is marked as favorite', async () => {
@@ -128,6 +129,7 @@ test.describe('Clan Management - Module 3', () => {
 
     await AllureReporter.step('Unmark the general channel', async () => {
       await clanPage.unmarkChannelAsFavorite('general');
+      await page.waitForTimeout(1000);
     });
 
     await AllureReporter.step('Verify the general channel is not marked as favorite', async () => {
@@ -262,5 +264,48 @@ test.describe('Clan Management - Module 3', () => {
         await messagePage.verifyShortProfileUsernameWithInputChat();
       }
     );
+  });
+
+  test('Verify that user can delete canvas', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64917',
+      github_issue: '10355',
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that user can delete canvas.
+          **Test Steps:**
+            1. Create a canvas
+            2. Fill canvas title & content
+            3. Delete the canvas
+            4. Verify the canvas is deleted
+          **Expected Result:** The canvas is deleted and not visible in the channel.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['canvas', 'delete-canvas'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const canvasTitle = `canvas title - ${generateRandomString(10)}`;
+    const canvasContent = `canvas content - ${generateRandomString(10)}`;
+
+    await AllureReporter.step('Create a canvas', async () => {
+      await clanPage.openCanvasManagementModal();
+      await clanPage.createCanvas();
+      await clanPage.fillCanvasTitle(canvasTitle);
+      await clanPage.fillCanvasContent(canvasContent);
+      await clanPage.saveCanvas();
+    });
+
+    await AllureReporter.step('Delete the canvas', async () => {
+      await clanPage.openCanvasManagementModal();
+      await clanPage.deleteCanvas(canvasTitle);
+    });
+
+    await AllureReporter.step('Verify the canvas is deleted', async () => {
+      const isCanvasVisible = await clanPage.verifyCanvasExists(canvasTitle, false);
+      expect(isCanvasVisible).toBeFalsy();
+    });
   });
 });

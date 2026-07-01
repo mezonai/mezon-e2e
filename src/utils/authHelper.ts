@@ -38,15 +38,21 @@ export class AuthHelper {
    */
   static async setAuthForSuite(page: Page, credentials: any = null) {
     const endpoint = WEBSITE_CONFIGS.MEZON.baseURL || '';
-    await page.goto(endpoint);
+    await page.waitForTimeout(1000);
+    await page.goto(`${endpoint}`);
     await page.waitForLoadState('domcontentloaded');
     this.clearAuth(page);
+    await page.waitForTimeout(1000);
     await page.waitForLoadState('networkidle');
     await this.setAuthForAccount(page, credentials);
+    await page.waitForTimeout(1000);
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
-    const homePage = new HomePage(page);
-    await homePage.clickLogin();
+    await page.waitForTimeout(1000);
+    await page.goto(`${endpoint}chat`);
+    // const homePage = new HomePage(page);
+    // await homePage.clickLogin();
+    await page.waitForTimeout(1500);
     await page.waitForLoadState('domcontentloaded');
   }
 
@@ -57,8 +63,9 @@ export class AuthHelper {
   static async clearAuth(page: Page) {
     await page.evaluate(() => {
       localStorage.removeItem('persist:auth');
-      localStorage.removeItem('mezon_session');
-      localStorage.removeItem('mezon_refresh_session');
+      localStorage.removeItem('persist:wallet');
+      // localStorage.removeItem('mezon_session');
+      // localStorage.removeItem('mezon_refresh_session');
     });
   }
 

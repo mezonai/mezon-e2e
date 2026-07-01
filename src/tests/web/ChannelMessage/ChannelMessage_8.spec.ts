@@ -13,7 +13,7 @@ import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 test.describe('Channel Message - Module 8', () => {
   const clanFactory = new ClanFactory();
-  const credentials = AccountCredentials.accountKien2;
+  const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
@@ -148,6 +148,151 @@ test.describe('Channel Message - Module 8', () => {
     await AllureReporter.step('Verify the message is unpinned', async () => {
       const isMessageUnpinned = await messagePage.verifyMessageIsUnpinned(message);
       expect(isMessageUnpinned).toBe(true);
+    });
+  });
+
+  test('Verify that user can create poll in channel', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63400',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that user can create poll in channel
+    **Test Steps:**
+    1. Create a new text channel
+    2. Open poll modal
+    3. Create poll with question and answers
+    4. Submit poll
+    5. Verify poll is displayed correctly
+    **Expected Result:** User can create poll successfully
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'poll', 'text-channel'],
+    });
+
+    const messagePage = new MessagePage(page);
+    const clanPage = new ClanPage(page);
+
+    const unique = Date.now().toString(36);
+    const channelName = `tc-${unique}`.slice(0, 20);
+
+    const question = `Poll question ${unique}`;
+    const answers = ['Answer 1', 'Answer 2', 'Answer 3'];
+
+    await AllureReporter.step('Create a new text channel', async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName);
+      expect(await clanPage.isNewChannelPresent(channelName)).toBe(true);
+    });
+
+    await AllureReporter.step('Open poll modal', async () => {
+      await messagePage.openCreatePoll();
+    });
+
+    await AllureReporter.step('Create poll', async () => {
+      await messagePage.createPoll(question, answers);
+    });
+
+    await AllureReporter.step('Verify poll card', async () => {
+      await messagePage.verifyPollCard(question, answers);
+    });
+  });
+
+  test('Verify that user can vote on poll card', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63400',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that user can vote on poll card
+    **Test Steps:**
+    1. Create a new text channel
+    2. Open poll modal
+    3. Create poll with question and answers
+    4. Vote on an option
+    5. Verify vote is applied
+    **Expected Result:** User can vote successfully
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'poll', 'vote'],
+    });
+
+    const messagePage = new MessagePage(page);
+    const clanPage = new ClanPage(page);
+
+    const unique = Date.now().toString(36);
+    const channelName = `tc-${unique}`.slice(0, 20);
+
+    const question = `Poll question ${unique}`;
+    const answers = ['Answer 1', 'Answer 2', 'Answer 3'];
+
+    await AllureReporter.step('Create a new text channel', async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName);
+      expect(await clanPage.isNewChannelPresent(channelName)).toBe(true);
+    });
+
+    await AllureReporter.step('Create poll', async () => {
+      await messagePage.openCreatePoll();
+      await messagePage.createPoll(question, answers);
+      await messagePage.verifyPollCard(question, answers);
+    });
+
+    await AllureReporter.step('Vote on poll', async () => {
+      await messagePage.votePollByIndex(0);
+    });
+
+    await AllureReporter.step('Verify voted state', async () => {
+      await messagePage.verifyUserVoted(0);
+    });
+  });
+
+  test('Verify that user can end poll', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63401',
+    });
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that user can end poll
+    **Test Steps:**
+    1. Create a new text channel
+    2. Create poll
+    3. Right click on poll card
+    4. Click "End Poll Now"
+    5. Verify poll is ended
+    **Expected Result:** Poll is ended successfully
+  `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'poll', 'end'],
+    });
+
+    const messagePage = new MessagePage(page);
+    const clanPage = new ClanPage(page);
+
+    const unique = Date.now().toString(36);
+    const channelName = `tc-${unique}`.slice(0, 20);
+
+    const question = `Poll question ${unique}`;
+    const answers = ['Answer 1', 'Answer 2', 'Answer 3'];
+
+    await AllureReporter.step('Create a new text channel', async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName);
+      expect(await clanPage.isNewChannelPresent(channelName)).toBe(true);
+    });
+
+    await AllureReporter.step('Create poll', async () => {
+      await messagePage.openCreatePoll();
+      await messagePage.createPoll(question, answers);
+      await messagePage.verifyPollCard(question, answers);
+    });
+
+    await AllureReporter.step('End poll', async () => {
+      await messagePage.endPoll();
+    });
+
+    await AllureReporter.step('Verify poll ended', async () => {
+      await messagePage.verifyPollEnded();
     });
   });
 });

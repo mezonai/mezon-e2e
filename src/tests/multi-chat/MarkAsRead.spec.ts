@@ -8,7 +8,11 @@ import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
@@ -20,26 +24,16 @@ test.describe('Mark as read', () => {
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -128,8 +122,8 @@ test.describe('Mark as read', () => {
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
+      await pageB.waitForTimeout(1000);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step(
@@ -145,7 +139,7 @@ test.describe('Mark as read', () => {
     );
 
     await AllureReporter.step('Verify that channels with new mentions have badges', async () => {
-      // await pageB.reload();
+      await pageB.reload();
       for (const name of channelNames) {
         await clanPageB.verifyChannelHasBadge(name);
       }
@@ -271,7 +265,6 @@ test.describe('Mark as read', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('Verify that channels with new messages have highlight', async () => {
@@ -377,7 +370,6 @@ test.describe('Mark as read', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('Verify that channels with new messages have highlight', async () => {
@@ -469,7 +461,6 @@ test.describe('Mark as read', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step(

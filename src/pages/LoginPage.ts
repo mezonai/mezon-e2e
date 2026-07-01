@@ -178,6 +178,7 @@ export class LoginPage extends BasePage {
   }
 
   async switchToPasswordLogin(): Promise<void> {
+    await this.page.reload();
     await this.page.locator(this.selectors.loginWithPasswordLink).click();
     await this.page.waitForLoadState('networkidle');
   }
@@ -185,8 +186,9 @@ export class LoginPage extends BasePage {
   async loginWithPassword(email: string, password: string): Promise<void> {
     const homePage = new HomePage(this.page);
     await this.page.goto(MEZON_DEV || '');
-    await this.page.waitForLoadState('domcontentloaded');
-
+    // await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
+    await this.page.reload();
     await homePage.clickLogin();
     await this.page.waitForLoadState('domcontentloaded');
     await this.switchToPasswordLogin();

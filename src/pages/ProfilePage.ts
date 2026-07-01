@@ -3,7 +3,7 @@ import MessageSelector from '@/data/selectors/MessageSelector';
 import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Locator, Page } from '@playwright/test';
-import { differenceInMonths, formatDistance } from 'date-fns';
+import { format } from 'date-fns';
 import { BasePage } from './BasePage';
 import { MessagePage } from './MessagePage';
 
@@ -69,8 +69,8 @@ export class ProfilePage extends BasePage {
   }
 
   async sendMessage(mentionText: string) {
-    await this.selector.inputs.mention.fill(mentionText);
-    await this.selector.inputs.mention.press('Enter');
+    await this.selector.inputs.mention.first().fill(mentionText);
+    await this.selector.inputs.mention.first().press('Enter');
     await this.page.waitForTimeout(500);
   }
 
@@ -214,7 +214,7 @@ export class ProfilePage extends BasePage {
   }
 
   async getProfileStatus(locator: Locator): Promise<string> {
-    console.log(await locator.getAttribute('class'));
+    // console.log(await locator.getAttribute('class'));
 
     await this.page.waitForTimeout(2000);
     const red = locator.locator('.bg-red-500');
@@ -251,6 +251,8 @@ export class ProfilePage extends BasePage {
       this.selector.shortProfile.profileStatus.status
     );
 
+    console.log(previewStatus);
+
     const actualStatus = await this.getProfileStatus(previewStatus);
 
     expect(actualStatus).toBe(expectedStatus);
@@ -272,7 +274,7 @@ export class ProfilePage extends BasePage {
 
     const formatTime = date.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric',
+      day: '2-digit',
       year: 'numeric',
     });
 
@@ -284,23 +286,17 @@ export class ProfilePage extends BasePage {
   async verifyMemberSinceJoinClanInMemberManagement(time: string | Date) {
     const clanSelector = new ClanSelector(this.page);
 
-    const date = new Date(time);
-
-    const formatTime = formatDistance(date, new Date(), {
-      addSuffix: true,
-    });
+    const formatTime = format(new Date(time), 'MMM dd, yyyy');
 
     const memberSinceLocator = clanSelector.memberSettings.memberSince.first();
 
-    await expect(memberSinceLocator).toHaveText(formatTime, { timeout: 500 });
+    await expect(memberSinceLocator).toHaveText(formatTime);
   }
 
   async verifyMemberSinceJoinMezonInMemberManagement(time: string | Date) {
     const clanSelector = new ClanSelector(this.page);
-    const date = new Date(time);
 
-    const months = differenceInMonths(new Date(), date);
-    const formatTime = `${months}mo ago`;
+    const formatTime = format(new Date(time), 'MMM dd, yyyy');
 
     const memberSinceLocator = clanSelector.memberSettings.joinMezon.first();
 

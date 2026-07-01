@@ -6,11 +6,16 @@ import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, test } from '../../../fixtures/dual.fixture';
+import { MessagePage } from '@/pages/MessagePage';
 
 test.describe('Channel Message 3', () => {
   const accountA = AccountCredentials['accountKien2'];
@@ -18,26 +23,16 @@ test.describe('Channel Message 3', () => {
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -135,7 +130,7 @@ test.describe('Channel Message 3', () => {
 
     await AllureReporter.step('Verify user B can not send message on topic', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isMessageInputVisible = await clanPageB.isMessageInputVisible(true);
@@ -175,6 +170,7 @@ test.describe('Channel Message 3', () => {
     const messageHelperA = new MessageTestHelpers(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     const testMessage = `Test message - ${Date.now()}`;
+    const messagePageB = new MessagePage(pageB);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await Promise.allSettled([
@@ -227,6 +223,9 @@ test.describe('Channel Message 3', () => {
 
     await AllureReporter.step('Verify message is visible on DM', async () => {
       await pageB.reload();
+      await pageB.waitForTimeout(2000);
+      await messagePageB.openSearchModalbyPressCtrlK();
+      await messageHelperB.openDMByNameOnsearchModal(userNameA);
       const lastMessage = await messageHelperB.getLastMessageInChat();
       expect(lastMessage).toContain(testMessage);
     });
@@ -306,7 +305,7 @@ test.describe('Channel Message 3', () => {
     });
     await AllureReporter.step('Verify contact card message is visible on destination', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameB}`);
     });
 
@@ -464,7 +463,7 @@ test.describe('Channel Message 3', () => {
 
     await AllureReporter.step('Verify contact card message has not call item', async () => {
       await pageB.reload();
-      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameB}`);
       await messageHelperB.verifyCallItemVisibleInShareContactCard(`@${userNameB}`, false);
     });

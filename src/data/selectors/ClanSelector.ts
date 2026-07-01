@@ -59,6 +59,9 @@ export default class ClanSelector {
     preventAnoSettings: this.page.locator(
       `${generateE2eSelector('clan_page.settings.overview.prevent_anonymous')} ${generateE2eSelector('input.base')}`
     ),
+    deleteCategory: this.page.locator(
+      generateE2eSelector('clan_page.modal.delete_category.button.delete')
+    ),
   };
 
   readonly sidebarMemberList = {
@@ -187,6 +190,7 @@ export default class ClanSelector {
       `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
     ),
     mention: this.page.locator(generateE2eSelector('mention.input')),
+    selectedFile: this.page.locator(generateE2eSelector('mention.selected_file')),
     messageBanned: this.page.locator(generateE2eSelector('mention.banned')),
     topicBanned: this.page.locator(
       `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.banned')}`
@@ -249,6 +253,24 @@ export default class ClanSelector {
           generateE2eSelector('clan_page.settings.role.item.button.delete')
         ),
       },
+      override: {
+        item: this.page.locator(generateE2eSelector('clan_page.settings.role.override.item')),
+        button: {
+          remove: this.page.locator(
+            generateE2eSelector('clan_page.settings.role.override.item.button.remove')
+          ),
+          tick: this.page.locator(
+            generateE2eSelector('clan_page.settings.role.override.item.button.tick')
+          ),
+        },
+      },
+    },
+    category: {
+      input: {
+        categoryName: this.page.locator(
+          generateE2eSelector('clan_page.settings.category.input.category_name')
+        ),
+      },
     },
   };
 
@@ -288,6 +310,7 @@ export default class ClanSelector {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
     channelsList: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
+    category: this.page.locator(generateE2eSelector('clan_page.side_bar.channel_list.category')),
   };
 
   readonly header = {
@@ -360,6 +383,10 @@ export default class ClanSelector {
         deleteCanvas: this.page.locator(
           generateE2eSelector('chat.channel_message.header.button.canvas.item.button.delete')
         ),
+        confirmDelete: this.page.locator(
+          generateE2eSelector('modal.confirm_modal.button.confirm'),
+          { hasText: 'Delete' }
+        ),
       },
     },
     aboutMe: this.page.locator(generateE2eSelector('full_profile.about_me')),
@@ -398,6 +425,7 @@ export default class ClanSelector {
       joinButton: this.page.locator(
         generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
       ),
+      controlBar: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.control_bar')),
     },
     canvasEditor: {
       input: {
@@ -507,6 +535,32 @@ export default class ClanSelector {
       closeDetailModal: this.page.locator(
         generateE2eSelector(
           'clan_page.modal.create_event.event_management.item.button.close_detail_modal'
+        )
+      ),
+      openPanel: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.open_panel')
+      ),
+      editEvent: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+        hasText: 'Edit Event',
+      }),
+      cancelEvent: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+        hasText: 'Cancel Event',
+      }),
+      copyEventLink: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+        hasText: 'Copy Event Link',
+      }),
+      confirmCancelEvent: this.page.locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.button.confirm_cancel_event'
+        )
+      ),
+      shareEvent: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.share_event')
+      ),
+      copyLink: this.page.locator(generateE2eSelector('button.copy')),
+      closeModalCopyLink: this.page.locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.button.close_modal_copy_link'
         )
       ),
     },

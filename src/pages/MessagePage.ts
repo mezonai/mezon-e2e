@@ -7,7 +7,6 @@ import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { expect, Locator, Page } from '@playwright/test';
 import sleep from '@utils/sleep';
 import { BasePage } from './BasePage';
-import { ProfilePage } from './ProfilePage';
 
 export class MessagePage extends BasePage {
   private helpers: DirectMessageHelper;
@@ -35,9 +34,17 @@ export class MessagePage extends BasePage {
     try {
       await this.selector.buttonCreateGroupSidebar.click();
 
-      const firstUser = (await this.selector.userItem.first().innerText()).trim();
-      await this.selector.userItem.hover();
-      await this.selector.userItem.click();
+      const userItem = this.selector.userItem.first();
+
+      await userItem.waitFor({
+        state: 'visible',
+      });
+
+      const firstUser =
+        (await userItem.locator('span:not([data-e2e])').textContent())?.trim() ?? '';
+
+      await userItem.click();
+
       await this.selector.createGroupButton.click();
 
       return firstUser;
@@ -144,6 +151,15 @@ export class MessagePage extends BasePage {
     await this.page.waitForTimeout(3000);
   }
 
+  async addMemberToCurrentConversation(): Promise<void> {
+    await this.selector.addUserButton.click();
+    await this.page.waitForTimeout(3000);
+    await this.selector.userItem.click();
+    this.userNameItemText = (await this.selector.userNameItem.textContent()) ?? '';
+    await this.selector.createGroupButton.click();
+    await this.page.waitForTimeout(3000);
+  }
+
   async getMemberCount(): Promise<number> {
     await this.selector.group.click();
     await this.selector.sumMember.click();
@@ -173,10 +189,9 @@ export class MessagePage extends BasePage {
   async closeDM(username: string): Promise<void> {
     const user = await this.selector.listDMItems
       .filter({
-        hasNot: this.page.locator('p', { hasText: 'Member' }),
-        has: this.page.locator('span', {
-          hasText: username,
-        }),
+        has: this.page
+          .locator(generateE2eSelector('chat.direct_message.chat_item.username'))
+          .filter({ hasText: username }),
       })
       .first();
 
@@ -380,17 +395,16 @@ export class MessagePage extends BasePage {
 
   async openGroupFromName(name: string) {
     const messagePage = new MessagePage(this.page);
-    const groupLocator = messagePage.selector.userNamesInDM
-      .filter({ hasText: name.slice(0, 15) })
+    const groupLocator = messagePage.selector.groupNamesInDM
+      .filter({ hasText: name.slice(0, 20) })
       .first();
-    await expect(groupLocator).toBeVisible({ timeout: 3000 });
+    await expect(groupLocator).toBeVisible({ timeout: 10000 });
     await groupLocator.first().click();
   }
 
   async updateAvatarForGroup(groupName: string): Promise<void> {
     const fileSizeHelpers = new FileSizeTestHelpers(this.page);
 
-    await this.selector.group.click();
     await this.selector.editGroupButton.click();
     const groupAvt = await fileSizeHelpers.createFileWithSize(
       'direct_message_icon',
@@ -490,10 +504,37 @@ export class MessagePage extends BasePage {
   }
 
   async openSearchModalbyPressCtrlK(): Promise<void> {
+    await this.page.waitForTimeout(1000);
     await this.page.keyboard.press('Control+K');
+    await this.page.waitForTimeout(1000);
     await expect(this.selector.searchModal).toBeVisible({
       timeout: 5000,
     });
+  }
+
+  async closeSearchModal(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await expect(this.selector.searchModal).toBeHidden({
+      timeout: 5000,
+    });
+  }
+
+  async verifyBadgeOnSearchModal(username: string, shouldHaveBadge = true): Promise<void> {
+    await this.openSearchModalbyPressCtrlK();
+    await expect(this.selector.searchInput).toBeVisible({ timeout: 5000 });
+    await this.selector.searchInput.fill(username);
+    await this.page.waitForTimeout(3000);
+    const suggestItem = this.selector.searchModal.locator(generateE2eSelector('suggest_item'), {
+      hasText: username,
+    });
+    await expect(suggestItem.first()).toBeVisible({ timeout: 5000 });
+    const badge = suggestItem.first().locator(generateE2eSelector('suggest_item.count_badge'));
+    if (shouldHaveBadge) {
+      await expect(badge).toBeVisible({ timeout: 3000 });
+    } else {
+      await expect(badge).toBeHidden({ timeout: 3000 });
+    }
+    await this.closeSearchModal();
   }
 
   async openSearchModalbyClickSearchButton(): Promise<void> {
@@ -529,16 +570,13 @@ export class MessagePage extends BasePage {
   }
 
   async leaveAllGroup() {
-    const profilePage = new ProfilePage(this.page);
-    await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
-
     const chatList = this.selector.listDMItems;
     await expect(chatList.first()).toBeVisible({ timeout: 10000 });
 
     while (true) {
       const group = chatList
         .filter({
-          has: this.page.locator('p', { hasText: 'Member' }),
+          has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name')),
         })
         .first();
 
@@ -553,7 +591,7 @@ export class MessagePage extends BasePage {
         generateE2eSelector('chat.direct_message.chat_item.close_dm_button')
       );
 
-      await leaveGroupButton.click({ force: true });
+      await leaveGroupButton.first().click({ force: true });
       const confirmLeaveGroupButton = this.page.locator(
         generateE2eSelector('chat.direct_message.leave_group.button')
       );
@@ -568,10 +606,7 @@ export class MessagePage extends BasePage {
     const group = await this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({
-        has: this.page.locator('p', { hasText: 'Member' }),
-      })
-      .filter({
-        has: this.page.locator('span', {
+        has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name'), {
           hasText: groupName,
         }),
       })
@@ -671,7 +706,7 @@ export class MessagePage extends BasePage {
   }
 
   async getChatListContainer() {
-    return this.selector.chatListContainer;
+    return this.selector.chatListContainer.last();
   }
 
   async getWelcomeDM() {
@@ -722,6 +757,9 @@ export class MessagePage extends BasePage {
 
   async getGroupName() {
     return this.selector.groupName;
+  }
+  async getUserLocator(username: string) {
+    return this.selector.userNamesInDM.filter({ hasText: username }).first();
   }
 
   async getUserNamesInDMByGroupName(groupName: string) {
@@ -834,10 +872,11 @@ export class MessagePage extends BasePage {
     await this.page.waitForTimeout(1000);
     await this.page.keyboard.down('Shift');
     await this.page.waitForTimeout(1000);
-    await this.page.keyboard.press('Enter');
+    await this.page.keyboard.down('Enter');
     await this.page.waitForTimeout(1000);
-    await this.page.keyboard.up('Shift');
     await this.page.keyboard.up('Control');
+    await this.page.keyboard.up('Shift');
+    await this.page.keyboard.up('Enter');
 
     await this.page.waitForTimeout(3000);
   }
@@ -918,15 +957,18 @@ export class MessagePage extends BasePage {
     await this.selector.timeline.buttons.openTab.click();
   }
 
-  async createTimelineEvent(data: { title: string; description: string }) {
+  async fillTitleAndDescription(data: { title: string; description: string }) {
     await this.selector.timeline.buttons.create.click();
     await this.page.waitForTimeout(1000);
     await this.selector.timeline.inputModals.eventTitle.fill(data.title);
     await this.selector.timeline.inputModals.eventDescription.fill(data.description);
     const date = await this.selector.timeline.inputModals.eventDate.inputValue();
     await this.page.waitForTimeout(2000);
-    await this.selector.timeline.buttons.saveModal.click();
     return date;
+  }
+
+  async clickSave() {
+    await this.selector.timeline.buttons.saveModal.click();
   }
 
   async openTimelineModal() {
@@ -940,12 +982,12 @@ export class MessagePage extends BasePage {
 
   async verifyEventIsVisibleOnTab(data: { title: string; description: string }, date: string) {
     const [year, month, day] = date.split('-');
-    const dateLocator = this.selector.timeline.eventTimeDetail.day;
-    const monthLocator = this.selector.timeline.eventTimeDetail.month;
-    const yearLocator = this.selector.timeline.eventTimeDetail.year;
+    const dateLocator = this.selector.timeline.eventTimeDetail.day.first();
+    const monthLocator = this.selector.timeline.eventTimeDetail.month.first();
+    const yearLocator = this.selector.timeline.eventTimeDetail.year.first();
     const formatMonth = this.getMonthShort(Number(month));
-    const titleLocator = this.selector.timeline.triggerTab.eventDetailName;
-    const descriptionLocator = this.selector.timeline.triggerTab.eventDetailDescription;
+    const titleLocator = this.selector.timeline.triggerTab.eventDetailName.first();
+    const descriptionLocator = this.selector.timeline.triggerTab.eventDetailDescription.first();
 
     await expect(dateLocator).toContainText(day, { timeout: 1000 });
     await expect(monthLocator).toContainText(formatMonth, { timeout: 1000 });
@@ -984,5 +1026,161 @@ export class MessagePage extends BasePage {
     await this.page.waitForTimeout(1000);
     await this.selector.timeline.buttons.back.click();
     return data;
+  }
+
+  async openCalendar() {
+    await this.selector.timeline.buttons.openCalender.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async getSelectedYear(): Promise<string> {
+    const year = await this.selector.timeline.buttons.selectedYear.first().textContent();
+    return year?.trim() || '';
+  }
+
+  private extractYearFromDate(date: string): string {
+    const parsed = new Date(date);
+    return parsed.getFullYear().toString();
+  }
+
+  async verifyEventInCalendar(
+    data: { title: string; description: string },
+    date: string,
+    selectedYear: string
+  ) {
+    const eventYear = this.extractYearFromDate(date);
+
+    if (eventYear !== selectedYear) {
+      throw new Error(`Year mismatch: event=${eventYear}, selected=${selectedYear}`);
+    }
+
+    const titleLocator = this.selector.timeline.card.title.filter({
+      hasText: data.title,
+    });
+
+    const descriptionLocator = this.selector.timeline.card.description.filter({
+      hasText: data.description,
+    });
+
+    await titleLocator.first().waitFor({ state: 'visible', timeout: 5000 });
+    await descriptionLocator.first().waitFor({ state: 'visible', timeout: 5000 });
+  }
+
+  async isCallButtonVisibleOnGroupHeader(): Promise<boolean> {
+    try {
+      await this.selector.dmHeaderCallAction.first().waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isVideoCallButtonVisibleOnGroupHeader(): Promise<boolean> {
+    try {
+      await this.selector.dmHeaderVideoCallAction
+        .first()
+        .waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async uploadAttachmentToTimelineEvent() {
+    const fileSizeHelpers = new FileSizeTestHelpers(this.page);
+    const file = await fileSizeHelpers.createFileWithSize(
+      'timeline_attachment',
+      5 * 1024 * 1024,
+      'jpg'
+    );
+    const result = await fileSizeHelpers.uploadByTypeAndVerify(file, UploadType.TIMELINE, true);
+    expect(result.success).toBe(true);
+
+    await this.page.waitForTimeout(3000);
+  }
+
+  async openCreatePoll() {
+    await this.selector.poll.button.openModal.click();
+    await this.selector.poll.button.option.filter({ hasText: 'Create Poll' }).first().click();
+    await expect(this.selector.poll.modal.input.question).toBeVisible();
+  }
+
+  async clickPollOptionByIndex(index: number) {
+    const option = this.selector.poll.button.option.nth(index);
+    await expect(option).toBeVisible();
+    await option.click();
+  }
+
+  async createPoll(question: string, answers: string[], allowMulti = false) {
+    await this.selector.poll.modal.input.question.fill(question);
+    for (let i = 0; i < answers.length; i++) {
+      if (i > 0) {
+        await this.selector.poll.modal.button.addAnswer.click();
+      }
+
+      await this.selector.poll.modal.input.answer.nth(i).fill(answers[i]);
+    }
+
+    if (allowMulti) {
+      await this.selector.poll.modal.input.allowMultiAnswer.click();
+    }
+    await this.selector.poll.modal.button.post.click();
+  }
+
+  async verifyPollCard(question: string, answers: string[]) {
+    const pollCard = this.selector.poll.card;
+
+    await expect(pollCard.question).toHaveText(question);
+
+    for (let i = 0; i < answers.length; i++) {
+      await expect(pollCard.answer.nth(i)).toHaveText(answers[i]);
+    }
+
+    await expect(pollCard.totalVotes).toBeVisible();
+    await expect(pollCard.button.vote).toBeVisible();
+  }
+
+  async votePollByIndex(answerIndex: number) {
+    const answer = this.selector.poll.card.answer.nth(answerIndex);
+    await expect(answer).toBeVisible();
+    await answer.click();
+
+    await this.selector.poll.card.button.vote.click();
+  }
+
+  async verifyUserVoted(index: number) {
+    const answer = this.selector.poll.card.answer.nth(index);
+    const voted = answer.locator(this.selector.poll.card.voted);
+    await expect(voted).toBeVisible({ timeout: 3000 });
+    const removeVoteBtn = this.selector.poll.card.button.removeVote;
+    await expect(removeVoteBtn).toBeVisible();
+  }
+
+  async removeVote() {
+    await this.selector.poll.card.button.removeVote.click();
+  }
+
+  async endPoll() {
+    await this.selector.poll.card.question.first().click({ button: 'right' });
+    await this.selector.poll.button.endPoll.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async verifyEndPollOptionVisible() {
+    await this.selector.poll.card.question.first().click({ button: 'right' });
+    const endPollButton = this.selector.poll.button.endPoll;
+    return await endPollButton.isVisible({ timeout: 1000 });
+  }
+
+  async verifyPollEnded() {
+    await expect(this.selector.poll.card.ended).toBeVisible();
+  }
+
+  async clickShareContactButtonOnShortProfile() {
+    const shareContactButton = this.page.locator(
+      generateE2eSelector('short_profile.action.button.share_contact')
+    );
+    await expect(shareContactButton).toBeVisible({ timeout: 3000 });
+    await shareContactButton.click();
   }
 }

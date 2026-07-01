@@ -4,7 +4,11 @@ import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
-import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
@@ -12,9 +16,9 @@ import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
 test.describe('Direct Message', () => {
-  const accountA = AccountCredentials['account2-3'];
-  const accountB = AccountCredentials['account2-4'];
-  const accountC = AccountCredentials['account2-2'];
+  const accountA = AccountCredentials['accountKien1'];
+  const accountB = AccountCredentials['accountKien5'];
+  const accountC = AccountCredentials['accountKien6'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   let nameGroupChat: string;
@@ -23,26 +27,16 @@ test.describe('Direct Message', () => {
     accountB.email,
     accountC.email,
   ]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageA, accountA);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageA,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-      B: async () => {
-        const credentials = await AuthHelper.setupAuthWithEmailPassword(dual.pageB, accountB);
-        await AuthHelper.prepareBeforeTest(
-          dual.pageB,
-          joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
-          credentials
-        );
-      },
-    });
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -149,6 +143,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.step(
       'Verify group avatar is updated with user B on group chat header',
       async () => {
+        await dual.pageB.reload();
         await messagePageB.openGroupFromName(nameGroupChat);
         const avtHashHeaderB = await messagePageB.getAvatarHashOnHeaderChat();
         expect(avtHashHeaderB).toBe(profileHash);
@@ -247,6 +242,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.step(
       'Verify group avatar is updated with user B on forward message modal',
       async () => {
+        await dual.pageB.reload();
         await messagePageB.openGroupFromName(nameGroupChat);
         await messagePageB.openForwardMessageModal();
         const avtHashOnForwardPopup = await messagePageB.getAvatarHashOnForwardPopup(nameGroupChat);
@@ -258,6 +254,7 @@ test.describe('Direct Message', () => {
     await AllureReporter.step(
       'Verify group avatar is updated with user B when search popup (ctrl+k)',
       async () => {
+        await dual.pageB.reload();
         await messagePageB.openSearchModalbyPressCtrlK();
         const avtHashOnSearchModalB = await messagePageB.getAvatarHashOnSearchModal(nameGroupChat);
         expect(avtHashOnSearchModalB).toBe(profileHash);
@@ -353,6 +350,7 @@ test.describe('Direct Message', () => {
     });
 
     await AllureReporter.step('User B leave group', async () => {
+      await dual.pageB.reload();
       await messagePageB.leaveGroupByName(nameGroupChat);
     });
   });
