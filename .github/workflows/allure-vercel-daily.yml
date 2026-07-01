@@ -22,29 +22,19 @@ jobs:
         uses: actions/checkout@v4
 
       # -----------------------------------------------------------------------
-      # 2. Set up Node.js with yarn cache
-      # -----------------------------------------------------------------------
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: yarn.lock
-
-      # -----------------------------------------------------------------------
-      # 3. Install dependencies
+      # 2. Install dependencies (Using runner's default Node & Yarn)
       # -----------------------------------------------------------------------
       - name: Install dependencies
         run: yarn install
 
       # -----------------------------------------------------------------------
-      # 4. Install Playwright browsers
+      # 3. Install Playwright browsers
       # -----------------------------------------------------------------------
       - name: Install Playwright browsers
         run: npx playwright install chromium
 
       # -----------------------------------------------------------------------
-      # 5. Check Java runtime (required by allure-commandline)
+      # 4. Check Java runtime (required by allure-commandline)
       #    continue-on-error is intentionally false — missing Java will cause
       #    the report generation step to fail anyway, so fail fast here.
       # -----------------------------------------------------------------------
@@ -58,7 +48,7 @@ jobs:
           java -version
 
       # -----------------------------------------------------------------------
-      # 6. Create .env file
+      # 5. Create .env file
       # -----------------------------------------------------------------------
       - name: Create environment file
         run: |
@@ -69,7 +59,7 @@ jobs:
           EOF
 
       # -----------------------------------------------------------------------
-      # 7. Run Playwright tests
+      # 6. Run Playwright tests
       #    continue-on-error: true — test failures must NOT block report generation
       # -----------------------------------------------------------------------
       - name: Run Playwright tests
@@ -78,7 +68,7 @@ jobs:
         continue-on-error: true
 
       # -----------------------------------------------------------------------
-      # 8. Generate Allure report and deploy to Vercel
+      # 7. Generate Allure report and deploy to Vercel
       #    if: always() — runs even when the test step above fails
       # -----------------------------------------------------------------------
       - name: Generate Allure report and deploy to Vercel
@@ -90,7 +80,7 @@ jobs:
           bash scripts/allure/allure-daily.sh
 
       # -----------------------------------------------------------------------
-      # 9. Upload allure-results as artifact for debugging if deploy fails
+      # 8. Upload allure-results as artifact for debugging if deploy fails
       #    if-no-files-found: ignore — the folder may already be deleted by
       #    allure-daily.sh if everything succeeded
       # -----------------------------------------------------------------------
