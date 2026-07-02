@@ -71,6 +71,12 @@ jobs:
       # 5. Connect VPN — required to access dev-mezon.nccsoft.vn (internal network)
       #    Only routes the 172.16.100.0/24 subnet, does NOT touch the default route
       #    → no impact on mezonly.com or any other traffic on the server
+      #
+      #    NOTE: log/pid files are created with `sudo touch` (not plain touch).
+      #    Ubuntu's kernel hardening (fs.protected_regular=2) blocks root from
+      #    opening a write to a file inside a sticky world-writable dir (/tmp)
+      #    when the file's owner doesn't match root — even with chmod 666.
+      #    Creating the file as root first avoids this EACCES error.
       # -----------------------------------------------------------------------
       - name: Connect VPN
         env:
@@ -85,14 +91,12 @@ jobs:
           chmod 600 /tmp/vpn-creds.txt
 
           # Remove leftover files from a previous run (owned by root) so we can
-          # recreate them owned by the runner user. Setting chmod 666 before openvpn
-          # (which runs as root) writes to them — opening an existing file only
-          # truncates its content without changing the owner, so the runner user
-          # can still read the files afterwards (avoids "Permission denied" when
-          # grep/cat the log below and in the Disconnect VPN step)
+          # recreate them owned by root again. chmod 666 afterwards lets the
+          # runner user (non-root) read the files for grep/cat below and in
+          # the Disconnect VPN step.
           sudo rm -f /tmp/openvpn.log /tmp/openvpn.pid
-          touch /tmp/openvpn.log /tmp/openvpn.pid
-          chmod 666 /tmp/openvpn.log /tmp/openvpn.pid
+          sudo touch /tmp/openvpn.log /tmp/openvpn.pid
+          sudo chmod 666 /tmp/openvpn.log /tmp/openvpn.pid
 
           sudo openvpn --config /tmp/vpn-config.ovpn \
             --auth-user-pass /tmp/vpn-creds.txt \
