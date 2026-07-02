@@ -81,7 +81,8 @@ jobs:
 
           printf '%s\n%s\n' "$VPN_USERNAME" "$VPN_PASSWORD" > /tmp/vpn-creds.txt
           chmod 600 /tmp/vpn-creds.txt
-
+          touch /tmp/openvpn.log /tmp/openvpn.pid
+          chmod 666 /tmp/openvpn.log /tmp/openvpn.pid
           sudo openvpn --config /tmp/vpn-config.ovpn \
             --auth-user-pass /tmp/vpn-creds.txt \
             --daemon \
