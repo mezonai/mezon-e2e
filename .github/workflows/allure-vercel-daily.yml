@@ -28,10 +28,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # Bỏ cache: 'yarn' vì nó gây ra lỗi không tìm thấy File trên self-hosted runner
+          # Disable cache: 'yarn' because it causes a file-not-found error on the self-hosted runner
 
       # -----------------------------------------------------------------------
-      # 2b. Enable Yarn via Corepack (self-hosted runner không có yarn cài sẵn)
+      # 2b. Enable Yarn via Corepack (yarn is not pre-installed on the self-hosted runner)
       # -----------------------------------------------------------------------
       - name: Enable Yarn via Corepack
         run: |
@@ -47,7 +47,6 @@ jobs:
 
       # -----------------------------------------------------------------------
       # 3. Install Playwright browsers
-
       # -----------------------------------------------------------------------
       - name: Install Playwright browsers
         env:
@@ -69,7 +68,44 @@ jobs:
           java -version
 
       # -----------------------------------------------------------------------
-      # 5. Create .env file
+      # 5. Connect VPN — required to access dev-mezon.nccsoft.vn (internal network)
+      # -----------------------------------------------------------------------
+      - name: Connect VPN
+        env:
+          VPN_OVPN_CONFIG: ${{ secrets.VPN_OVPN_CONFIG }}
+          VPN_USERNAME: ${{ secrets.VPN_USERNAME }}
+          VPN_PASSWORD: ${{ secrets.VPN_PASSWORD }}
+        run: |
+          echo "$VPN_OVPN_CONFIG" > /tmp/vpn-config.ovpn
+          chmod 600 /tmp/vpn-config.ovpn
+
+          printf '%s\n%s\n' "$VPN_USERNAME" "$VPN_PASSWORD" > /tmp/vpn-creds.txt
+          chmod 600 /tmp/vpn-creds.txt
+
+          sudo openvpn --config /tmp/vpn-config.ovpn \
+            --auth-user-pass /tmp/vpn-creds.txt \
+            --daemon \
+            --pull-filter ignore "redirect-gateway" \
+            --route 172.16.100.0 255.255.255.0 \
+            --log /tmp/openvpn.log \
+            --writepid /tmp/openvpn.pid
+
+          for i in $(seq 1 30); do
+            if grep -q "Initialization Sequence Completed" /tmp/openvpn.log 2>/dev/null; then
+              echo "VPN ready after ${i}s"
+              rm -f /tmp/vpn-creds.txt
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "VPN did not initialize within 30s — log:"
+          cat /tmp/openvpn.log
+          rm -f /tmp/vpn-creds.txt
+          exit 1
+
+      # -----------------------------------------------------------------------
+      # 6. Create .env file
       # -----------------------------------------------------------------------
       - name: Create environment file
         run: |
@@ -80,7 +116,7 @@ jobs:
           EOF
 
       # -----------------------------------------------------------------------
-      # 6. Run Playwright tests
+      # 7. Run Playwright tests
       #    continue-on-error: true — test failures must NOT block report generation
       # -----------------------------------------------------------------------
       - name: Run Playwright tests
@@ -89,7 +125,7 @@ jobs:
         continue-on-error: true
 
       # -----------------------------------------------------------------------
-      # 7. Generate Allure report and deploy to Vercel
+      # 8. Generate Allure report and deploy to Vercel
       #    if: always() — runs even when the test step above fails
       # -----------------------------------------------------------------------
       - name: Generate Allure report and deploy to Vercel
@@ -101,7 +137,23 @@ jobs:
           bash scripts/allure/allure-daily.sh
 
       # -----------------------------------------------------------------------
-      # 8. Upload allure-results as artifact for debugging if deploy fails
+      # 9. Disconnect VPN — cleanup, always runs (even when tests or deploy fail)
+      #    IMPORTANT: this step must not be removed; otherwise the VPN process will
+      #    remain running on the server after the job ends.
+      # -----------------------------------------------------------------------
+      - name: Disconnect VPN
+        if: always()
+        run: |
+          if [ -f /tmp/openvpn.pid ]; then
+            sudo kill "$(cat /tmp/openvpn.pid)" 2>/dev/null || true
+            rm -f /tmp/openvpn.pid /tmp/vpn-config.ovpn
+            echo "VPN disconnected and config removed"
+          else
+            echo "No VPN PID file found, skipping disconnect"
+          fi
+
+      # -----------------------------------------------------------------------
+      # 10. Upload allure-results as artifact for debugging if deploy fails
       #    if-no-files-found: ignore — the folder may already be deleted by
       #    allure-daily.sh if everything succeeded
       # -----------------------------------------------------------------------
