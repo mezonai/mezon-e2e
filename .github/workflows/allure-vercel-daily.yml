@@ -77,6 +77,14 @@ jobs:
       #    opening a write to a file inside a sticky world-writable dir (/tmp)
       #    when the file's owner doesn't match root — even with chmod 666.
       #    Creating the file as root first avoids this EACCES error.
+      #
+      #    NOTE: the openvpn --daemon call redirects stdin/stdout/stderr to
+      #    /dev/null. Without this, the forked daemon process inherits this
+      #    step's stdout/stderr pipe and keeps it open even after the script
+      #    exits, so the GitHub Actions runner never sees EOF and the step
+      #    hangs indefinitely (even though the script logic already finished
+      #    and printed "VPN ready"). Full openvpn output is still captured in
+      #    /tmp/openvpn.log via --log, so no debug info is lost.
       # -----------------------------------------------------------------------
       - name: Connect VPN
         env:
@@ -104,7 +112,8 @@ jobs:
             --pull-filter ignore "redirect-gateway" \
             --route 172.16.100.0 255.255.255.0 \
             --log /tmp/openvpn.log \
-            --writepid /tmp/openvpn.pid
+            --writepid /tmp/openvpn.pid \
+            < /dev/null > /dev/null 2>&1
 
           for i in $(seq 1 30); do
             if grep -q "Initialization Sequence Completed" /tmp/openvpn.log 2>/dev/null; then
