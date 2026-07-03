@@ -93,240 +93,145 @@ log "   Latest month   : ${LATEST_MONTH:-'(none)'}  Latest day: ${LATEST_DAY:-'(
 # ---------------------------------------------------------------------------
 log "✍️  Writing $OUTPUT_FILE..."
 
+if [ -z "$LATEST_MONTH" ] || [ -z "$LATEST_DAY" ]; then
 cat > "$OUTPUT_FILE" <<HTMLEOF
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mezon Automation — Allure Reports</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-
-    .card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 1rem;
-      padding: 2.5rem;
-      width: 100%;
-      max-width: 480px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.625rem;
-      margin-bottom: 1.75rem;
-    }
-
-    .logo-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: #6366f1;
-    }
-
-    h1 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #f8fafc;
-    }
-
-    .subtitle {
-      font-size: 0.8125rem;
-      color: #64748b;
-      margin-top: 0.25rem;
-    }
-
-    label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.4rem;
-      margin-top: 1.25rem;
-    }
-
-    select {
-      width: 100%;
-      padding: 0.625rem 0.875rem;
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 0.5rem;
-      color: #e2e8f0;
-      font-size: 0.9375rem;
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.875rem center;
-      padding-right: 2.5rem;
-      transition: border-color 0.15s;
-    }
-
-    select:focus {
-      outline: none;
-      border-color: #6366f1;
-    }
-
-    .btn {
-      display: block;
-      width: 100%;
-      margin-top: 1.75rem;
-      padding: 0.75rem;
-      background: #6366f1;
-      color: #fff;
-      border: none;
-      border-radius: 0.5rem;
-      font-size: 0.9375rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      transition: background 0.15s, transform 0.1s;
-    }
-
-    .btn:hover { background: #4f46e5; }
-    .btn:active { transform: scale(0.98); }
-    .btn:disabled {
-      background: #334155;
-      color: #64748b;
-      cursor: not-allowed;
-    }
-
-    .divider {
-      border: none;
-      border-top: 1px solid #334155;
-      margin: 1.75rem 0 0;
-    }
-
-    .meta {
-      font-size: 0.75rem;
-      color: #475569;
-      margin-top: 1rem;
-      text-align: center;
-    }
-  </style>
+  <title>No Reports found</title>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">
-      <div class="logo-dot"></div>
-      <div>
-        <h1>Mezon E2E — Allure Reports</h1>
-        <p class="subtitle">Daily automated test results</p>
-      </div>
-    </div>
-
-    <label for="select-month">Month</label>
-    <select id="select-month"></select>
-
-    <label for="select-day">Day</label>
-    <select id="select-day"></select>
-
-    <a id="view-btn" class="btn" href="#" target="_blank" rel="noopener noreferrer">
-      View report &rarr;
-    </a>
-
-    <hr class="divider" />
-    <p class="meta" id="meta-text">Select a month and day to view the report</p>
-  </div>
-
+  <h1 style="font-family: sans-serif; text-align: center; margin-top: 50px;">No reports available</h1>
+</body>
+</html>
+HTMLEOF
+else
+cat > "$OUTPUT_FILE" <<HTMLEOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Redirecting...</title>
+  <meta http-equiv="refresh" content="0; url=/${LATEST_MONTH}/${LATEST_DAY}/" />
+</head>
+<body style="font-family: sans-serif; text-align: center; margin-top: 50px; background: #0f172a; color: #e2e8f0;">
+  <p>Redirecting to the latest report (<a href="/${LATEST_MONTH}/${LATEST_DAY}/" style="color: #6366f1;">${LATEST_DAY}</a>)...</p>
   <script>
-    // -------------------------------------------------------------------------
-    // Data object generated automatically by build-index.sh
-    // Shape: { "YYYY-MM": ["YYYY-MM-DD", ...], ... }
-    // -------------------------------------------------------------------------
-    const DATA = ${JSON_DATA};
-
-    const monthSel = document.getElementById('select-month');
-    const daySel   = document.getElementById('select-day');
-    const viewBtn  = document.getElementById('view-btn');
-    const metaText = document.getElementById('meta-text');
-
-    const months = Object.keys(DATA).sort();
-
-    function populateMonths() {
-      monthSel.innerHTML = '';
-      if (months.length === 0) {
-        monthSel.innerHTML = '<option value="">-- No data available --</option>';
-        return;
-      }
-      months.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = m;
-        monthSel.appendChild(opt);
-      });
-      // Default: select the most recent month
-      monthSel.value = months[months.length - 1];
-    }
-
-    function populateDays(month) {
-      daySel.innerHTML = '';
-      const days = (DATA[month] || []).slice().sort();
-      if (days.length === 0) {
-        daySel.innerHTML = '<option value="">-- No days available --</option>';
-        updateButton(null, null);
-        return;
-      }
-      days.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = d;
-        daySel.appendChild(opt);
-      });
-      // Default: select the most recent day
-      daySel.value = days[days.length - 1];
-      updateButton(month, days[days.length - 1]);
-    }
-
-    function updateButton(month, day) {
-      if (!month || !day) {
-        viewBtn.href = '#';
-        viewBtn.setAttribute('disabled', 'disabled');
-        metaText.textContent = 'No data to display';
-        return;
-      }
-      const href = './' + month + '/' + day + '/index.html';
-      viewBtn.href = href;
-      viewBtn.removeAttribute('disabled');
-      metaText.textContent = 'Report for ' + day;
-    }
-
-    monthSel.addEventListener('change', () => {
-      populateDays(monthSel.value);
-    });
-
-    daySel.addEventListener('change', () => {
-      updateButton(monthSel.value, daySel.value);
-    });
-
-    // Initialise on page load
-    populateMonths();
-    if (months.length > 0) {
-      populateDays(months[months.length - 1]);
-    } else {
-      daySel.innerHTML = '<option value="">-- No data available --</option>';
-      updateButton(null, null);
-    }
+    window.location.replace("/${LATEST_MONTH}/${LATEST_DAY}/");
   </script>
 </body>
 </html>
 HTMLEOF
+fi
 
 log "✅ $OUTPUT_FILE written"
+
+# ---------------------------------------------------------------------------
+# 4. Generate app-nav.js for the internal report navigation
+# ---------------------------------------------------------------------------
+log "⚡ Generating app-nav.js..."
+APP_NAV_JS="$REPORTS_DIR/app-nav.js"
+
+cat > "$APP_NAV_JS" <<JSEOF
+(function() {
+  const DATA = ${JSON_DATA};
+  const months = Object.keys(DATA).sort();
+
+  function injectNav() {
+    if (document.getElementById('custom-allure-nav')) return;
+    const sideNavMenu = document.querySelector('.side-nav__menu');
+    if (!sideNavMenu) return;
+
+    let currentMonth = '';
+    let currentDay = '';
+    const match = window.location.pathname.match(/\\/(\\d{4}-\\d{2})\\/(\\d{4}-\\d{2}-\\d{2})\\/?/);
+    if (match) {
+       currentMonth = match[1];
+       currentDay = match[2];
+    }
+
+    const container = document.createElement('li');
+    container.id = 'custom-allure-nav';
+    container.className = 'side-nav__item';
+    container.style.cssText = 'padding: 12px 15px; display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.1); margin-bottom: 10px;';
+
+    const monthLabel = document.createElement('div');
+    monthLabel.textContent = 'Month';
+    monthLabel.style.cssText = 'color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;';
+    
+    const monthSelect = document.createElement('select');
+    monthSelect.style.cssText = 'width: 100%; padding: 4px; background: rgba(15, 23, 42, 0.8); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; font-size: 12px; outline: none; cursor: pointer; margin-bottom: 6px;';
+    
+    months.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      if (m === currentMonth) opt.selected = true;
+      monthSelect.appendChild(opt);
+    });
+
+    const dayLabel = document.createElement('div');
+    dayLabel.textContent = 'Day';
+    dayLabel.style.cssText = 'color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;';
+    
+    const daySelect = document.createElement('select');
+    daySelect.style.cssText = 'width: 100%; padding: 4px; background: rgba(15, 23, 42, 0.8); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; font-size: 12px; outline: none; cursor: pointer;';
+
+    function updateDayOptions() {
+      daySelect.innerHTML = '';
+      const selectedMonth = monthSelect.value;
+      const days = (DATA[selectedMonth] || []).slice().sort();
+      days.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        if (d === currentDay) opt.selected = true;
+        daySelect.appendChild(opt);
+      });
+    }
+
+    updateDayOptions();
+
+    monthSelect.addEventListener('change', () => {
+      updateDayOptions();
+    });
+
+    daySelect.addEventListener('change', () => {
+      const m = monthSelect.value;
+      const d = daySelect.value;
+      if (m && d) {
+        window.location.href = '/' + m + '/' + d + '/';
+      }
+    });
+
+    container.appendChild(monthLabel);
+    container.appendChild(monthSelect);
+    container.appendChild(dayLabel);
+    container.appendChild(daySelect);
+
+    sideNavMenu.insertBefore(container, sideNavMenu.firstChild);
+  }
+
+  const observer = new MutationObserver(() => injectNav());
+  observer.observe(document.body, { childList: true, subtree: true });
+  injectNav();
+})();
+JSEOF
+
+log "✅ app-nav.js written"
+
+# ---------------------------------------------------------------------------
+# 5. Inject app-nav.js script tag into all generated report index.html files
+# ---------------------------------------------------------------------------
+log "💉 Injecting app-nav.js into all report index.html files..."
+# Find all index.html inside month/day directories
+find "$REPORTS_DIR" -maxdepth 3 -mindepth 3 -name index.html | while read -r REPORT_HTML; do
+  if ! grep -q 'src="/app-nav.js"' "$REPORT_HTML"; then
+    # Inject just before </body> using sed
+    sed -i -e 's|</body>|<script src="/app-nav.js"></script></body>|' "$REPORT_HTML"
+  fi
+done
+log "✅ Injection complete"
+
 log "=== build-index.sh finished ==="
