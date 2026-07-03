@@ -134,11 +134,14 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Create environment file
         run: |
-          cat > .env << EOF
-          BASE_URL=https://dev-mezon.nccsoft.vn
+          cat > .env << 'EOF'
+          BASE_URL=https://dev-mezon.nccsoft.vn/
           WORKERS=12
           CI=true
+          MEZON_NOTIFICATIONS=false
           EOF
+          sed -i 's/^[[:space:]]*//' .env
+          echo "--- .env contents ---" && cat .env
 
       # -----------------------------------------------------------------------
       # 7. Run Playwright tests

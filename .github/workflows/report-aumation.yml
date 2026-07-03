@@ -23,14 +23,14 @@ jobs:
       - name: Create environment file
         run: |
           cat > .env << EOF
-          BASE_URL=https://dev-mezon.nccsoft.vn
+          BASE_URL=https://dev-mezon.nccsoft.vn/
           WORKERS=12
           EOF
 
       - name: Verify dev environment is accessible
         run: |
           echo "🌐 Testing connection to dev-mezon.nccsoft.vn..."
-          curl -s --head https://dev-mezon.nccsoft.vn > /dev/null || {
+          curl -s --head https://dev-mezon.nccsoft.vn/ > /dev/null || {
             echo "❌ Cannot reach https://dev-mezon.nccsoft.vn"
             exit 1
           }
