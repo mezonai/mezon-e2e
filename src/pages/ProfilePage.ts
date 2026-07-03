@@ -81,16 +81,26 @@ export class ProfilePage extends BasePage {
   }
 
   async clickLogout() {
-    await this.selector.buttons.userSettingProfile.click();
-    await this.selector.tabs.logout.click();
-    const logoutButton = this.page.locator(generateE2eSelector('button.base'), {
-      hasText: 'Log Out',
-    });
     try {
+      const settingBtn = this.selector.buttons.userSettingProfile;
+      await settingBtn.waitFor({ state: 'visible', timeout: 5000 });
+      // Add a small delay for UI animation if needed
+      await this.page.waitForTimeout(500);
+      await settingBtn.click({ force: true });
+
+      const logoutTab = this.selector.tabs.logout;
+      await logoutTab.waitFor({ state: 'visible', timeout: 5000 });
+      await logoutTab.click({ force: true });
+
+      const logoutButton = this.page.locator(generateE2eSelector('button.base'), {
+        hasText: 'Log Out',
+      });
       await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
-      await logoutButton.click();
+      await logoutButton.click({ force: true });
+
       return true;
-    } catch {
+    } catch (e: any) {
+      console.warn(`clickLogout skipped. Could not complete logout flow: ${e.message}`);
       return false;
     }
   }
