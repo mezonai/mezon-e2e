@@ -46,7 +46,7 @@ test.describe('Channel Message 1', () => {
     });
   });
 
-  test('Verify that when User A edits a message that mentions User B, the edited message appears correctly in User B`s inbox', async ({
+  test.only('Verify that when User A edits a message that mentions User B, the edited message appears correctly in User B`s inbox', async ({
     dual,
   }) => {
     await AllureReporter.addWorkItemLinks({
@@ -151,7 +151,7 @@ test.describe('Channel Message 1', () => {
     });
   });
 
-  test('Verify that user is banned cannot send message on channel', async ({ dual }) => {
+  test.only('Verify that user is banned cannot send message on channel', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64609',
     });

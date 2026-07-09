@@ -4,15 +4,20 @@ on:
   # 19:00 UTC = 02:00 AM next day Vietnam time (UTC+7)
   schedule:
     - cron: '0 19 * * *'
-  # Allow manual trigger for testing before trusting the cron schedule
   workflow_dispatch: {}
 
 jobs:
   allure-daily:
     runs-on: mezon-e2e
 
+    # Job-level timeout: never let a hung step block the runner for hours
+    timeout-minutes: 60
+
     env:
       ALLURE_VERCEL_ROOT: /home/nccsoft/allure-vercel-reports
+      # Fixed browser path pre-installed on the VPS (one-time setup).
+      # Playwright skips the download when the matching version already exists here.
+      PLAYWRIGHT_BROWSERS_PATH: /home/member/pw-browsers
 
     steps:
       # -----------------------------------------------------------------------
@@ -21,91 +26,60 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # -----------------------------------------------------------------------
-      # 2. Set up Node.js
-      # -----------------------------------------------------------------------
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          # Disable cache: 'yarn' because it causes a file-not-found error on the self-hosted runner
+      # Node.js 20, yarn (corepack) and Java are installed system-wide on the
+      # VPS (one-time setup) → the Setup Node.js / Enable Yarn / Check Java
+      # steps were removed.
 
       # -----------------------------------------------------------------------
-      # 2b. Enable Yarn via Corepack (yarn is not pre-installed on the self-hosted runner)
-      # -----------------------------------------------------------------------
-      - name: Enable Yarn via Corepack
-        run: |
-          corepack enable
-          corepack prepare yarn@stable --activate
-          yarn --version
-
-      # -----------------------------------------------------------------------
-      # 3. Install dependencies
+      # 2. Install dependencies
       # -----------------------------------------------------------------------
       - name: Install dependencies
-        run: yarn install
+        timeout-minutes: 10
+        run: yarn install --frozen-lockfile
 
       # -----------------------------------------------------------------------
       # 3. Install Playwright browsers
+      #    Near-instant no-op when the pinned version already exists in
+      #    PLAYWRIGHT_BROWSERS_PATH; only downloads after a Playwright upgrade.
       # -----------------------------------------------------------------------
       - name: Install Playwright browsers
+        timeout-minutes: 10
         env:
           PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
         run: npx playwright install chromium
 
       # -----------------------------------------------------------------------
-      # 4. Check Java runtime (required by allure-commandline)
-      #    continue-on-error is intentionally false — missing Java will cause
-      #    the report generation step to fail anyway, so fail fast here.
-      # -----------------------------------------------------------------------
-      - name: Check Java runtime
-        run: |
-          command -v java || (
-            echo "Java not found, installing..."
-            sudo apt-get update -qq
-            sudo apt-get install -y default-jre
-          )
-          java -version
-
-      # -----------------------------------------------------------------------
-      # 5. Connect VPN — required to access dev-mezon.nccsoft.vn (internal network)
-      #    Only routes the 172.16.100.0/24 subnet, does NOT touch the default route
-      #    → no impact on mezonly.com or any other traffic on the server
-      #
-      #    NOTE: log/pid files are created with `sudo touch` (not plain touch).
-      #    Ubuntu's kernel hardening (fs.protected_regular=2) blocks root from
-      #    opening a write to a file inside a sticky world-writable dir (/tmp)
-      #    when the file's owner doesn't match root — even with chmod 666.
-      #    Creating the file as root first avoids this EACCES error.
-      #
-      #    NOTE: the openvpn --daemon call redirects stdin/stdout/stderr to
-      #    /dev/null. Without this, the forked daemon process inherits this
-      #    step's stdout/stderr pipe and keeps it open even after the script
-      #    exits, so the GitHub Actions runner never sees EOF and the step
-      #    hangs indefinitely (even though the script logic already finished
-      #    and printed "VPN ready"). Full openvpn output is still captured in
-      #    /tmp/openvpn.log via --log, so no debug info is lost.
+      # 4. Connect VPN — required to access dev-mezon.nccsoft.vn
+      #    timeout-minutes guards against any hang (e.g. sudo password prompt).
+      #    Requires NOPASSWD sudo rules on the VPS (see /etc/sudoers.d/gha-vpn).
       # -----------------------------------------------------------------------
       - name: Connect VPN
+        timeout-minutes: 3
         env:
           VPN_OVPN_CONFIG: ${{ secrets.VPN_OVPN_CONFIG }}
           VPN_USERNAME: ${{ secrets.VPN_USERNAME }}
           VPN_PASSWORD: ${{ secrets.VPN_PASSWORD }}
         run: |
+          # Fail fast if sudo would prompt for a password (that hang is invisible in CI)
+          if ! sudo -n true 2>/dev/null; then
+            echo "::error::sudo requires a password on this runner — add NOPASSWD rules (/etc/sudoers.d/gha-vpn)"
+            exit 1
+          fi
+
           echo "$VPN_OVPN_CONFIG" > /tmp/vpn-config.ovpn
           chmod 600 /tmp/vpn-config.ovpn
 
           printf '%s\n%s\n' "$VPN_USERNAME" "$VPN_PASSWORD" > /tmp/vpn-creds.txt
           chmod 600 /tmp/vpn-creds.txt
 
-          # Remove leftover files from a previous run (owned by root) so we can
-          # recreate them owned by root again. chmod 666 afterwards lets the
-          # runner user (non-root) read the files for grep/cat below and in
-          # the Disconnect VPN step.
+          # Recreate log/pid as root first (fs.protected_regular=2 workaround),
+          # then chmod 666 so the non-root runner user can read them.
           sudo rm -f /tmp/openvpn.log /tmp/openvpn.pid
           sudo touch /tmp/openvpn.log /tmp/openvpn.pid
           sudo chmod 666 /tmp/openvpn.log /tmp/openvpn.pid
 
+          # /dev/null redirects are required: without them the forked daemon
+          # inherits this step's stdout pipe and the step never terminates.
           sudo openvpn --config /tmp/vpn-config.ovpn \
             --auth-user-pass /tmp/vpn-creds.txt \
             --daemon \
@@ -130,7 +104,7 @@ jobs:
           exit 1
 
       # -----------------------------------------------------------------------
-      # 6. Create .env file
+      # 5. Create .env file
       # -----------------------------------------------------------------------
       - name: Create environment file
         run: |
@@ -144,20 +118,21 @@ jobs:
           echo "--- .env contents ---" && cat .env
 
       # -----------------------------------------------------------------------
-      # 7. Run Playwright tests
+      # 6. Run Playwright tests
       #    continue-on-error: true — test failures must NOT block report generation
       # -----------------------------------------------------------------------
       - name: Run Playwright tests
         id: run-tests
+        timeout-minutes: 45
         run: xvfb-run yarn test
         continue-on-error: true
 
       # -----------------------------------------------------------------------
-      # 8. Generate Allure report and deploy to Vercel
-      #    if: always() — runs even when the test step above fails
+      # 7. Generate Allure report and deploy to Vercel
       # -----------------------------------------------------------------------
       - name: Generate Allure report and deploy to Vercel
         if: always()
+        timeout-minutes: 10
         env:
           ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -165,25 +140,22 @@ jobs:
           bash scripts/allure/allure-daily.sh
 
       # -----------------------------------------------------------------------
-      # 9. Disconnect VPN — cleanup, always runs (even when tests or deploy fail)
-      #    IMPORTANT: this step must not be removed; otherwise the VPN process will
-      #    remain running on the server after the job ends.
+      # 8. Disconnect VPN — cleanup, always runs
       # -----------------------------------------------------------------------
       - name: Disconnect VPN
         if: always()
+        timeout-minutes: 2
         run: |
           if [ -f /tmp/openvpn.pid ]; then
-            sudo kill "$(cat /tmp/openvpn.pid)" 2>/dev/null || true
-            sudo rm -f /tmp/openvpn.pid /tmp/openvpn.log /tmp/vpn-config.ovpn /tmp/vpn-creds.txt
+            sudo -n kill "$(cat /tmp/openvpn.pid)" 2>/dev/null || true
+            sudo -n rm -f /tmp/openvpn.pid /tmp/openvpn.log /tmp/vpn-config.ovpn /tmp/vpn-creds.txt || true
             echo "VPN disconnected and config removed"
           else
             echo "No VPN PID file found, skipping disconnect"
           fi
 
       # -----------------------------------------------------------------------
-      # 10. Upload allure-results as artifact for debugging if deploy fails
-      #    if-no-files-found: ignore — the folder may already be deleted by
-      #    allure-daily.sh if everything succeeded
+      # 9. Upload allure-results as artifact for debugging if deploy fails
       # -----------------------------------------------------------------------
       - name: Upload allure-results artifact (debug fallback)
         if: always()
