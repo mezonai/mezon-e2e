@@ -124,7 +124,7 @@ jobs:
       - name: Run Playwright tests
         id: run-tests
         timeout-minutes: 45
-        run: xvfb-run yarn test
+        run: xvfb-run yarn test:multi
         continue-on-error: true
 
       # -----------------------------------------------------------------------
