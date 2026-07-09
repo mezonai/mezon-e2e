@@ -35,7 +35,7 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Install dependencies
         timeout-minutes: 10
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       # -----------------------------------------------------------------------
       # 3. Install Playwright browsers
