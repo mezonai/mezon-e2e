@@ -136,7 +136,7 @@ jobs:
         run: |
           cat > .env << 'EOF'
           BASE_URL=https://dev-mezon.nccsoft.vn/
-          WORKERS=2
+          WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false
           EOF
