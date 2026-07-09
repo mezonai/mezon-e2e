@@ -96,9 +96,13 @@ log "   Output: $REPORT_DIR"
 # Prefer allure binary from node_modules (already in devDependencies)
 ALLURE_BIN="$(pwd)/node_modules/.bin/allure"
 if [ ! -f "$ALLURE_BIN" ]; then
-  # Fallback: use via npx
-  ALLURE_BIN="npx allure"
-  log "   ⚠️  node_modules/.bin/allure not found, falling back to npx allure"
+  if command -v allure >/dev/null 2>&1; then
+    ALLURE_BIN="allure"
+    log "   ℹ️  node_modules/.bin/allure not found, using global allure ($(allure --version))"
+  else
+    ALLURE_BIN="npx allure"
+    log "   ⚠️  node_modules/.bin/allure and global allure not found, falling back to npx allure"
+  fi
 fi
 
 $ALLURE_BIN generate allure-results --clean -o "$REPORT_DIR"
