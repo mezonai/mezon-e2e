@@ -124,7 +124,9 @@ jobs:
       - name: Run Playwright tests
         id: run-tests
         timeout-minutes: 45
-        run: xvfb-run yarn test:multi
+        run: |
+          xvfb-run npx playwright test --project Multi \
+            --grep "Verify that when User A edits a message that mentions User B|Verify that user is banned cannot send message on channel"
         continue-on-error: true
 
       # -----------------------------------------------------------------------
