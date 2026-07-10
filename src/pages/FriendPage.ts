@@ -51,9 +51,22 @@ export class FriendPage extends BasePage {
 
   async friendExistsInTab(username: string, tab: Tabs) {
     await this.gotoFriendsPage();
-    await this.page.waitForTimeout(2000);
-    await this.selector.tabs[tab].click();
-    return this.getFriend(username);
+    try {
+      // Try click with timeout 2s. If blocked, it will throw an error and go to catch.
+      await this.selector.tabs[tab].click({ timeout: 2000 });
+      return this.getFriend(username);
+    } catch (e) {
+      // Playwright throws an error because it's blocked! 100% Modal is clearly visible on the screen.
+      const cancelBtn = this.page.locator(
+        '[data-e2e="clan_page-settings-modal-permission-cancel"]'
+      );
+      await cancelBtn.first().click();
+      console.log('Closed permission modal');
+
+      // Click again smoothly
+      await this.selector.tabs[tab].click();
+      return this.getFriend(username);
+    }
   }
 
   async gotoFriendsPage(): Promise<void> {
