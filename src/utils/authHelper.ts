@@ -4,6 +4,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { MezonCredentials } from '@/types';
 import { Page } from '@playwright/test';
+import ClanSelector from '@/data/selectors/ClanSelector';
 
 export type AccountKey = keyof typeof persistentAuthConfigs;
 
@@ -54,6 +55,18 @@ export class AuthHelper {
     // await homePage.clickLogin();
     await page.waitForTimeout(1500);
     await page.waitForLoadState('domcontentloaded');
+
+    const clanSelector = new ClanSelector(page);
+    try {
+      const permissionModalLocator = page.locator(
+        '[data-e2e="clan_page-settings-modal-permission"]'
+      );
+      await permissionModalLocator.waitFor({ state: 'visible', timeout: 4000 });
+      await clanSelector.permissionModal.cancel.first().click();
+      console.log('Closed permission modal');
+    } catch {
+      // Ignored if modal does not appear
+    }
   }
 
   /**
@@ -98,6 +111,18 @@ export class AuthHelper {
   static async prepareBeforeTest(page: Page, clanUrl: string, credentials: any) {
     await AuthHelper.setAuthForSuite(page, credentials);
     await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+
+    const clanSelector = new ClanSelector(page);
+    try {
+      const permissionModalLocator = page.locator(
+        '[data-e2e="clan_page-settings-modal-permission"]'
+      );
+      await permissionModalLocator.waitFor({ state: 'visible', timeout: 3000 });
+      await clanSelector.permissionModal.cancel.first().click();
+      console.log('Closed permission modal');
+    } catch {
+      // Ignored if modal does not appear
+    }
   }
 
   static async logout(page: Page) {

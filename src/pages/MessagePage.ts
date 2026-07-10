@@ -571,7 +571,13 @@ export class MessagePage extends BasePage {
 
   async leaveAllGroup() {
     const chatList = this.selector.listDMItems;
-    await expect(chatList.first()).toBeVisible({ timeout: 10000 });
+
+    try {
+      await chatList.first().waitFor({ state: 'visible', timeout: 5000 });
+    } catch (e) {
+      console.log('Account clean, no group/chat to leave.');
+      return;
+    }
 
     while (true) {
       const group = chatList
