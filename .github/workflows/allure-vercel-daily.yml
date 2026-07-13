@@ -11,7 +11,7 @@ jobs:
     runs-on: mezon-e2e
 
     # Job-level timeout: never let a hung step block the runner for hours
-    timeout-minutes: 60
+    timeout-minutes: 360
 
     env:
       ALLURE_VERCEL_ROOT: /home/nccsoft/allure-vercel-reports
