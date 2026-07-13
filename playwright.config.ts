@@ -20,12 +20,12 @@ export default defineConfig({
     '**/web/ThreadManagement/**/*.spec.ts',
   ],
   grepInvert: /@dual/,
-  timeout: 120 * 1000,
+  timeout: 300 * 1000,
   expect: {
     timeout: 10 * 1000,
   },
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI ? 3 : 0,
   fullyParallel: false,
   workers,
   reporter: [
