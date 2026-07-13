@@ -11,7 +11,7 @@ import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
-test.describe('Channel Management - Module 2', () => {
+test.describe('Channel Management - Module 3', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials['account1'];
 

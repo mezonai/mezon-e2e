@@ -14,7 +14,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Friend Management', () => {
+test.describe('Friend Management - Module 2', () => {
   const accountA = AccountCredentials['accountKien9'];
   const accountB = AccountCredentials['accountKien10'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
