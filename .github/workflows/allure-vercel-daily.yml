@@ -123,7 +123,7 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Run Playwright tests
         id: run-tests
-        timeout-minutes: 180
+        timeout-minutes: 360
         run: |
           xvfb-run npx playwright test
         continue-on-error: true
