@@ -112,36 +112,6 @@ export class AuthHelper {
     await AuthHelper.setAuthForSuite(page, credentials);
     await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
 
-    // Guard: if session was invalidated, the app redirects to OAuth/login.
-    // Wait for the OAuth flow to resolve (up to 15s) then re-navigate to clan.
-    const currentUrl = page.url();
-    const isRedirectedToAuth =
-      currentUrl.includes('oauth2.mezon.ai') ||
-      currentUrl.includes('account.mezon.ai') ||
-      currentUrl.includes('/login') ||
-      currentUrl.includes('/authentication');
-
-    if (isRedirectedToAuth) {
-      console.log(
-        `[AuthHelper] Session redirect detected: ${currentUrl} — waiting for OAuth to resolve...`
-      );
-      try {
-        await page.waitForURL(
-          url =>
-            !url.toString().includes('oauth2.mezon.ai') &&
-            !url.toString().includes('account.mezon.ai') &&
-            !url.toString().includes('/login') &&
-            !url.toString().includes('/authentication'),
-          { timeout: 15000 }
-        );
-        console.log('[AuthHelper] OAuth resolved, re-navigating to clan URL...');
-        await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
-        await page.waitForTimeout(2000);
-      } catch {
-        console.warn('[AuthHelper] OAuth did not resolve in time — proceeding anyway');
-      }
-    }
-
     const clanSelector = new ClanSelector(page);
     try {
       const permissionModalLocator = page.locator(
