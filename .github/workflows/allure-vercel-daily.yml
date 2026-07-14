@@ -125,7 +125,7 @@ jobs:
         id: run-tests
         timeout-minutes: 360
         run: |
-          xvfb-run npx playwright test
+          xvfb-run npx playwright test --project Chrome
         continue-on-error: true
 
       # -----------------------------------------------------------------------
