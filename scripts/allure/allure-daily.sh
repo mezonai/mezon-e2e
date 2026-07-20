@@ -155,7 +155,35 @@ EOF
 fi
 
 # ---------------------------------------------------------------------------
-# 9. Rebuild the index page before deploying
+# 9. Remove reports from previous weeks
+# ---------------------------------------------------------------------------
+log "🧹 Removing reports from previous weeks..."
+
+CURRENT_WEEK=$(date +%G-%V)
+
+find "$ALLURE_VERCEL_ROOT/reports" \
+  -mindepth 2 \
+  -maxdepth 2 \
+  -type d | while read -r REPORT_DIR; do
+
+    REPORT_DATE=$(basename "$REPORT_DIR")
+
+    if ! date -d "$REPORT_DATE" >/dev/null 2>&1; then
+        continue
+    fi
+
+    REPORT_WEEK=$(date -d "$REPORT_DATE" +%G-%V)
+
+    if [ "$REPORT_WEEK" != "$CURRENT_WEEK" ]; then
+        log "🗑️ Removing old report: $REPORT_DATE"
+        rm -rf "$REPORT_DIR"
+    fi
+done
+
+log "✅ Old reports removed"
+
+# ---------------------------------------------------------------------------
+# 10. Rebuild the index page before deploying
 # ---------------------------------------------------------------------------
 log "🏗️  Building index page..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -163,7 +191,7 @@ bash "$SCRIPT_DIR/build-index.sh"
 log "✅ Index build complete"
 
 # ---------------------------------------------------------------------------
-# 10. Deploy to Vercel
+# 11. Deploy to Vercel
 # ---------------------------------------------------------------------------
 log "🚀 Preparing Vercel deployment..."
 
