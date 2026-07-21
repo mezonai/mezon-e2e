@@ -6,6 +6,9 @@ on:
     - cron: '0 19 * * *'
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   allure-daily:
     runs-on: mezon-e2e
@@ -137,6 +140,7 @@ jobs:
         env:
           ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           bash scripts/allure/allure-daily.sh
 
