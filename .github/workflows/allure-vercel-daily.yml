@@ -29,9 +29,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Node.js 20, yarn (corepack) and Java are installed system-wide on the
-      # VPS (one-time setup) → the Setup Node.js / Enable Yarn / Check Java
-      # steps were removed.
+      # chromedriver 149 requires Node.js 22 or newer. Do not rely on the
+      # system-wide Node.js version installed on the self-hosted runner.
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       # -----------------------------------------------------------------------
       # 2. Install dependencies

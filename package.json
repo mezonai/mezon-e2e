@@ -84,7 +84,7 @@
     "@faker-js/faker": "^9.0.0",
     "archiver": "^7.0.1",
     "aws-sdk": "^2.1692.0",
-    "chromedriver": "^149.0.0",
+    "chromedriver": "^150.0.3",
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
