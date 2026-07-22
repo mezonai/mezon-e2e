@@ -8,6 +8,16 @@ import ClanSelector from '@/data/selectors/ClanSelector';
 
 export type AccountKey = keyof typeof persistentAuthConfigs;
 
+const MEZON_DEV_ORIGIN = 'https://dev-mezon.nccsoft.vn';
+
+const isDevEnvironment = (): boolean => {
+  try {
+    return new URL(WEBSITE_CONFIGS.MEZON.baseURL).origin === MEZON_DEV_ORIGIN;
+  } catch {
+    return false;
+  }
+};
+
 export class AuthHelper {
   /**
    * Set authentication data for a specific account
@@ -39,21 +49,28 @@ export class AuthHelper {
    */
   static async setAuthForSuite(page: Page, credentials: any = null) {
     const endpoint = WEBSITE_CONFIGS.MEZON.baseURL || '';
-    await page.waitForTimeout(1000);
+
+    // Login is performed directly on dev, so its existing browser storage is
+    // already valid and must not be cleared or overwritten.
+    if (isDevEnvironment()) {
+      return;
+    }
+
+    await page.waitForTimeout(2000);
     await page.goto(`${endpoint}`);
     await page.waitForLoadState('domcontentloaded');
     this.clearAuth(page);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
     await page.waitForLoadState('networkidle');
     await this.setAuthForAccount(page, credentials);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
     await page.goto(`${endpoint}chat`);
     // const homePage = new HomePage(page);
     // await homePage.clickLogin();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
     await page.waitForLoadState('domcontentloaded');
 
     const clanSelector = new ClanSelector(page);
@@ -85,6 +102,13 @@ export class AuthHelper {
   static async setupAuthWithEmailPassword(page: Page, credentials: MezonCredentials) {
     const loginPage = new LoginPage(page);
     await loginPage.loginWithPassword(credentials.email, credentials.password);
+
+    // Dev continues with the authenticated session on the same origin. Local
+    // environments still need this data copied from dev before continuing.
+    if (isDevEnvironment()) {
+      return {};
+    }
+
     return await page.evaluate(() => {
       // Get all localStorage data
       const allLocalStorageData: Record<string, string> = {};

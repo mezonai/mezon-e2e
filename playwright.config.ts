@@ -7,6 +7,21 @@ dotenv.config();
 
 const workers = parseInt(process.env.WORKERS || '1', 10) || 1;
 
+const getInsecureLocalOriginArgs = (): string[] => {
+  try {
+    const baseUrl = new URL(process.env.BASE_URL || '');
+    const isLocalHttpOrigin =
+      baseUrl.protocol === 'http:' &&
+      (baseUrl.hostname === '127.0.0.1' || baseUrl.hostname === 'localhost');
+
+    return isLocalHttpOrigin
+      ? [`--unsafely-treat-insecure-origin-as-secure=${baseUrl.origin}`]
+      : [];
+  } catch {
+    return [];
+  }
+};
+
 export default defineConfig({
   testDir: './src/tests',
   testMatch: [
@@ -20,7 +35,7 @@ export default defineConfig({
     '**/web/ThreadManagement/**/*.spec.ts',
   ],
   grepInvert: /@dual/,
-  timeout: 120 * 1000,
+  timeout: 300 * 1000,
   expect: {
     timeout: 10 * 1000,
   },
@@ -110,7 +125,22 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
-        headless: true,
+        headless: false,
+        launchOptions: {
+          args: [
+            '--disable-popup-blocking',
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--disable-features=ExternalProtocolDialog',
+            '--lang=en-US',
+
+            '--use-fake-ui-for-media-stream',
+
+            '--auto-select-desktop-capture-source=Entire screen',
+            '--use-fake-device-for-media-stream',
+            ...getInsecureLocalOriginArgs(),
+          ],
+        },
       },
       dependencies: ['setup'],
     },

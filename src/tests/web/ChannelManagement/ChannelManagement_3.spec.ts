@@ -282,6 +282,7 @@ test.describe('Channel Management - Module 4', () => {
     });
 
     await AllureReporter.step('Verify that restored channel is in channel list', async () => {
+      await page.reload();
       const isChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isChannelPresent).toBe(true);
     });

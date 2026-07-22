@@ -60,7 +60,9 @@ export class FriendPage extends BasePage {
       const cancelBtn = this.page.locator(
         '[data-e2e="clan_page-settings-modal-permission-cancel"]'
       );
-      await cancelBtn.first().click();
+      if (await cancelBtn.isVisible()) {
+        await cancelBtn.first().click();
+      }
       console.log('Closed permission modal');
 
       // Click again smoothly

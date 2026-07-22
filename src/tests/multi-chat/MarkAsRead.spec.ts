@@ -123,7 +123,6 @@ test.describe('Mark as read', () => {
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
       await pageB.waitForTimeout(1000);
-      await pageB.reload();
     });
 
     await AllureReporter.step(
@@ -140,6 +139,7 @@ test.describe('Mark as read', () => {
 
     await AllureReporter.step('Verify that channels with new mentions have badges', async () => {
       await pageB.reload();
+      await pageB.waitForTimeout(2000);
       for (const name of channelNames) {
         await clanPageB.verifyChannelHasBadge(name);
       }
@@ -264,10 +264,11 @@ test.describe('Mark as read', () => {
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
-      await pageB.reload();
     });
 
     await AllureReporter.step('Verify that channels with new messages have highlight', async () => {
+      await pageB.reload();
+      await pageB.waitForTimeout(2000);
       for (const name of channelNames) {
         await clanPageB.verifyChannelHasHighlight(name);
       }
@@ -369,10 +370,11 @@ test.describe('Mark as read', () => {
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
-      await pageB.reload();
     });
 
     await AllureReporter.step('Verify that channels with new messages have highlight', async () => {
+      await pageB.reload();
+      await pageB.waitForTimeout(2000);
       await clanPageB.verifyChannelHasHighlight(channelName);
     });
     await AllureReporter.step('User B click mark as read', async () => {
@@ -474,7 +476,8 @@ test.describe('Mark as read', () => {
     );
 
     await AllureReporter.step('Verify that channels with new mentions have badges', async () => {
-      // await pageB.reload();
+      await pageB.reload();
+      await pageB.waitForTimeout(2000);
       await clanPageB.verifyChannelHasBadge(channelName);
     });
 

@@ -2465,6 +2465,7 @@ export class MessageTestHelpers {
   }
 
   async verifyReplyMessageIsVisibleInMainChat() {
+    await this.page.waitForTimeout(2000);
     const lastMessage = await this.selector.messages.last();
     const replyMessageLocator = lastMessage.locator(generateE2eSelector('replied_message.item'));
     await expect(replyMessageLocator).toBeVisible({ timeout: 3000 });
@@ -2495,7 +2496,7 @@ export class MessageTestHelpers {
   }
 
   async sendGifsMessage() {
-    const firstGif = this.selector.gifsMessage.popover.gifItem.first();
+    const firstGif = this.selector.gifsMessage.popover.gifItem.last();
     const alt = await firstGif.locator('img').getAttribute('alt');
     await firstGif.click();
     return alt;
@@ -2602,7 +2603,7 @@ export class MessageTestHelpers {
   async openDMByNameOnsearchModal(username: string) {
     await expect(this.selector.searchInput).toBeVisible({ timeout: 5000 });
     await this.selector.searchInput.fill(username);
-    await this.page.waitForTimeout(3000);
+    await this.page.waitForTimeout(5000);
     const userLocator = this.selector.searchModal.locator(generateE2eSelector('suggest_item'), {
       hasText: username,
     });
@@ -2692,6 +2693,7 @@ export class MessageTestHelpers {
     await expect(nameLocator).toHaveText(username, { timeout: 3000 });
     const callItemLocator = contactLocator.locator(this.selector.shareContact.buttonCall);
     await callItemLocator.click();
+    await this.page.waitForTimeout(1000);
     if (shouldVisible) {
       const currentUrl = loginPage.getCurrentUrl();
       expect(currentUrl).toContain('chat/direct/message');

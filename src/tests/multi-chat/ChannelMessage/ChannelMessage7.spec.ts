@@ -31,8 +31,8 @@ test.describe('Channel Message 7', () => {
     parallel: setupDualUsersInParallel,
     sequential: setupDualUsersSequentially,
   };
-  const setupBeforeEach = setupModes.parallel;
-  // const setupBeforeEach = setupModes.sequential;
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
     await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
@@ -403,7 +403,7 @@ test.describe('Channel Message 7', () => {
     });
   });
 
-  test('Verify thatshows count badge in search modal for unread DM', async ({ dual }) => {
+  test('Verify that shows count badge in search modal for unread DM', async ({ dual }) => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
