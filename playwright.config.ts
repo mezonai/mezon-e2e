@@ -24,16 +24,16 @@ const getInsecureLocalOriginArgs = (): string[] => {
 
 export default defineConfig({
   testDir: './src/tests',
-  // testMatch: [
-  //   '**/cleanup/**/*.spec.ts',
-  //   '**/multi-chat/ChannelMessage/**/*.spec.ts',
-  //   '**/multi-chat/ClanManagement/**/*.spec.ts',
-  //   '**/multi-chat/FriendManagement/**/*.spec.ts',
-  //   '**/web/ChannelManagement/**/*.spec.ts',
-  //   '**/web/ChannelMessage/**/*.spec.ts',
-  //   '**/web/ClanManagement/**/*.spec.ts',
-  //   '**/web/ThreadManagement/**/*.spec.ts',
-  // ],
+  testMatch: [
+    '**/cleanup/**/*.spec.ts',
+    '**/multi-chat/ChannelMessage/**/*.spec.ts',
+    '**/multi-chat/ClanManagement/**/*.spec.ts',
+    '**/multi-chat/FriendManagement/**/*.spec.ts',
+    '**/web/ChannelManagement/**/*.spec.ts',
+    '**/web/ChannelMessage/**/*.spec.ts',
+    '**/web/ClanManagement/**/*.spec.ts',
+    '**/web/ThreadManagement/**/*.spec.ts',
+  ],
   grepInvert: /@dual/,
   timeout: 300 * 1000,
   expect: {
