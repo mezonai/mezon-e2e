@@ -17,7 +17,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { test } from '../../fixtures/dual.fixture';
 
-test.describe('Member Management', () => {
+test.describe('Member Management - Role Assignment and Cache Refresh', () => {
   const accountA = AccountCredentials['account2-1'];
   const accountB = AccountCredentials['account2-2'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';

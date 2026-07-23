@@ -150,8 +150,19 @@ export class AllureReporter {
   }
 
   static async attachScreenshot(page: Page, name?: string) {
-    const screenshot = await page.screenshot({ fullPage: true });
-    await allure.attachment(name || 'Screenshot', screenshot, 'image/png');
+    // Step screenshots are disabled by default so successful tests do not add
+    // attachments to the report. Playwright still captures failures through
+    // `screenshot: 'only-on-failure'`.
+    if (process.env.ENABLE_STEP_SCREENSHOTS !== 'true') {
+      return;
+    }
+
+    const screenshot = await page.screenshot({
+      type: 'jpeg',
+      quality: 35,
+      fullPage: false,
+    });
+    await allure.attachment(name || 'Screenshot', screenshot, 'image/jpeg');
   }
 
   static async attachVideo(videoPath: string, name?: string) {

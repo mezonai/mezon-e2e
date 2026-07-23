@@ -380,6 +380,7 @@ export class MessageTestHelpers {
   }
 
   async sendTextMessageAndGetItem(message: string) {
+    await this.page.waitForTimeout(2000);
     await this.sendTextMessage(message);
 
     const locator = this.getMessageItemLocator(message).last();

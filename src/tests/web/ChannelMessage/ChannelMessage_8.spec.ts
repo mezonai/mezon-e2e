@@ -11,7 +11,7 @@ import { ChannelType } from '@/types/clan-page.types';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
-test.describe('Channel Message - Module 8', () => {
+test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
@@ -136,6 +136,7 @@ test.describe('Channel Message - Module 8', () => {
     });
 
     await AllureReporter.step('Send message to the text channel', async () => {
+      await page.waitForTimeout(2000);
       await messageHelper.sendTextMessage(message);
     });
     await AllureReporter.step('Pin message', async () => {

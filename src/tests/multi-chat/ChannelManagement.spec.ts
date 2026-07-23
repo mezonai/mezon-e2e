@@ -20,7 +20,7 @@ import pressEsc from '@/utils/pressEsc';
 import { expect } from '@playwright/test';
 import { test } from '../../fixtures/dual.fixture';
 
-test.describe('Channel Management', () => {
+test.describe('Channel Management - Private Channel Access and Membership', () => {
   const accountA = AccountCredentials['account2-1'];
   const accountB = AccountCredentials['account2-2'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
@@ -161,9 +161,7 @@ test.describe('Channel Management', () => {
     });
   });
 
-  test('Verify that I can not access to private channel when i am not owner and not been invited', async ({
-    dual,
-  }) => {
+  test('Verify that an uninvited non-owner cannot access a private channel', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64609',
     });

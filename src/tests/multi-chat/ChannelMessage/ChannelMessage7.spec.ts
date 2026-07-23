@@ -20,7 +20,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Channel Message 7', () => {
+test.describe('Channel Messages - Polls, Contact Sharing, and Unread DM Search', () => {
   const accountA = AccountCredentials['accountKien5'];
   const accountB = AccountCredentials['accountKien6'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';

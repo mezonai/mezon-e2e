@@ -9,7 +9,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect, test } from '@playwright/test';
 import { randomInt } from 'crypto';
 
-test.describe('Direct Message', () => {
+test.describe('Direct Messages - Conversations, Groups, Pins, and Membership', () => {
   test.beforeAll(async () => {
     await TestSetups.chatTest({
       suite: AllureConfig.Suites.CHAT_PLATFORM,

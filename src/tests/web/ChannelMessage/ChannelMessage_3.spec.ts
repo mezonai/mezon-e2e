@@ -24,7 +24,7 @@ const test = base.extend<{
   },
 });
 
-test.describe('Channel Message - Module 3', () => {
+test.describe('Channel Messages - Edit, Delete, Forward, and Pin', () => {
   let messageHelpers: MessageTestHelpers;
   const credentials = AccountCredentials.account3;
   const clanFactory = new ClanFactory();

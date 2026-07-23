@@ -13,7 +13,7 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect, Locator } from '@playwright/test';
 import { randomInt } from 'crypto';
 
-test.describe('Topic message', () => {
+test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Navigation', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
@@ -227,6 +227,7 @@ test.describe('Topic message', () => {
     });
 
     await AllureReporter.step('Send messages on channel and create topic', async () => {
+      await page.waitForTimeout(2000);
       await messageHelper.sendTextMessage(testMessage);
       await messageHelper.createTopicToInitMessage(testMessage);
     });

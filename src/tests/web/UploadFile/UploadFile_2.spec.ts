@@ -13,7 +13,7 @@ import { BrowserContext, expect, Page, test, TestInfo } from '@playwright/test';
 import { ClanSettingsPage } from '../../../pages/ClanSettingsPage';
 import { ProfilePage } from '../../../pages/ProfilePage';
 
-test.describe('File Size Limits Validation - Module 2', () => {
+test.describe('File Upload Limits - Clan Assets, Canvas, Emoji, and Stickers', () => {
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
   let profilePage: ProfilePage;

@@ -14,7 +14,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Friend Management', () => {
+test.describe('Friend Management - Requests, Search, and Validation', () => {
   const accountA = AccountCredentials['accountKien9'];
   const accountB = AccountCredentials['accountKien10'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
@@ -290,7 +290,7 @@ test.describe('Friend Management', () => {
     });
   });
 
-  test('Should error when add friend to user who already sent', async ({ dual }) => {
+  test('Should show an error when sending a duplicate pending friend request', async ({ dual }) => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
@@ -326,7 +326,7 @@ test.describe('Friend Management', () => {
     });
   });
 
-  test('Should error when add already friend', async ({ dual }) => {
+  test('Should show an error when adding an existing friend', async ({ dual }) => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
@@ -370,7 +370,9 @@ test.describe('Friend Management', () => {
     });
   });
 
-  test('Should auto when request the pending', async ({ dual }) => {
+  test('Should automatically become friends when both users send friend requests', async ({
+    dual,
+  }) => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
@@ -404,6 +406,7 @@ test.describe('Friend Management', () => {
       await friendPageB.sendFriendRequestToUser(userNameA);
       await dual.pageA.waitForTimeout(1000);
       await friendPageB.assertAllFriend(userNameA);
+      await friendPageA.assertAllFriend(userNameB);
     });
   });
 });

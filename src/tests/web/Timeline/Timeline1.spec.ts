@@ -11,7 +11,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { Locator, test } from '@playwright/test';
 
-test.describe('Timeline 1', () => {
+test.describe('Timeline - Creation, Updates, Attachments, and Calendar Events', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account5;
   const [userNameA] = getUsernamesFromEmails([credentials.email]);
@@ -199,7 +199,12 @@ test.describe('Timeline 1', () => {
     let date: string;
 
     await AllureReporter.step(`Open timeline tab`, async () => {
-      await page.goto(joinUrlPaths(MEZON_DEV || '', clanFactory.getClanExcludeDomain()));
+      await page.goto(
+        joinUrlPaths(
+          MEZON_DEV || 'https://dev-mezon.nccsoft.vn/',
+          clanFactory.getClanExcludeDomain()
+        )
+      );
       await page.waitForTimeout(1500);
       await messagePage.openTimelineTab();
       await page.waitForTimeout(1500);

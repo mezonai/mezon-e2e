@@ -14,7 +14,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
-test.describe('Clan Management - Module 4', () => {
+test.describe('Clan Management - Events and Category Updates', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account4;
   test.beforeAll(async ({ browser }) => {
@@ -229,7 +229,7 @@ test.describe('Clan Management - Module 4', () => {
     );
   });
 
-  test('Verify that user can not delete category contain system channel', async ({ page }) => {
+  test('Verify that a category containing a system channel cannot be deleted', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64058',
     });

@@ -129,6 +129,9 @@ jobs:
       # 6. Run Playwright tests
       #    continue-on-error: true — test failures must NOT block report generation
       # -----------------------------------------------------------------------
+      - name: Clean previous test artifacts
+        run: npm run clean
+
       - name: Run Playwright tests
         id: run-tests
         timeout-minutes: 360

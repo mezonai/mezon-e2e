@@ -14,7 +14,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Friend Management - Module 2', () => {
+test.describe('Friend Management - Request Notifications and Unfriending', () => {
   const accountA = AccountCredentials['accountKien9'];
   const accountB = AccountCredentials['accountKien10'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
@@ -50,7 +50,9 @@ test.describe('Friend Management - Module 2', () => {
     });
   });
 
-  test('Verify that noti badge is display after receive friend request', async ({ dual }) => {
+  test('Verify that a notification badge appears after receiving a friend request', async ({
+    dual,
+  }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64789',
       github_issue: '9721',
@@ -140,6 +142,11 @@ test.describe('Friend Management - Module 2', () => {
       await profilePageA.openShortProfileFromUsernameOnChat(userNameB);
       await messagePageA.removeFriendFromShortProfile();
       await friendPageA.confirmRemoveFriend();
+    });
+
+    await test.step('Verify both users are no longer friends', async () => {
+      await friendPageA.assertFriendNotVisibleInCurrentTab(userNameB);
+      await friendPageB.assertFriendNotVisibleInCurrentTab(userNameA);
     });
   });
 });

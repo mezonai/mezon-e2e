@@ -11,7 +11,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
-test.describe('Clan Management - Module 2', () => {
+test.describe('Clan Management - Location Events and Channel Statistics', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account3;
   test.beforeAll(async ({ browser }) => {

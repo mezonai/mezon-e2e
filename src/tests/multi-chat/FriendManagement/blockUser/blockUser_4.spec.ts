@@ -24,7 +24,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import generateRandomString from '@/utils/randomString';
 
-test.describe('Friend Management - Block User', () => {
+test.describe('Blocked Users - Forward Message Target Filtering', () => {
   const accountA = AccountCredentials['accountKien8'];
   const accountB = AccountCredentials['accountKien9'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);

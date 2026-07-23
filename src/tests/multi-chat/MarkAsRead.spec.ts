@@ -18,7 +18,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
 
-test.describe('Mark as read', () => {
+test.describe('Unread State - Mark Clans, Channels, and Direct Messages as Read', () => {
   const accountA = AccountCredentials['accountKien7'];
   const accountB = AccountCredentials['accountKien8'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';

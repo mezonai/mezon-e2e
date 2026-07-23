@@ -12,7 +12,7 @@ import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test, type Locator } from '@playwright/test';
 
-test.describe('Thread in Public Channel', () => {
+test.describe('Thread Messages - Create Threads and Prevent Nested Threads', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account7;
   test.beforeAll(async ({ browser }) => {
