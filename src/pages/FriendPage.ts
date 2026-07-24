@@ -36,10 +36,25 @@ export class FriendPage extends BasePage {
   }
 
   private async baseAssertFriendTab(username: string, tab: Tabs) {
-    const friend = await this.friendExistsInTab(username, tab);
-    await friend.waitFor({ state: 'visible', timeout: 20000 });
-    expect(friend).toHaveCount(1);
-    expect(friend).toBeVisible();
+    let lastError: unknown;
+
+    // Blocking a user can briefly restore the previous clan route. Retry the
+    // whole navigation + tab selection instead of waiting on a locator that
+    // belongs to a page that is no longer open.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const friend = await this.friendExistsInTab(username, tab);
+        await friend.waitFor({ state: 'visible', timeout: 5000 });
+        await expect(friend).toHaveCount(1);
+        await expect(friend).toBeVisible();
+        return;
+      } catch (error) {
+        lastError = error;
+        await this.page.waitForTimeout(500);
+      }
+    }
+
+    throw lastError;
   }
 
   private async baseCheckFriendExists(username: string, tab: Tabs): Promise<boolean> {
@@ -55,13 +70,16 @@ export class FriendPage extends BasePage {
       // Try click with timeout 2s. If blocked, it will throw an error and go to catch.
       await this.selector.tabs[tab].click({ timeout: 2000 });
       return this.getFriend(username);
-    } catch (e) {
-      // Playwright throws an error because it's blocked! 100% Modal is clearly visible on the screen.
+    } catch (error) {
       const cancelBtn = this.page.locator(
         '[data-e2e="clan_page-settings-modal-permission-cancel"]'
       );
       if (await cancelBtn.isVisible()) {
         await cancelBtn.first().click();
+      } else {
+        // Navigation may have changed while selecting the tab. Let the caller
+        // retry from the Friends page rather than clicking against a stale page.
+        throw error;
       }
       console.log('Closed permission modal');
 

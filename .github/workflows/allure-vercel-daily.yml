@@ -121,6 +121,7 @@ jobs:
           WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false
+          TEST_GAP_MS=10000
           EOF
           sed -i 's/^[[:space:]]*//' .env
           echo "--- .env contents ---" && cat .env

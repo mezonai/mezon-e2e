@@ -149,8 +149,14 @@ export class AuthHelper {
     }
   }
 
-  static async logout(page: Page) {
+  static async logout(page: Page, waitBeforeNextTest: boolean = true) {
     const profilePage = new ProfilePage(page);
     await profilePage.clickLogout();
+
+    const testGapMs = Number.parseInt(process.env.TEST_GAP_MS || '0', 10);
+    if (waitBeforeNextTest && Number.isFinite(testGapMs) && testGapMs > 0) {
+      console.log(`Waiting ${testGapMs}ms before the next test...`);
+      await new Promise(resolve => setTimeout(resolve, testGapMs));
+    }
   }
 }

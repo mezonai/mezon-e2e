@@ -29,7 +29,7 @@ export default class TestSuiteHelper {
     clanFactory.setClanUrl(
       joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, splitDomainAndPath(clanFactory.getClanUrl()).path)
     );
-    await AuthHelper.logout(page);
+    await AuthHelper.logout(page, false);
     await context.close();
   }
 
@@ -61,7 +61,7 @@ export default class TestSuiteHelper {
     const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
     await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
     await clanFactory.cleanupClan(page);
-    await AuthHelper.logout(page);
+    await AuthHelper.logout(page, false);
     await context.close();
   }
 }
