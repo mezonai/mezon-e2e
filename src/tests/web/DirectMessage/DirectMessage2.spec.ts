@@ -12,7 +12,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
-test.describe('Direct Message 2', () => {
+test.describe('Direct Messages - Search Modal Focus', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account3;
   const [userNameA] = getUsernamesFromEmails([credentials.email]);

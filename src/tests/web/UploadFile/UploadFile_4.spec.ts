@@ -10,7 +10,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { BrowserContext, expect, Page, test, TestInfo } from '@playwright/test';
 
-test.describe('File Size Limits Validation - Module 4', () => {
+test.describe('File Uploads - Group Avatars and Timeline Attachments', () => {
   let fileSizeHelpers: FileSizeTestHelpers;
   let messagePage: MessagePage;
   const clanFactory = new ClanFactory();

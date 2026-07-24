@@ -15,7 +15,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Direct Message', () => {
+test.describe('Direct Messages - Group Membership, Avatars, and Unread State', () => {
   const accountA = AccountCredentials['accountKien1'];
   const accountB = AccountCredentials['accountKien5'];
   const accountC = AccountCredentials['accountKien6'];

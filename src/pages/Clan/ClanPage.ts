@@ -959,7 +959,7 @@ export class ClanPage extends BasePage {
       await this.selector.buttons.closeInviteModal.click();
       await this.selector.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
 
-      await this.page.keyboard.press('Control+K');
+      await this.page.keyboard.press('Control+k');
       await expect(messageSelector.searchModal).toBeVisible({ timeout: 5000 });
       await expect(messageSelector.searchInput).toBeVisible({ timeout: 5000 });
 
@@ -2065,6 +2065,42 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async shareScreen(): Promise<boolean> {
+    try {
+      const controlBar = this.selector.screen.voiceRoom.controlBar;
+      const shareScreenButton = this.selector.screen.voiceRoom.shareScreenButton;
+
+      await controlBar.waitFor({
+        state: 'visible',
+        timeout: 10_000,
+      });
+
+      await shareScreenButton.waitFor({
+        state: 'visible',
+        timeout: 5_000,
+      });
+
+      await shareScreenButton.click();
+
+      await this.page.waitForTimeout(2_000);
+
+      return await this.isScreenSharing();
+    } catch (error) {
+      console.error('Failed to share screen:', error);
+      return false;
+    }
+  }
+
+  async isScreenSharing(): Promise<boolean> {
+    try {
+      const shareScreenButton = this.selector.screen.voiceRoom.shareScreenButton;
+      await shareScreenButton.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async cancelEvent() {
     await this.selector.createEventModal.button.openPanel.click();
     await this.selector.createEventModal.button.cancelEvent.click();
@@ -2084,5 +2120,13 @@ export class ClanPage extends BasePage {
 
   async getSelectedFilePreview() {
     return this.selector.input.selectedFile;
+  }
+
+  async verifyShareIconIsVisible(username: string) {
+    const userJoinedVoice = this.selector.sidebar.channelItem.userList.item.filter({
+      hasText: username,
+    });
+    const shareIcon = userJoinedVoice.locator(this.selector.screen.voiceRoom.screenShareIcon);
+    return await expect(shareIcon).toBeVisible({ timeout: 3000 });
   }
 }

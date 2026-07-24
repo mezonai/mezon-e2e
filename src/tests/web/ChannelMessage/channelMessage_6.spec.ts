@@ -14,7 +14,7 @@ import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
-test.describe('Channel Message - Module 6', () => {
+test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Chat', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {

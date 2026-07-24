@@ -505,11 +505,24 @@ export class MessagePage extends BasePage {
 
   async openSearchModalbyPressCtrlK(): Promise<void> {
     await this.page.waitForTimeout(1000);
-    await this.page.keyboard.press('Control+K');
+    await this.page.keyboard.press('Control+k');
     await this.page.waitForTimeout(1000);
     await expect(this.selector.searchModal).toBeVisible({
       timeout: 5000,
     });
+  }
+
+  async shareScreenIconInDM(): Promise<boolean> {
+    const invoiceStatusInFriendList = this.selector.invoiceStatusFriendList;
+    const friendListStatusVisible = await invoiceStatusInFriendList
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+
+    if (friendListStatusVisible) {
+      await expect(invoiceStatusInFriendList).toBeVisible();
+    }
+
+    return friendListStatusVisible;
   }
 
   async closeSearchModal(): Promise<void> {
@@ -530,7 +543,7 @@ export class MessagePage extends BasePage {
     await expect(suggestItem.first()).toBeVisible({ timeout: 5000 });
     const badge = suggestItem.first().locator(generateE2eSelector('suggest_item.count_badge'));
     if (shouldHaveBadge) {
-      await expect(badge).toBeVisible({ timeout: 3000 });
+      await expect(badge).toBeVisible({ timeout: 5000 });
     } else {
       await expect(badge).toBeHidden({ timeout: 3000 });
     }

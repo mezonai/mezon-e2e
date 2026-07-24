@@ -13,7 +13,7 @@ import {
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 
-test.describe('Friend Management - Block User', () => {
+test.describe('Blocked Users - DM Composer and Real-Time Block State', () => {
   const accountA = AccountCredentials['accountKien4'];
   const accountB = AccountCredentials['accountKien5'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);

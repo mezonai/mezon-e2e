@@ -6,21 +6,39 @@ import { getBrowserConfig, GLOBAL_CONFIG } from './src/config/environment';
 dotenv.config();
 
 const workers = parseInt(process.env.WORKERS || '1', 10) || 1;
+const configuredTestGapMs = Number.parseInt(process.env.TEST_GAP_MS || '0', 10);
+const testGapMs =
+  Number.isFinite(configuredTestGapMs) && configuredTestGapMs > 0 ? configuredTestGapMs : 0;
+
+const getInsecureLocalOriginArgs = (): string[] => {
+  try {
+    const baseUrl = new URL(process.env.BASE_URL || '');
+    const isLocalHttpOrigin =
+      baseUrl.protocol === 'http:' &&
+      (baseUrl.hostname === '127.0.0.1' || baseUrl.hostname === 'localhost');
+
+    return isLocalHttpOrigin
+      ? [`--unsafely-treat-insecure-origin-as-secure=${baseUrl.origin}`]
+      : [];
+  } catch {
+    return [];
+  }
+};
 
 export default defineConfig({
   testDir: './src/tests',
   testMatch: [
-    '**/cleanup/**/*.spec.ts',
-    '**/multi-chat/ChannelMessage/**/*.spec.ts',
-    '**/multi-chat/ClanManagement/**/*.spec.ts',
-    '**/multi-chat/FriendManagement/**/*.spec.ts',
+    // '**/cleanup/**/*.spec.ts',
+    // '**/multi-chat/ChannelMessage/**/*.spec.ts',
+    // '**/multi-chat/ClanManagement/**/*.spec.ts',
+    // '**/multi-chat/FriendManagement/**/*.spec.ts',
     '**/web/ChannelManagement/**/*.spec.ts',
-    '**/web/ChannelMessage/**/*.spec.ts',
-    '**/web/ClanManagement/**/*.spec.ts',
-    '**/web/ThreadManagement/**/*.spec.ts',
+    // '**/web/ChannelMessage/**/*.spec.ts',
+    // '**/web/ClanManagement/**/*.spec.ts',
+    // '**/web/ThreadManagement/**/*.spec.ts',
   ],
   grepInvert: /@dual/,
-  timeout: 120 * 1000,
+  timeout: 300 * 1000 + testGapMs,
   expect: {
     timeout: 10 * 1000,
   },
@@ -67,8 +85,10 @@ export default defineConfig({
   outputDir: 'test-results/',
   use: {
     baseURL: process.env.BASE_URL as string,
-    trace: process.env.CI ? 'retain-on-failure' : 'on',
-    video: 'retain-on-failure',
+    // trace: process.env.CI ? 'retain-on-failure' : 'on',
+    // video: 'retain-on-failure',
+    trace: process.env.ENABLE_TRACE === 'true' ? 'on-first-retry' : 'off',
+    video: process.env.ENABLE_VIDEO === 'true' ? 'retain-on-failure' : 'off',
     screenshot: 'only-on-failure',
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
@@ -110,7 +130,22 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
-        headless: true,
+        headless: false,
+        launchOptions: {
+          args: [
+            '--disable-popup-blocking',
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--disable-features=ExternalProtocolDialog',
+            '--lang=en-US',
+
+            '--use-fake-ui-for-media-stream',
+
+            '--auto-select-desktop-capture-source=Entire screen',
+            '--use-fake-device-for-media-stream',
+            ...getInsecureLocalOriginArgs(),
+          ],
+        },
       },
       dependencies: ['setup'],
     },

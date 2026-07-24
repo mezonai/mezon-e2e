@@ -8,7 +8,7 @@ import { ClanFactory } from '@/data/factories/ClanFactory';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
-test.describe('Channel Message - Module 1', () => {
+test.describe('Channel Messages - Copying Content and Creating Discussions', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account1;
   test.beforeAll(async ({ browser }) => {

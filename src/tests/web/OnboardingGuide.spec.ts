@@ -12,7 +12,7 @@ import { OnboardingHelpers } from '@/utils/onboardingHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
-test.describe('Onboarding Guide Task Completion', () => {
+test.describe('Onboarding Guide - Task Completion, Settings, and Preview', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account5;
 

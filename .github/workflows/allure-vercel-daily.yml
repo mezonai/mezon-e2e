@@ -6,6 +6,9 @@ on:
     - cron: '0 19 * * *'
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   allure-daily:
     runs-on: mezon-e2e
@@ -26,9 +29,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Node.js 20, yarn (corepack) and Java are installed system-wide on the
-      # VPS (one-time setup) → the Setup Node.js / Enable Yarn / Check Java
-      # steps were removed.
+      # chromedriver 149 requires Node.js 22 or newer. Do not rely on the
+      # system-wide Node.js version installed on the self-hosted runner.
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       # -----------------------------------------------------------------------
       # 2. Install dependencies
@@ -113,6 +121,7 @@ jobs:
           WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false
+          TEST_GAP_MS=10000
           EOF
           sed -i 's/^[[:space:]]*//' .env
           echo "--- .env contents ---" && cat .env
@@ -121,6 +130,9 @@ jobs:
       # 6. Run Playwright tests
       #    continue-on-error: true — test failures must NOT block report generation
       # -----------------------------------------------------------------------
+      - name: Clean previous test artifacts
+        run: npm run clean
+
       - name: Run Playwright tests
         id: run-tests
         timeout-minutes: 360
@@ -137,6 +149,7 @@ jobs:
         env:
           ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           bash scripts/allure/allure-daily.sh
 

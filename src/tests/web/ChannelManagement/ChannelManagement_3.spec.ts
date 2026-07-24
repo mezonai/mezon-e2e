@@ -13,7 +13,7 @@ import pressEsc from '@/utils/pressEsc';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
-test.describe('Channel Management - Module 4', () => {
+test.describe('Channel Management - Deletion, Permissions, and Archiving', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials['account1'];
 
@@ -282,6 +282,7 @@ test.describe('Channel Management - Module 4', () => {
     });
 
     await AllureReporter.step('Verify that restored channel is in channel list', async () => {
+      await page.reload();
       const isChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isChannelPresent).toBe(true);
     });

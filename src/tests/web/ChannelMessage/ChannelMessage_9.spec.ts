@@ -11,7 +11,7 @@ import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ChannelType } from '@/types/clan-page.types';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 
-test.describe('Channel Message - Module 9', () => {
+test.describe('Channel Messages - Clear Attachment Preview with Escape', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account9;
 

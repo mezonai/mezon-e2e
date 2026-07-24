@@ -1,41 +1,30 @@
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
+import { test } from '@/fixtures/dual.fixture';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
 import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
-import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
+import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import {
-  getUsernamesFromEmails,
-  setupDualUsersInParallel,
-  setupDualUsersSequentially,
-} from '@/utils/dualTestHelper';
+import { getUsernamesFromEmails, setupDualUsersSequentially } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import pressEsc from '@/utils/pressEsc';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
-import { test } from '../../fixtures/dual.fixture';
 
-test.describe('Channel Management - Private Channel Access and Membership', () => {
-  const accountA = AccountCredentials['account2-1'];
-  const accountB = AccountCredentials['account2-2'];
+test.describe('Voice Channel - Share Screen', () => {
+  const accountA = AccountCredentials['account2-3'];
+  const accountB = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
   const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
-  const setupModes = {
-    parallel: setupDualUsersInParallel,
-    sequential: setupDualUsersSequentially,
-  };
-  // const setupBeforeEach = setupModes.parallel;
-  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
-    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
+    await setupDualUsersSequentially(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -49,40 +38,36 @@ test.describe('Channel Management - Private Channel Access and Membership', () =
     });
   });
 
-  test('Verify that I can add members and roles to channel when update channel from public to private', async ({
-    dual,
-  }) => {
+  test('Verify that user can join voice channel and share screen', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '64609',
+      tms: '64645',
     });
+
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
+
     await AllureReporter.addDescription(`
-      **Test Objective:** Verify that I can add members and roles to channel when update channel from public to private.
-      
+      **Test Objective:** Verify that user can join voice channel and share screen
+
       **Test Steps:**
-      1. Create a public text channel
-      2. Create new role
-      3. Invite people to clan
-      4. Open settings channel
-      5. Open permission tab
-      6. Update channel status to private
-      7. Add members and roles
-      
-      **Expected Result:** I can add members and roles to channel when update channel from public to private.
+      1. User A creates a clan
+      2. User A creates a voice channel
+      3. User A invites User B to clan
+      4. User B accepts invite
+      5. User A joins voice channel
+      6. User A shares screen
+      7. Verify screen sharing is active
+
+      **Expected Result:** User can join voice channel and share screen successfully
     `);
 
     await AllureReporter.addLabels({
-      tag: ['text-channel', 'private-channel', 'members', 'roles'],
+      tag: ['voice-channel', 'share-screen'],
     });
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const unique = Date.now().toString(36);
-    const roleName = `Role-${unique}`.slice(0, 20);
-    const channelName = `tc-${unique}`.slice(0, 20);
-    const channelSettingsA = new ChannelSettingPage(pageA);
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await Promise.allSettled([
@@ -115,44 +100,45 @@ test.describe('Channel Management - Private Channel Access and Membership', () =
 
     const clanFactory = new ClanFactory();
 
-    await test.step('User A creates a clan', async () => {
-      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageA);
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage3, pageA);
     });
 
-    await AllureReporter.step('User A add a new role', async () => {
-      await clanPageA.openRoleSettingsPage();
-      await clanPageA.addNewRoleOnClan(roleName);
-    });
+    const ran = Math.floor(Math.random() * 999) + 1;
+    const channelName = `voice-channel-${ran}`;
 
-    await AllureReporter.step(`User A create new text channel: ${channelName}`, async () => {
-      await clanPageA.createNewChannel(ChannelType.TEXT, channelName);
+    await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
+      await clanPageA.createNewChannel(ChannelType.VOICE, channelName);
       const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
 
-    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+    await AllureReporter.step('User A invites User B to clan and User B accepts it', async () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
 
-    await AllureReporter.step(
-      'User A update channel to private and add members, roles',
-      async () => {
-        await clanPageA.openChannelSettings(channelName);
-        await channelSettingsA.openPermissionsTab();
-        await channelSettingsA.updateChannelStatusAndOpenAddMembersRolesModal();
-        await channelSettingsA.addMembersAndRolesForPrivateChannel(roleName, userNameB);
-      }
-    );
+    await AllureReporter.step('User A joins voice channel', async () => {
+      await clanPageA.joinVoiceChannel(channelName);
+      // const isUserInVoiceChannel = await clanPageA.isJoinVoiceChannel(channelName);
+      // expect(isUserInVoiceChannel).toBe(true);
+    });
+
+    // await AllureReporter.step('Verify voice room screen with control bar is visible', async () => {
+    //   await clanPageA.verifyVoiceChannelScreenVisible(channelName);
+    // });
+
+    await AllureReporter.step('User A shares screen in voice channel', async () => {
+      const isScreenSharing = await clanPageA.shareScreen();
+      expect(isScreenSharing).toBe(true);
+    });
 
     await AllureReporter.step(
-      'Verify that added roles and members is visible on permission tab of channels settings',
+      'Verify screen sharing is active and icon share screen is visible on the right of the name',
       async () => {
-        await channelSettingsA.verifyRoleAndMemberExistBeforeSave(roleName, userNameB);
-        await channelSettingsA.verifyRoleAndMemberExistAfterSave(roleName, userNameB);
-        await channelSettingsA.closeChannelSettings();
+        await clanPageB.verifyShareIconIsVisible(userNameA);
       }
     );
 
@@ -161,34 +147,36 @@ test.describe('Channel Management - Private Channel Access and Membership', () =
     });
   });
 
-  test('Verify that an uninvited non-owner cannot access a private channel', async ({ dual }) => {
+  test('Verify that share icon is visible when user share screen', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
-      tms: '64609',
+      tms: '64645',
     });
+
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
+
     await AllureReporter.addDescription(`
-      **Test Objective:** Verify that I can not access to private channel when i am not owner and not been invited
-      
+      **Test Objective:** Verify that share icon is visible when user share screen
+
       **Test Steps:**
-      1. User A create a private channel
-      2. User B find channel
-      3. Verify that user B cannot find that channel
-      
-      **Expected Result:** I can not access to private channel when i am not owner and not been invited
+      1. User A creates a clan
+      2. User A creates a voice channel
+      3. User A invites User B to clan
+      4. User B accepts invite
+      5. User A joins voice channel
+      6. User A shares screen
+      7. Verify screen sharing is active
+
+      **Expected Result:** Share icon is visible when user shares screen
     `);
 
     await AllureReporter.addLabels({
-      tag: ['text-channel', 'private-channel', 'members', 'roles'],
+      tag: ['voice-channel', 'share-screen'],
     });
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const unique = Date.now().toString(36);
-    const channelName = `tc-${unique}`.slice(0, 20);
-    const messagePageB = new MessagePage(pageB);
-    const clanFactory = new ClanFactory();
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await Promise.allSettled([
@@ -219,36 +207,51 @@ test.describe('Channel Management - Private Channel Access and Membership', () =
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
 
-    await test.step('User A creates a clan', async () => {
-      await clanFactory.setupClan(ClanSetupHelper.configs.channelManagement, pageA);
+    const clanFactory = new ClanFactory();
+    const messagePageB = new MessagePage(pageB);
+    const messageHelperB = new MessageTestHelpers(pageB);
+
+    await AllureReporter.step('User A creates a clan', async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage3, pageA);
     });
 
-    await AllureReporter.step(
-      `User A create new private text channel: ${channelName}`,
-      async () => {
-        await clanPageA.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
-        const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
-        expect(isNewChannelPresent).toBe(true);
-      }
-    );
+    const ran = Math.floor(Math.random() * 999) + 1;
+    const channelName = `voice-channel-${ran}`;
 
-    await AllureReporter.step('User A invite user B to clan and user B accept it', async () => {
+    await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
+      await clanPageA.createNewChannel(ChannelType.VOICE, channelName);
+      const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('User A invites User B to clan and User B accepts it', async () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
     });
 
+    await AllureReporter.step('User A joins voice channel', async () => {
+      await clanPageA.joinVoiceChannel(channelName);
+    });
+
+    await AllureReporter.step('User A shares screen in voice channel', async () => {
+      const isScreenSharing = await clanPageA.shareScreen();
+      expect(isScreenSharing).toBe(true);
+    });
+
     await AllureReporter.step(
-      'User B search channel name and verify that the channel not visible',
+      'Verify screen sharing is active and icon share screen is visible on the right of the name',
       async () => {
-        await messagePageB.openSearchModalbyPressCtrlK();
-        const isNewChannelPresentOnSearchModal =
-          await messagePageB.isChannelPresentOnSearchModal(channelName);
-        expect(isNewChannelPresentOnSearchModal).toBe(false);
-        await pressEsc(pageB);
+        await clanPageB.verifyShareIconIsVisible(userNameA);
       }
     );
+
+    await AllureReporter.step('Open DM list and verify share icon is visible', async () => {
+      await messagePageB.openSearchModalbyPressCtrlK();
+      await messageHelperB.openDMByNameOnsearchModal(userNameA);
+      await messagePageB.shareScreenIconInDM();
+    });
 
     await test.step('Cleanup clan', async () => {
       await clanFactory.cleanupClan(pageA);

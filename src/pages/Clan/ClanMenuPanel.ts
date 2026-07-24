@@ -48,7 +48,7 @@ export class ClanMenuPanel extends BasePage {
 
   async createCategory(name: string): Promise<boolean> {
     await this.text.clanName.click();
-    await this.buttons.showEmpty.click();
+    // await this.buttons.showEmpty.click();
     await this.buttons.createCategory.click();
     await this.input.categoryName.waitFor({ state: 'visible', timeout: 5000 });
     await this.input.categoryName.fill(name);

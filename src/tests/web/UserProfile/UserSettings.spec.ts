@@ -14,7 +14,7 @@ import generateRandomString from '@/utils/randomString';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
 
-test.describe('User Settings', () => {
+test.describe('User Settings - Clan Identity and User Profile Updates', () => {
   const clanFactory = new ClanFactory();
   const account = AccountCredentials.account6;
 

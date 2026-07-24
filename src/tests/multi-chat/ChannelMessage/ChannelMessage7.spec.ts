@@ -20,7 +20,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Channel Message 7', () => {
+test.describe('Channel Messages - Polls, Contact Sharing, and Unread DM Search', () => {
   const accountA = AccountCredentials['accountKien5'];
   const accountB = AccountCredentials['accountKien6'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
@@ -31,8 +31,8 @@ test.describe('Channel Message 7', () => {
     parallel: setupDualUsersInParallel,
     sequential: setupDualUsersSequentially,
   };
-  const setupBeforeEach = setupModes.parallel;
-  // const setupBeforeEach = setupModes.sequential;
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
     await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
@@ -403,7 +403,7 @@ test.describe('Channel Message 7', () => {
     });
   });
 
-  test('Verify thatshows count badge in search modal for unread DM', async ({ dual }) => {
+  test('Verify that shows count badge in search modal for unread DM', async ({ dual }) => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);

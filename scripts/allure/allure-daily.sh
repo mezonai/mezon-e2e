@@ -155,7 +155,35 @@ EOF
 fi
 
 # ---------------------------------------------------------------------------
-# 9. Rebuild the index page before deploying
+# 9. Remove reports from previous weeks
+# ---------------------------------------------------------------------------
+log "🧹 Removing reports from previous weeks..."
+
+CURRENT_WEEK=$(date +%G-%V)
+
+find "$ALLURE_VERCEL_ROOT/reports" \
+  -mindepth 2 \
+  -maxdepth 2 \
+  -type d | while read -r REPORT_DIR; do
+
+    REPORT_DATE=$(basename "$REPORT_DIR")
+
+    if ! date -d "$REPORT_DATE" >/dev/null 2>&1; then
+        continue
+    fi
+
+    REPORT_WEEK=$(date -d "$REPORT_DATE" +%G-%V)
+
+    if [ "$REPORT_WEEK" != "$CURRENT_WEEK" ]; then
+        log "🗑️ Removing old report: $REPORT_DATE"
+        rm -rf "$REPORT_DIR"
+    fi
+done
+
+log "✅ Old reports removed"
+
+# ---------------------------------------------------------------------------
+# 10. Rebuild the index page before deploying
 # ---------------------------------------------------------------------------
 log "🏗️  Building index page..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -163,7 +191,129 @@ bash "$SCRIPT_DIR/build-index.sh"
 log "✅ Index build complete"
 
 # ---------------------------------------------------------------------------
-# 10. Deploy to Vercel
+# 11. Zip daily report and upload to GitHub Release (monthly tag)
+# ---------------------------------------------------------------------------
+log "📦 Zip & upload to GitHub Release"
+
+RELEASE_TAG="allure-report-$YEAR_MONTH"
+RELEASE_NAME="Allure Report $YEAR_MONTH"
+ZIP_FILE="/tmp/allure-report-${DAY}.zip"
+UPLOAD_FAILED=0
+
+# -- Pre-check: zip --
+log "🔍 Checking zip command..."
+if ! command -v zip &>/dev/null; then
+  log "❌ ERROR: 'zip' not found — install with: sudo apt-get install -y zip"
+  UPLOAD_FAILED=1
+else
+  log "   zip: $(zip --version 2>&1 | head -1)"
+fi
+
+# -- Pre-check: gh --
+log "🔍 Checking gh command..."
+if ! command -v gh &>/dev/null; then
+  log "❌ ERROR: 'gh' not found — install with: sudo apt-get install -y gh"
+  UPLOAD_FAILED=1
+else
+  log "   gh: $(gh --version | head -1)"
+fi
+
+# -- Pre-check: GITHUB_TOKEN --
+if [ "$UPLOAD_FAILED" -eq 0 ]; then
+  log "🔍 Checking GITHUB_TOKEN..."
+  if [ -z "${GITHUB_TOKEN:-}" ]; then
+    log "❌ ERROR: GITHUB_TOKEN env var is empty"
+    UPLOAD_FAILED=1
+  else
+    log "   GITHUB_TOKEN is set (${#GITHUB_TOKEN} chars)"
+  fi
+fi
+
+# -- Pre-check: GITHUB_REPOSITORY --
+if [ "$UPLOAD_FAILED" -eq 0 ]; then
+  log "🔍 Checking GITHUB_REPOSITORY..."
+  if [ -z "${GITHUB_REPOSITORY:-}" ]; then
+    log "❌ ERROR: GITHUB_REPOSITORY env var is empty"
+    UPLOAD_FAILED=1
+  else
+    log "   GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
+  fi
+fi
+
+# -- Pre-check: gh auth --
+if [ "$UPLOAD_FAILED" -eq 0 ]; then
+  log "🔍 Checking gh auth status..."
+  GH_AUTH_OUT=$(gh auth status 2>&1) && {
+    log "   gh auth OK:"
+    log "   $GH_AUTH_OUT"
+  } || {
+    log "❌ ERROR: gh auth failed:"
+    log "   $GH_AUTH_OUT"
+    UPLOAD_FAILED=1
+  }
+fi
+
+# -- Zip the daily report --
+if [ "$UPLOAD_FAILED" -eq 0 ]; then
+  log "🗜️  Zipping $ALLURE_VERCEL_ROOT/reports/$YEAR_MONTH/$DAY/ ..."
+  rm -f "$ZIP_FILE"
+
+  if (cd "$ALLURE_VERCEL_ROOT/reports" && zip -qr "$ZIP_FILE" "$YEAR_MONTH/$DAY/"); then
+    ZIP_SIZE=$(du -h "$ZIP_FILE" | cut -f1)
+    ZIP_COUNT=$(zipinfo -1 "$ZIP_FILE" 2>/dev/null | wc -l)
+    log "✅ Zip created: $ZIP_FILE ($ZIP_SIZE, $ZIP_COUNT files)"
+  else
+    log "❌ ERROR: Failed to create zip file"
+    UPLOAD_FAILED=1
+  fi
+fi
+
+# -- Upload to GitHub Release --
+if [ "$UPLOAD_FAILED" -eq 0 ]; then
+  set +e
+
+  log "🔍 Checking if release '$RELEASE_TAG' exists..."
+  GH_VIEW_OUT=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" 2>&1)
+  VIEW_RC=$?
+
+  if [ "$VIEW_RC" -eq 0 ]; then
+    log "   Release exists — uploading $ZIP_FILE ..."
+    GH_UP_OUT=$(gh release upload "$RELEASE_TAG" "$ZIP_FILE" \
+      --clobber --repo "$GITHUB_REPOSITORY" 2>&1)
+    UPLOAD_RC=$?
+  else
+    log "   Release not found — creating new release '$RELEASE_TAG'..."
+    GH_UP_OUT=$(gh release create "$RELEASE_TAG" "$ZIP_FILE" \
+      --repo "$GITHUB_REPOSITORY" \
+      --title "$RELEASE_NAME" \
+      --notes "Allure daily reports for $YEAR_MONTH" \
+      --latest=false 2>&1)
+    UPLOAD_RC=$?
+  fi
+
+  set -e
+
+  if [ "$UPLOAD_RC" -ne 0 ]; then
+    log "❌ ERROR: GitHub Release upload failed (exit code: $UPLOAD_RC)"
+    log "   $GH_UP_OUT"
+    UPLOAD_FAILED=1
+  else
+    log "✅ GitHub Release upload succeeded"
+    log "   $GH_UP_OUT"
+  fi
+fi
+
+# Export for workflow step
+echo "UPLOAD_FAILED=$UPLOAD_FAILED" >> "${GITHUB_OUTPUT:-/dev/null}"
+
+if [ "$UPLOAD_FAILED" -ne 0 ]; then
+  log "⚠️  Step 11 finished with errors (UPLOAD_FAILED=1)"
+else
+  log "🎉 Step 11 finished successfully"
+fi
+
+# ---------------------------------------------------------------------------
+# 12. Deploy to Vercel
 # ---------------------------------------------------------------------------
 log "🚀 Preparing Vercel deployment..."
 

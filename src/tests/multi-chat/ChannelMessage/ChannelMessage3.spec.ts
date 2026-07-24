@@ -17,7 +17,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, test } from '../../../fixtures/dual.fixture';
 import { MessagePage } from '@/pages/MessagePage';
 
-test.describe('Channel Message 3', () => {
+test.describe('Channel Messages - Topic Restrictions and Shared Contacts', () => {
   const accountA = AccountCredentials['accountKien2'];
   const accountB = AccountCredentials['accountKien3'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
