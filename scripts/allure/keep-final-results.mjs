@@ -31,9 +31,10 @@ for (const file of resultFiles) {
     continue;
   }
 
-  // Retries produced by allure-playwright share the same historyId. Fall back
-  // to the stable testCaseId/fullName for older result formats.
-  const identity = result.historyId || result.testCaseId || result.fullName || result.uuid || file;
+  // Dynamic Allure parameters are included in historyId, so retries of the
+  // same Playwright test can have different historyIds. testCaseId remains
+  // stable across those attempts and must be the primary grouping key.
+  const identity = result.testCaseId || result.historyId || result.fullName || result.uuid || file;
   const finishedAt = Number(result.stop || result.start || 0);
   const current = latestByTest.get(identity);
 
