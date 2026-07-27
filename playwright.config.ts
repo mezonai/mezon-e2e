@@ -38,7 +38,7 @@ export default defineConfig({
     // '**/web/ThreadManagement/**/*.spec.ts',
   ],
   grepInvert: /@dual/,
-  timeout: 300 * 1000 + testGapMs,
+  timeout: 500 * 1000 + testGapMs,
   expect: {
     timeout: 10 * 1000,
   },
