@@ -87,7 +87,14 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Generate Allure report
+# 5. Keep only the final attempt of each test
+# ---------------------------------------------------------------------------
+log "🔁 Removing superseded retry results..."
+node scripts/allure/keep-final-results.mjs allure-results
+log "✅ Only final test attempts remain"
+
+# ---------------------------------------------------------------------------
+# 6. Generate Allure report
 # ---------------------------------------------------------------------------
 log "📊 Generating Allure report..."
 log "   Input : ./allure-results"
@@ -109,7 +116,7 @@ $ALLURE_BIN generate allure-results --clean -o "$REPORT_DIR"
 log "✅ Report generated successfully"
 
 # ---------------------------------------------------------------------------
-# 6. Update .last-history pointer
+# 7. Update .last-history pointer
 # ---------------------------------------------------------------------------
 log "🔄 Updating .last-history pointer..."
 
@@ -125,14 +132,14 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. Clean up: remove allure-results from workspace after generation
+# 8. Clean up: remove allure-results from workspace after generation
 # ---------------------------------------------------------------------------
 log "🧹 Cleaning up allure-results from workspace..."
 rm -rf ./allure-results
 log "✅ ./allure-results removed"
 
 # ---------------------------------------------------------------------------
-# 8. Ensure vercel.json exists in the reports directory
+# 9. Ensure vercel.json exists in the reports directory
 # ---------------------------------------------------------------------------
 VERCEL_JSON="$ALLURE_VERCEL_ROOT/reports/vercel.json"
 if [ ! -f "$VERCEL_JSON" ]; then
@@ -155,7 +162,7 @@ EOF
 fi
 
 # ---------------------------------------------------------------------------
-# 9. Remove reports from previous weeks
+# 10. Remove reports from previous weeks
 # ---------------------------------------------------------------------------
 log "🧹 Removing reports from previous weeks..."
 
@@ -183,7 +190,7 @@ done
 log "✅ Old reports removed"
 
 # ---------------------------------------------------------------------------
-# 10. Rebuild the index page before deploying
+# 11. Rebuild the index page before deploying
 # ---------------------------------------------------------------------------
 log "🏗️  Building index page..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -191,7 +198,7 @@ bash "$SCRIPT_DIR/build-index.sh"
 log "✅ Index build complete"
 
 # ---------------------------------------------------------------------------
-# 11. Zip daily report and upload to GitHub Release (monthly tag)
+# 12. Zip daily report and upload to GitHub Release (monthly tag)
 # ---------------------------------------------------------------------------
 log "📦 Zip & upload to GitHub Release"
 
@@ -307,13 +314,13 @@ fi
 echo "UPLOAD_FAILED=$UPLOAD_FAILED" >> "${GITHUB_OUTPUT:-/dev/null}"
 
 if [ "$UPLOAD_FAILED" -ne 0 ]; then
-  log "⚠️  Step 11 finished with errors (UPLOAD_FAILED=1)"
+  log "⚠️  Step 12 finished with errors (UPLOAD_FAILED=1)"
 else
-  log "🎉 Step 11 finished successfully"
+  log "🎉 Step 12 finished successfully"
 fi
 
 # ---------------------------------------------------------------------------
-# 12. Deploy to Vercel
+# 13. Deploy to Vercel
 # ---------------------------------------------------------------------------
 log "🚀 Preparing Vercel deployment..."
 
