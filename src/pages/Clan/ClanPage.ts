@@ -1279,10 +1279,10 @@ export class ClanPage extends BasePage {
   }
 
   async isMessageInputDisabled() {
-    const messageInput = this.selector.input.mention;
+    const messageInput = this.selector.input.permissionDenied;
     try {
       await messageInput.waitFor({ state: 'visible', timeout: 5000 });
-      return await messageInput.isDisabled();
+      return await messageInput.isVisible();
     } catch {
       return false;
     }
