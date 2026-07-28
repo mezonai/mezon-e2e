@@ -86,6 +86,7 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
     });
 
     await AllureReporter.step('Send 3 messages to the text channel', async () => {
+      await page.waitForTimeout(2000);
       for (const message of messages) {
         await messageHelper.sendTextMessage(message);
       }

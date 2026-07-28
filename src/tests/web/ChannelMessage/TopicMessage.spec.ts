@@ -89,6 +89,7 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
     });
 
     await AllureReporter.step('Send messages on channel and create topic', async () => {
+      await page.waitForTimeout(2000);
       await messageHelper.sendTextMessage(testMessage);
       await messageHelper.createTopicToInitMessage(testMessage);
     });
