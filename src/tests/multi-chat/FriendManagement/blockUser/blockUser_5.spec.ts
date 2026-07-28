@@ -13,7 +13,7 @@ import {
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 
-test.describe('Friend Management - Block User', () => {
+test.describe('Blocked Users - Restricted DM Header Actions', () => {
   const accountA = AccountCredentials['accountKien10'];
   const accountB = AccountCredentials['accountKien1'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
@@ -128,7 +128,7 @@ test.describe('Friend Management - Block User', () => {
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
 
-    await test.step('Verify add member action visible before blocking', async () => {
+    await test.step('Verify video call action is visible before blocking', async () => {
       await messagePageA.assertDMHeaderAddMemberVisible();
       await messagePageB.assertDMHeaderAddMemberVisible();
     });
@@ -138,7 +138,7 @@ test.describe('Friend Management - Block User', () => {
       await friendPageA.page.waitForTimeout(1000);
     });
 
-    await test.step('Verify add member action removed for blocked pair', async () => {
+    await test.step('Verify video call action is removed for blocked pair', async () => {
       await messagePageA.assertDMHeaderAddMemberNotVisible();
       await messagePageB.assertDMHeaderAddMemberNotVisible();
     });

@@ -513,7 +513,9 @@ export const DATA_E2E_IDENTIFIER = {
         },
         name: '',
         user_list: {
-          item: '',
+          item: {
+            screen_share: '',
+          },
         },
         user_list_collapsed: {
           item: '',
@@ -556,6 +558,7 @@ export const DATA_E2E_IDENTIFIER = {
         control_bar: '',
         button: {
           join_voice: '',
+          share_screen: '',
         },
       },
       canvas_editor: {

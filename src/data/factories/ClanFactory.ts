@@ -2,6 +2,7 @@ import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSetupConfig } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
 import { Page } from '@playwright/test';
+import ClanSelector from '../selectors/ClanSelector';
 
 export class ClanFactory {
   private clanName: string = '';
@@ -31,6 +32,10 @@ export class ClanFactory {
   }
 
   async setupClan(config: ClanSetupConfig = {}, page: Page) {
+    const selector = new ClanSelector(page);
+    if (await selector.permissionModal.isVisible()) {
+      await selector.permissionModal.cancel.first().click();
+    }
     const { clanNamePrefix = 'TestClan' } = config;
 
     const now = new Date();

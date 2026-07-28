@@ -13,7 +13,7 @@ import pressEsc from '@/utils/pressEsc';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
-test.describe('Channel Management - Module 5', () => {
+test.describe('Channel Management - Archived Channels in Search and Forwarding', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials['account2'];
 

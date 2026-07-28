@@ -17,7 +17,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect, test } from '../../../fixtures/dual.fixture';
 
-test.describe('Channel Message 1', () => {
+test.describe('Channel Messages - Edited Mentions and Banned User Restrictions', () => {
   const accountA = AccountCredentials['account2-1'];
   const accountB = AccountCredentials['account2-2'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';

@@ -7,7 +7,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 
-test.describe('Create Clan', () => {
+test.describe('Clan Creation - Maximum Clan Limit', () => {
   test.use({ storageState: 'playwright/.auth/account8.json' });
   test.beforeEach(async ({ page }) => {
     await AllureReporter.step('Navigate to direct friends page', async () => {

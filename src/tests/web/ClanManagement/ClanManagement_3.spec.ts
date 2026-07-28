@@ -13,7 +13,7 @@ import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
-test.describe('Clan Management - Module 3', () => {
+test.describe('Clan Management - Webhooks, Favorites, Canvas, and Profiles', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account3;
   test.beforeAll(async ({ browser }) => {

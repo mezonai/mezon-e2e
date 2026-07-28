@@ -16,7 +16,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
-test.describe('Direct Message 1 - Invoice Status', () => {
+test.describe('Direct Messages - Invoice Status, Conversation Pins, and Group Calls', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account2;
   const [userNameA] = getUsernamesFromEmails([credentials.email]);
@@ -124,48 +124,13 @@ test.describe('Direct Message 1 - Invoice Status', () => {
 
     await AllureReporter.step('Verify invoice status indicator in friend list', async () => {
       const invoiceStatusInFriendList = messageSelector.invoiceStatusFriendList;
-      const friendListStatusVisible = await invoiceStatusInFriendList
-        .isVisible({ timeout: 5000 })
-        .catch(() => false);
-
-      if (friendListStatusVisible) {
-        await expect(invoiceStatusInFriendList).toBeVisible();
-      }
-
-      return friendListStatusVisible;
+      await expect(invoiceStatusInFriendList).toBeVisible({ timeout: 5000 });
     });
 
     await AllureReporter.step('Verify invoice status indicator in DM header', async () => {
       const invoiceStatusInHeader = messageSelector.invoiceStatusDMHeader;
-      const headerStatusVisible = await invoiceStatusInHeader
-        .isVisible({ timeout: 5000 })
-        .catch(() => false);
-
-      if (headerStatusVisible) {
-        await expect(invoiceStatusInHeader).toBeVisible();
-      }
-
-      return headerStatusVisible;
+      await expect(invoiceStatusInHeader).toBeVisible({ timeout: 5000 });
     });
-
-    await AllureReporter.step(
-      'Verify invoice status is visible on friend list or DM header',
-      async () => {
-        const invoiceStatusInFriendList = messageSelector.invoiceStatusFriendList;
-        const invoiceStatusInHeader = messageSelector.invoiceStatusDMHeader;
-
-        const friendListStatusVisible = await invoiceStatusInFriendList
-          .isVisible({ timeout: 5000 })
-          .catch(() => false);
-
-        const headerStatusVisible = await invoiceStatusInHeader
-          .isVisible({ timeout: 5000 })
-          .catch(() => false);
-
-        // At least one indicator should be visible when user is in voice
-        expect(friendListStatusVisible || headerStatusVisible).toBe(true);
-      }
-    );
 
     await AllureReporter.attachScreenshot(page, `Invoice Status - DM List & Header - ${userNameA}`);
   });

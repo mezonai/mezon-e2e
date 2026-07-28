@@ -11,7 +11,7 @@ import generateRandomString from '@/utils/randomString';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
-test.describe('Channel Management - Module 3', () => {
+test.describe('Channel Management - Overview, Privacy, Voice, and Deletion', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials['account1'];
 
@@ -47,9 +47,7 @@ test.describe('Channel Management - Module 3', () => {
     await AuthHelper.logout(page);
   });
 
-  test('Verify that channel name overview reflect correct when user enter characters or click reset', async ({
-    page,
-  }) => {
+  test('Verify that the channel name preview updates on input and reset', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63377',
     });
@@ -117,7 +115,7 @@ test.describe('Channel Management - Module 3', () => {
     );
   });
 
-  test('Verify that i can change public to private channel', async ({ page }) => {
+  test('Verify that a public channel can be changed to private', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63377',
       github_issue: '9641',
@@ -166,7 +164,7 @@ test.describe('Channel Management - Module 3', () => {
     });
   });
 
-  test('Verify that i can change private to public channel', async ({ page }) => {
+  test('Verify that a private channel can be changed to public', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63377',
     });

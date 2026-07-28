@@ -17,7 +17,7 @@ import {
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 
-test.describe('Friend Management - Block User', () => {
+test.describe('Blocked Users - Profiles, DM Invites, Notifications, and Block List', () => {
   const accountA = AccountCredentials['accountKien6'];
   const accountB = AccountCredentials['accountKien7'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
@@ -177,7 +177,7 @@ test.describe('Friend Management - Block User', () => {
     });
   });
 
-  test('Blocked users cannot trigger buzz or notification actions', async ({ dual }) => {
+  test('Blocked users cannot open the buzz modal', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63492',
     });

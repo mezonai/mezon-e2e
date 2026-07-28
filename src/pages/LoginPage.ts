@@ -27,6 +27,8 @@ export class LoginPage extends BasePage {
     errorMessage: '.error-message, .alert-danger, [data-testid="error"]',
 
     loadingSpinner: '.loading, .spinner, [data-testid="loading"]',
+    authenticatedApp:
+      '[data-e2e="user_setting-profile-button_setting"], [data-e2e="friend_page-tab"]',
 
     emailValidationError: '.email-error, [data-testid="email-error"]',
     otpValidationError: '.otp-error, [data-testid="otp-error"]',
@@ -183,6 +185,42 @@ export class LoginPage extends BasePage {
     await this.page.waitForLoadState('networkidle');
   }
 
+  async waitForAuthenticatedAppReady(timeout = 30_000): Promise<void> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        await this.page.waitForLoadState('domcontentloaded');
+
+        // The runner reaches dev through VPN, so DOMContentLoaded can fire
+        // while session hydration and the application bootstrap are still in
+        // progress. An authenticated UI element is the actual readiness signal.
+        await this.page
+          .locator(this.selectors.loadingSpinner)
+          .first()
+          .waitFor({ state: 'hidden', timeout: 10_000 })
+          .catch(() => {});
+        await this.page
+          .locator(this.selectors.authenticatedApp)
+          .first()
+          .waitFor({ state: 'visible', timeout });
+        return;
+      } catch (error) {
+        lastError = error;
+
+        if (attempt === 1) {
+          console.warn(
+            `Authenticated app was not ready after login; reloading once (${this.page.url()})`
+          );
+          await this.page.reload({ waitUntil: 'domcontentloaded' });
+        }
+      }
+    }
+
+    const reason = lastError instanceof Error ? lastError.message : String(lastError);
+    throw new Error(`Authenticated app did not become ready at ${this.page.url()}: ${reason}`);
+  }
+
   async loginWithPassword(email: string, password: string): Promise<void> {
     const homePage = new HomePage(this.page);
     await this.page.goto(MEZON_DEV || '');
@@ -200,9 +238,7 @@ export class LoginPage extends BasePage {
     await this.page.locator(this.selectors.passwordInput).fill(password);
 
     await this.clickLogin();
-    await this.page.waitForLoadState('domcontentloaded');
-    /* After page loaded. Mezon FE take 1s loading to get the credentials */
-    await this.page.waitForTimeout(3000);
+    await this.waitForAuthenticatedAppReady();
   }
 
   async verifyErrorMessage(expectedMessage?: string): Promise<void> {

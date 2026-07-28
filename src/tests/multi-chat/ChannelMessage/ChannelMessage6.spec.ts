@@ -20,7 +20,7 @@ import generateRandomString from '@/utils/randomString';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Channel Message 6', () => {
+test.describe('Channel Messages - Canvas Access and Voice Channel Join', () => {
   const accountA = AccountCredentials['accountKien8'];
   const accountB = AccountCredentials['accountKien9'];
   const accountC = AccountCredentials['accountKien10'];

@@ -11,7 +11,7 @@ import { ChannelType } from '@/types/clan-page.types';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
-test.describe('Channel Message - Module 7', () => {
+test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account5;
   test.beforeAll(async ({ browser }) => {

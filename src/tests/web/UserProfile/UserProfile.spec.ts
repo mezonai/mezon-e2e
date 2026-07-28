@@ -13,7 +13,7 @@ import generateRandomString from '@/utils/randomString';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
 
-test.describe('User Profile - Update avatar', () => {
+test.describe('User Profile - Avatar Visibility Across Direct Message Views', () => {
   let profileHash: string | null = null;
   let profileName: string | null = null;
   let profileId: string | null = null;
@@ -91,7 +91,7 @@ test.describe('User Profile - Update avatar', () => {
     await AuthHelper.logout(page);
   });
 
-  test.describe('Validate avatar with owner account', () => {
+  test.describe('Owner Account - Avatar Visibility Across Direct Message Views', () => {
     test.beforeEach(async ({ page }) => {
       const credentials = await AuthHelper.setupAuthWithEmailPassword(
         page,
@@ -119,7 +119,7 @@ test.describe('User Profile - Update avatar', () => {
     });
   });
 
-  test.describe('Validate avatar with friend account', () => {
+  test.describe('Friend Account - Avatar Visibility Across Direct Message Views', () => {
     test.beforeEach(async ({ page }) => {
       const credentials = await AuthHelper.setupAuthWithEmailPassword(
         page,

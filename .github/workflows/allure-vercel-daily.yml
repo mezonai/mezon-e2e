@@ -4,7 +4,81 @@ on:
   # 19:00 UTC = 02:00 AM next day Vietnam time (UTC+7)
   schedule:
     - cron: '0 19 * * *'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      channel_management:
+        description: 'ChannelManagement'
+        type: boolean
+        required: false
+        default: false
+      channel_message:
+        description: 'ChannelMessage'
+        type: boolean
+        required: false
+        default: false
+      clan_management:
+        description: 'ClanManagement'
+        type: boolean
+        required: false
+        default: false
+      direct_message:
+        description: 'DirectMessage'
+        type: boolean
+        required: false
+        default: false
+      thread_management:
+        description: 'ThreadManagement'
+        type: boolean
+        required: false
+        default: false
+      timeline:
+        description: 'Timeline'
+        type: boolean
+        required: false
+        default: false
+      upload_file:
+        description: 'UploadFile'
+        type: boolean
+        required: false
+        default: false
+      user_profile:
+        description: 'UserProfile'
+        type: boolean
+        required: false
+        default: false
+      multi_channel_message:
+        description: 'MultiChat / ChannelMessage'
+        type: boolean
+        required: false
+        default: false
+      multi_clan_management:
+        description: 'MultiChat / ClanManagement'
+        type: boolean
+        required: false
+        default: false
+      multi_direct_message:
+        description: 'MultiChat / DirectMessage'
+        type: boolean
+        required: false
+        default: false
+      multi_friend_management:
+        description: 'MultiChat / FriendManagement'
+        type: boolean
+        required: false
+        default: false
+      multi_voice_channel:
+        description: 'MultiChat / VoiceChannel'
+        type: boolean
+        required: false
+        default: false
+      multi_root_tests:
+        description: 'MultiChat / root spec files'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
 
 jobs:
   allure-daily:
@@ -26,9 +100,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Node.js 20, yarn (corepack) and Java are installed system-wide on the
-      # VPS (one-time setup) → the Setup Node.js / Enable Yarn / Check Java
-      # steps were removed.
+      # chromedriver 149 requires Node.js 22 or newer. Do not rely on the
+      # system-wide Node.js version installed on the self-hosted runner.
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       # -----------------------------------------------------------------------
       # 2. Install dependencies
@@ -113,6 +192,7 @@ jobs:
           WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false
+          TEST_GAP_MS=10000
           EOF
           sed -i 's/^[[:space:]]*//' .env
           echo "--- .env contents ---" && cat .env
@@ -121,11 +201,78 @@ jobs:
       # 6. Run Playwright tests
       #    continue-on-error: true — test failures must NOT block report generation
       # -----------------------------------------------------------------------
+      - name: Clean previous test artifacts
+        run: npm run clean
+
       - name: Run Playwright tests
         id: run-tests
         timeout-minutes: 360
+        env:
+          RUN_CHANNEL_MANAGEMENT: ${{ inputs.channel_management }}
+          RUN_CHANNEL_MESSAGE: ${{ inputs.channel_message }}
+          RUN_CLAN_MANAGEMENT: ${{ inputs.clan_management }}
+          RUN_DIRECT_MESSAGE: ${{ inputs.direct_message }}
+          RUN_THREAD_MANAGEMENT: ${{ inputs.thread_management }}
+          RUN_TIMELINE: ${{ inputs.timeline }}
+          RUN_UPLOAD_FILE: ${{ inputs.upload_file }}
+          RUN_USER_PROFILE: ${{ inputs.user_profile }}
+          RUN_MULTI_CHANNEL_MESSAGE: ${{ inputs.multi_channel_message }}
+          RUN_MULTI_CLAN_MANAGEMENT: ${{ inputs.multi_clan_management }}
+          RUN_MULTI_DIRECT_MESSAGE: ${{ inputs.multi_direct_message }}
+          RUN_MULTI_FRIEND_MANAGEMENT: ${{ inputs.multi_friend_management }}
+          RUN_MULTI_VOICE_CHANNEL: ${{ inputs.multi_voice_channel }}
+          RUN_MULTI_ROOT_TESTS: ${{ inputs.multi_root_tests }}
         run: |
-          xvfb-run npx playwright test --project Chrome
+          WEB_TARGETS=()
+          MULTI_TARGETS=()
+
+          [ "$RUN_CHANNEL_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ChannelManagement")
+          [ "$RUN_CHANNEL_MESSAGE" = "true" ] && WEB_TARGETS+=("src/tests/web/ChannelMessage")
+          [ "$RUN_CLAN_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ClanManagement")
+          [ "$RUN_DIRECT_MESSAGE" = "true" ] && WEB_TARGETS+=("src/tests/web/DirectMessage")
+          [ "$RUN_THREAD_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ThreadManagement")
+          [ "$RUN_TIMELINE" = "true" ] && WEB_TARGETS+=("src/tests/web/Timeline")
+          [ "$RUN_UPLOAD_FILE" = "true" ] && WEB_TARGETS+=("src/tests/web/UploadFile")
+          [ "$RUN_USER_PROFILE" = "true" ] && WEB_TARGETS+=("src/tests/web/UserProfile")
+
+          [ "$RUN_MULTI_CHANNEL_MESSAGE" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/ChannelMessage")
+          [ "$RUN_MULTI_CLAN_MANAGEMENT" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/ClanManagement")
+          [ "$RUN_MULTI_DIRECT_MESSAGE" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/DirectMessage")
+          [ "$RUN_MULTI_FRIEND_MANAGEMENT" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/FriendManagement")
+          [ "$RUN_MULTI_VOICE_CHANNEL" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/VoiceChannel")
+
+          if [ "$RUN_MULTI_ROOT_TESTS" = "true" ]; then
+            MULTI_TARGETS+=(
+              "src/tests/multi-chat/ChannelManagement.spec.ts"
+              "src/tests/multi-chat/MarkAsRead.spec.ts"
+              "src/tests/multi-chat/MemberManagement.spec.ts"
+              "src/tests/multi-chat/UserSettings.spec.ts"
+            )
+          fi
+
+          if [ "${#WEB_TARGETS[@]}" -eq 0 ] && [ "${#MULTI_TARGETS[@]}" -eq 0 ]; then
+            WEB_TARGETS=("src/tests/web")
+            MULTI_TARGETS=("src/tests/multi-chat")
+            echo "No folder selected; running all web and multi-chat tests."
+          fi
+
+          TEST_EXIT_CODE=0
+          set +e
+
+          if [ "${#WEB_TARGETS[@]}" -gt 0 ]; then
+            printf 'Selected web folder: %s\n' "${WEB_TARGETS[@]}"
+            xvfb-run npx playwright test "${WEB_TARGETS[@]}" --project Chrome
+            [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
+          fi
+
+          if [ "${#MULTI_TARGETS[@]}" -gt 0 ]; then
+            printf 'Selected multi-chat target: %s\n' "${MULTI_TARGETS[@]}"
+            xvfb-run npx playwright test "${MULTI_TARGETS[@]}" --project Multi
+            [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
+          fi
+
+          set -e
+          exit "$TEST_EXIT_CODE"
         continue-on-error: true
 
       # -----------------------------------------------------------------------
@@ -137,6 +284,7 @@ jobs:
         env:
           ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           bash scripts/allure/allure-daily.sh
 

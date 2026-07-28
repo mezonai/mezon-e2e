@@ -21,7 +21,7 @@ const test = base.extend<{
   },
 });
 
-test.describe('Channel Message - Module 2', () => {
+test.describe('Channel Messages - Reactions, Replies, and Topic Discussions', () => {
   let messageHelpers: MessageTestHelpers;
   const credentials = AccountCredentials.account2;
   const clanFactory = new ClanFactory();

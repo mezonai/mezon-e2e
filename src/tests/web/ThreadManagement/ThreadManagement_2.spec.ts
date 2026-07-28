@@ -12,7 +12,7 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { ThreadTestHelpers } from '@/utils/threadHelpers';
 import { test } from '@playwright/test';
 
-test.describe('Thread Management - Module 2', () => {
+test.describe('Thread Management - Create Canvas in a Thread', () => {
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account7;
   test.beforeAll(async ({ browser }) => {

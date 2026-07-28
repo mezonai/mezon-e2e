@@ -11,7 +11,7 @@ import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { ProfilePage } from '../../../pages/ProfilePage';
 
-test.describe('File Size Limits Validation', () => {
+test.describe('File Upload Limits - Messages and Profile Avatars', () => {
   let fileSizeHelpers: FileSizeTestHelpers;
   let profilePage: ProfilePage;
   let clanPage: ClanPage;

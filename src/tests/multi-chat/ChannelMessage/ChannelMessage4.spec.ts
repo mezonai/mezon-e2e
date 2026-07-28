@@ -20,7 +20,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Channel Message 4', () => {
+test.describe('Channel Messages - Shared Contacts, Voice Links, and Welcome Messages', () => {
   const accountA = AccountCredentials['accountKien2'];
   const accountB = AccountCredentials['accountKien3'];
   const accountC = AccountCredentials['accountKien4'];

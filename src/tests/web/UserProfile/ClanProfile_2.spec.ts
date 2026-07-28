@@ -13,7 +13,7 @@ import { joinUrlPaths } from '@/utils/joinUrlPaths';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
 
-test.describe('Clan Profile - Module 2', () => {
+test.describe('Clan Profile - Avatar Visibility in Member Views', () => {
   let profileHash: string | null = null;
   let profilePage: ProfilePage;
   let profileId: string | null = null;

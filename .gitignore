@@ -83,3 +83,7 @@ test-files
 
 # Local documentation (do not commit)
 docs/
+
+# Language check reports
+language-check-report/
+libs/languages

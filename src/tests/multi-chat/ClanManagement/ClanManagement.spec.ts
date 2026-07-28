@@ -20,7 +20,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
 
-test.describe('Clan Management', () => {
+test.describe('Clan Management - System Messages, Member Removal, and Role Permissions', () => {
   const accountA = AccountCredentials['account2-3'];
   const accountB = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
@@ -371,7 +371,7 @@ test.describe('Clan Management', () => {
     });
   });
 
-  test('Veify that I have admin permissions after add role with admin permissions', async ({
+  test('Verify that a user receives administrator permissions from an assigned role', async ({
     dual,
   }) => {
     await AllureReporter.addWorkItemLinks({
@@ -470,9 +470,7 @@ test.describe('Clan Management', () => {
     });
   });
 
-  test('Veify that I can manage channel after add role with manage channel permissions', async ({
-    dual,
-  }) => {
+  test('Verify that a user can manage channels through an assigned role', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64954',
       github_issue: '9685',

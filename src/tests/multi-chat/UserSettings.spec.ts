@@ -14,7 +14,7 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import generateRandomString from '@/utils/randomString';
 import { test } from '../../fixtures/dual.fixture';
 
-test.describe('User settings', () => {
+test.describe('User Settings - Custom Status on Friend List', () => {
   const accountA = AccountCredentials['account2-3'];
   const accountB = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';

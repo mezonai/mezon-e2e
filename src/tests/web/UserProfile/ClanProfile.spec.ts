@@ -16,7 +16,7 @@ import generateRandomString from '@/utils/randomString';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
 
-test.describe('Clan Profile', () => {
+test.describe('Clan Profile - Avatar Visibility in Messages and Pinned Content', () => {
   let profileHash: string | null = null;
   let profilePage: ProfilePage;
   const message = `message - ${generateRandomString(10)}`;

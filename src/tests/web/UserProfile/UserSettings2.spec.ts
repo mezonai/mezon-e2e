@@ -13,7 +13,7 @@ import { joinUrlPaths } from '@/utils/joinUrlPaths';
 import generateRandomString from '@/utils/randomString';
 import { expect, test } from '@playwright/test';
 
-test.describe('User Settings 2', () => {
+test.describe('User Settings - Custom Status and About Me Visibility', () => {
   const clanFactory = new ClanFactory();
   const account = AccountCredentials.account7;
   const [userName] = getUsernamesFromEmails([account.email]);

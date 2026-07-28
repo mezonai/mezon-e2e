@@ -40,6 +40,8 @@
     "ts-check": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json}\"",
+    "check:lang": "node --experimental-strip-types scripts/check-language-keys.ts",
+    "check:lang:watch": "node --experimental-strip-types --watch scripts/check-language-keys.ts",
     "clean": "rm -rf test-results/ playwright-report/ coverage/ allure-results/ allure-report/",
     "prepare": "husky",
     "sonar:report": "npm run lint:report --yes && npx sonar-scanner",
@@ -58,7 +60,8 @@
     "@estruyf/github-actions-reporter": "^1.10.0",
     "@playwright/test": "^1.57.0",
     "@types/archiver": "^6.0.3",
-    "@types/node": "^22.0.0",
+    "@types/node": "^22.20.0",
+    "@types/selenium-webdriver": "^4.35.6",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "allure-commandline": "^2.34.1",
@@ -81,9 +84,11 @@
     "@faker-js/faker": "^9.0.0",
     "archiver": "^7.0.1",
     "aws-sdk": "^2.1692.0",
+    "chromedriver": "^150.0.3",
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "selenium-webdriver": "^4.46.0"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [

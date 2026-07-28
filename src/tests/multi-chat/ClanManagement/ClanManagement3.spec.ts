@@ -18,7 +18,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
 
-test.describe('Clan Management 3', () => {
+test.describe('Clan Management - Private Channel Roles and Permission Overrides', () => {
   const accountA = AccountCredentials['account2-3'];
   const accountB = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';

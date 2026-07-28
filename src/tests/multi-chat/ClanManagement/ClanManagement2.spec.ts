@@ -17,7 +17,7 @@ import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 
-test.describe('Clan Management 2', () => {
+test.describe('Clan Management - Role Permissions, Ownership, and Membership Dates', () => {
   const accountA = AccountCredentials['account2-3'];
   const accountB = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
@@ -243,7 +243,7 @@ test.describe('Clan Management 2', () => {
     });
   });
 
-  test('Verify that user can transfer owenship to another member', async ({ dual }) => {
+  test('Verify that a user can transfer clan ownership to another member', async ({ dual }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64610',
     });
@@ -397,7 +397,9 @@ test.describe('Clan Management 2', () => {
     });
   });
 
-  test('Verify that member since in clan reflect correct when user join clan', async ({ dual }) => {
+  test('Verify that the clan membership date matches when the user joined the clan', async ({
+    dual,
+  }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64610',
     });
@@ -479,7 +481,7 @@ test.describe('Clan Management 2', () => {
     });
   });
 
-  test('Verify that member since in clan reflect correct when user join mezon', async ({
+  test('Verify that the Mezon membership date matches when the user joined Mezon', async ({
     dual,
   }) => {
     await AllureReporter.addWorkItemLinks({

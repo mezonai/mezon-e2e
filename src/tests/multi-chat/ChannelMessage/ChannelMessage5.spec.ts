@@ -19,7 +19,7 @@ import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Channel Message 5', () => {
+test.describe('Channel Messages - Profile Status and Blocked User Actions', () => {
   const accountA = AccountCredentials['accountKien2'];
   const accountB = AccountCredentials['accountKien3'];
   const accountC = AccountCredentials['accountKien4'];
@@ -52,7 +52,9 @@ test.describe('Channel Message 5', () => {
       },
     });
   });
-  test('Verify that profile status reflect correct on channel member list', async ({ dual }) => {
+  test('Verify that profile status is displayed correctly in the channel member list', async ({
+    dual,
+  }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64803',
       github_issue: '10162',
@@ -131,7 +133,9 @@ test.describe('Channel Message 5', () => {
     });
   });
 
-  test('Verify that profile status reflect correct on channel short profile', async ({ dual }) => {
+  test('Verify that profile status is displayed correctly in the channel short profile', async ({
+    dual,
+  }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64803',
       github_issue: '10162',
@@ -211,7 +215,9 @@ test.describe('Channel Message 5', () => {
     });
   });
 
-  test('Verify that profile status reflect correct on channel full profile', async ({ dual }) => {
+  test('Verify that profile status is displayed correctly in the channel full profile', async ({
+    dual,
+  }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '64803',
       github_issue: '10162',
@@ -377,7 +383,9 @@ test.describe('Channel Message 5', () => {
     });
   });
 
-  test('Verify that user A can not add friend after block user B', async ({ dual }) => {
+  test('Verify that User A cannot send a friend request after blocking User B', async ({
+    dual,
+  }) => {
     const { pageA, pageB } = dual;
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);

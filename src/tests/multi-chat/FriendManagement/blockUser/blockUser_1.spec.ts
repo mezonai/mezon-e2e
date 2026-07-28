@@ -16,7 +16,7 @@ import {
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 
-test.describe('Friend Management - Block User', () => {
+test.describe('Blocked Users - Block, Unblock, Clan Invites, and Real-Time DM State', () => {
   const accountA = AccountCredentials['accountKien2'];
   const accountB = AccountCredentials['accountKien3'];
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
@@ -130,7 +130,7 @@ test.describe('Friend Management - Block User', () => {
       3. Verify User B appears in the Block tab
       4. User A creates a clan
       5. User A opens the invite people modal
-      6. Verify that blocked User B is not shown in the invite list
+      6. Verify that blocked User B is not shown in User A's invite list
       
       **Expected Result:** Blocked users should not appear in the clan invite friend list.
     `);
@@ -178,9 +178,9 @@ test.describe('Friend Management - Block User', () => {
       1. Establish friendship between User A and User B
       2. User A blocks User B
       3. Verify User B appears in the Block tab
-      4. User A creates a clan
-      5. User A opens the invite people modal
-      6. Verify that blocked User B is not shown in the invite list
+      4. User B creates a clan
+      5. User B opens the invite people modal
+      6. Verify that blocker User A is not shown in User B's invite list
       
       **Expected Result:** Blocked users should not appear in the clan invite friend list.
     `);
@@ -201,8 +201,8 @@ test.describe('Friend Management - Block User', () => {
       await clanMenuPanelB.openInvitePeopleModal();
     });
 
-    await test.step('Verify blocked User B is not shown in invite list', async () => {
-      const isFriendShown = await clanInviteFriendModalB.isFriendShownInList(userNameB);
+    await test.step('Verify blocker User A is not shown in User B invite list', async () => {
+      const isFriendShown = await clanInviteFriendModalB.isFriendShownInList(userNameA);
       expect(isFriendShown).toBeFalsy();
       await pageB.reload({
         waitUntil: 'domcontentloaded',

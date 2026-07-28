@@ -190,6 +190,9 @@ export default class ClanSelector {
       `${generateE2eSelector('clan_page.channel_list.settings.overview')} input`
     ),
     mention: this.page.locator(generateE2eSelector('mention.input')),
+    permissionDenied: this.page.locator(
+      generateE2eSelector('chat.message_box.input.no_permission')
+    ),
     selectedFile: this.page.locator(generateE2eSelector('mention.selected_file')),
     messageBanned: this.page.locator(generateE2eSelector('mention.banned')),
     topicBanned: this.page.locator(
@@ -426,6 +429,10 @@ export default class ClanSelector {
         generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
       ),
       controlBar: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.control_bar')),
+      shareScreenButton: this.page.locator('#btn-meet-screen'),
+      screenShareIcon: this.page.locator(
+        generateE2eSelector('clan_page.channel_list.item.user_list.item.screen_share')
+      ),
     },
     canvasEditor: {
       input: {

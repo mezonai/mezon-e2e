@@ -9,7 +9,7 @@ import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
-test.describe('Channel Management', () => {
+test.describe('Channel Management - Create and Rename Channels', () => {
   const CHANNEL_CREATION_TAG = 'channel-creation';
   const TEXT_CHANNEL_TAG = 'text-channel';
   const VERIFY_CHANNEL_STEP = 'Verify channel is present in channel list';

@@ -20,7 +20,7 @@ import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 
-test.describe('Direct Message', () => {
+test.describe('Direct Messages - Profile Status and Avatar History', () => {
   const accountA = AccountCredentials['account2-3'];
   const accountB = AccountCredentials['account2-4'];
   const accountC = AccountCredentials['account2-5'];
