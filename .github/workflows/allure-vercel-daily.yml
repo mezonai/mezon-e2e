@@ -252,7 +252,8 @@ jobs:
 
           if [ "${#WEB_TARGETS[@]}" -eq 0 ] && [ "${#MULTI_TARGETS[@]}" -eq 0 ]; then
             WEB_TARGETS=("src/tests/web")
-            echo "No folder selected; running all web tests with the Chrome project."
+            MULTI_TARGETS=("src/tests/multi-chat")
+            echo "No folder selected; running all web and multi-chat tests."
           fi
 
           TEST_EXIT_CODE=0

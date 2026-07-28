@@ -135,6 +135,7 @@ export class AuthHelper {
   static async prepareBeforeTest(page: Page, clanUrl: string, credentials: any) {
     await AuthHelper.setAuthForSuite(page, credentials);
     await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+    await new LoginPage(page).waitForAuthenticatedAppReady();
 
     const clanSelector = new ClanSelector(page);
     try {
