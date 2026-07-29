@@ -1,11 +1,22 @@
-name: 'Allure Daily Report - Deploy to Vercel'
+name: 'Allure Daily Report - Web 19h, Multi 00h'
 
 on:
-  # 19:00 UTC = 02:00 AM next day Vietnam time (UTC+7)
+  # GitHub cron uses UTC:
+  # - 12:00 UTC = 19:00 Vietnam: run Web and stage its raw results.
+  # - 18:00 UTC = 01:00 Vietnam: run Multi, merge Web results, then deploy.
   schedule:
-    - cron: '0 19 * * *'
+    - cron: '0 12 * * *'
+    - cron: '0 18 * * *'
   workflow_dispatch:
     inputs:
+      run_group:
+        description: 'Test group to run'
+        type: choice
+        required: true
+        default: web
+        options:
+          - web
+          - multi
       channel_management:
         description: 'ChannelManagement'
         type: boolean
@@ -77,6 +88,10 @@ on:
         required: false
         default: false
 
+concurrency:
+  group: allure-daily-pipeline
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -99,6 +114,32 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Resolve run phase and report date
+        id: phase
+        env:
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          REQUESTED_GROUP: ${{ inputs.run_group }}
+          SELECTED_REF: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_SCHEDULE" = "0 12 * * *" ]; then
+            RUN_PHASE="web"
+            REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
+          elif [ "$EVENT_SCHEDULE" = "0 18 * * *" ]; then
+            RUN_PHASE="multi"
+            REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
+          else
+            RUN_PHASE="${REQUESTED_GROUP:-web}"
+            REPORT_DATE="$(TZ=Asia/Ho_Chi_Minh date +%F)"
+          fi
+
+          SAFE_REF="${SELECTED_REF//[^A-Za-z0-9._-]/_}"
+          echo "phase=$RUN_PHASE" >> "$GITHUB_OUTPUT"
+          echo "report_date=$REPORT_DATE" >> "$GITHUB_OUTPUT"
+          echo "pipeline_key=$REPORT_DATE-$SAFE_REF" >> "$GITHUB_OUTPUT"
+          echo "Run phase: $RUN_PHASE"
+          echo "Combined report date: $REPORT_DATE"
+          echo "Pipeline key: $REPORT_DATE-$SAFE_REF"
 
       # chromedriver 149 requires Node.js 22 or newer. Do not rely on the
       # system-wide Node.js version installed on the self-hosted runner.
@@ -208,6 +249,7 @@ jobs:
         id: run-tests
         timeout-minutes: 360
         env:
+          RUN_PHASE: ${{ steps.phase.outputs.phase }}
           RUN_CHANNEL_MANAGEMENT: ${{ inputs.channel_management }}
           RUN_CHANNEL_MESSAGE: ${{ inputs.channel_message }}
           RUN_CLAN_MANAGEMENT: ${{ inputs.clan_management }}
@@ -226,70 +268,116 @@ jobs:
           WEB_TARGETS=()
           MULTI_TARGETS=()
 
-          [ "$RUN_CHANNEL_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ChannelManagement")
-          [ "$RUN_CHANNEL_MESSAGE" = "true" ] && WEB_TARGETS+=("src/tests/web/ChannelMessage")
-          [ "$RUN_CLAN_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ClanManagement")
-          [ "$RUN_DIRECT_MESSAGE" = "true" ] && WEB_TARGETS+=("src/tests/web/DirectMessage")
-          [ "$RUN_THREAD_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ThreadManagement")
-          [ "$RUN_TIMELINE" = "true" ] && WEB_TARGETS+=("src/tests/web/Timeline")
-          [ "$RUN_UPLOAD_FILE" = "true" ] && WEB_TARGETS+=("src/tests/web/UploadFile")
-          [ "$RUN_USER_PROFILE" = "true" ] && WEB_TARGETS+=("src/tests/web/UserProfile")
+          if [ "$RUN_PHASE" = "web" ]; then
+            [ "$RUN_CHANNEL_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ChannelManagement")
+            [ "$RUN_CHANNEL_MESSAGE" = "true" ] && WEB_TARGETS+=("src/tests/web/ChannelMessage")
+            [ "$RUN_CLAN_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ClanManagement")
+            [ "$RUN_DIRECT_MESSAGE" = "true" ] && WEB_TARGETS+=("src/tests/web/DirectMessage")
+            [ "$RUN_THREAD_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ThreadManagement")
+            [ "$RUN_TIMELINE" = "true" ] && WEB_TARGETS+=("src/tests/web/Timeline")
+            [ "$RUN_UPLOAD_FILE" = "true" ] && WEB_TARGETS+=("src/tests/web/UploadFile")
+            [ "$RUN_USER_PROFILE" = "true" ] && WEB_TARGETS+=("src/tests/web/UserProfile")
 
-          [ "$RUN_MULTI_CHANNEL_MESSAGE" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/ChannelMessage")
-          [ "$RUN_MULTI_CLAN_MANAGEMENT" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/ClanManagement")
-          [ "$RUN_MULTI_DIRECT_MESSAGE" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/DirectMessage")
-          [ "$RUN_MULTI_FRIEND_MANAGEMENT" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/FriendManagement")
-          [ "$RUN_MULTI_VOICE_CHANNEL" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/VoiceChannel")
+            if [ "${#WEB_TARGETS[@]}" -eq 0 ]; then
+              WEB_TARGETS=("src/tests/web")
+              echo "No Web folder selected; running all Web tests."
+            fi
 
-          if [ "$RUN_MULTI_ROOT_TESTS" = "true" ]; then
-            MULTI_TARGETS+=(
-              "src/tests/multi-chat/ChannelManagement.spec.ts"
-              "src/tests/multi-chat/MarkAsRead.spec.ts"
-              "src/tests/multi-chat/MemberManagement.spec.ts"
-              "src/tests/multi-chat/UserSettings.spec.ts"
-            )
-          fi
-
-          if [ "${#WEB_TARGETS[@]}" -eq 0 ] && [ "${#MULTI_TARGETS[@]}" -eq 0 ]; then
-            WEB_TARGETS=("src/tests/web")
-            MULTI_TARGETS=("src/tests/multi-chat")
-            echo "No folder selected; running all web and multi-chat tests."
-          fi
-
-          TEST_EXIT_CODE=0
-          set +e
-
-          if [ "${#WEB_TARGETS[@]}" -gt 0 ]; then
             printf 'Selected web folder: %s\n' "${WEB_TARGETS[@]}"
             xvfb-run npx playwright test "${WEB_TARGETS[@]}" --project Chrome
-            [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
-          fi
+          elif [ "$RUN_PHASE" = "multi" ]; then
+            [ "$RUN_MULTI_CHANNEL_MESSAGE" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/ChannelMessage")
+            [ "$RUN_MULTI_CLAN_MANAGEMENT" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/ClanManagement")
+            [ "$RUN_MULTI_DIRECT_MESSAGE" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/DirectMessage")
+            [ "$RUN_MULTI_FRIEND_MANAGEMENT" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/FriendManagement")
+            [ "$RUN_MULTI_VOICE_CHANNEL" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/VoiceChannel")
 
-          if [ "${#MULTI_TARGETS[@]}" -gt 0 ]; then
+            if [ "$RUN_MULTI_ROOT_TESTS" = "true" ]; then
+              MULTI_TARGETS+=(
+                "src/tests/multi-chat/ChannelManagement.spec.ts"
+                "src/tests/multi-chat/MarkAsRead.spec.ts"
+                "src/tests/multi-chat/MemberManagement.spec.ts"
+                "src/tests/multi-chat/UserSettings.spec.ts"
+              )
+            fi
+
+            if [ "${#MULTI_TARGETS[@]}" -eq 0 ]; then
+              MULTI_TARGETS=("src/tests/multi-chat")
+              echo "No Multi folder selected; running all MultiChat tests."
+            fi
+
             printf 'Selected multi-chat target: %s\n' "${MULTI_TARGETS[@]}"
             xvfb-run npx playwright test "${MULTI_TARGETS[@]}" --project Multi
-            [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
+          else
+            echo "::error::Unknown run phase: $RUN_PHASE"
+            exit 1
           fi
-
-          set -e
-          exit "$TEST_EXIT_CODE"
         continue-on-error: true
 
       # -----------------------------------------------------------------------
-      # 7. Generate Allure report and deploy to Vercel
+      # 7. Stage Web results or merge them into the Multi results
+      # -----------------------------------------------------------------------
+      - name: Stage Web results for the midnight report
+        if: always() && steps.phase.outputs.phase == 'web'
+        env:
+          REPORT_DATE: ${{ steps.phase.outputs.report_date }}
+          PIPELINE_KEY: ${{ steps.phase.outputs.pipeline_key }}
+        run: |
+          if [ ! -d "allure-results" ] || [ -z "$(find allure-results -maxdepth 1 -name '*-result.json' -print -quit)" ]; then
+            echo "::error::Web run produced no Allure result files"
+            exit 1
+          fi
+
+          PENDING_DIR="$ALLURE_VERCEL_ROOT/pending/$PIPELINE_KEY"
+          WEB_RESULTS_DIR="$PENDING_DIR/web-results"
+          mkdir -p "$PENDING_DIR"
+          STAGING_DIR="$(mktemp -d "$PENDING_DIR/.web-results.XXXXXX")"
+          cp -a allure-results/. "$STAGING_DIR/"
+          rm -rf "$WEB_RESULTS_DIR"
+          mv "$STAGING_DIR" "$WEB_RESULTS_DIR"
+
+          RESULT_COUNT="$(find "$WEB_RESULTS_DIR" -maxdepth 1 -name '*-result.json' | wc -l)"
+          echo "Staged $RESULT_COUNT Web results for combined report $REPORT_DATE"
+
+      - name: Merge staged Web results into Multi results
+        id: merge_results
+        if: always() && steps.phase.outputs.phase == 'multi'
+        env:
+          REPORT_DATE: ${{ steps.phase.outputs.report_date }}
+          PIPELINE_KEY: ${{ steps.phase.outputs.pipeline_key }}
+        run: |
+          WEB_RESULTS_DIR="$ALLURE_VERCEL_ROOT/pending/$PIPELINE_KEY/web-results"
+
+          if [ ! -d "$WEB_RESULTS_DIR" ] || [ -z "$(find "$WEB_RESULTS_DIR" -maxdepth 1 -name '*-result.json' -print -quit)" ]; then
+            echo "::error::No staged Web results found for $REPORT_DATE at $WEB_RESULTS_DIR"
+            exit 1
+          fi
+
+          mkdir -p allure-results
+          WEB_COUNT="$(find "$WEB_RESULTS_DIR" -maxdepth 1 -name '*-result.json' | wc -l)"
+          MULTI_COUNT="$(find allure-results -maxdepth 1 -name '*-result.json' | wc -l)"
+          cp -a "$WEB_RESULTS_DIR/." allure-results/
+          COMBINED_COUNT="$(find allure-results -maxdepth 1 -name '*-result.json' | wc -l)"
+
+          echo "Merged $WEB_COUNT Web results with $MULTI_COUNT Multi results"
+          echo "Combined raw result count: $COMBINED_COUNT"
+
+      # -----------------------------------------------------------------------
+      # 8. Generate the combined report and deploy only after Multi
       # -----------------------------------------------------------------------
       - name: Generate Allure report and deploy to Vercel
-        if: always()
+        if: always() && steps.phase.outputs.phase == 'multi' && steps.merge_results.outcome == 'success'
         timeout-minutes: 10
         env:
           ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
+          REPORT_DATE: ${{ steps.phase.outputs.report_date }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           bash scripts/allure/allure-daily.sh
 
       # -----------------------------------------------------------------------
-      # 8. Disconnect VPN — cleanup, always runs
+      # 9. Disconnect VPN — cleanup, always runs
       # -----------------------------------------------------------------------
       - name: Disconnect VPN
         if: always()
@@ -304,13 +392,13 @@ jobs:
           fi
 
       # -----------------------------------------------------------------------
-      # 9. Upload allure-results as artifact for debugging if deploy fails
+      # 10. Upload any remaining allure-results for debugging
       # -----------------------------------------------------------------------
       - name: Upload allure-results artifact (debug fallback)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results-${{ github.run_id }}
+          name: allure-results-${{ steps.phase.outputs.phase }}-${{ steps.phase.outputs.report_date }}-${{ github.run_id }}
           path: allure-results/
           retention-days: 3
           if-no-files-found: ignore

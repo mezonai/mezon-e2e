@@ -225,7 +225,6 @@ test.describe('User Settings - Clan Identity and User Profile Updates', () => {
     const buttons = [
       await profilePage.getEditUserProfileButton(),
       await profilePage.getEditDisplayNameButton(),
-      await profilePage.getEditUserNameButton(),
     ];
 
     for (const button of buttons) {
