@@ -9,14 +9,6 @@ on:
     - cron: '0 18 * * *'
   workflow_dispatch:
     inputs:
-      run_group:
-        description: 'Test group to run'
-        type: choice
-        required: true
-        default: web
-        options:
-          - web
-          - multi
       channel_management:
         description: 'ChannelManagement'
         type: boolean
@@ -119,7 +111,6 @@ jobs:
         id: phase
         env:
           EVENT_SCHEDULE: ${{ github.event.schedule }}
-          REQUESTED_GROUP: ${{ inputs.run_group }}
           SELECTED_REF: ${{ github.ref_name }}
         run: |
           if [ "$EVENT_SCHEDULE" = "0 12 * * *" ]; then
@@ -129,7 +120,7 @@ jobs:
             RUN_PHASE="multi"
             REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
           else
-            RUN_PHASE="${REQUESTED_GROUP:-web}"
+            RUN_PHASE="manual"
             REPORT_DATE="$(TZ=Asia/Ho_Chi_Minh date +%F)"
           fi
 
@@ -268,7 +259,7 @@ jobs:
           WEB_TARGETS=()
           MULTI_TARGETS=()
 
-          if [ "$RUN_PHASE" = "web" ]; then
+          add_web_targets() {
             [ "$RUN_CHANNEL_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ChannelManagement")
             [ "$RUN_CHANNEL_MESSAGE" = "true" ] && WEB_TARGETS+=("src/tests/web/ChannelMessage")
             [ "$RUN_CLAN_MANAGEMENT" = "true" ] && WEB_TARGETS+=("src/tests/web/ClanManagement")
@@ -277,15 +268,9 @@ jobs:
             [ "$RUN_TIMELINE" = "true" ] && WEB_TARGETS+=("src/tests/web/Timeline")
             [ "$RUN_UPLOAD_FILE" = "true" ] && WEB_TARGETS+=("src/tests/web/UploadFile")
             [ "$RUN_USER_PROFILE" = "true" ] && WEB_TARGETS+=("src/tests/web/UserProfile")
+          }
 
-            if [ "${#WEB_TARGETS[@]}" -eq 0 ]; then
-              WEB_TARGETS=("src/tests/web")
-              echo "No Web folder selected; running all Web tests."
-            fi
-
-            printf 'Selected web folder: %s\n' "${WEB_TARGETS[@]}"
-            xvfb-run npx playwright test "${WEB_TARGETS[@]}" --project Chrome
-          elif [ "$RUN_PHASE" = "multi" ]; then
+          add_multi_targets() {
             [ "$RUN_MULTI_CHANNEL_MESSAGE" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/ChannelMessage")
             [ "$RUN_MULTI_CLAN_MANAGEMENT" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/ClanManagement")
             [ "$RUN_MULTI_DIRECT_MESSAGE" = "true" ] && MULTI_TARGETS+=("src/tests/multi-chat/DirectMessage")
@@ -300,18 +285,50 @@ jobs:
                 "src/tests/multi-chat/UserSettings.spec.ts"
               )
             fi
+          }
 
+          if [ "$RUN_PHASE" = "web" ]; then
+            add_web_targets
+            if [ "${#WEB_TARGETS[@]}" -eq 0 ]; then
+              WEB_TARGETS=("src/tests/web")
+              echo "No Web folder selected; running all Web tests."
+            fi
+          elif [ "$RUN_PHASE" = "multi" ]; then
+            add_multi_targets
             if [ "${#MULTI_TARGETS[@]}" -eq 0 ]; then
               MULTI_TARGETS=("src/tests/multi-chat")
               echo "No Multi folder selected; running all MultiChat tests."
             fi
-
-            printf 'Selected multi-chat target: %s\n' "${MULTI_TARGETS[@]}"
-            xvfb-run npx playwright test "${MULTI_TARGETS[@]}" --project Multi
+          elif [ "$RUN_PHASE" = "manual" ]; then
+            add_web_targets
+            add_multi_targets
+            if [ "${#WEB_TARGETS[@]}" -eq 0 ] && [ "${#MULTI_TARGETS[@]}" -eq 0 ]; then
+              WEB_TARGETS=("src/tests/web")
+              MULTI_TARGETS=("src/tests/multi-chat")
+              echo "No folder selected; running all Web and MultiChat tests."
+            fi
           else
             echo "::error::Unknown run phase: $RUN_PHASE"
             exit 1
           fi
+
+          TEST_EXIT_CODE=0
+          set +e
+
+          if [ "${#WEB_TARGETS[@]}" -gt 0 ]; then
+            printf 'Selected web folder: %s\n' "${WEB_TARGETS[@]}"
+            xvfb-run npx playwright test "${WEB_TARGETS[@]}" --project Chrome
+            [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
+          fi
+
+          if [ "${#MULTI_TARGETS[@]}" -gt 0 ]; then
+            printf 'Selected multi-chat target: %s\n' "${MULTI_TARGETS[@]}"
+            xvfb-run npx playwright test "${MULTI_TARGETS[@]}" --project Multi
+            [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
+          fi
+
+          set -e
+          exit "$TEST_EXIT_CODE"
         continue-on-error: true
 
       # -----------------------------------------------------------------------
@@ -366,15 +383,44 @@ jobs:
       # 8. Generate the combined report and deploy only after Multi
       # -----------------------------------------------------------------------
       - name: Generate Allure report and deploy to Vercel
-        if: always() && steps.phase.outputs.phase == 'multi' && steps.merge_results.outcome == 'success'
+        id: deploy_report
+        if: always() && (steps.phase.outputs.phase == 'manual' || (steps.phase.outputs.phase == 'multi' && steps.merge_results.outcome == 'success'))
         timeout-minutes: 10
         env:
           ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
           REPORT_DATE: ${{ steps.phase.outputs.report_date }}
+          REPORT_MODE: ${{ steps.phase.outputs.phase == 'manual' && 'manual' || 'daily' }}
+          REPORT_RUN_ID: ${{ github.run_id }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           bash scripts/allure/allure-daily.sh
+
+      - name: Clean staged Web results after successful daily deploy
+        if: always() && steps.phase.outputs.phase == 'multi' && steps.deploy_report.outcome == 'success'
+        env:
+          PIPELINE_KEY: ${{ steps.phase.outputs.pipeline_key }}
+        run: |
+          PENDING_ROOT="$ALLURE_VERCEL_ROOT/pending"
+          USED_PENDING_DIR="$PENDING_ROOT/$PIPELINE_KEY"
+
+          if [[ "$USED_PENDING_DIR" != "$PENDING_ROOT/"* ]]; then
+            echo "::error::Refusing to clean unexpected pending path: $USED_PENDING_DIR"
+            exit 1
+          fi
+
+          rm -rf "$USED_PENDING_DIR"
+          echo "Removed staged Web results: $USED_PENDING_DIR"
+
+          if [ -d "$PENDING_ROOT" ]; then
+            find "$PENDING_ROOT" \
+              -mindepth 1 \
+              -maxdepth 1 \
+              -type d \
+              -mtime +7 \
+              -print \
+              -exec rm -rf -- {} +
+          fi
 
       # -----------------------------------------------------------------------
       # 9. Disconnect VPN — cleanup, always runs
