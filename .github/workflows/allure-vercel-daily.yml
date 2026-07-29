@@ -1,4 +1,4 @@
-name: 'Allure Daily Report - Web 19h, Multi 00h'
+name: 'Allure Daily Report - Deploy to Vercel'
 
 on:
   # GitHub cron uses UTC:
