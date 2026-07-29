@@ -33,8 +33,13 @@ for (const file of resultFiles) {
 
   // Dynamic Allure parameters are included in historyId, so retries of the
   // same Playwright test can have different historyIds. testCaseId remains
-  // stable across those attempts and must be the primary grouping key.
-  const identity = result.testCaseId || result.historyId || result.fullName || result.uuid || file;
+  // stable across those attempts. Include the Playwright project so Web and
+  // Multi results cannot collapse into each other in the combined report.
+  const project =
+    result.parameters?.find(parameter => parameter.name === 'Project')?.value || 'unknown-project';
+  const testIdentity =
+    result.testCaseId || result.historyId || result.fullName || result.uuid || file;
+  const identity = `${project}:${testIdentity}`;
   const finishedAt = Number(result.stop || result.start || 0);
   const current = latestByTest.get(identity);
 

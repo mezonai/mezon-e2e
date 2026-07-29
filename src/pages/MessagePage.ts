@@ -953,6 +953,23 @@ export class MessagePage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
+  async unpinMessageFromPinnedList(message: string): Promise<void> {
+    await this.selector.displayListPinButton.click();
+
+    const pinnedMessage = this.selector.pinnedMessages.filter({ hasText: message });
+    await expect(pinnedMessage).toBeVisible({ timeout: 5000 });
+    await pinnedMessage.hover();
+
+    await expect(this.selector.removePinnedMessageButtonFromPinnedList).toBeVisible({
+      timeout: 5000,
+    });
+    await this.selector.removePinnedMessageButtonFromPinnedList.click();
+
+    await expect(this.selector.unpinMessage.button.unpin).toBeVisible({ timeout: 5000 });
+    await this.selector.unpinMessage.button.unpin.click();
+    await expect(this.selector.unpinMessage.button.unpin).toBeHidden({ timeout: 5000 });
+  }
+
   async verifyMessageIsUnpinned(message: string): Promise<boolean> {
     await this.selector.displayListPinButton.click();
     const pinnedMessage = this.selector.pinnedMessages.filter({ hasText: message });
