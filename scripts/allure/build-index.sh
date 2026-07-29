@@ -226,7 +226,7 @@ log "✅ app-nav.js written"
 # ---------------------------------------------------------------------------
 log "💉 Injecting app-nav.js into all report index.html files..."
 # Find all index.html inside month/day directories
-find "$REPORTS_DIR" -maxdepth 3 -mindepth 3 -name index.html | while read -r REPORT_HTML; do
+find "$REPORTS_DIR" -maxdepth 4 -mindepth 3 -name index.html | while read -r REPORT_HTML; do
   if ! grep -q 'src="/app-nav.js"' "$REPORT_HTML"; then
     # Inject just before </body> using sed
     sed -i -e 's|</body>|<script src="/app-nav.js"></script></body>|' "$REPORT_HTML"

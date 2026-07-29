@@ -22,15 +22,35 @@ log() {
 # ---------------------------------------------------------------------------
 ALLURE_VERCEL_ROOT="${ALLURE_VERCEL_ROOT:-/home/nccsoft/allure-vercel-reports}"
 DAY="${REPORT_DATE:-$(date +%Y-%m-%d)}"
+REPORT_MODE="${REPORT_MODE:-daily}"
+REPORT_RUN_ID="${REPORT_RUN_ID:-manual}"
 
 if ! date -d "$DAY" +%F >/dev/null 2>&1; then
   echo "ERROR: REPORT_DATE must use YYYY-MM-DD format; received: $DAY"
   exit 1
 fi
 
+if [ "$REPORT_MODE" != "daily" ] && [ "$REPORT_MODE" != "manual" ]; then
+  echo "ERROR: REPORT_MODE must be 'daily' or 'manual'; received: $REPORT_MODE"
+  exit 1
+fi
+
+if [[ ! "$REPORT_RUN_ID" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "ERROR: REPORT_RUN_ID contains unsupported characters: $REPORT_RUN_ID"
+  exit 1
+fi
+
 YEAR_MONTH="$(date -d "$DAY" +%Y-%m)"
 
-REPORT_DIR="$ALLURE_VERCEL_ROOT/reports/$YEAR_MONTH/$DAY"
+if [ "$REPORT_MODE" = "manual" ]; then
+  REPORT_RELATIVE_PATH="manual/$YEAR_MONTH/$DAY-$REPORT_RUN_ID"
+  ARCHIVE_ID="$DAY-manual-$REPORT_RUN_ID"
+else
+  REPORT_RELATIVE_PATH="$YEAR_MONTH/$DAY"
+  ARCHIVE_ID="$DAY"
+fi
+
+REPORT_DIR="$ALLURE_VERCEL_ROOT/reports/$REPORT_RELATIVE_PATH"
 LOGS_DIR="$ALLURE_VERCEL_ROOT/logs"
 LAST_HISTORY_DIR="$ALLURE_VERCEL_ROOT/reports/.last-history"
 
@@ -38,6 +58,8 @@ log "=== Starting allure-daily.sh ==="
 log "ALLURE_VERCEL_ROOT : $ALLURE_VERCEL_ROOT"
 log "YEAR_MONTH         : $YEAR_MONTH"
 log "DAY                : $DAY"
+log "REPORT_MODE        : $REPORT_MODE"
+log "REPORT_PATH        : /$REPORT_RELATIVE_PATH/"
 log "REPORT_DIR         : $REPORT_DIR"
 
 # ---------------------------------------------------------------------------
@@ -83,7 +105,9 @@ log "✅ Java: $(java -version 2>&1 | head -1)"
 # ---------------------------------------------------------------------------
 log "📜 Processing Allure history..."
 
-if [ -d "$LAST_HISTORY_DIR" ]; then
+if [ "$REPORT_MODE" = "manual" ]; then
+  log "   ℹ️  Manual report — daily history is not imported"
+elif [ -d "$LAST_HISTORY_DIR" ]; then
   log "   Found last history at: $LAST_HISTORY_DIR"
   mkdir -p "./allure-results/history"
   cp -r "$LAST_HISTORY_DIR/." "./allure-results/history/"
@@ -126,15 +150,19 @@ log "✅ Report generated successfully"
 # ---------------------------------------------------------------------------
 log "🔄 Updating .last-history pointer..."
 
-if [ -d "$LAST_HISTORY_DIR" ]; then
-  rm -rf "$LAST_HISTORY_DIR"
-fi
-
-if [ -d "$REPORT_DIR/history" ]; then
-  cp -r "$REPORT_DIR/history" "$LAST_HISTORY_DIR"
-  log "✅ .last-history updated from the new report"
+if [ "$REPORT_MODE" = "manual" ]; then
+  log "ℹ️  Manual report — .last-history is unchanged"
 else
-  log "⚠️  No history directory found in the generated report — skipping .last-history update"
+  if [ -d "$LAST_HISTORY_DIR" ]; then
+    rm -rf "$LAST_HISTORY_DIR"
+  fi
+
+  if [ -d "$REPORT_DIR/history" ]; then
+    cp -r "$REPORT_DIR/history" "$LAST_HISTORY_DIR"
+    log "✅ .last-history updated from the new report"
+  else
+    log "⚠️  No history directory found in the generated report — skipping .last-history update"
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -181,7 +209,7 @@ find "$ALLURE_VERCEL_ROOT/reports" \
 
     REPORT_DATE=$(basename "$REPORT_DIR")
 
-    if ! date -d "$REPORT_DATE" >/dev/null 2>&1; then
+    if [[ ! "$REPORT_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
         continue
     fi
 
@@ -192,6 +220,32 @@ find "$ALLURE_VERCEL_ROOT/reports" \
         rm -rf "$REPORT_DIR"
     fi
 done
+
+MANUAL_REPORTS_ROOT="$ALLURE_VERCEL_ROOT/reports/manual"
+if [ "$REPORT_MODE" = "daily" ] && [ -d "$MANUAL_REPORTS_ROOT" ]; then
+  log "🗑️ Daily cron report — removing all temporary manual reports"
+  rm -rf "$MANUAL_REPORTS_ROOT"
+elif [ -d "$MANUAL_REPORTS_ROOT" ]; then
+  find "$MANUAL_REPORTS_ROOT" \
+    -mindepth 2 \
+    -maxdepth 2 \
+    -type d | while read -r MANUAL_REPORT_DIR; do
+
+      MANUAL_REPORT_NAME=$(basename "$MANUAL_REPORT_DIR")
+      MANUAL_REPORT_DATE="${MANUAL_REPORT_NAME:0:10}"
+
+      if [[ ! "$MANUAL_REPORT_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+          continue
+      fi
+
+      MANUAL_REPORT_WEEK=$(date -d "$MANUAL_REPORT_DATE" +%G-%V)
+
+      if [ "$MANUAL_REPORT_WEEK" != "$CURRENT_WEEK" ]; then
+          log "🗑️ Removing old manual report: $MANUAL_REPORT_NAME"
+          rm -rf "$MANUAL_REPORT_DIR"
+      fi
+    done
+fi
 
 log "✅ Old reports removed"
 
@@ -210,7 +264,7 @@ log "📦 Zip & upload to GitHub Release"
 
 RELEASE_TAG="allure-report-$YEAR_MONTH"
 RELEASE_NAME="Allure Report $YEAR_MONTH"
-ZIP_FILE="/tmp/allure-report-${DAY}.zip"
+ZIP_FILE="/tmp/allure-report-${ARCHIVE_ID}.zip"
 UPLOAD_FAILED=0
 
 # -- Pre-check: zip --
@@ -268,10 +322,10 @@ fi
 
 # -- Zip the daily report --
 if [ "$UPLOAD_FAILED" -eq 0 ]; then
-  log "🗜️  Zipping $ALLURE_VERCEL_ROOT/reports/$YEAR_MONTH/$DAY/ ..."
+  log "🗜️  Zipping $ALLURE_VERCEL_ROOT/reports/$REPORT_RELATIVE_PATH/ ..."
   rm -f "$ZIP_FILE"
 
-  if (cd "$ALLURE_VERCEL_ROOT/reports" && zip -qr "$ZIP_FILE" "$YEAR_MONTH/$DAY/"); then
+  if (cd "$ALLURE_VERCEL_ROOT/reports" && zip -qr "$ZIP_FILE" "$REPORT_RELATIVE_PATH/"); then
     ZIP_SIZE=$(du -h "$ZIP_FILE" | cut -f1)
     ZIP_COUNT=$(zipinfo -1 "$ZIP_FILE" 2>/dev/null | wc -l)
     log "✅ Zip created: $ZIP_FILE ($ZIP_SIZE, $ZIP_COUNT files)"
