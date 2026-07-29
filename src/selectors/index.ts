@@ -990,6 +990,12 @@ export const DATA_E2E_IDENTIFIER = {
         share: '',
       },
     },
+    unpin_message: {
+      button: {
+        cancel: '',
+        unpin: '',
+      },
+    },
   },
   friend_page: {
     tab: {

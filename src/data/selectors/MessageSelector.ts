@@ -226,6 +226,9 @@ export default class MessageSelector {
   jumpToPinnedMessageButtonFromPinnedList = this.page.locator(
     generateE2eSelector('common.pin_message.button.jump')
   );
+  removePinnedMessageButtonFromPinnedList = this.page.locator(
+    generateE2eSelector('common.pin_message.button.remove_pin')
+  );
   topicDiscussionMessageButton = this.page
     .locator(generateE2eSelector('chat.message_action_modal.button.base'))
     .filter({ hasText: 'Topic Discussion' });
@@ -460,6 +463,12 @@ export default class MessageSelector {
         vote: this.page.locator(generateE2eSelector('poll.card.button.vote')),
         removeVote: this.page.locator(generateE2eSelector('poll.card.button.remove_vote')),
       },
+    },
+  };
+  readonly unpinMessage = {
+    button: {
+      cancel: this.page.locator(generateE2eSelector('modal.unpin_message.button.cancel')),
+      unpin: this.page.locator(generateE2eSelector('modal.unpin_message.button.unpin')),
     },
   };
 }

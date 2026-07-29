@@ -21,8 +21,14 @@ log() {
 # 1. Read environment variables & compute paths
 # ---------------------------------------------------------------------------
 ALLURE_VERCEL_ROOT="${ALLURE_VERCEL_ROOT:-/home/nccsoft/allure-vercel-reports}"
-YEAR_MONTH="$(date +%Y-%m)"
-DAY="$(date +%Y-%m-%d)"
+DAY="${REPORT_DATE:-$(date +%Y-%m-%d)}"
+
+if ! date -d "$DAY" +%F >/dev/null 2>&1; then
+  echo "ERROR: REPORT_DATE must use YYYY-MM-DD format; received: $DAY"
+  exit 1
+fi
+
+YEAR_MONTH="$(date -d "$DAY" +%Y-%m)"
 
 REPORT_DIR="$ALLURE_VERCEL_ROOT/reports/$YEAR_MONTH/$DAY"
 LOGS_DIR="$ALLURE_VERCEL_ROOT/logs"
