@@ -82,6 +82,10 @@ test.describe('User Profile - Avatar Visibility Across Direct Message Views', ()
     profileHash = await getImageHash(profileSrc || '');
     profileName = await profilePage.getProfileName();
     profileId = getImageId(profileSrc || '');
+    console.log('[UserProfile beforeAll] Profile avatar:', {
+      profileSrc,
+      profileId,
+    });
 
     await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
     await messagePage.sendMessage(messageText);
@@ -193,6 +197,11 @@ test.describe('User Profile - Avatar Visibility Across Direct Message Views', ()
       await expect(accountAvatar).toBeVisible({ timeout: 5000 });
       const accountSrc = await accountAvatar.getAttribute('src');
       const avatarId = getImageId(accountSrc);
+      console.log('[UserProfile TC06] Avatar comparison:', {
+        profileId,
+        accountSrc,
+        avatarId,
+      });
       expect(profileId).not.toBeNull();
       expect(avatarId).not.toBeNull();
 
@@ -253,44 +262,44 @@ test.describe('User Profile - Avatar Visibility Across Direct Message Views', ()
       expect(profileHash).toEqual(accountHash);
     });
 
-    // test('TC06: Direct Message _ Dual Chat _ Short Profile (click on mention)', async ({
-    //   page,
-    // }) => {
-    //   await AllureReporter.addWorkItemLinks({
-    //     parrent_issue: '63364',
-    //   });
+    test('TC06: Direct Message _ Dual Chat _ Short Profile (click on mention)', async ({
+      page,
+    }) => {
+      await AllureReporter.addWorkItemLinks({
+        parrent_issue: '63364',
+      });
 
-    //   const profilePage = new ProfilePage(page);
-    //   const messagePage = new MessagePage(page);
-    //   const messageHelper = new MessageTestHelpers(page);
-    //   await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
-    //   await messagePage.createDMWithFriendName(profileName || '');
-    //   await page.waitForTimeout(500);
-    //   await messageHelper.mentionUserAndSend(`@${profileName}`, [profileName || '']);
-    //   await page.reload();
+      const profilePage = new ProfilePage(page);
+      const messagePage = new MessagePage(page);
+      const messageHelper = new MessageTestHelpers(page);
+      await profilePage.navigate(ROUTES.DIRECT_FRIENDS);
+      await messagePage.createDMWithFriendName(profileName || '');
+      await page.waitForTimeout(500);
+      await messageHelper.mentionUserAndSend(`@${profileName}`, [profileName || '']);
+      await page.reload();
 
-    //   const mentionItem = messageHelper
-    //     .getMessageItemLocator(`@${profileName}`)
-    //     .last()
-    //     .locator(generateE2eSelector('chat.channel_message.mention_user'));
+      const mentionItem = messageHelper
+        .getMessageItemLocator(`@${profileName}`)
+        .last()
+        .locator(generateE2eSelector('chat.channel_message.mention_user'));
 
-    //   await expect(mentionItem).toBeVisible({ timeout: 10000 });
-    //   await mentionItem.click();
+      await expect(mentionItem).toBeVisible({ timeout: 10000 });
+      await mentionItem.click();
 
-    //   const shortProfile = page.locator('div.fixed.z-50');
-    //   await expect(shortProfile).toBeVisible({ timeout: 10000 });
+      const shortProfile = page.locator('div.fixed.z-50');
+      await expect(shortProfile).toBeVisible({ timeout: 10000 });
 
-    //   const accountAvatar = shortProfile.locator(
-    //     `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
-    //   );
-    //   await expect(accountAvatar).toBeVisible({ timeout: 10000 });
-    //   const accountSrc = await accountAvatar.getAttribute('src');
-    //   const avatarId = getImageId(accountSrc);
-    //   expect(profileId).not.toBeNull();
-    //   expect(avatarId).not.toBeNull();
+      const accountAvatar = shortProfile.locator(
+        `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+      );
+      await expect(accountAvatar).toBeVisible({ timeout: 10000 });
+      const accountSrc = await accountAvatar.getAttribute('src');
+      const avatarId = getImageId(accountSrc);
+      expect(profileId).not.toBeNull();
+      expect(avatarId).not.toBeNull();
 
-    //   expect(profileId).toEqual(avatarId);
-    // });
+      expect(profileId).toEqual(avatarId);
+    });
 
     test('TC07: Direct Message _ Dual Chat _ Side Profile', async ({ page }) => {
       await AllureReporter.addWorkItemLinks({
