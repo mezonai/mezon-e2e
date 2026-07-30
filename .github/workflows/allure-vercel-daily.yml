@@ -2,11 +2,11 @@ name: 'Allure Daily Report - Deploy to Vercel'
 
 on:
   # GitHub cron uses UTC:
-  # - 12:00 UTC = 19:00 Vietnam: run Web and stage its raw results.
-  # - 18:00 UTC = 01:00 Vietnam: run Multi, merge Web results, then deploy.
+  # - 13:00 UTC = 20:00 Vietnam: run Web and stage its raw results.
+  # - 19:00 UTC = 02:00 Vietnam: run Multi, merge Web results, then deploy.
   schedule:
-    - cron: '0 12 * * *'
-    - cron: '0 18 * * *'
+    - cron: '0 13 * * *'
+    - cron: '0 19 * * *'
   workflow_dispatch:
     inputs:
       channel_management:
@@ -113,10 +113,10 @@ jobs:
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           SELECTED_REF: ${{ github.ref_name }}
         run: |
-          if [ "$EVENT_SCHEDULE" = "0 12 * * *" ]; then
+          if [ "$EVENT_SCHEDULE" = "0 13 * * *" ]; then
             RUN_PHASE="web"
             REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
-          elif [ "$EVENT_SCHEDULE" = "0 18 * * *" ]; then
+          elif [ "$EVENT_SCHEDULE" = "0 19 * * *" ]; then
             RUN_PHASE="multi"
             REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
           else
