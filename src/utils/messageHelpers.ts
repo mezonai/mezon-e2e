@@ -2360,6 +2360,43 @@ export class MessageTestHelpers {
     await this.page.waitForTimeout(500);
   }
 
+  async openForYouTabInInbox() {
+    await expect(this.selector.forYouInboxPopover.triggerTab).toBeVisible({ timeout: 5000 });
+    await this.selector.forYouInboxPopover.triggerTab.click();
+  }
+
+  async verifyFirstForYouMessage(username: string, message: string) {
+    const firstItem = this.selector.forYouMessage.container.first();
+    const firstUsername = firstItem.locator(
+      generateE2eSelector('chat.channel_message.inbox.for_you.username')
+    );
+    const firstMessage = firstItem.locator(
+      generateE2eSelector('chat.channel_message.inbox.for_you.message')
+    );
+    const firstTimestamp = firstItem.locator(
+      generateE2eSelector('chat.channel_message.inbox.for_you.timestamp')
+    );
+
+    await expect(firstItem).toBeVisible({ timeout: 5000 });
+    await expect(firstUsername).toHaveText(username);
+    await expect(firstMessage).toHaveText(message);
+    await expect(firstTimestamp).toHaveText(/^Today at \d{2}:\d{2}$/);
+  }
+
+  async removeFirstForYouMessage() {
+    const items = this.selector.forYouMessage.container;
+    const itemCount = await items.count();
+    const firstItem = items.first();
+
+    await expect(firstItem).toBeVisible({ timeout: 5000 });
+    await firstItem.hover();
+    await this.page
+      .locator(generateE2eSelector('chat.channel_message.inbox.for_you.button.remove'))
+      .first()
+      .click();
+    await expect(items).toHaveCount(itemCount - 1);
+  }
+
   async assertMessageInInboxByContent(messageContent: string) {
     const inboxMessage = this.selector.inboxMessages.filter({ hasText: messageContent });
     await expect(inboxMessage).toBeVisible({ timeout: 5000 });
