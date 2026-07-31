@@ -825,7 +825,14 @@ export const DATA_E2E_IDENTIFIER = {
           },
         },
         message: '',
-        for_you: '',
+        for_you: {
+          username: '',
+          message: '',
+          timestamp: '',
+          button: {
+            remove: '',
+          },
+        },
         action_tabs: '',
       },
     },
