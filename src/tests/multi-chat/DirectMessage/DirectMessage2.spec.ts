@@ -343,11 +343,15 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
     const friendPageB = new FriendPage(pageB);
     const profilePageA = new ProfilePage(pageA);
     const messageHelperA = new MessageTestHelpers(pageA);
+    const messageHelperB = new MessageTestHelpers(pageB);
     const fileSizeHelpers = new FileSizeTestHelpers(pageA);
 
-    const firstMessage = `First message before avatar change ${Date.now()}`;
-    const secondMessage = `Second message after avatar change ${Date.now()}`;
+    const firstMessage = `First message with avatar version 1 ${Date.now()}`;
+    const replyMessage = `Reply from User B between avatar versions ${Date.now()}`;
+    const secondMessage = `Second message with avatar version 2 ${Date.now()}`;
 
+    let firstProfileAvatarHash: string | null = null;
+    let secondProfileAvatarHash: string | null = null;
     let firstAvatarHash: string | null = null;
     let secondAvatarHash: string | null = null;
 
@@ -358,10 +362,12 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
         1. Clean up any existing friend relationships between users
         2. User A sends a friend request to User B
         3. User B accepts the request
-        4. User A creates a DM with User B and sends a first message
-        5. User A navigates to dev and updates their avatar
-        6. User A returns to DM and sends a second message
-        7. Verify first message keeps the old avatar and second message uses the new avatar
+        4. User A navigates to dev, uploads avatar version 1, and stores its image hash
+        5. User A creates a DM with User B and sends a first message
+        6. User B sends a reply so User A's messages are not grouped together
+        7. User A uploads a different avatar version 2 and stores its image hash
+        8. User A returns to the DM and sends a second message
+        9. Verify each User A message avatar matches the avatar version captured before it was sent
 
         **Expected Result:** Each message shows the avatar version that was active when it was sent.
       `);
@@ -394,6 +400,36 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
       await friendPageB.assertAllFriend(userNameA);
     });
 
+    await AllureReporter.step(
+      'User A updates to avatar version 1 and captures its hash',
+      async () => {
+        await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+        await dual.pageA.waitForTimeout(10000);
+
+        await profilePageA.openUserSettingProfile();
+        await profilePageA.openProfileTab();
+        await profilePageA.openUserProfileTab();
+
+        const firstAvatarPath = await fileSizeHelpers.createFileWithSize(
+          'avatar_version_1_dev',
+          5 * 1024 * 1024,
+          'jpg'
+        );
+        await fileSizeHelpers.uploadFileDefault(firstAvatarPath);
+        await profilePageA.applyImageAvatar();
+        await profilePageA.saveChangesUserProfile();
+        await dual.pageA.waitForTimeout(5000);
+
+        const firstProfileAvatar = await profilePageA.getUserProfileAvatar();
+        await expect(firstProfileAvatar).toBeVisible({ timeout: 5000 });
+        firstProfileAvatarHash = await getImageHash(
+          (await firstProfileAvatar.getAttribute('src')) || ''
+        );
+        expect(firstProfileAvatarHash).not.toBeNull();
+        await profilePageA.closeSettingsProfile();
+      }
+    );
+
     await AllureReporter.step('User A creates DM with User B and sends first message', async () => {
       await friendPageA.createDM(userNameB);
       await messageHelperA.sendTextMessage(firstMessage);
@@ -401,29 +437,48 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
       const firstMessageItem = messageHelperA.getMessageItemLocator(firstMessage).last();
       const firstAvatar = firstMessageItem.locator(generateE2eSelector('avatar.image'));
       await expect(firstAvatar).toBeVisible({ timeout: 5000 });
-      const firstAvatarSrc = await firstAvatar.getAttribute('src');
-      firstAvatarHash = await getImageHash(firstAvatarSrc || '');
-      expect(firstAvatarHash).not.toBeNull();
+      firstAvatarHash = await getImageHash((await firstAvatar.getAttribute('src')) || '');
+      expect(firstAvatarHash).toBe(firstProfileAvatarHash);
     });
 
-    await AllureReporter.step('User A navigates to dev and updates avatar', async () => {
-      await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
-      await dual.pageA.waitForTimeout(10000);
-
-      await profilePageA.openUserSettingProfile();
-      await profilePageA.openProfileTab();
-      await profilePageA.openUserProfileTab();
-
-      const newAvatarPath = await fileSizeHelpers.createFileWithSize(
-        'update_avatar_dev',
-        5 * 1024 * 1024,
-        'jpg'
-      );
-      await fileSizeHelpers.uploadFileDefault(newAvatarPath);
-      await profilePageA.applyImageAvatar();
-      await profilePageA.saveChangesUserProfile();
-      await dual.pageA.waitForTimeout(3000);
+    await AllureReporter.step('User B replies between the two messages from User A', async () => {
+      await friendPageB.createDM(userNameA);
+      await messageHelperB.sendTextMessage(replyMessage);
+      await expect(messageHelperA.getMessageItemLocator(replyMessage).last()).toBeVisible({
+        timeout: 10000,
+      });
     });
+
+    await AllureReporter.step(
+      'User A updates to avatar version 2 and captures its hash',
+      async () => {
+        await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+        await dual.pageA.waitForTimeout(5000);
+
+        await profilePageA.openUserSettingProfile();
+        await profilePageA.openProfileTab();
+        await profilePageA.openUserProfileTab();
+
+        const secondAvatarPath = await fileSizeHelpers.createFileWithSize(
+          'avatar_version_2_dev',
+          4 * 1024 * 1024,
+          'jpg'
+        );
+        await fileSizeHelpers.uploadFileDefault(secondAvatarPath);
+        await profilePageA.applyImageAvatar();
+        await profilePageA.saveChangesUserProfile();
+        await dual.pageA.waitForTimeout(5000);
+
+        const secondProfileAvatar = await profilePageA.getUserProfileAvatar();
+        await expect(secondProfileAvatar).toBeVisible({ timeout: 5000 });
+        secondProfileAvatarHash = await getImageHash(
+          (await secondProfileAvatar.getAttribute('src')) || ''
+        );
+        expect(secondProfileAvatarHash).not.toBeNull();
+        expect(secondProfileAvatarHash).not.toBe(firstProfileAvatarHash);
+        await profilePageA.closeSettingsProfile();
+      }
+    );
 
     await AllureReporter.step('User A returns to the DM and sends second message', async () => {
       await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
@@ -435,14 +490,13 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
       const secondMessageItem = messageHelperA.getMessageItemLocator(secondMessage).last();
       const secondAvatar = secondMessageItem.locator(generateE2eSelector('avatar.image'));
       await expect(secondAvatar).toBeVisible({ timeout: 5000 });
-      const secondAvatarSrc = await secondAvatar.getAttribute('src');
-      secondAvatarHash = await getImageHash(secondAvatarSrc || '');
-      expect(secondAvatarHash).not.toBeNull();
+      secondAvatarHash = await getImageHash((await secondAvatar.getAttribute('src')) || '');
+      expect(secondAvatarHash).toBe(secondProfileAvatarHash);
     });
 
     await AllureReporter.step('Verify avatar hashes match each message send-time', async () => {
-      expect(firstAvatarHash).not.toBeNull();
-      expect(secondAvatarHash).not.toBeNull();
+      expect(firstAvatarHash).toBe(firstProfileAvatarHash);
+      expect(secondAvatarHash).toBe(secondProfileAvatarHash);
       expect(firstAvatarHash).not.toEqual(secondAvatarHash);
 
       const firstMessageItem = messageHelperA.getMessageItemLocator(firstMessage).first();
@@ -451,6 +505,7 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
       const firstAvatarAfterHash = await getImageHash(firstAvatarAfterSrc || '');
 
       expect(firstAvatarAfterHash).toBe(firstAvatarHash);
+      await messageHelperB.sendTextMessage(replyMessage);
     });
   });
 });

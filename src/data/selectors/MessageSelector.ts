@@ -358,6 +358,12 @@ export default class MessageSelector {
     }),
   };
 
+  readonly forYouInboxPopover = {
+    triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
+      hasText: 'For You',
+    }),
+  };
+
   readonly shareContact = {
     card: this.page.locator(generateE2eSelector('chat.share_contact')),
     displayName: this.page.locator(generateE2eSelector('chat.share_contact.display_name')),
@@ -470,5 +476,19 @@ export default class MessageSelector {
       cancel: this.page.locator(generateE2eSelector('modal.unpin_message.button.cancel')),
       unpin: this.page.locator(generateE2eSelector('modal.unpin_message.button.unpin')),
     },
+  };
+
+  readonly forYouMessage = {
+    button: {
+      remove: this.page.locator(
+        generateE2eSelector('chat.channel_message.inbox.for_you.button.remove')
+      ),
+    },
+    container: this.page.locator(generateE2eSelector('chat.channel_message.inbox.for_you')),
+    username: this.page.locator(generateE2eSelector('chat.channel_message.inbox.for_you.username')),
+    message: this.page.locator(generateE2eSelector('chat.channel_message.inbox.for_you.message')),
+    timestamp: this.page.locator(
+      generateE2eSelector('chat.channel_message.inbox.for_you.timestamp')
+    ),
   };
 }

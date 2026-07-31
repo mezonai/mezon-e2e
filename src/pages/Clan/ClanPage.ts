@@ -2008,7 +2008,12 @@ export class ClanPage extends BasePage {
         hasText: channelName,
       })
       .last();
-    await voiceChannelMessage.click();
+    await voiceChannelMessage
+      .locator(
+        'span.no-underline.font-medium.rounded-sm.inline.whitespace-nowrap.cursor-pointer.bg-mention.color-mention.hover-mention'
+      )
+      .first()
+      .click();
     const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
     try {
       await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
