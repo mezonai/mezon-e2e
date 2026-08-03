@@ -831,6 +831,7 @@ export const DATA_E2E_IDENTIFIER = {
           timestamp: '',
           button: {
             remove: '',
+            jump: '',
           },
         },
         action_tabs: '',
@@ -906,6 +907,12 @@ export const DATA_E2E_IDENTIFIER = {
       set_password: '',
       tab_account: '',
       info: '',
+    },
+    language: {
+      tab_language: '',
+      language_item: {
+        language_name: '',
+      },
     },
     profile: {
       button_setting: '',

@@ -1,6 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
+import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -140,6 +141,57 @@ test.describe('Channel Management - Create and Rename Channels', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Public Text Channel Created - ${channelName}`);
+  });
+
+  test('Verify that a channel can be muted from the channel header', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can mute a channel from the channel header.
+
+      **Test Steps:**
+      1. Create a new public text channel
+      2. Click the Mute button in the channel header
+      3. Select Mute Channel from the opened menu
+      4. Verify the Unmute Channel button is visible
+      5. Click Unmute Channel
+      6. Verify the Mute Channel button is visible again
+
+      **Expected Result:** The channel can be muted and unmuted from the channel header menu.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-management', 'mute-channel', TEXT_CHANNEL_TAG],
+    });
+
+    const unique = Date.now().toString(36).slice(-6);
+    const channelName = `mute-${unique}`.slice(0, 20);
+    const clanPage = new ClanPage(page);
+    const channelSettingPage = new ChannelSettingPage(page);
+
+    await AllureReporter.addParameter('channelName', channelName);
+
+    await AllureReporter.step(`Create new public text channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    await AllureReporter.step('Mute the channel from the channel header', async () => {
+      await channelSettingPage.muteChannelFromHeader();
+    });
+
+    await AllureReporter.step('Verify the Unmute Channel button is visible', async () => {
+      await channelSettingPage.verifyUnmuteChannelButtonVisible();
+    });
+
+    await AllureReporter.step('Unmute the channel and verify the Mute Channel button', async () => {
+      await channelSettingPage.unmuteChannel();
+    });
   });
 
   test('Verify that I can create a new voice channel', async ({ page }) => {
