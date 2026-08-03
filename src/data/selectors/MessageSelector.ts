@@ -483,6 +483,9 @@ export default class MessageSelector {
       remove: this.page.locator(
         generateE2eSelector('chat.channel_message.inbox.for_you.button.remove')
       ),
+      jump: this.page.locator(
+        generateE2eSelector('chat.channel_message.inbox.for_you.button.jump')
+      ),
     },
     container: this.page.locator(generateE2eSelector('chat.channel_message.inbox.for_you')),
     username: this.page.locator(generateE2eSelector('chat.channel_message.inbox.for_you.username')),

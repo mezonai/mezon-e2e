@@ -157,6 +157,58 @@ test.describe('Channel Messages - For You Inbox', () => {
     });
   });
 
+  test('Verify User B can jump to a mentioned message from the Inbox popover', async ({ dual }) => {
+    const { pageA, pageB } = dual;
+    const clanFactory = new ClanFactory();
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const messageHelperA = new MessageTestHelpers(pageA);
+    const messageHelperB = new MessageTestHelpers(pageB);
+    const mentionMessage = `@${userNameB}`;
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify User B can jump to a channel message that mentions them from the Inbox popover.
+
+    **Test Steps:**
+    1. User A and User B become friends
+    2. User A creates a clan and invites User B
+    3. User B joins the clan
+    4. User A sends a channel message mentioning User B
+    5. User B opens the Inbox popover and verifies the mention
+    6. User B hovers over the mention to display the Jump button
+    7. User B clicks Jump
+    8. Verify the original mentioned message is displayed in the channel
+
+    **Expected Result:** User B is taken to the channel message that mentions them.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['channel-message', 'inbox', 'mention', 'jump', 'multi-user'],
+    });
+
+    await prepareFriendAndClan(friendPageA, friendPageB, clanPageA, clanPageB, clanFactory, pageA);
+
+    await AllureReporter.step('User A sends a message mentioning User B', async () => {
+      await messageHelperA.mentionUserAndSend(`@${userNameB}`, [userNameB || '']);
+    });
+
+    await AllureReporter.step('User B opens Inbox and verifies the mention', async () => {
+      await pageB.reload();
+      await messageHelperB.openHeaderInboxButton();
+      await messageHelperB.assertMessageInInboxByContent(mentionMessage);
+    });
+
+    await AllureReporter.step('User B hovers and jumps to the mentioned message', async () => {
+      await messageHelperB.jumpToMentionMessageFromInbox(mentionMessage);
+    });
+
+    await AllureReporter.step('Cleanup clan', async () => {
+      await clanFactory.cleanupClan(pageA);
+    });
+  });
+
   async function prepareFriendAndClan(
     friendPageA: FriendPage,
     friendPageB: FriendPage,

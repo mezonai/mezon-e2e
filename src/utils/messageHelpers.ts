@@ -2398,8 +2398,24 @@ export class MessageTestHelpers {
   }
 
   async assertMessageInInboxByContent(messageContent: string) {
-    const inboxMessage = this.selector.inboxMessages.filter({ hasText: messageContent });
+    const inboxMessage = this.selector.inboxMessages.filter({ hasText: messageContent }).first();
     await expect(inboxMessage).toBeVisible({ timeout: 5000 });
+  }
+
+  async jumpToMentionMessageFromInbox(messageContent: string) {
+    const inboxMessage = this.selector.inboxMessages.filter({ hasText: messageContent });
+    const mentionItem = inboxMessage.first();
+
+    await expect(mentionItem).toBeVisible({ timeout: 5000 });
+    await mentionItem.hover();
+    await this.page.waitForTimeout(3000);
+
+    const jumpButton = this.selector.forYouMessage.button.jump.first();
+    await expect(jumpButton).toBeVisible({ timeout: 5000 });
+    await jumpButton.click();
+
+    const originalMessage = this.getMessageItemLocator(messageContent).last();
+    await expect(originalMessage).toBeVisible({ timeout: 10000 });
   }
 
   async openTopicBoxByMessage(message: string) {

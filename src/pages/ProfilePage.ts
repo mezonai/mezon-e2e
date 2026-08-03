@@ -31,6 +31,22 @@ export class ProfilePage extends BasePage {
     await this.selector.tabs.account.click();
   }
 
+  async openLanguageTab() {
+    await expect(this.selector.tabs.language).toBeVisible({ timeout: 3000 });
+    await this.selector.tabs.language.click();
+  }
+
+  async selectLanguage(languageName: string) {
+    const languageItem = this.selector.language.name.filter({ hasText: languageName });
+
+    await expect(languageItem).toBeVisible({ timeout: 3000 });
+    await languageItem.click();
+  }
+
+  async verifyLanguageTabText(expectedText: string) {
+    await expect(this.selector.tabs.language).toContainText(expectedText, { timeout: 5000 });
+  }
+
   async expectProfileTabsVisible() {
     await expect(this.selector.tabs.userProfile).toBeVisible({ timeout: 5000 });
     await expect(this.selector.tabs.clanProfile).toBeVisible({ timeout: 5000 });

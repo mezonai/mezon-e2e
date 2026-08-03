@@ -213,6 +213,7 @@ export default class ChannelSettingSelector {
       ),
       member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
       pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
+      mute: this.page.locator(generateE2eSelector('chat.channel_message.header.button.mute')),
     },
   };
 
@@ -294,5 +295,14 @@ export default class ChannelSettingSelector {
         hasText: 'Archive',
       }),
     },
+  };
+
+  readonly mute_channel = {
+    mute_button: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+      hasText: 'Mute Channel',
+    }),
+    unmute_button: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+      hasText: 'Unmute Channel',
+    }),
   };
 }
