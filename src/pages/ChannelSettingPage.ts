@@ -305,6 +305,24 @@ export class ChannelSettingPage extends BasePage {
     await this.selector.header.button.member.first().click();
   }
 
+  async muteChannelFromHeader() {
+    await expect(this.selector.header.button.mute).toBeVisible({ timeout: 3000 });
+    await this.selector.header.button.mute.click();
+
+    await expect(this.selector.mute_channel.mute_button).toBeVisible({ timeout: 3000 });
+    await this.selector.mute_channel.mute_button.click();
+  }
+
+  async verifyUnmuteChannelButtonVisible() {
+    await expect(this.selector.mute_channel.unmute_button).toBeVisible({ timeout: 3000 });
+  }
+
+  async unmuteChannel() {
+    await expect(this.selector.mute_channel.unmute_button).toBeVisible({ timeout: 3000 });
+    await this.selector.mute_channel.unmute_button.click();
+    await expect(this.selector.mute_channel.mute_button).toBeVisible({ timeout: 3000 });
+  }
+
   async isPermissionSettingsVisible(): Promise<boolean> {
     try {
       await this.selector.side_bar_buttons.permissions.waitFor({ state: 'visible' });

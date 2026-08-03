@@ -92,7 +92,7 @@ jobs:
     runs-on: mezon-e2e
 
     # Job-level timeout: never let a hung step block the runner for hours
-    timeout-minutes: 360
+    timeout-minutes: 420
 
     env:
       ALLURE_VERCEL_ROOT: /home/nccsoft/allure-vercel-reports
@@ -238,7 +238,7 @@ jobs:
 
       - name: Run Playwright tests
         id: run-tests
-        timeout-minutes: 360
+        timeout-minutes: 420
         env:
           RUN_PHASE: ${{ steps.phase.outputs.phase }}
           RUN_CHANNEL_MANAGEMENT: ${{ inputs.channel_management }}

@@ -104,6 +104,51 @@ test.describe('User Settings - Clan Identity and User Profile Updates', () => {
     await AllureReporter.attachScreenshot(page, 'Change Avatar Button Visible');
   });
 
+  test('Change application language from user settings', async ({ page }) => {
+    const profilePage = new ProfilePage(page);
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can change the application language from User Settings.
+
+      **Test Steps:**
+      1. Open User Settings
+      2. Open the Language tab
+      3. Select Tiếng Việt
+      4. Verify the Language tab is translated to Ngôn ngữ
+      5. Select English to restore the original language
+      6. Verify the Language tab displays Language again
+
+      **Expected Result:** The application language changes to the selected language.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['user-settings', 'language', 'localization'],
+    });
+
+    await AllureReporter.step('Open the Language tab in User Settings', async () => {
+      await page.waitForTimeout(1000);
+      await profilePage.openUserSettingProfile();
+      await profilePage.openLanguageTab();
+    });
+
+    await AllureReporter.step('Change application language to Vietnamese', async () => {
+      await profilePage.selectLanguage('Tiếng Việt');
+      await profilePage.verifyLanguageTabText('Ngôn ngữ');
+    });
+
+    await AllureReporter.step('Restore application language to English', async () => {
+      await profilePage.selectLanguage('English');
+      await profilePage.verifyLanguageTabText('Language');
+      await profilePage.closeSettingsProfile();
+    });
+  });
+
   test('Change clan nickname', async ({ page }) => {
     const profilePage = new ProfilePage(page);
     await AllureReporter.addTestParameters({
