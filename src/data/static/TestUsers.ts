@@ -40,11 +40,14 @@ export interface RegistrationTestUser extends TestUser {
 /**
  * Valid test users for login scenarios
  */
+const JOHN_TEST_EMAIL = 'john.doe@automation.test';
+const DEFAULT_TEST_PASSWORD = 'TestPassword123!';
+
 export const VALID_TEST_USERS: TestUser[] = [
   {
     name: 'John Doe',
-    email: 'john.doe@automation.test',
-    password: 'TestPassword123!',
+    email: JOHN_TEST_EMAIL,
+    password: DEFAULT_TEST_PASSWORD,
     firstName: 'John',
     lastName: 'Doe',
   },
@@ -70,15 +73,15 @@ export const VALID_TEST_USERS: TestUser[] = [
 export const INVALID_CREDENTIALS = {
   WRONG_EMAIL: {
     email: 'wrong@automation.test',
-    password: 'TestPassword123!',
+    password: DEFAULT_TEST_PASSWORD,
   },
   WRONG_PASSWORD: {
-    email: 'john.doe@automation.test',
+    email: JOHN_TEST_EMAIL,
     password: 'WrongPassword123!',
   },
   INVALID_EMAIL_FORMAT: {
     email: 'invalid-email-format',
-    password: 'TestPassword123!',
+    password: DEFAULT_TEST_PASSWORD,
   },
   EMPTY_CREDENTIALS: {
     email: '',
@@ -86,10 +89,10 @@ export const INVALID_CREDENTIALS = {
   },
   EMPTY_EMAIL: {
     email: '',
-    password: 'TestPassword123!',
+    password: DEFAULT_TEST_PASSWORD,
   },
   EMPTY_PASSWORD: {
-    email: 'john.doe@automation.test',
+    email: JOHN_TEST_EMAIL,
     password: '',
   },
 };
@@ -101,7 +104,7 @@ export const COMPLETE_REGISTRATION_USER: RegistrationTestUser = {
   title: 'Mr',
   name: 'Test User Complete',
   email: 'test.complete@automation.test',
-  password: 'TestPassword123!',
+  password: DEFAULT_TEST_PASSWORD,
   dateOfBirth: {
     day: '15',
     month: '6',
@@ -206,17 +209,6 @@ export const URL_PATHS = {
   CART: '/view_cart',
   API_LIST: '/api_list',
 };
-
-/**
- * Mezon Test User Interface
- */
-export interface MezonTestUser {
-  email: string;
-  otp: string;
-  name?: string;
-  role?: string;
-  authFile?: string;
-}
 
 // Auth file paths
 export const authUserFile = path.join(__dirname, 'src/data/.auth/user.json');

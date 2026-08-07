@@ -1,6 +1,5 @@
 import ClanSettingSelector from '@/data/selectors/ClanSettingSelector';
 import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { type Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { ClanMenuPanel } from './Clan/ClanMenuPanel';
@@ -14,25 +13,17 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async clickSettingClanSection(section: string): Promise<void> {
-    await this.selector.buttons.sidebarItem.filter({ hasText: section }).click();
-    await this.page.waitForTimeout(1000);
+    const sidebarItem = this.selector.buttons.sidebarItem.filter({ hasText: section });
+    await sidebarItem.click();
+    await expect(sidebarItem).toBeVisible();
   }
 
   async createClanWebhookButton(): Promise<void> {
-    const button = this.page.locator(
-      generateE2eSelector('clan_page.settings.integrations.create_clan_webhook_button')
-    );
-    await button.click();
-    await this.page.waitForTimeout(500);
-    const new_clan_webhook_button = this.page.locator(
-      generateE2eSelector('clan_page.settings.integrations.new_clan_webhook_button')
-    );
-    await new_clan_webhook_button.click();
-    await this.page.waitForTimeout(1000);
-    const navigate_webhook_button = this.page.locator(
-      generateE2eSelector('clan_page.settings.integrations.navigate_webhook_button')
-    );
-    await navigate_webhook_button.click();
+    await this.selector.integrations.createWebhook.click();
+    await expect(this.selector.integrations.newWebhook).toBeVisible({ timeout: 5000 });
+    await this.selector.integrations.newWebhook.click();
+    await expect(this.selector.integrations.navigateWebhook).toBeVisible({ timeout: 5000 });
+    await this.selector.integrations.navigateWebhook.click();
   }
 
   async clickUploadEmoji(): Promise<void> {
@@ -85,14 +76,5 @@ export class ClanSettingsPage extends BasePage {
     } catch {
       return false;
     }
-  }
-
-  async addDataToEnableCommunity(community: any) {
-    const { description, about, vanity_url } = community;
-    await this.selector.communitySettings.input.description.fill(description);
-    await this.selector.communitySettings.input.about.fill(about);
-    await this.selector.communitySettings.input.vanity_url.fill(vanity_url);
-
-    await this.selector.communitySettings.buttons.save.click();
   }
 }

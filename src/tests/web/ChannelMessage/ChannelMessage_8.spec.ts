@@ -12,6 +12,9 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
+  const CHANNEL_MESSAGE_TAG = 'channel-message';
+  const CREATE_TEXT_CHANNEL_STEP = 'Create a new text channel';
+  const CREATE_POLL_STEP = 'Create poll';
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
@@ -65,7 +68,7 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
   `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'forward', 'general-channel'],
+      tag: [CHANNEL_MESSAGE_TAG, 'forward', 'general-channel'],
     });
 
     const messageHelper = new MessageTestHelpers(page);
@@ -79,14 +82,13 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
       `Forward message 3 - ${Date.now()}`,
     ];
 
-    await AllureReporter.step('Create a new text channel', async () => {
+    await AllureReporter.step(CREATE_TEXT_CHANNEL_STEP, async () => {
       await clanPage.createNewChannel(ChannelType.TEXT, channelName);
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
 
     await AllureReporter.step('Send 3 messages to the text channel', async () => {
-      await page.waitForTimeout(2000);
       for (const message of messages) {
         await messageHelper.sendTextMessage(message);
       }
@@ -121,7 +123,7 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
   `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'pin-unpin', 'text-channel'],
+      tag: [CHANNEL_MESSAGE_TAG, 'pin-unpin', 'text-channel'],
     });
     const messageHelper = new MessageTestHelpers(page);
     const messagePage = new MessagePage(page);
@@ -130,14 +132,13 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
     const channelName = `tc-${unique}`.slice(0, 20);
     const message = `Pin message- ${Date.now()}`;
 
-    await AllureReporter.step('Create a new text channel', async () => {
+    await AllureReporter.step(CREATE_TEXT_CHANNEL_STEP, async () => {
       await clanPage.createNewChannel(ChannelType.TEXT, channelName);
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
 
     await AllureReporter.step('Send message to the text channel', async () => {
-      await page.waitForTimeout(2000);
       await messageHelper.sendTextMessage(message);
     });
     await AllureReporter.step('Pin message', async () => {
@@ -170,7 +171,7 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
   `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'poll', 'text-channel'],
+      tag: [CHANNEL_MESSAGE_TAG, 'poll', 'text-channel'],
     });
 
     const messagePage = new MessagePage(page);
@@ -182,7 +183,7 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
     const question = `Poll question ${unique}`;
     const answers = ['Answer 1', 'Answer 2', 'Answer 3'];
 
-    await AllureReporter.step('Create a new text channel', async () => {
+    await AllureReporter.step(CREATE_TEXT_CHANNEL_STEP, async () => {
       await clanPage.createNewChannel(ChannelType.TEXT, channelName);
       expect(await clanPage.isNewChannelPresent(channelName)).toBe(true);
     });
@@ -191,7 +192,7 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
       await messagePage.openCreatePoll();
     });
 
-    await AllureReporter.step('Create poll', async () => {
+    await AllureReporter.step(CREATE_POLL_STEP, async () => {
       await messagePage.createPoll(question, answers);
     });
 
@@ -217,7 +218,7 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
   `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'poll', 'vote'],
+      tag: [CHANNEL_MESSAGE_TAG, 'poll', 'vote'],
     });
 
     const messagePage = new MessagePage(page);
@@ -229,12 +230,12 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
     const question = `Poll question ${unique}`;
     const answers = ['Answer 1', 'Answer 2', 'Answer 3'];
 
-    await AllureReporter.step('Create a new text channel', async () => {
+    await AllureReporter.step(CREATE_TEXT_CHANNEL_STEP, async () => {
       await clanPage.createNewChannel(ChannelType.TEXT, channelName);
       expect(await clanPage.isNewChannelPresent(channelName)).toBe(true);
     });
 
-    await AllureReporter.step('Create poll', async () => {
+    await AllureReporter.step(CREATE_POLL_STEP, async () => {
       await messagePage.openCreatePoll();
       await messagePage.createPoll(question, answers);
       await messagePage.verifyPollCard(question, answers);
@@ -266,7 +267,7 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
   `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'poll', 'end'],
+      tag: [CHANNEL_MESSAGE_TAG, 'poll', 'end'],
     });
 
     const messagePage = new MessagePage(page);
@@ -278,12 +279,12 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
     const question = `Poll question ${unique}`;
     const answers = ['Answer 1', 'Answer 2', 'Answer 3'];
 
-    await AllureReporter.step('Create a new text channel', async () => {
+    await AllureReporter.step(CREATE_TEXT_CHANNEL_STEP, async () => {
       await clanPage.createNewChannel(ChannelType.TEXT, channelName);
       expect(await clanPage.isNewChannelPresent(channelName)).toBe(true);
     });
 
-    await AllureReporter.step('Create poll', async () => {
+    await AllureReporter.step(CREATE_POLL_STEP, async () => {
       await messagePage.openCreatePoll();
       await messagePage.createPoll(question, answers);
       await messagePage.verifyPollCard(question, answers);

@@ -1,22 +1,43 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
+import MessageActionSelector from './MessageActionSelector';
+import MessageInboxSelector from './MessageInboxSelector';
+import MessagePollSelector from './MessagePollSelector';
+import MessageContactSelector from './MessageContactSelector';
+import MessageTimelineSelector from './MessageTimelineSelector';
+import MessageMediaSelector from './MessageMediaSelector';
+import MessageShortProfileSelector from './MessageShortProfileSelector';
+
+const DM_CHAT_LIST_SELECTOR = generateE2eSelector('chat.direct_message.chat_list');
+const DM_GROUP_NAME_SELECTOR = generateE2eSelector('chat.direct_message.chat_item.group_name');
+const AVATAR_IMAGE_SELECTOR = generateE2eSelector('avatar.image');
+const DM_HEADER_LEFT_SELECTOR = generateE2eSelector('chat.direct_message.header.left_container');
+const TOPIC_BOX_SELECTOR = generateE2eSelector('discussion.box.topic');
+const MESSAGE_ITEM_SELECTOR = generateE2eSelector('message.item');
+const DISPLAY_NAME_SELECTOR = generateE2eSelector('base_profile.display_name');
 
 export default class MessageSelector {
-  constructor(private readonly page: Page) {
-    this.page = page;
-  }
+  constructor(private readonly page: Page) {}
+
+  readonly actions = new MessageActionSelector(this.page);
+  readonly inbox = new MessageInboxSelector(this.page);
+  readonly polls = new MessagePollSelector(this.page);
+  readonly contacts = new MessageContactSelector(this.page);
+  readonly timelines = new MessageTimelineSelector(this.page);
+  readonly media = new MessageMediaSelector(this.page);
+  readonly profiles = new MessageShortProfileSelector(this.page);
 
   buttonCreateGroupSidebar = this.page.locator(
     generateE2eSelector('chat.direct_message.button.button_plus')
   );
   user = this.page
-    .locator(generateE2eSelector('chat.direct_message.chat_list'))
+    .locator(DM_CHAT_LIST_SELECTOR)
     .filter({
       has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username')),
     })
     .first();
   addUserButton = this.page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
-  listDMItems = this.page.locator(generateE2eSelector('chat.direct_message.chat_list'));
+  listDMItems = this.page.locator(DM_CHAT_LIST_SELECTOR);
   userItem = this.page
     .locator(generateE2eSelector('chat.direct_message.friend_list.friend_item'))
     .first();
@@ -46,19 +67,17 @@ export default class MessageSelector {
   firstUserAddDM = this.page
     .locator(generateE2eSelector('chat.direct_message.friend_list.all_friend'))
     .nth(0);
-  firstUserNameAddDM = this.page.locator(generateE2eSelector('base_profile.display_name')).nth(0);
+  firstUserNameAddDM = this.page.locator(DISPLAY_NAME_SELECTOR).nth(0);
   userNamesInDM = this.page.locator(generateE2eSelector('chat.direct_message.chat_item.username'));
-  groupNamesInDM = this.page.locator(
-    generateE2eSelector('chat.direct_message.chat_item.group_name')
-  );
+  groupNamesInDM = this.page.locator(DM_GROUP_NAME_SELECTOR);
   group = this.page
-    .locator(generateE2eSelector('chat.direct_message.chat_list'))
+    .locator(DM_CHAT_LIST_SELECTOR)
     .filter({
-      has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name')),
+      has: this.page.locator(DM_GROUP_NAME_SELECTOR),
     })
     .first();
   secondClan = this.page.locator('div[title]').nth(1);
-  messages = this.page.locator(generateE2eSelector('message.item'));
+  messages = this.page.locator(MESSAGE_ITEM_SELECTOR);
   inviteCard = {
     button: {
       gotoClan: this.page.locator(generateE2eSelector('invite_card.button.goto_clan')),
@@ -71,9 +90,6 @@ export default class MessageSelector {
     generateE2eSelector('chat.direct_message.leave_group.button')
   );
   messagesInTopic = this.page.locator('.thread-scroll .text-theme-message');
-  memberListInGroup = this.page.locator(
-    generateE2eSelector('chat.direct_message.member_list.member_count')
-  );
   editGroupButton = this.page.locator(generateE2eSelector('chat.direct_message.edit_group.button'));
   groupNameInput = this.page.locator('input[placeholder="Enter group name"]');
   saveGroupNameButton = this.page.locator(generateE2eSelector('button.base'), {
@@ -82,72 +98,31 @@ export default class MessageSelector {
   leaveGroupButtonInPopup = this.page.locator(
     generateE2eSelector('chat.direct_message.menu.leave_group.button')
   );
-  pinMessageButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Pin message' });
+  pinMessageButton = this.actions.pin;
+  unpinMessageButton = this.actions.unpin;
+  addToInboxButton = this.actions.addToInbox;
+  markAsUnreadButton = this.actions.markUnread;
+  confirmPinMessageButton = this.actions.confirmPin;
+  topicDiscussionButton = this.actions.topicDiscussion;
+  copyTextButton = this.actions.copyText;
+  deleteMessageButton = this.actions.delete;
+  editMessageButton = this.actions.edit;
 
-  unpinMessageButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Unpin Message' });
-
-  addToInboxButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Add To Inbox' });
-
-  markAsUnreadButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Mark Unread' });
-
-  confirmPinMessageButton = this.page.locator(
-    generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
-    { hasText: 'Oh yeah. Pin it' }
-  );
-
-  topicDiscussionButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Topic Discussion' });
-
-  copyTextButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Copy Text' });
-
-  deleteMessageButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Delete Message' });
-
-  editMessageButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Edit Message' });
-
-  forwardMessageButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Forward Message' });
-
-  forwardAllMessagesButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Forward All Messages' });
-
-  createThreadButton = this.page
-    .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-    .filter({ hasText: 'Create Thread' });
-
-  confirmDeleteMessageButton = this.page.locator(
-    generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
-    { hasText: 'Delete' }
-  );
+  forwardMessageButton = this.actions.forward;
+  forwardAllMessagesButton = this.actions.forwardAll;
+  createThreadButton = this.actions.createThread;
+  confirmDeleteMessageButton = this.actions.confirmDelete;
   displayListPinButton = this.page.locator(
     generateE2eSelector('chat.channel_message.header.button.pin')
   );
   footerAvatar = this.page.locator(
-    `${generateE2eSelector('footer_profile.avatar')} ${generateE2eSelector('avatar.image')}`
+    `${generateE2eSelector('footer_profile.avatar')} ${AVATAR_IMAGE_SELECTOR}`
   );
   pinnedMessages = this.page.locator(generateE2eSelector('common.pin_message'));
   welcomeDM = this.page.locator(generateE2eSelector('chat_welcome'));
-  welcomeDMAvatar = this.welcomeDM.locator(generateE2eSelector('avatar.image'));
-  headerDM = this.page.locator(generateE2eSelector('chat.direct_message.header.left_container'));
-  headerDMAvatar = this.page.locator(
-    `${generateE2eSelector('chat.direct_message.header.left_container')} ${generateE2eSelector('avatar.image')}`
-  );
+  welcomeDMAvatar = this.welcomeDM.locator(AVATAR_IMAGE_SELECTOR);
+  headerDM = this.page.locator(DM_HEADER_LEFT_SELECTOR);
+  headerDMAvatar = this.page.locator(`${DM_HEADER_LEFT_SELECTOR} ${AVATAR_IMAGE_SELECTOR}`);
   invoiceStatusDMHeader = this.page.locator(
     generateE2eSelector('chat.direct_message.header.left_container.in_voice_status')
   );
@@ -187,7 +162,9 @@ export default class MessageSelector {
   directMessageUnblockButton = this.page.locator(
     generateE2eSelector('chat.direct_message.unblock.button')
   );
-  DMItemOnSidebar = this.page.locator(generateE2eSelector('chat.direct_message.side_bar.item'));
+  directMessageItemOnSidebar = this.page.locator(
+    generateE2eSelector('chat.direct_message.side_bar.item')
+  );
   modalForwardMessage = this.page.locator(generateE2eSelector('modal.forward_message'));
   searchUserOnForwardMessageModal = this.page.locator(
     generateE2eSelector('modal.forward_message.input.search')
@@ -205,17 +182,13 @@ export default class MessageSelector {
   inboxMessages = this.page.locator(
     `${generateE2eSelector('chat.channel_message.inbox.mentions')} div[class*="w-full"][class*="text-theme-message"]`
   );
-  topicBox = this.page.locator(generateE2eSelector('discussion.box.topic'));
-  topicInput = this.page.locator(
-    `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('mention.input')}`
-  );
-  topicMessages = this.page.locator(
-    `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('message.item')}`
-  );
+  topicBox = this.page.locator(TOPIC_BOX_SELECTOR);
+  topicInput = this.page.locator(`${TOPIC_BOX_SELECTOR} ${generateE2eSelector('mention.input')}`);
+  topicMessages = this.page.locator(`${TOPIC_BOX_SELECTOR} ${MESSAGE_ITEM_SELECTOR}`);
   hoverEditMessageButton = this.page.locator(
     `${generateE2eSelector('chat.hover_message_actions.button.base')}[title="Edit"]`
   );
-  viewTopicButoon = this.page.locator(generateE2eSelector('chat.topic.button.view_topic'));
+  viewTopicButton = this.page.locator(generateE2eSelector('chat.topic.button.view_topic'));
   closeTopicBoxButton = this.page.locator(generateE2eSelector('chat.topic.header.button.close'));
   pinBadge = this.page.locator(
     generateE2eSelector('chat.channel_message.header.button.pin.pin_badge')
@@ -237,11 +210,9 @@ export default class MessageSelector {
     generateE2eSelector('chat.message_action_modal.button.base')
   );
   displayNameOnMessageChannel = this.page.locator(
-    `${generateE2eSelector('message.item')} ${generateE2eSelector('base_profile.display_name')}`
+    `${MESSAGE_ITEM_SELECTOR} ${DISPLAY_NAME_SELECTOR}`
   );
-  displayNameOnMessageTopic = this.page.locator(
-    `${generateE2eSelector('discussion.box.topic')} ${generateE2eSelector('base_profile.display_name')}`
-  );
+  displayNameOnMessageTopic = this.page.locator(`${TOPIC_BOX_SELECTOR} ${DISPLAY_NAME_SELECTOR}`);
   headerInboxButton = this.page.locator(
     generateE2eSelector('chat.channel_message.header.button.inbox')
   );
@@ -261,8 +232,8 @@ export default class MessageSelector {
       ),
     },
   };
-  avatar = this.page.locator(generateE2eSelector('avatar.image'));
-  displayName = this.page.locator(generateE2eSelector('base_profile.display_name'));
+  avatar = this.page.locator(AVATAR_IMAGE_SELECTOR);
+  displayName = this.page.locator(DISPLAY_NAME_SELECTOR);
   hoverMessageModal = this.page.locator(generateE2eSelector('chat.hover_message_actions'));
   errorModal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
   headerGalleryButton = this.page.locator(
@@ -274,34 +245,20 @@ export default class MessageSelector {
     anonymousIcon: this.page.locator(generateE2eSelector('chat.anonymous')),
     anonymousMessage: this.page.locator(generateE2eSelector('base_profile.anonymous')),
     anonymousAvatar: this.page.locator(generateE2eSelector('base_profile.anonymous.avatar')),
-    anonymousName: this.page.locator(generateE2eSelector('base_profile.display_name'), {
+    anonymousName: this.page.locator(DISPLAY_NAME_SELECTOR, {
       hasText: 'Anonymous',
     }),
   };
 
   readonly shortProfile = {
-    avatar: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
-    ),
-    displayName: this.page.locator(generateE2eSelector('short_profile.display_name')),
-    username: this.page.locator(generateE2eSelector('short_profile.username')),
-    input: {
-      sendMessage: this.page.locator(generateE2eSelector('short_profile.input.send_message')),
-    },
-    button: {
-      addRole: this.page.locator(generateE2eSelector('short_profile.role.button.add')),
-      editProfile: this.page.locator(generateE2eSelector('short_profile.button.edit_profile')),
-      voice: this.page.locator(generateE2eSelector('invoice.button.component')),
-    },
-    popoverRole: {
-      item: this.page.locator(generateE2eSelector('short_profile.role.popover.item')),
-    },
-    itemRole: this.page.locator(
-      generateE2eSelector('clan_page.channel_list.members.role.role_name')
-    ),
-    itemRoleColor: this.page.locator(
-      generateE2eSelector('clan_page.channel_list.members.role.role_color')
-    ),
+    avatar: this.profiles.avatar,
+    displayName: this.profiles.displayName,
+    username: this.profiles.username,
+    input: this.profiles.input,
+    button: this.profiles.button,
+    popoverRole: this.profiles.rolePopover,
+    itemRole: this.profiles.role.name,
+    itemRoleColor: this.profiles.role.color,
   };
 
   readonly repliedMessage = {
@@ -310,167 +267,30 @@ export default class MessageSelector {
   };
 
   readonly gifsMessage = {
-    button: {
-      openPopover: this.page.locator(generateE2eSelector('mention.button.gif')),
-    },
+    button: this.media.gifs.button,
     popover: {
-      gifTrending: this.page.locator(generateE2eSelector('mention.popover.gifs.trending')),
-      gifCategory: this.page.locator(generateE2eSelector('mention.popover.gifs.category')),
-      gifItem: this.page.locator(generateE2eSelector('mention.popover.gifs.item')),
+      gifTrending: this.media.gifs.popover.trending,
+      gifCategory: this.media.gifs.popover.category,
+      gifItem: this.media.gifs.popover.item,
     },
   };
 
-  readonly galleryModal = {
-    container: this.page.locator(generateE2eSelector('clan_page.modal.gallery')),
-    tabs: {
-      all: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.all')),
-      images: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.image')),
-      videos: this.page.locator(generateE2eSelector('clan_page.modal.gallery.tab.video')),
-    },
-    items: {
-      all: this.page.locator(generateE2eSelector('clan_page.modal.gallery.all')),
-      images: this.page.locator(generateE2eSelector('clan_page.modal.gallery.image')),
-      videos: this.page.locator(generateE2eSelector('clan_page.modal.gallery.video')),
-    },
-  };
+  readonly galleryModal = this.media.gallery;
 
-  readonly topicInboxPopover = {
-    item: {
-      container: this.page.locator(generateE2eSelector('chat.channel_message.inbox.topics')),
-      initMessage: this.page.locator(
-        generateE2eSelector('chat.channel_message.inbox.topics.init_message')
-      ),
-      lastReplyMessage: this.page.locator(
-        generateE2eSelector('chat.channel_message.inbox.topics.last_reply_message')
-      ),
-      buttonJump: this.page.locator(
-        generateE2eSelector('chat.channel_message.inbox.topics.button.jump')
-      ),
-    },
-    triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
-      hasText: 'Topics',
-    }),
-  };
+  readonly topicInboxPopover = this.inbox.topics;
 
-  readonly messageInboxPopover = {
-    triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
-      hasText: 'Messages',
-    }),
-  };
+  readonly messageInboxPopover = this.inbox.messages;
 
-  readonly forYouInboxPopover = {
-    triggerTab: this.page.locator(generateE2eSelector('chat.channel_message.inbox.action_tabs'), {
-      hasText: 'For You',
-    }),
-  };
+  readonly forYouInboxPopover = this.inbox.forYou;
 
-  readonly shareContact = {
-    card: this.page.locator(generateE2eSelector('chat.share_contact')),
-    displayName: this.page.locator(generateE2eSelector('chat.share_contact.display_name')),
-    username: this.page.locator(generateE2eSelector('chat.share_contact.username')),
-    buttonCall: this.page.locator(generateE2eSelector('chat.share_contact.button.call')),
-    buttonMessage: this.page.locator(generateE2eSelector('chat.share_contact.button.message')),
-    modal: {
-      item: this.page.locator(generateE2eSelector('modal.share_contact')),
-      inputSearch: this.page.locator(generateE2eSelector('modal.share_contact.input.search')),
-      buttonCancel: this.page.locator(generateE2eSelector('modal.share_contact.button.cancel')),
-      buttonShare: this.page.locator(generateE2eSelector('modal.share_contact.button.share')),
-    },
-  };
+  readonly shareContact = this.contacts;
 
   mentionUser = this.page.locator(generateE2eSelector('chat.channel_message.mention_user'));
 
-  readonly timeline = {
-    buttons: {
-      openTab: this.page.locator(
-        generateE2eSelector('chat.channel_message.header.button.timeline')
-      ),
-      create: this.page.locator(generateE2eSelector('timeline.buttons.create_new')),
-      uploadImage: this.page.locator(generateE2eSelector('timeline.modal.input.attachment')),
-      triggerEventDetail: this.page.locator(
-        generateE2eSelector('timeline.events.trigger.event_detail')
-      ),
-      addDescription: this.page.locator(generateE2eSelector('timeline.buttons.add_description')),
-      saveModal: this.page.locator(generateE2eSelector('timeline.modal.button.save')),
-      editTitle: this.page.locator(generateE2eSelector('timeline.buttons.edit_title')),
-      save: this.page.locator(generateE2eSelector('timeline.buttons.save')),
-      back: this.page.locator(generateE2eSelector('timeline.buttons.back')),
-      addMedia: this.page.locator(generateE2eSelector('timeline.buttons.add_media')),
-      openCalender: this.page.locator(generateE2eSelector('timeline.buttons.calendar')),
-      selectedYear: this.page.locator(generateE2eSelector('timeline.buttons.selected_year')),
-    },
-    input: {
-      title: this.page.locator(generateE2eSelector('timeline.input.title')),
-      description: this.page.locator(generateE2eSelector('timeline.input.description')),
-    },
-    inputModals: {
-      eventTitle: this.page.locator(generateE2eSelector('timeline.modal.input.title')),
-      eventDate: this.page.locator(`${generateE2eSelector('timeline.modal.input.date')} input`),
-      eventDescription: this.page.locator(generateE2eSelector('timeline.modal.input.description')),
-    },
-    eventTimeDetail: {
-      item: this.page.locator(generateE2eSelector('timeline.events.time')),
-      month: this.page.locator(generateE2eSelector('timeline.events.time.month')),
-      day: this.page.locator(generateE2eSelector('timeline.events.time.day')),
-      year: this.page.locator(generateE2eSelector('timeline.events.time.year')),
-    },
-    triggerTab: {
-      eventDetailName: this.page.locator(
-        `${generateE2eSelector('timeline.events.trigger.event_detail')} h4`
-      ),
-      eventDetailDescription: this.page.locator(
-        `${generateE2eSelector('timeline.events.trigger.event_detail')} p`
-      ),
-    },
-    card: {
-      title: this.page.locator(generateE2eSelector('timeline.events.card.title')),
-      description: this.page.locator(generateE2eSelector('timeline.events.card.description')),
-      createdTime: this.page.locator(generateE2eSelector('timeline.events.card.created_time')),
-    },
-  };
+  readonly timeline = this.timelines;
 
-  readonly poll = {
-    button: {
-      openModal: this.page.locator(generateE2eSelector('poll.button.open_modal')),
-      option: this.page.locator(generateE2eSelector('poll.button.option')),
-      endPoll: this.page
-        .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-        .filter({ hasText: 'End Poll Now' }),
-    },
+  readonly poll = this.polls;
 
-    modal: {
-      input: {
-        question: this.page.locator(generateE2eSelector('poll.modal.input.question')),
-        answer: this.page.locator(generateE2eSelector('poll.modal.input.answer')),
-        allowMultiAnswer: this.page.locator(
-          generateE2eSelector('poll.modal.input.allow_multi_answer')
-        ),
-      },
-
-      button: {
-        addAnswer: this.page.locator(generateE2eSelector('poll.modal.button.add_answer')),
-        openDuration: this.page.locator(generateE2eSelector('poll.modal.button.open_duration')),
-        chooseDuration: this.page.locator(generateE2eSelector('poll.modal.button.choose_duration')),
-        deleteAnswer: this.page.locator(generateE2eSelector('poll.modal.button.delete_answer')),
-        post: this.page.locator(generateE2eSelector('poll.modal.button.post')),
-      },
-    },
-
-    card: {
-      question: this.page.locator(generateE2eSelector('poll.card.question')),
-      ended: this.page.locator(generateE2eSelector('poll.card.ended')),
-      answerDescription: this.page.locator(generateE2eSelector('poll.card.answer_description')),
-      answer: this.page.locator(generateE2eSelector('poll.card.answer')),
-      voted: this.page.locator(generateE2eSelector('poll.card.voted')),
-      totalVotes: this.page.locator(generateE2eSelector('poll.card.total_votes')),
-
-      button: {
-        showResult: this.page.locator(generateE2eSelector('poll.card.button.show_result')),
-        vote: this.page.locator(generateE2eSelector('poll.card.button.vote')),
-        removeVote: this.page.locator(generateE2eSelector('poll.card.button.remove_vote')),
-      },
-    },
-  };
   readonly unpinMessage = {
     button: {
       cancel: this.page.locator(generateE2eSelector('modal.unpin_message.button.cancel')),
@@ -478,20 +298,5 @@ export default class MessageSelector {
     },
   };
 
-  readonly forYouMessage = {
-    button: {
-      remove: this.page.locator(
-        generateE2eSelector('chat.channel_message.inbox.for_you.button.remove')
-      ),
-      jump: this.page.locator(
-        generateE2eSelector('chat.channel_message.inbox.for_you.button.jump')
-      ),
-    },
-    container: this.page.locator(generateE2eSelector('chat.channel_message.inbox.for_you')),
-    username: this.page.locator(generateE2eSelector('chat.channel_message.inbox.for_you.username')),
-    message: this.page.locator(generateE2eSelector('chat.channel_message.inbox.for_you.message')),
-    timestamp: this.page.locator(
-      generateE2eSelector('chat.channel_message.inbox.for_you.timestamp')
-    ),
-  };
+  readonly forYouMessage = this.inbox.forYou.item;
 }

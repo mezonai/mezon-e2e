@@ -22,25 +22,27 @@ export default [
     rules: {
       // TypeScript specific rules
       '@typescript-eslint/no-unused-vars': 'warn',
-      'no-unused-vars': 'warn',
+      '@typescript-eslint/no-floating-promises': 'error',
+      // The core rule does not understand TypeScript parameter properties.
+      'no-unused-vars': 'off',
       'no-empty': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-empty-function': 'off',
       '@typescript-eslint/no-non-null-assertion': 'warn',
-      
+
       // General rules
       'no-console': 'off', // Allow console.log for debugging
       'no-debugger': 'error',
       'no-duplicate-imports': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
-      
+
       // Code style
-      'indent': 'off', // Let Prettier handle this
-      'quotes': 'off', // Let Prettier handle this
-      'semi': 'off', // Let Prettier handle this
+      indent: 'off', // Let Prettier handle this
+      quotes: 'off', // Let Prettier handle this
+      semi: 'off', // Let Prettier handle this
 
       // SonarJS
       'sonarjs/no-duplicate-string': 'warn',

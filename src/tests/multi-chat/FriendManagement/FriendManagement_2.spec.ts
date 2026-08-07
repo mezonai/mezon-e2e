@@ -138,7 +138,6 @@ test.describe('Friend Management - Request Notifications and Unfriending', () =>
 
     await test.step('User A remove friend from short profile', async () => {
       await messagePageB.sendMessageWhenInDM('This is a message of user B before being unfriended');
-      await pageA.waitForTimeout(1000);
       await profilePageA.openShortProfileFromUsernameOnChat(userNameB);
       await messagePageA.removeFriendFromShortProfile();
       await friendPageA.confirmRemoveFriend();

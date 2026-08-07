@@ -28,28 +28,6 @@ export class DirectMessageHelper {
     return groupCount;
   }
 
-  async countUsers(): Promise<number> {
-    const messagePage = new MessagePage(this.page);
-    const listDMItems = await messagePage.getListDMItems();
-    let userCount = 0;
-    const count = await listDMItems.count();
-
-    for (let i = 0; i < count; i++) {
-      const dm = listDMItems.nth(i);
-      const pCount = await dm.locator('p').count();
-
-      if (pCount === 0) {
-        userCount++;
-      } else {
-        const text = await dm.locator('p').first().textContent();
-        if (!text?.includes('Members')) {
-          userCount++;
-        }
-      }
-    }
-    return userCount;
-  }
-
   async scrollUntilVisible(
     name: string,
     options: {

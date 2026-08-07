@@ -1,7 +1,7 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ToastSelector } from '@/data/selectors/ToastSelectort';
+import { ToastSelector } from '@/data/selectors/ToastSelector';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { MessagePage } from '@/pages/MessagePage';
@@ -15,6 +15,8 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
 test.describe('Clan Management - Events and Category Updates', () => {
+  const VERIFY_CHANNEL_PRESENT_STEP = 'Verify channel is present in channel list';
+  const EVENT_CREATION_TAG = 'event-creation';
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account4;
   test.beforeAll(async ({ browser }) => {
@@ -70,7 +72,7 @@ test.describe('Clan Management - Events and Category Updates', () => {
     **Expected Result:**Public Location event is created and visible in the clan's event list.
   `);
     await AllureReporter.addLabels({
-      tag: ['event-creation', 'Public-event', 'location-event'],
+      tag: [EVENT_CREATION_TAG, 'Public-event', 'location-event'],
     });
 
     const clanPage = new ClanPage(page);
@@ -123,7 +125,7 @@ test.describe('Clan Management - Events and Category Updates', () => {
     **Expected Result:** The event link is copied to the clipboard, and a confirmation message is displayed.
   `);
     await AllureReporter.addLabels({
-      tag: ['event-creation', 'share-event', 'Public-event'],
+      tag: [EVENT_CREATION_TAG, 'share-event', 'Public-event'],
     });
 
     const clanPage = new ClanPage(page);
@@ -148,7 +150,7 @@ test.describe('Clan Management - Events and Category Updates', () => {
       await clanPage.createNewChannel(ChannelType.VOICE, channelName, ChannelStatus.PUBLIC);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_PRESENT_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
@@ -175,12 +177,11 @@ test.describe('Clan Management - Events and Category Updates', () => {
 
     await AllureReporter.step('Paste the copied event link on chat', async () => {
       await messageHelper.pasteAndSendTextV2();
-      await page.waitForTimeout(1000);
     });
 
     await AllureReporter.step('Verify that pasted link is correct', async () => {
       const lastMessage = await messagePage.getLastMessage();
-      expect(lastMessage).toContainText(channelName);
+      await expect(lastMessage).toContainText(channelName);
     });
   });
   test('Verify that user can edit category name', async ({ page }) => {
@@ -270,5 +271,92 @@ test.describe('Clan Management - Events and Category Updates', () => {
         await clanPage.closeSettingsChannel();
       }
     );
+  });
+
+  test('Verify that I can create a public voice event in a clan', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63378',
+    });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.CRITICAL,
+    });
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify that a user can successfully create a new public voice event within a clan.
+    **Test Steps:**
+    1. Create a voice channel in clan
+    2. Create new public voice event
+    3. Verify event appears in event list
+    **Expected Result:** Public voice event is created and visible in the clan's event list.
+  `);
+    await AllureReporter.addLabels({
+      tag: [EVENT_CREATION_TAG, 'public-event', 'voice-event'],
+    });
+    const unique = Date.now().toString(36).slice(-6);
+    const channelName = `vc-${unique}`.slice(0, 20);
+    const clanPage = new ClanPage(page);
+
+    await AllureReporter.addParameter('channelName', channelName);
+    await AllureReporter.addParameter('channelType', ChannelType.VOICE);
+    await AllureReporter.addParameter('channelStatus', ChannelStatus.PUBLIC);
+
+    await AllureReporter.step(`Create new public voice channel: ${channelName}`, async () => {
+      await clanPage.createNewChannel(ChannelType.VOICE, channelName, ChannelStatus.PUBLIC);
+    });
+
+    await AllureReporter.step(VERIFY_CHANNEL_PRESENT_STEP, async () => {
+      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
+      expect(isNewChannelPresent).toBe(true);
+    });
+
+    let res: {
+      eventTopic: string;
+      description?: string;
+      startDate: string;
+      startTime: string;
+    };
+
+    await AllureReporter.step(`Create new public voice event in clan:`, async () => {
+      await clanPage.addDataOnLocationTab(EventType.VOICE, channelName);
+      res = await clanPage.addDataOnEventInfoTab();
+
+      const data = {
+        ...res,
+        channelName: channelName,
+        eventType: EventType.VOICE,
+      };
+      await clanPage.verifyDataOnReviewTab(data);
+      await clanPage.clickCreateEventButton();
+      await clanPage.waitForModalToBeHidden();
+    });
+
+    await AllureReporter.step('Verify event is present in event list', async () => {
+      const isCreatedEvent = await clanPage.verifyLastEventData({
+        eventTopic: res.eventTopic,
+        description: res.description,
+        voiceChannelName: channelName,
+        startTime: `${res.startDate} - ${res.startTime}`,
+        clanStatus: ClanStatus.PUBLIC,
+        eventType: EventType.VOICE,
+      });
+      expect(isCreatedEvent).toBeTruthy();
+    });
+
+    await AllureReporter.step(
+      'Verify event information is match in event dertail modal',
+      async () => {
+        const isCreatedEvent = await clanPage.verifyInEventDetailModal({
+          eventTopic: res.eventTopic,
+          description: res.description,
+          channelName: channelName,
+          startTime: `${res.startDate} - ${res.startTime}`,
+        });
+        expect(isCreatedEvent).toBeTruthy();
+        await clanPage.closeEventModal();
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, `Public Voice Event Created - ${channelName}`);
   });
 });
