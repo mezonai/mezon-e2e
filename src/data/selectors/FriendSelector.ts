@@ -1,10 +1,12 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 
+const MEMBER_ACTION_ITEM_SELECTOR = generateE2eSelector(
+  'chat.channel_message.member_list.item.actions'
+);
+
 export default class FriendSelector {
-  constructor(private readonly page: Page) {
-    this.page = page;
-  }
+  constructor(private readonly page: Page) {}
 
   private readonly baseTab = this.page.locator(generateE2eSelector('friend_page.tab'));
 
@@ -52,22 +54,22 @@ export default class FriendSelector {
   };
 
   readonly dmFriendMenu = {
-    item: this.page.locator(generateE2eSelector('chat.channel_message.member_list.item.actions')),
-    blockButton: this.page
-      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
-      .filter({ hasText: 'Block' }),
-    markAsRead: this.page
-      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
-      .filter({ hasText: 'Mark as Read' }),
-    pinConvesation: this.page
-      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+    item: this.page.locator(MEMBER_ACTION_ITEM_SELECTOR),
+    blockButton: this.page.locator(MEMBER_ACTION_ITEM_SELECTOR).filter({ hasText: 'Block' }),
+    markAsRead: this.page.locator(MEMBER_ACTION_ITEM_SELECTOR).filter({ hasText: 'Mark as Read' }),
+    pinConversation: this.page
+      .locator(MEMBER_ACTION_ITEM_SELECTOR)
       .filter({ hasText: 'Pin Conversation' }),
-    unPinConvesation: this.page
-      .locator(generateE2eSelector('chat.channel_message.member_list.item.actions'))
+    unpinConversation: this.page
+      .locator(MEMBER_ACTION_ITEM_SELECTOR)
       .filter({ hasText: 'Unpin Conversation' }),
   };
 
   readonly badge = {
     friendPending: this.page.locator(generateE2eSelector('badge.friend_pending')),
+  };
+
+  readonly permissionModal = {
+    cancel: this.page.locator(generateE2eSelector('clan_page.settings.modal.permission.cancel')),
   };
 }

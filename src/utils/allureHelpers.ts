@@ -165,14 +165,6 @@ export class AllureReporter {
     await allure.attachment(name || 'Screenshot', screenshot, 'image/jpeg');
   }
 
-  static async attachVideo(videoPath: string, name?: string) {
-    await allure.attachmentPath(name || 'Video Recording', videoPath, 'video/webm');
-  }
-
-  static async attachTrace(tracePath: string, name?: string) {
-    await allure.attachmentPath(name || 'Trace', tracePath, 'application/zip');
-  }
-
   static generateTestId(testInfo: {
     title: string;
     file: string;

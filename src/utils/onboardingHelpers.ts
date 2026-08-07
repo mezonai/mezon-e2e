@@ -7,24 +7,6 @@ export class OnboardingHelpers {
     this.page = page;
   }
 
-  async createTestClan(clanName: string): Promise<{ clicked: boolean; created: boolean }> {
-    const clanPage = new ClanPage(this.page);
-
-    const clicked = await clanPage.clickCreateClanButton();
-    if (!clicked) {
-      return { clicked: false, created: false };
-    }
-
-    const createMyOwnClicked = await clanPage.clickCreateMyOwnClan();
-    if (!createMyOwnClicked) {
-      return { clicked: true, created: false };
-    }
-
-    const created = await clanPage.createNewClan(clanName);
-
-    return { clicked: true, created };
-  }
-
   async ensureOnboardingGuideVisible(): Promise<void> {
     const { OnboardingPage } = await import('../pages/OnboardingPage');
     const onboardingPage = new OnboardingPage(this.page);

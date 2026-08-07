@@ -99,7 +99,6 @@ export default defineConfig({
     {
       name: 'Chrome',
       testDir: './src/tests/web',
-      testIgnore: [/CleanUp\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
@@ -110,7 +109,7 @@ export default defineConfig({
     {
       name: 'cleanup',
       testDir: './src/tests/cleanup',
-      testMatch: /CleanUp\.spec\.ts/,
+      testMatch: /CleanUp_\d+\.spec\.ts/,
       fullyParallel: true,
       use: {
         ...devices['Desktop Chrome'],

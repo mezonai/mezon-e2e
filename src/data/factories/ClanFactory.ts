@@ -14,10 +14,6 @@ export class ClanFactory {
     return this.clanName;
   }
 
-  setClanName(clanName: string) {
-    this.clanName = clanName;
-  }
-
   getClanUrl() {
     return this.clanUrl;
   }
@@ -60,7 +56,6 @@ export class ClanFactory {
     if (!clanExists) {
       throw new Error(`Failed to create clan: ${clanName}`);
     }
-    await page.waitForTimeout(3000);
 
     this.clanUrl = page.url();
     this.clanName = clanName;

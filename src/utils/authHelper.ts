@@ -1,5 +1,4 @@
 import { persistentAuthConfigs, WEBSITE_CONFIGS } from '@/config/environment';
-import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { MezonCredentials } from '@/types';
@@ -7,6 +6,7 @@ import { Page } from '@playwright/test';
 import ClanSelector from '@/data/selectors/ClanSelector';
 
 export type AccountKey = keyof typeof persistentAuthConfigs;
+type LocalStorageCredentials = Record<string, string> | null;
 
 const MEZON_DEV_ORIGIN = 'https://dev-mezon.nccsoft.vn';
 
@@ -25,7 +25,7 @@ export class AuthHelper {
    * @param credentials Object containing all localStorage data
    * @returns The account key that was set
    */
-  static async setAuthForAccount(page: Page, credentials: any = null) {
+  static async setAuthForAccount(page: Page, credentials: LocalStorageCredentials = null) {
     await page.evaluate(
       ({ credentials }) => {
         // Set all localStorage data dynamically
@@ -47,7 +47,7 @@ export class AuthHelper {
    * @param suiteName The test suite name
    * @returns The account key that was used
    */
-  static async setAuthForSuite(page: Page, credentials: any = null) {
+  static async setAuthForSuite(page: Page, credentials: LocalStorageCredentials = null) {
     const endpoint = WEBSITE_CONFIGS.MEZON.baseURL || '';
 
     // Login is performed directly on dev, so its existing browser storage is
@@ -56,31 +56,20 @@ export class AuthHelper {
       return;
     }
 
-    await page.waitForTimeout(2000);
-    await page.goto(`${endpoint}`);
-    await page.waitForLoadState('domcontentloaded');
-    this.clearAuth(page);
-    await page.waitForTimeout(2000);
-    await page.waitForLoadState('networkidle');
+    await page.goto(endpoint, { waitUntil: 'domcontentloaded' });
+    await this.clearAuth(page);
     await this.setAuthForAccount(page, credentials);
-    await page.waitForTimeout(2000);
-    await page.reload();
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
-    await page.goto(`${endpoint}chat`);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.goto(`${endpoint}chat`, { waitUntil: 'domcontentloaded' });
     // const homePage = new HomePage(page);
     // await homePage.clickLogin();
-    await page.waitForTimeout(2000);
-    await page.waitForLoadState('domcontentloaded');
 
     const clanSelector = new ClanSelector(page);
     try {
-      const permissionModalLocator = page.locator(
-        '[data-e2e="clan_page-settings-modal-permission"]'
-      );
-      await permissionModalLocator.waitFor({ state: 'visible', timeout: 4000 });
-      await clanSelector.permissionModal.cancel.first().click();
-      console.log('Closed permission modal');
+      if (await clanSelector.permissionModal.isVisible(4000)) {
+        await clanSelector.permissionModal.cancel.first().click();
+        console.log('Closed permission modal');
+      }
     } catch {
       // Ignored if modal does not appear
     }
@@ -132,19 +121,21 @@ export class AuthHelper {
    * @param suiteName Test suite name
    * @param parentIssue Parent issue for work item links
    */
-  static async prepareBeforeTest(page: Page, clanUrl: string, credentials: any) {
+  static async prepareBeforeTest(
+    page: Page,
+    clanUrl: string,
+    credentials: LocalStorageCredentials
+  ) {
     await AuthHelper.setAuthForSuite(page, credentials);
     await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
     await new LoginPage(page).waitForAuthenticatedAppReady();
 
     const clanSelector = new ClanSelector(page);
     try {
-      const permissionModalLocator = page.locator(
-        '[data-e2e="clan_page-settings-modal-permission"]'
-      );
-      await permissionModalLocator.waitFor({ state: 'visible', timeout: 3000 });
-      await clanSelector.permissionModal.cancel.first().click();
-      console.log('Closed permission modal');
+      if (await clanSelector.permissionModal.isVisible(3000)) {
+        await clanSelector.permissionModal.cancel.first().click();
+        console.log('Closed permission modal');
+      }
     } catch {
       // Ignored if modal does not appear
     }

@@ -6,13 +6,14 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test as base, expect, Page } from '@playwright/test';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
+import { CLIPBOARD_PERMISSIONS } from './ChannelMessageTestConstants';
 
 const test = base.extend<{
   pageWithClipboard: Page;
 }>({
   pageWithClipboard: async ({ browser }, use) => {
     const context = await browser.newContext({
-      permissions: ['clipboard-read', 'clipboard-write'],
+      permissions: CLIPBOARD_PERMISSIONS,
       baseURL: WEBSITE_CONFIGS.MEZON.baseURL,
     });
     const pageWithClipboard = await context.newPage();
@@ -94,14 +95,13 @@ test.describe('Channel Messages - Reactions, Replies, and Topic Discussions', ()
   });
 
   test('Reply to a message and send', async ({ pageWithClipboard, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const original = `Reply base ${Date.now()}`;
     const target = await messageHelpers.sendTextMessageAndGetItem(original);
     const replyText = `Reply content ${Date.now()}`;
     await messageHelpers.replyToMessage(target, replyText);
-    await pageWithClipboard.waitForTimeout(1000);
     const ok = await messageHelpers.verifyLastMessageIsReplyTo(original, replyText);
     const visible = await messageHelpers.isMessageVisible(replyText);
     expect(ok || visible).toBeTruthy();
@@ -112,16 +112,14 @@ test.describe('Channel Messages - Reactions, Replies, and Topic Discussions', ()
       tms: '63401',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const msg = `Emoji search test ${Date.now()}`;
     await messageHelpers.sendTextMessage(msg);
-    await pageWithClipboard.waitForTimeout(800);
 
     const target = await messageHelpers.findLastMessage();
     const picked = await messageHelpers.searchAndPickEmojiFromPicker(target, ':smile:');
-    await pageWithClipboard.waitForTimeout(1200);
 
     const hasReaction = await messageHelpers.verifyReactionOnMessage(
       target,
@@ -135,19 +133,16 @@ test.describe('Channel Messages - Reactions, Replies, and Topic Discussions', ()
       tms: '63391',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const originalMsg = `Topic starter ${Date.now()}`;
     const target = await messageHelpers.sendTextMessageAndGetItem(originalMsg);
-    await pageWithClipboard.waitForTimeout(800);
 
     await messageHelpers.openTopicDiscussion(target);
-    await pageWithClipboard.waitForTimeout(2000);
 
     const emojiMsg = '😀🎉👍';
     await messageHelpers.sendMessageInThread(emojiMsg);
-    await pageWithClipboard.waitForTimeout(3000);
 
     const topicMessages = await messageHelpers.getMessagesFromTopicDrawer();
     expect(emojiMsg).toEqual(topicMessages[topicMessages.length - 1].content);

@@ -4,7 +4,7 @@ export function splitDomainAndPath(url: string): { domain: string; path: string 
     const domain = urlObj.origin;
     const path = urlObj.pathname + urlObj.search + urlObj.hash;
     return { domain, path };
-  } catch (error) {
+  } catch {
     throw new Error(`Invalid URL: ${url}`);
   }
 }
