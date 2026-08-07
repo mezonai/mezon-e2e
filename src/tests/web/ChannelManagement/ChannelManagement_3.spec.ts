@@ -14,6 +14,7 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import test, { expect } from '@playwright/test';
 
 test.describe('Channel Management - Deletion, Permissions, and Archiving', () => {
+  const TEXT_CHANNEL_TAG = 'text-channel';
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials['account1'];
 
@@ -75,7 +76,7 @@ test.describe('Channel Management - Deletion, Permissions, and Archiving', () =>
     `);
 
     await AllureReporter.addLabels({
-      tag: ['text-channel', 'delete-channel'],
+      tag: [TEXT_CHANNEL_TAG, 'delete-channel'],
     });
 
     const unique = Date.now().toString(36).slice(-6);
@@ -200,7 +201,7 @@ test.describe('Channel Management - Deletion, Permissions, and Archiving', () =>
       **Expected Result:** User can archive a channel and archived channel is moved to archived channel list.
     `);
     await AllureReporter.addLabels({
-      tag: ['archive-channel', 'text-channel'],
+      tag: ['archive-channel', TEXT_CHANNEL_TAG],
     });
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `tc-${unique}`.slice(0, 20);
@@ -250,7 +251,7 @@ test.describe('Channel Management - Deletion, Permissions, and Archiving', () =>
       **Expected Result:** User can restore an archived channel and it is moved back to the regular channel list.
     `);
     await AllureReporter.addLabels({
-      tag: ['archive-channel', 'text-channel'],
+      tag: ['archive-channel', TEXT_CHANNEL_TAG],
     });
     const unique = Date.now().toString(36).slice(-6);
     const channelName = `tc-${unique}`.slice(0, 20);

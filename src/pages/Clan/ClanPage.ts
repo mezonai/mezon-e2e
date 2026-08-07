@@ -10,25 +10,32 @@ import { EventType } from '../../types/clan-page.types';
 import { BasePage } from '../BasePage';
 import { ChannelSettingPage } from '../ChannelSettingPage';
 import { ClanMenuPanel } from './ClanMenuPanel';
+import { ClanNotificationPage } from './ClanNotificationPage';
 
 interface SelectorResult {
   found: boolean;
   element?: Locator;
 }
 
+const CHANNEL_NAME_SELECTOR = generateE2eSelector('clan_page.channel_list.item.name');
+
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export class ClanPage extends BasePage {
   private readonly selector: ClanSelector;
+  private readonly notifications: ClanNotificationPage;
   constructor(page: Page) {
     super(page);
     this.selector = new ClanSelector(page);
+    this.notifications = new ClanNotificationPage(page);
   }
 
   async createNewClan(clanName: string): Promise<boolean> {
     try {
       await this.selector.input.clanName.fill(clanName);
-      await this.page.waitForTimeout(2000);
+      await expect(this.selector.input.clanName).toHaveValue(clanName);
       await this.selector.buttons.createClanConfirm.click();
-      await this.page.waitForTimeout(5000);
+      await expect(await this.selector.findClanByTitle(clanName)).toBeVisible({ timeout: 10000 });
       return true;
     } catch (error) {
       console.error(`Error creating clan: ${error}`);
@@ -50,27 +57,24 @@ export class ClanPage extends BasePage {
   }
 
   async clickCreateClanButton(): Promise<boolean> {
-    if (this.selector.buttons.createClan) {
-      await this.selector.buttons.createClan.click();
-      return true;
-    }
-
-    return false;
+    const createClanButton = this.selector.buttons.createClan;
+    if (!(await createClanButton.isVisible({ timeout: 3000 }))) return false;
+    await createClanButton.click();
+    return true;
   }
 
   async clickCreateMyOwnClan(): Promise<boolean> {
-    // if (this.selector.buttons.createMyOwnClan) {
-    //   await this.selector.buttons.createMyOwnClan.click();
-    //   return true;
-    // }
-    if (this.page.locator('button:has-text("Create My Own")')) {
-      await this.page.locator('button:has-text("Create My Own")').first().click();
-      return true;
-    }
-    return false;
+    await this.page.waitForTimeout(1000);
+    const createMyOwnClanButton = this.selector.buttons.createMyOwnClan;
+    if (!(await createMyOwnClanButton.isVisible({ timeout: 3000 }))) return false;
+    await createMyOwnClanButton.click();
+    return true;
   }
 
-  async mapLocator(locator: Locator, callback: (element: Locator) => Promise<any>): Promise<any> {
+  async mapLocator<T>(
+    locator: Locator,
+    callback: (element: Locator) => Promise<T>
+  ): Promise<Array<T | null>> {
     let count = 0;
     try {
       await locator.first().waitFor({ state: 'visible', timeout: 5000 });
@@ -79,7 +83,7 @@ export class ClanPage extends BasePage {
       console.warn('No elements found for the provided locator.');
       return [];
     }
-    const results = [];
+    const results: Array<T | null> = [];
     for (let i = 0; i < count; i++) {
       const element = locator.nth(i);
       try {
@@ -118,7 +122,10 @@ export class ClanPage extends BasePage {
       const clanLocator = await this.selector.findClanByTitle(clanName);
 
       await clanLocator.click();
-      await this.page.waitForTimeout(1000);
+      await expect(categoryPage.text.clanName).toContainText(
+        new RegExp(escapeRegExp(clanName), 'i'),
+        { timeout: 5000 }
+      );
 
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
@@ -175,7 +182,7 @@ export class ClanPage extends BasePage {
       const currentTime = Date.now();
 
       return currentTime > clanTimestamp;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -200,29 +207,23 @@ export class ClanPage extends BasePage {
     await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
   }
 
-  async createEvent(): Promise<void> {
-    this.selector.buttons.eventButton.click();
-    this.selector.eventModal.createEventButton.click();
-    this.selector.eventModal.nextButton.click();
-  }
-
   async openChannelSettings(channelName: string): Promise<void> {
     const channelLocator = this.selector.sidebar.channelItem.name.filter({ hasText: channelName });
     await channelLocator.click({ button: 'right' });
     await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Channel' }).click();
-    await this.page.waitForTimeout(500);
+    await expect(this.selector.input.channelName.first()).toBeVisible({ timeout: 5000 });
   }
 
   async openMemberListSetting(): Promise<void> {
     await expect(this.selector.buttons.memberListButton).toBeVisible({ timeout: 3000 });
     await this.selector.buttons.memberListButton.click();
-    await this.page.waitForTimeout(500);
+    await expect(this.selector.memberSettings.userContainer.first()).toBeVisible({ timeout: 5000 });
   }
 
   async openChannelsListSetting(): Promise<void> {
     await expect(this.selector.buttons.channelManagementButton).toBeVisible({ timeout: 3000 });
     await this.selector.buttons.channelManagementButton.click();
-    await this.page.waitForTimeout(500);
+    await expect(this.selector.channelManagement.totalChannels).toBeVisible({ timeout: 5000 });
   }
 
   async createNewChannel(
@@ -232,6 +233,9 @@ export class ClanPage extends BasePage {
   ): Promise<boolean> {
     try {
       await this.selector.buttons.createChannel.last().click();
+      await expect(this.selector.createChannelModal.input.channelName).toBeVisible({
+        timeout: 5000,
+      });
 
       switch (typeChannel) {
         case ChannelType.TEXT:
@@ -249,6 +253,9 @@ export class ClanPage extends BasePage {
         await this.selector.createChannelModal.toggle.isPrivate.click();
       }
       await this.selector.createChannelModal.button.confirm.click();
+      await expect(this.selector.createChannelModal.input.channelName).toBeHidden({
+        timeout: 5000,
+      });
 
       return true;
     } catch (error) {
@@ -258,10 +265,7 @@ export class ClanPage extends BasePage {
   }
 
   async isNewChannelPresent(channelName: string): Promise<boolean> {
-    const channelLocator = this.page.locator(
-      generateE2eSelector('clan_page.channel_list.item.name'),
-      { hasText: channelName }
-    );
+    const channelLocator = this.selector.channel.getSidebarItem(channelName);
 
     try {
       await channelLocator.waitFor({ state: 'visible', timeout: 5000 });
@@ -277,7 +281,6 @@ export class ClanPage extends BasePage {
       await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
       await categoryLocator.click({ button: 'right' });
       await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Category' }).click();
-      await this.page.waitForTimeout(500);
 
       await this.selector.clanSettings.category.input.categoryName.waitFor({
         state: 'visible',
@@ -286,7 +289,9 @@ export class ClanPage extends BasePage {
       await this.selector.clanSettings.category.input.categoryName.fill(newCategoryName);
       await this.selector.buttons.saveChanges.click();
       await this.selector.buttons.exitSettings.click();
-      await this.page.waitForTimeout(500);
+      await expect(this.selector.clanSettings.category.input.categoryName).toBeHidden({
+        timeout: 5000,
+      });
     } catch (error) {
       console.error(`Error editing category name: ${error}`);
     }
@@ -298,7 +303,7 @@ export class ClanPage extends BasePage {
       await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
       await categoryLocator.click({ button: 'right' });
       await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Category' }).click();
-      await this.page.waitForTimeout(500);
+      await expect(this.selector.buttons.deleteCategory).toBeVisible({ timeout: 5000 });
       await this.selector.buttons.deleteCategory.click();
     } catch (error) {
       console.error(`Error deleting category: ${error}`);
@@ -337,7 +342,6 @@ export class ClanPage extends BasePage {
     }
     await this.selector.threadBox.threadInputMention.fill(threadName);
     await this.selector.threadBox.threadInputMention.press('Enter');
-    // await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(2000);
   }
 
@@ -350,8 +354,8 @@ export class ClanPage extends BasePage {
   }
 
   async openMemberList(): Promise<void> {
-    await this.selector.header.button.member.nth(0).click();
-    await this.page.waitForTimeout(500);
+    await this.selector.header.button.member.nth(0).first().click();
+    await this.page.waitForTimeout(1000);
   }
 
   async getMemberFromMemberList(memberName: string): Promise<Locator> {
@@ -360,19 +364,6 @@ export class ClanPage extends BasePage {
     });
     await memberLocator.waitFor({ state: 'visible', timeout: 5000 });
     return memberLocator;
-  }
-
-  async getProfileFromMemberList(memberName: string): Promise<void> {
-    const memberItem = await this.getMemberFromMemberList(memberName);
-    await memberItem.click({ button: 'right' });
-    await this.selector.sidebarMemberList.profileButton.click();
-    await this.page.waitForTimeout(1000);
-  }
-
-  async clickAddFriendButtonFromModal() {
-    const addFriendLocator = this.selector.sidebarMemberList.addFriendButton;
-    await addFriendLocator.waitFor({ state: 'visible', timeout: 5000 });
-    await addFriendLocator.click();
   }
 
   async verifyAddFriendButtonVisibleOnModal(): Promise<boolean> {
@@ -455,8 +446,6 @@ export class ClanPage extends BasePage {
       }
 
       await this.selector.buttons.invitePeople.first().click();
-      await this.page.waitForTimeout(2000);
-
       await this.selector.buttons.closeInviteModal.click();
 
       await this.selector.modalInvite.container.waitFor({ state: 'hidden', timeout: 5000 });
@@ -628,10 +617,6 @@ export class ClanPage extends BasePage {
       const description = `This is an event created during E2E tests ${Date.now()}`;
       const startDate = await this.selector.createEventModal.input.startDateInput.inputValue();
       const startTime = await this.selector.createEventModal.input.startTime.innerText();
-      console.log(startDate);
-      console.log(startTime);
-
-      await this.page.waitForTimeout(2000);
 
       const { formattedDate, formattedTime } = await this.formatDateTimeFromInputs(
         startDate,
@@ -640,7 +625,8 @@ export class ClanPage extends BasePage {
 
       await this.selector.createEventModal.input.eventTopic.fill(eventTopic);
       await this.selector.createEventModal.input.description.fill(description);
-      await this.page.waitForTimeout(2000);
+      await expect(this.selector.createEventModal.input.eventTopic).toHaveValue(eventTopic);
+      await expect(this.selector.createEventModal.input.description).toHaveValue(description);
 
       await this.selector.eventModal.nextButton.click();
 
@@ -871,14 +857,13 @@ export class ClanPage extends BasePage {
   }
 
   async countChannelsOnChannelList() {
-    await this.page.waitForTimeout(3000);
+    await expect(this.selector.sidebar.channelsList.first()).toBeVisible({ timeout: 5000 });
     return await this.selector.sidebar.channelsList.count();
   }
 
   async getTotalChannels() {
     await this.selector.buttons.channelManagementButton.click();
-    await this.selector.channelManagement.totalChannels.isVisible({ timeout: 5000 });
-    await this.page.waitForTimeout(2000);
+    await expect(this.selector.channelManagement.totalChannels).toBeVisible({ timeout: 5000 });
     const text = await this.selector.channelManagement.totalChannels.innerText();
     const countChannelItems = await this.selector.channelManagement.channelItem.count();
 
@@ -887,14 +872,12 @@ export class ClanPage extends BasePage {
   }
 
   async countMessagesOnChannel() {
-    await this.page.waitForTimeout(3000);
     const messageSelector = new MessageSelector(this.page);
     return (await messageSelector.messages.count()) + 1;
   }
 
   async getTotalMessages(channelName: string) {
     await this.selector.buttons.channelManagementButton.click();
-    await this.page.waitForTimeout(2000);
     const channelItem = this.selector.getChannelItemByNameOnCMTab(channelName);
     await expect(channelItem).toBeVisible({ timeout: 5000 });
 
@@ -949,7 +932,11 @@ export class ClanPage extends BasePage {
       await expect(this.selector.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
       await expect(this.selector.input.urlInvite).toHaveValue(/http/);
 
-      const urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
+      let urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
+
+      if (urlInvite.startsWith('http://127.0.0.1:4200')) {
+        urlInvite = urlInvite.replace('http://127.0.0.1:4200', 'https://dev-mezon.nccsoft.vn');
+      }
 
       /*
       Old flow: invite user directly from invite modal.
@@ -1004,7 +991,7 @@ export class ClanPage extends BasePage {
 
     try {
       await expect(messageWithUrl.first()).toBeVisible({ timeout: 5000 });
-    } catch (e) {
+    } catch {
       const allTexts = await messageSelector.messages.allInnerTexts();
       throw new Error(
         `❌ No message contains URL after 5s.\nExpected: ${url}\nMessages:\n${allTexts.join('\n---\n')}`
@@ -1018,34 +1005,11 @@ export class ClanPage extends BasePage {
     await expect(gotoClanButton).toBeVisible({ timeout: 10000 });
     await gotoClanButton.click();
     await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
-
-    /*
-    Old flow: click invite URL, open invite page in a new tab, then accept invite.
-    const [newPage] = await Promise.all([
-      this.page.waitForEvent('popup'),
-      messageWithUrl.getByText(url, { exact: false }).last().click(),
-    ]);
-
-    await newPage.waitForLoadState('domcontentloaded');
-
-    const clanInviteModal = new ClanInviteModal(newPage);
-
-    await expect(clanInviteModal.button.acceptInvite).toBeVisible({ timeout: 5000 });
-
-    const [redirectedPage] = await Promise.all([
-      newPage.waitForEvent('framenavigated'),
-      clanInviteModal.button.acceptInvite.click(),
-    ]);
-
-    await redirectedPage.waitForLoadState('networkidle');
-    */
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {
     await this.selector.buttons.memberListButton.click();
-    const userRow = this.page.locator(
-      `${generateE2eSelector('clan_page.member_list')}:has(${generateE2eSelector('clan_page.member_list.user_info.username')}:has-text("${username}"))`
-    );
+    const userRow = this.selector.member.getSettingsRow(username);
     await expect(userRow).toBeVisible({ timeout: 5000 });
 
     const addRoleButton = userRow.locator(
@@ -1066,7 +1030,11 @@ export class ClanPage extends BasePage {
 
     await expect(roleRow.first()).toBeVisible({ timeout: 5000 });
     await roleRow.first().click({ force: true });
-    await this.page.waitForTimeout(2000);
+    await expect(
+      userRow.locator(
+        `${generateE2eSelector('clan_page.member_list.role_settings.exist_role.role_name')}:has-text("${roleName.slice(0, 6)}")`
+      )
+    ).toBeVisible({ timeout: 5000 });
 
     const viewport = this.page.viewportSize();
     if (viewport) {
@@ -1082,9 +1050,7 @@ export class ClanPage extends BasePage {
   ) {
     await this.page.reload();
 
-    const userRow = this.page.locator(
-      `${generateE2eSelector('clan_page.member_list')}:has(${generateE2eSelector('clan_page.member_list.user_info.username')}:has-text("${username}"))`
-    );
+    const userRow = this.selector.member.getSettingsRow(username);
     await expect(userRow).toBeVisible({ timeout: 5000 });
 
     const roleLocator = userRow.locator(
@@ -1124,34 +1090,6 @@ export class ClanPage extends BasePage {
     await this.selector.buttons.confirm.click();
   }
 
-  async verifyUserHasRoleOnChannel(username: string, roleName: string, shouldVisible = true) {
-    await this.selector.sidebar.channelsList.first().click();
-    await expect(this.selector.header.button.member).toBeVisible({ timeout: 5000 });
-    await this.selector.header.button.member.click();
-
-    const memberRow = this.page.locator(
-      `${generateE2eSelector('chat.channel_message.member_list.item')}:has-text("${username}"))`
-    );
-    await expect(memberRow).toBeVisible({ timeout: 3000 });
-
-    await memberRow.click();
-
-    const popup = this.page.locator('div.fixed.z-50');
-    await expect(popup).toBeVisible({ timeout: 5000 });
-
-    const roleLocator = popup.locator(
-      `${generateE2eSelector('clan_page.channel_list.members.role.role_name')}:has-text("${roleName.slice(0, 6)}")`
-    );
-
-    if (shouldVisible) {
-      await expect(roleLocator).toBeVisible({ timeout: 3000 });
-    } else {
-      await expect(roleLocator).not.toBeVisible({ timeout: 3000 });
-    }
-
-    await this.page.keyboard.press('Escape');
-  }
-
   async verifyChannelNameOverviewWhenEditingChannelName(
     channelName: string,
     newChannelName: string
@@ -1189,8 +1127,8 @@ export class ClanPage extends BasePage {
   }
 
   async isJoinVoiceChannel(channelName: string): Promise<boolean> {
-    const userListLocator = this.selector.sidebar.channelItem.item
-      .filter({ has: this.selector.sidebar.channelItem.name.filter({ hasText: channelName }) })
+    const userListLocator = this.selector.channel
+      .getSidebarItem(channelName)
       .locator(this.selector.sidebar.channelItem.userList.item);
 
     const memberListLocator = this.selector.sidebarMemberList.memberItems;
@@ -1223,7 +1161,7 @@ export class ClanPage extends BasePage {
     try {
       await leaveButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
       await leaveButtonLocator.click();
-      await this.page.waitForTimeout(500);
+      await expect(this.selector.modal.voiceManagement.item).toBeHidden({ timeout: 5000 });
       return true;
     } catch {
       return false;
@@ -1231,9 +1169,8 @@ export class ClanPage extends BasePage {
   }
 
   async isLeaveVoiceChannel(channelName: string): Promise<boolean> {
-    await this.page.waitForTimeout(3000);
-    const userListLocator = this.selector.sidebar.channelItem.item
-      .filter({ has: this.selector.sidebar.channelItem.name.filter({ hasText: channelName }) })
+    const userListLocator = this.selector.channel
+      .getSidebarItem(channelName)
       .locator(this.selector.sidebar.channelItem.userList.item);
     const generalChannel = this.selector.sidebar.channelItem.name.filter({ hasText: 'general' });
     const membersButton = this.selector.header.button.member.nth(0);
@@ -1270,10 +1207,7 @@ export class ClanPage extends BasePage {
   }
 
   async openChannelByName(channelName: string) {
-    const channelLocator = this.page.locator(
-      generateE2eSelector('clan_page.channel_list.item.name'),
-      { hasText: channelName }
-    );
+    const channelLocator = this.page.locator(CHANNEL_NAME_SELECTOR, { hasText: channelName });
     await expect(channelLocator).toBeVisible({ timeout: 3000 });
     await channelLocator.click();
   }
@@ -1298,37 +1232,25 @@ export class ClanPage extends BasePage {
   }
 
   async markChannelAsFavorite(channelName: string) {
-    const channelLocator = this.page.locator(
-      generateE2eSelector('clan_page.channel_list.item.name'),
-      { hasText: channelName }
-    );
+    const channelLocator = this.page.locator(CHANNEL_NAME_SELECTOR, { hasText: channelName });
     await channelLocator.click({ button: 'right' });
     await this.selector.sidebar.panelItem.item.filter({ hasText: 'Mark Favorite' }).click();
   }
 
   async verifyChannelIsMarkedAsFavorite(channelName: string) {
-    const channelLocator = this.page.locator(
-      generateE2eSelector('clan_page.channel_list.item.name'),
-      { hasText: channelName }
-    );
+    const channelLocator = this.page.locator(CHANNEL_NAME_SELECTOR, { hasText: channelName });
     const count = await channelLocator.count();
     await expect(count).toBe(2);
   }
 
   async unmarkChannelAsFavorite(channelName: string) {
-    const channelLocator = this.page.locator(
-      generateE2eSelector('clan_page.channel_list.item.name'),
-      { hasText: channelName }
-    );
+    const channelLocator = this.page.locator(CHANNEL_NAME_SELECTOR, { hasText: channelName });
     await channelLocator.first().click({ button: 'right' });
     await this.selector.sidebar.panelItem.item.filter({ hasText: 'Unmark Favorite' }).click();
   }
 
   async verifyChannelIsUnmarkedAsFavorite(channelName: string) {
-    const channelLocator = this.page.locator(
-      generateE2eSelector('clan_page.channel_list.item.name'),
-      { hasText: channelName }
-    );
+    const channelLocator = this.page.locator(CHANNEL_NAME_SELECTOR, { hasText: channelName });
     const count = await channelLocator.count();
     await expect(count).toBe(1);
   }
@@ -1470,9 +1392,7 @@ export class ClanPage extends BasePage {
   }
 
   async getClanItemByName(clanName: string) {
-    return await this.page.locator(
-      `[data-e2e="clan_page-side_bar-clan_item"][title="${clanName}"]`
-    );
+    return this.selector.findClanByTitle(clanName);
   }
 
   async banUserByName(username: string) {
@@ -1600,25 +1520,18 @@ export class ClanPage extends BasePage {
 
   async fillCanvasTitle(title: string) {
     await this.selector.screen.canvasEditor.input.title.fill(title);
-    await this.page.waitForTimeout(500);
+    await expect(this.selector.screen.canvasEditor.input.title).toHaveValue(title);
   }
 
   async fillCanvasContent(content: string) {
     await this.selector.screen.canvasEditor.input.content.click();
     await this.page.keyboard.type(content);
-    await this.page.waitForTimeout(1000);
+    await expect(this.selector.screen.canvasEditor.input.content).toContainText(content);
   }
 
   async saveCanvas() {
     await this.selector.screen.canvasEditor.button.save.click();
     await expect(this.selector.screen.canvasEditor.button.save).toBeHidden({ timeout: 3000 });
-  }
-
-  async discardCanvas() {
-    await this.selector.screen.canvasEditor.button.discardChanges.click();
-    await expect(this.selector.screen.canvasEditor.button.discardChanges).toBeHidden({
-      timeout: 3000,
-    });
   }
 
   async deleteCanvas(canvasTitle: string) {
@@ -1674,7 +1587,7 @@ export class ClanPage extends BasePage {
   }
 
   async getMemberItemIn2ndSideBarbyUsername(username: string) {
-    return this.selector.secondarySideBar.member.item.filter({ hasText: username });
+    return this.selector.member.getSecondarySidebarMember(username);
   }
 
   async verifyCustomStatusSettedInMemberList(username: string, status: string) {
@@ -1770,9 +1683,7 @@ export class ClanPage extends BasePage {
   }
 
   async verifyChannelHasHighlight(channelName: string, shouldHighLight = true) {
-    const channelItem = this.selector.sidebar.channelItem.item.filter({
-      has: this.selector.sidebar.channelItem.name.filter({ hasText: channelName }),
-    });
+    const channelItem = this.selector.channel.getSidebarItem(channelName);
 
     const channelNameLocator = channelItem
       .locator(this.selector.sidebar.channelItem.name)
@@ -1794,10 +1705,53 @@ export class ClanPage extends BasePage {
     await this.selector.buttons.markAsRead.click();
   }
 
+  async openNotificationSettings(): Promise<void> {
+    await this.notifications.open();
+  }
+
+  async selectClanNotificationSetting(option: 'All' | 'Only @mention' | 'Nothing'): Promise<void> {
+    await this.notifications.selectSetting(option);
+  }
+
+  async closeNotificationSettings(): Promise<void> {
+    await this.notifications.close();
+  }
+
+  async verifyClanNotificationSettingSelected(
+    option: 'All' | 'Only @mention' | 'Nothing'
+  ): Promise<void> {
+    await this.notifications.verifySetting(option);
+  }
+
+  async addNotificationOverride(channelName: string): Promise<void> {
+    await this.notifications.addOverride(channelName);
+  }
+
+  async verifyNotificationOverrideControls(): Promise<void> {
+    await this.notifications.verifyOverrideControls();
+  }
+
+  async selectNotificationOverrideOption(option: 'ALL' | 'MENTIONS' | 'NOTHING'): Promise<void> {
+    await this.notifications.selectOverrideOption(option);
+  }
+
+  async setNotificationOverrideMute(checked: boolean): Promise<void> {
+    await this.notifications.setMute(checked);
+  }
+
+  async verifyNotificationOverrideState(
+    option: 'ALL' | 'MENTIONS' | 'NOTHING',
+    muted: boolean
+  ): Promise<void> {
+    await this.notifications.verifyOverrideState(option, muted);
+  }
+
+  async removeNotificationOverride(channelName: string): Promise<void> {
+    await this.notifications.removeOverride(channelName);
+  }
+
   async verifyChannelHasBadge(channelName: string, shouldHasBadge = true) {
-    const channelLocator = this.selector.sidebar.channelItem.item.filter({
-      hasText: channelName,
-    });
+    const channelLocator = this.selector.channel.getSidebarItem(channelName);
 
     const badge = channelLocator.locator('div[class*="absolute"][class*="ml-auto"]').last();
 
@@ -1945,9 +1899,7 @@ export class ClanPage extends BasePage {
   }
 
   async openMemberActionsMenu(username: string) {
-    const userRow = this.page.locator(
-      `${generateE2eSelector('clan_page.member_list')}:has(${generateE2eSelector('clan_page.member_list.user_info.username')}:has-text("${username}"))`
-    );
+    const userRow = this.selector.member.getSettingsRow(username);
     await expect(userRow).toBeVisible({ timeout: 5000 });
     await userRow.click({ button: 'right' });
   }
@@ -2086,9 +2038,6 @@ export class ClanPage extends BasePage {
       });
 
       await shareScreenButton.click();
-
-      await this.page.waitForTimeout(2_000);
-
       return await this.isScreenSharing();
     } catch (error) {
       console.error('Failed to share screen:', error);
@@ -2098,8 +2047,10 @@ export class ClanPage extends BasePage {
 
   async isScreenSharing(): Promise<boolean> {
     try {
-      const shareScreenButton = this.selector.screen.voiceRoom.shareScreenButton;
-      await shareScreenButton.waitFor({ state: 'visible', timeout: 5000 });
+      await this.selector.screen.voiceRoom.screenShareIcon.first().waitFor({
+        state: 'visible',
+        timeout: 10_000,
+      });
       return true;
     } catch {
       return false;

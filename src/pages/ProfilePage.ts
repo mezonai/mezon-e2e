@@ -56,10 +56,6 @@ export class ProfilePage extends BasePage {
     await this.selector.tabs.userProfile.click();
   }
 
-  async verifyDisplayNameUpdated(displayName: string) {
-    await expect(this.selector.inputs.displayName).toHaveValue(displayName, { timeout: 2000 });
-  }
-
   async verifyAboutMeStatusUpdated(aboutMeStatus: string) {
     await expect(this.selector.inputs.aboutMe).toHaveValue(aboutMeStatus, { timeout: 2000 });
   }
@@ -87,7 +83,9 @@ export class ProfilePage extends BasePage {
   async sendMessage(mentionText: string) {
     await this.selector.inputs.mention.first().fill(mentionText);
     await this.selector.inputs.mention.first().press('Enter');
-    await this.page.waitForTimeout(500);
+    await expect(new MessageSelector(this.page).messages.last()).toContainText(mentionText, {
+      timeout: 5000,
+    });
   }
 
   async verifyAboutMeStatusInShortProfile(aboutMeStatus: string) {
@@ -100,8 +98,6 @@ export class ProfilePage extends BasePage {
     try {
       const settingBtn = this.selector.buttons.userSettingProfile;
       await settingBtn.waitFor({ state: 'visible', timeout: 5000 });
-      // Add a small delay for UI animation if needed
-      await this.page.waitForTimeout(500);
       await settingBtn.click({ force: true });
 
       const logoutTab = this.selector.tabs.logout;
@@ -115,8 +111,9 @@ export class ProfilePage extends BasePage {
       await logoutButton.click({ force: true });
 
       return true;
-    } catch (e: any) {
-      console.warn(`clickLogout skipped. Could not complete logout flow: ${e.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`clickLogout skipped. Could not complete logout flow: ${message}`);
       return false;
     }
   }
@@ -167,10 +164,6 @@ export class ProfilePage extends BasePage {
 
   async getEditDisplayNameButton() {
     return this.selector.buttons.editDisplayName;
-  }
-
-  async getEditUserNameButton() {
-    return this.selector.buttons.editUserName;
   }
 
   async getSaveChangesUserProfile() {
@@ -240,9 +233,11 @@ export class ProfilePage extends BasePage {
   }
 
   async getProfileStatus(locator: Locator): Promise<string> {
-    // console.log(await locator.getAttribute('class'));
+    await expect.poll(() => this.readProfileStatus(locator), { timeout: 5000 }).not.toBe('Unknown');
+    return this.readProfileStatus(locator);
+  }
 
-    await this.page.waitForTimeout(2000);
+  private async readProfileStatus(locator: Locator): Promise<string> {
     const red = locator.locator('.bg-red-500');
     const green = locator.locator('.bg-green-500');
     const gray = locator.locator('.bg-gray-400');

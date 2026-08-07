@@ -20,6 +20,7 @@ on:
           - 'all'
           - 'standalone'
           - 'channel-management'
+          - 'channel-message-1'
           - 'channel-message-2'
           - 'channel-message-3'
           - 'channel-message-4'
@@ -127,12 +128,6 @@ jobs:
           echo $SERVER_PID > mezon-dev.pid
           echo "📋 Server PID: $SERVER_PID"
 
-          echo "⏱️ Waiting 60 seconds for initial startup..."
-          sleep 60
-
-          echo "📜 Initial server log output:"
-          head -50 mezon-dev.log || echo "No log file yet"
-
           echo "🔍 Checking if process is still running:"
           if ps -p $SERVER_PID > /dev/null; then
             echo "✅ Server process is running (PID: $SERVER_PID)"
@@ -162,6 +157,25 @@ jobs:
             cat ./mezon/mezon-dev.log || echo "No log file found"
             exit 1
           fi
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:4200/ > /dev/null; then
+              echo "✅ Mezon server is ready after ${attempt}s"
+              exit 0
+            fi
+
+            if ! ps -p $SERVER_PID > /dev/null; then
+              echo "❌ Server process stopped before becoming ready"
+              cat ./mezon/mezon-dev.log || true
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          echo "❌ Mezon server did not become ready within 60 seconds"
+          cat ./mezon/mezon-dev.log || true
+          exit 1
 
       - name: Create environment file
         working-directory: ./mezon-e2e

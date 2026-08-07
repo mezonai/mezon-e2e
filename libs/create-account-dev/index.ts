@@ -33,7 +33,7 @@ const promptOTP = (): Promise<string> => {
     const otpCode = await promptOTP();
 
     console.log('Confirming OTP...');
-    const session = await mezonClient.confirmEmailOTP({
+    const session = await mezonClient.confirmAuthenticateOTP({
       otp_code: otpCode,
       req_id: auth.req_id,
     });

@@ -8,6 +8,7 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test as base, expect, Page } from '@playwright/test';
 import { randomInt } from 'crypto';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
+import { CLIPBOARD_PERMISSIONS } from './ChannelMessageTestConstants';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 const test = base.extend<{
@@ -15,7 +16,7 @@ const test = base.extend<{
 }>({
   pageWithClipboard: async ({ browser }, use) => {
     const context = await browser.newContext({
-      permissions: ['clipboard-read', 'clipboard-write'],
+      permissions: CLIPBOARD_PERMISSIONS,
       baseURL: WEBSITE_CONFIGS.MEZON.baseURL,
     });
     const pageWithClipboard = await context.newPage();
@@ -73,9 +74,8 @@ test.describe('Channel Messages - Edit, Delete, Forward, and Pin', () => {
     const targetMessage = await messagePage.getLastMessageWithProfileName(messageToDelete);
 
     await messagePage.deleteLastMessage();
-    await pageWithClipboard.waitForTimeout(1000);
-    expect(targetMessage).toHaveCount(0);
-    expect(targetMessage).not.toBeAttached();
+    await expect(targetMessage).toHaveCount(0);
+    await expect(targetMessage).not.toBeAttached();
   });
 
   test('Edit message', async ({ pageWithClipboard }) => {
@@ -93,8 +93,8 @@ test.describe('Channel Messages - Edit, Delete, Forward, and Pin', () => {
     const editedContent = `Edited message ${Date.now()}`;
     const newMessage = await messagePage.editMessage(oldMessage, editedContent);
 
-    expect(newMessage).toHaveCount(1);
-    expect(newMessage).toBeVisible();
+    await expect(newMessage).toHaveCount(1);
+    await expect(newMessage).toBeVisible();
   });
 
   test('Forward message - select target and send', async ({ pageWithClipboard }) => {
@@ -121,8 +121,6 @@ test.describe('Channel Messages - Edit, Delete, Forward, and Pin', () => {
     const targetMessage = await messageHelpers.sendTextMessageAndGetItem(messageToForward);
 
     await messageHelpers.forwardMessage(targetMessage, 'general');
-
-    await pageWithClipboard.waitForTimeout(1500);
   });
 
   test('Pin message and verify in pinned modal', async ({ pageWithClipboard }) => {

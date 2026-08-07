@@ -1,10 +1,9 @@
 import FriendSelector from '@/data/selectors/FriendSelector';
 import ProfileSelector from '@/data/selectors/ProfileSelector';
+import { ToastSelector } from '@/data/selectors/ToastSelector';
 import { ROUTES } from '@/selectors';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import sleep from '@/utils/sleep';
 import { Locator, Page, expect } from '@playwright/test';
-import { ToastSelector } from './../data/selectors/ToastSelectort';
 import { BasePage } from './BasePage';
 const SUCCESS_MESSAGE = 'Friend request sent successfully!';
 const ALREADY_SENT_MESSAGE = 'You have already sent a friend request to this user!';
@@ -68,12 +67,11 @@ export class FriendPage extends BasePage {
     await this.gotoFriendsPage();
     try {
       // Try click with timeout 2s. If blocked, it will throw an error and go to catch.
+      await this.page.waitForTimeout(2000);
       await this.selector.tabs[tab].click({ timeout: 2000 });
       return this.getFriend(username);
     } catch (error) {
-      const cancelBtn = this.page.locator(
-        '[data-e2e="clan_page-settings-modal-permission-cancel"]'
-      );
+      const cancelBtn = this.selector.permissionModal.cancel;
       if (await cancelBtn.isVisible()) {
         await cancelBtn.first().click();
       } else {
@@ -147,7 +145,7 @@ export class FriendPage extends BasePage {
     await this.gotoFriendsPage();
     await this.clickPendingTab();
     await this.waitForFriendListVisible();
-    await sleep(300);
+    await expect(this.selector.buttons.acceptFriendRequest.first()).toBeVisible({ timeout: 5000 });
     await this.selector.buttons.acceptFriendRequest.first().click();
   }
 
@@ -165,9 +163,10 @@ export class FriendPage extends BasePage {
     await friendItem
       .locator(generateE2eSelector('friend_page.button.reject_friend_request'))
       .click();
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(500);
     await this.confirmRemoveFriend();
     await this.page.waitForTimeout(500);
+    await expect(friendItem).toBeHidden({ timeout: 5000 });
   }
 
   async cancelFriendRequest(username: string): Promise<void> {
@@ -176,9 +175,10 @@ export class FriendPage extends BasePage {
     await friendItem
       .locator(generateE2eSelector('friend_page.button.cancel_friend_request'))
       .click();
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(500);
     await this.confirmRemoveFriend();
     await this.page.waitForTimeout(500);
+    await expect(friendItem).toBeHidden({ timeout: 5000 });
   }
 
   async isSendRequestDisabled(): Promise<boolean> {
@@ -193,13 +193,13 @@ export class FriendPage extends BasePage {
     const friendItem = await this.friendExistsInTab(username, 'all');
     await friendItem.waitFor({ state: 'visible', timeout: 20000 });
     await friendItem.getByTitle('More').click();
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(500);
   }
 
   async blockFriend(username: string): Promise<void> {
     await this.openMoreMenuForFriend(username);
-    await this.page.getByRole('button', { name: /block/i }).last().click();
-
+    const blockButton = this.page.getByRole('button', { name: /block/i }).last();
+    await blockButton.click();
     await this.page.waitForTimeout(500);
   }
 
@@ -212,6 +212,7 @@ export class FriendPage extends BasePage {
     await blockButton.waitFor({ state: 'visible', timeout: 1000 });
     await blockButton.click();
     await this.page.waitForTimeout(500);
+    await expect(blockButton).toBeHidden({ timeout: 5000 });
   }
 
   async unblockFriend(username: string): Promise<void> {
@@ -219,6 +220,7 @@ export class FriendPage extends BasePage {
     await friendItem.waitFor({ state: 'visible', timeout: 1000 });
     await friendItem.getByRole('button', { name: /unblock/i }).click();
     await this.page.waitForTimeout(500);
+    await expect(friendItem).toBeHidden({ timeout: 5000 });
   }
 
   async removeFriend(username: string): Promise<void> {
@@ -228,14 +230,17 @@ export class FriendPage extends BasePage {
     }
     await this.openMoreMenuForFriend(username);
     await this.page.getByRole('button', { name: /remove/i }).click();
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(500);
     await this.confirmRemoveFriend();
     await this.page.waitForTimeout(500);
+    await expect(await this.getFriend(username)).toBeHidden({ timeout: 5000 });
   }
 
   async confirmRemoveFriend(): Promise<void> {
+    await expect(this.selector.buttons.confirmRemoveFriend).toBeVisible({ timeout: 3000 });
     await this.selector.buttons.confirmRemoveFriend.click();
     await this.page.waitForTimeout(500);
+    await expect(this.selector.buttons.confirmRemoveFriend).toBeHidden({ timeout: 5000 });
   }
 
   async removeFriendRequest(username: string): Promise<void> {
@@ -255,9 +260,10 @@ export class FriendPage extends BasePage {
       const cancelButtonCount = await cancelButton.count();
       if (cancelButtonCount > 0) {
         await cancelButton.click();
-        await this.page.waitForTimeout(300);
+        await this.page.waitForTimeout(500);
         await this.confirmRemoveFriend();
         await this.page.waitForTimeout(500);
+        await expect(friendItem).toBeHidden({ timeout: 5000 });
         return;
       }
       const rejectButton = friendItem.locator(
@@ -266,28 +272,27 @@ export class FriendPage extends BasePage {
       const rejectButtonCount = await rejectButton.count();
       if (rejectButtonCount > 0) {
         await rejectButton.click();
-        await this.page.waitForTimeout(300);
+        await this.page.waitForTimeout(500);
         await this.confirmRemoveFriend();
         await this.page.waitForTimeout(500);
+        await expect(friendItem).toBeHidden({ timeout: 5000 });
         return;
       }
     }
   }
 
   async assertAlreadySentRequestError(): Promise<void> {
-    await this.page.waitForTimeout(300);
     const errorMessage = this.selector.inputs.error;
-    expect(errorMessage).toHaveCount(1);
-    expect(errorMessage).toBeVisible();
-    expect(errorMessage).toHaveText(ALREADY_SENT_MESSAGE);
+    await expect(errorMessage).toHaveCount(1);
+    await expect(errorMessage).toBeVisible();
+    await expect(errorMessage).toHaveText(ALREADY_SENT_MESSAGE);
   }
 
   async assertAlreadyFriendError(): Promise<void> {
-    await this.page.waitForTimeout(300);
     const errorMessage = this.selector.inputs.error;
-    expect(errorMessage).toHaveCount(1);
-    expect(errorMessage).toBeVisible();
-    expect(errorMessage).toHaveText(ALREADY_FRIEND_MESSAGE);
+    await expect(errorMessage).toHaveCount(1);
+    await expect(errorMessage).toBeVisible();
+    await expect(errorMessage).toHaveText(ALREADY_FRIEND_MESSAGE);
   }
 
   async assertFriendRequestExists(username: string): Promise<void> {
@@ -303,10 +308,10 @@ export class FriendPage extends BasePage {
   }
 
   async assertBlockFriendNotVisible(username: string): Promise<void> {
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(500);
     const friend = await this.friendExistsInTab(username, 'block');
-    expect(friend).toHaveCount(0);
-    expect(friend).not.toBeVisible();
+    await expect(friend).toHaveCount(0);
+    await expect(friend).not.toBeVisible();
   }
 
   async checkFriendExists(username: string): Promise<boolean> {
@@ -317,10 +322,10 @@ export class FriendPage extends BasePage {
   }
 
   async assertFriendNotVisibleInCurrentTab(username: string): Promise<void> {
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(500);
     const friend = await this.friendExistsInTab(username, 'all');
-    expect(friend).toHaveCount(0);
-    expect(friend).not.toBeVisible();
+    await expect(friend).toHaveCount(0);
+    await expect(friend).not.toBeVisible();
   }
 
   async clearAddFriendInput(): Promise<void> {
@@ -397,20 +402,16 @@ export class FriendPage extends BasePage {
   async pinConversation(username: string) {
     const dmLocator = await this.getDMByUsername(username);
     await expect(dmLocator).toBeVisible({ timeout: 3000 });
-    await this.page.waitForTimeout(2000);
     await dmLocator.hover();
     await dmLocator.click({ button: 'right' });
-    const pinConversationButton = this.selector.dmFriendMenu.pinConvesation;
-    await this.page.waitForTimeout(2000);
+    const pinConversationButton = this.selector.dmFriendMenu.pinConversation;
+    await expect(pinConversationButton).toBeVisible({ timeout: 3000 });
     await pinConversationButton.click();
-    await this.page.waitForTimeout(1000);
+    await expect(this.getPinnedDM(username)).toBeVisible({ timeout: 5000 });
   }
 
   async verifyPinnedConversationInPinList(username: string, shouldVisible = true) {
-    const pinnedList = this.selector.dm.pinList;
-    const pinItemLocator = pinnedList.locator(
-      this.selector.dm.items.filter({ hasText: username }).first()
-    );
+    const pinItemLocator = this.getPinnedDM(username);
     const isVisible = await pinItemLocator.isVisible({ timeout: 2000 });
     if (shouldVisible) {
       expect(isVisible).toBeTruthy();
@@ -428,9 +429,15 @@ export class FriendPage extends BasePage {
     await dmLocator.hover();
     await this.page.waitForTimeout(2000);
     await dmLocator.click({ button: 'right' });
-    const unpinConversationButton = this.selector.dmFriendMenu.unPinConvesation;
+    const unpinConversationButton = this.selector.dmFriendMenu.unpinConversation;
     await this.page.waitForTimeout(2000);
     await unpinConversationButton.click();
-    await this.page.waitForTimeout(1000);
+    await expect(dmLocator).toBeHidden({ timeout: 5000 });
+  }
+
+  private getPinnedDM(username: string): Locator {
+    return this.selector.dm.pinList.locator(
+      this.selector.dm.items.filter({ hasText: username }).first()
+    );
   }
 }

@@ -228,21 +228,14 @@ export class FileSizeTestHelpers {
   // Generic verification method for most upload types
   private async verifyUpload(
     filePath: string,
-    expectedSuccess: boolean,
-    uploadType?: UploadType
+    expectedSuccess: boolean
   ): Promise<UploadVerificationResult> {
     const size = (await stat(filePath)).size;
-    const errorMessage = await this.waitForErrorModal();
+    const errorMessage = await this.waitForErrorModal(expectedSuccess ? 800 : 300);
 
     const success = !errorMessage;
 
-    if (expectedSuccess) {
-      await this.page.waitForTimeout(500);
-      const lateError = await this.waitForErrorModal();
-      if (lateError) {
-        return { success: false, fileSize: size, errorMessage: lateError };
-      }
-
+    if (expectedSuccess && success) {
       await this.waitForSuccessIndicator();
     }
 
@@ -259,7 +252,7 @@ export class FileSizeTestHelpers {
     const knownSelectors = [
       'input#upload_logo',
       'input#upload_banner_background',
-      '[data-e2e="user_setting.profile.clan_profile.button_change_avatar"] input[type="file"]',
+      `${generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')} input[type="file"]`,
       'label:has-text("Change avatar") input[type="file"]',
       'input[accept*=".jpg"], input[accept*=".jpeg"], input[accept*=".png"], input[accept*=".gif"], input[accept*="image"]',
       'input[accept*="audio/mp3"], input[accept*="audio/mpeg"], input[accept*="audio/wav"], input[accept*="audio"]',
@@ -290,13 +283,15 @@ export class FileSizeTestHelpers {
     }
   }
 
-  private async waitForErrorModal(): Promise<string | undefined> {
+  private async waitForErrorModal(timeout: number): Promise<string | undefined> {
     const modalValidate = this.page.locator(generateE2eSelector('modal.validate_file'));
     const modalValidateContent = this.page.locator(
       generateE2eSelector('modal.validate_file.content')
     );
 
-    if ((await this.visible(modalValidate)) === false) {
+    try {
+      await modalValidate.waitFor({ state: 'visible', timeout });
+    } catch {
       return undefined;
     }
     return await modalValidateContent.innerText();
@@ -304,7 +299,7 @@ export class FileSizeTestHelpers {
 
   private async waitForSuccessIndicator(): Promise<boolean> {
     const previewCandidates = [
-      this.page.locator('[data-e2e="mention.selected_file"]').locator('input#preview_img'),
+      this.page.locator(generateE2eSelector('mention.selected_file')).locator('input#preview_img'),
       this.page.locator('img, canvas').first(),
     ];
 
@@ -325,7 +320,9 @@ export class FileSizeTestHelpers {
               clearTimeout(timer);
               resolve();
             }
-          } catch {}
+          } catch {
+            // The candidate did not become visible; keep waiting on the others.
+          }
         });
       });
       return true;
@@ -341,7 +338,7 @@ export class FileSizeTestHelpers {
     expectedSuccess: boolean
   ): Promise<UploadVerificationResult> {
     await this.uploadFile(filePath, uploadType);
-    return await this.verifyUpload(filePath, expectedSuccess, uploadType);
+    return await this.verifyUpload(filePath, expectedSuccess);
   }
 
   // Public methods for uploading and verifying files
@@ -391,6 +388,6 @@ export class FileSizeTestHelpers {
     expectedSuccess: boolean
   ): Promise<UploadVerificationResult> {
     await this.uploadFile(filePath, uploadType);
-    return await this.verifyUpload(filePath, expectedSuccess, uploadType);
+    return await this.verifyUpload(filePath, expectedSuccess);
   }
 }

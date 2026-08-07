@@ -12,6 +12,10 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
 test.describe('Clan Management - Location Events and Channel Statistics', () => {
+  const EVENT_CREATION_TAG = 'event-creation';
+  const LOCATION_EVENT_TAG = 'location-event';
+  const VERIFY_EVENT_PRESENT_STEP = 'Verify event is present in event list';
+  const VERIFY_CHANNEL_PRESENT_STEP = 'Verify channel is present in channel list';
   const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account3;
   test.beforeAll(async ({ browser }) => {
@@ -63,7 +67,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
     **Expected Result:**Public Location event is created and visible in the clan's event list.
   `);
     await AllureReporter.addLabels({
-      tag: ['event-creation', 'Public-event', 'location-event'],
+      tag: [EVENT_CREATION_TAG, 'Public-event', LOCATION_EVENT_TAG],
     });
 
     const clanPage = new ClanPage(page);
@@ -91,7 +95,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
       await clanPage.clickCreateEventButton();
     });
 
-    await AllureReporter.step('Verify event is present in event list', async () => {
+    await AllureReporter.step(VERIFY_EVENT_PRESENT_STEP, async () => {
       const isCreatedEvent = await clanPage.verifyLastEventData({
         eventTopic: res.eventTopic,
         description: res.description,
@@ -139,7 +143,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
     **Expected Result:**Private Location event is created and visible in the clan's event list.
   `);
     await AllureReporter.addLabels({
-      tag: ['event-creation', 'Private-event', 'location-event'],
+      tag: [EVENT_CREATION_TAG, 'Private-event', LOCATION_EVENT_TAG],
     });
 
     const clanPage = new ClanPage(page);
@@ -156,7 +160,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
       await clanPage.createNewChannel(ChannelType.TEXT, textChannelName, ChannelStatus.PRIVATE);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_PRESENT_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(textChannelName);
       expect(isNewChannelPresent).toBe(true);
     });
@@ -188,7 +192,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
       await clanPage.clickCreateEventButton();
     });
 
-    await AllureReporter.step('Verify event is present in event list', async () => {
+    await AllureReporter.step(VERIFY_EVENT_PRESENT_STEP, async () => {
       const isCreatedEvent = await clanPage.verifyLastEventData({
         eventTopic: res.eventTopic,
         description: res.description,
@@ -236,7 +240,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
     **Expected Result:**Private event is created and visible in the clan's event list.
   `);
     await AllureReporter.addLabels({
-      tag: ['event-creation', 'Private-event'],
+      tag: [EVENT_CREATION_TAG, 'Private-event'],
     });
 
     const clanPage = new ClanPage(page);
@@ -259,7 +263,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
       await clanPage.verifyDataOnReviewTab(data);
       await clanPage.clickCreateEventButton();
     });
-    await AllureReporter.step('Verify event is present in event list', async () => {
+    await AllureReporter.step(VERIFY_EVENT_PRESENT_STEP, async () => {
       const isCreatedEvent = await clanPage.verifyLastEventData({
         eventTopic: res.eventTopic,
         description: res.description,
@@ -316,7 +320,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
       await clanPage.createNewChannel(ChannelType.VOICE, channelName, ChannelStatus.PUBLIC);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_PRESENT_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
@@ -325,7 +329,6 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
       'Verify number of channels in channels list match in channel management',
       async () => {
         await page.reload();
-        await page.waitForTimeout(2000);
         const countNumbersOfChannels = await clanPage.countChannelsOnChannelList();
         const res = await clanPage.getTotalChannels();
         expect(countNumbersOfChannels).toBe(res.totalChannels);
@@ -370,7 +373,7 @@ test.describe('Clan Management - Location Events and Channel Statistics', () => 
       await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_PRESENT_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });

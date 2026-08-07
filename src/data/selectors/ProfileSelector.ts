@@ -1,17 +1,20 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 
+const AVATAR_IMAGE_SELECTOR = generateE2eSelector('avatar.image');
+const ACCOUNT_INFO_SELECTOR = generateE2eSelector('user_setting.account.info');
+const USER_PROFILE_AVATAR_SELECTOR = generateE2eSelector(
+  'user_setting.profile.user_profile.preview.avatar'
+);
+
 export default class ProfileSelector {
-  constructor(private readonly page: Page) {
-    this.page = page;
-  }
+  constructor(private readonly page: Page) {}
 
   readonly buttons = {
     editUserprofile: this.page.locator(generateE2eSelector('user_setting.account.edit_profile')),
     editDisplayName: this.page.locator(
       generateE2eSelector('user_setting.account.edit_display_name')
     ),
-    editUserName: this.page.locator(generateE2eSelector('user_setting.account.edit_username')),
     saveChangesClanProfile: this.page.locator(
       `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
       { hasText: 'Save Changes' }
@@ -34,10 +37,8 @@ export default class ProfileSelector {
   };
 
   readonly accountPage = {
-    info: this.page.locator(generateE2eSelector('user_setting.account.info')),
-    image: this.page.locator(
-      `${generateE2eSelector('user_setting.account.info')} ${generateE2eSelector('avatar.image')}`
-    ),
+    info: this.page.locator(ACCOUNT_INFO_SELECTOR),
+    image: this.page.locator(`${ACCOUNT_INFO_SELECTOR} ${AVATAR_IMAGE_SELECTOR}`),
   };
 
   readonly tabs = {
@@ -57,18 +58,14 @@ export default class ProfileSelector {
   };
 
   readonly userProfile = {
-    avatar: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
-    ),
+    avatar: this.page.locator(`${USER_PROFILE_AVATAR_SELECTOR} ${AVATAR_IMAGE_SELECTOR}`),
     displayName: this.page.locator(
       `${generateE2eSelector('user_setting.profile.user_profile.preview.display_name')}`
     ),
   };
 
   readonly clanProfile = {
-    avatar: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
-    ),
+    avatar: this.page.locator(`${USER_PROFILE_AVATAR_SELECTOR} ${AVATAR_IMAGE_SELECTOR}`),
   };
 
   readonly inputs = {

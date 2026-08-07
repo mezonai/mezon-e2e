@@ -280,10 +280,10 @@ jobs:
 
             if [ "$RUN_MULTI_ROOT_TESTS" = "true" ]; then
               MULTI_TARGETS+=(
-                "src/tests/multi-chat/ChannelManagement.spec.ts"
-                "src/tests/multi-chat/MarkAsRead.spec.ts"
-                "src/tests/multi-chat/MemberManagement.spec.ts"
-                "src/tests/multi-chat/UserSettings.spec.ts"
+                "src/tests/multi-chat/ChannelManagement"
+                "src/tests/multi-chat/MarkAsRead"
+                "src/tests/multi-chat/MemberManagement"
+                "src/tests/multi-chat/UserSettings"
               )
             fi
             return 0

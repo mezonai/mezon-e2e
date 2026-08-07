@@ -1,22 +1,23 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 
+const SIDEBAR_ITEM_SELECTOR = generateE2eSelector('channel_setting_page.side_bar.item');
+const CHANNEL_PANEL_ITEM_SELECTOR = generateE2eSelector('clan_page.channel_list.panel.item');
+
 export default class ChannelSettingSelector {
-  constructor(private readonly page: Page) {
-    this.page = page;
-  }
+  constructor(private readonly page: Page) {}
 
   readonly side_bar_buttons = {
-    integrations: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
+    integrations: this.page.locator(SIDEBAR_ITEM_SELECTOR, {
       hasText: 'Integrations',
     }),
-    permissions: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
+    permissions: this.page.locator(SIDEBAR_ITEM_SELECTOR, {
       hasText: 'Permissions',
     }),
     channel_label: this.page.locator(
       generateE2eSelector('channel_setting_page.side_bar.channel_label')
     ),
-    quick_menu: this.page.locator(generateE2eSelector('channel_setting_page.side_bar.item'), {
+    quick_menu: this.page.locator(SIDEBAR_ITEM_SELECTOR, {
       hasText: 'Quick Actions',
     }),
     deleteChannel: this.page.locator(generateE2eSelector('button.base'), {
@@ -257,7 +258,7 @@ export default class ChannelSettingSelector {
       name: this.page.locator(generateE2eSelector('clan_page.channel_list.thread_item.name')),
     },
     panelItem: {
-      item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
+      item: this.page.locator(CHANNEL_PANEL_ITEM_SELECTOR),
     },
     channelsList: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
   };
@@ -277,19 +278,13 @@ export default class ChannelSettingSelector {
         generateE2eSelector('clan_page.settings.archived_channels.item.restore_button')
       ),
     },
-    archive_channel_button: this.page.locator(
-      generateE2eSelector('clan_page.channel_list.panel.item'),
-      {
-        hasText: 'Archive Channel',
-      }
-    ),
+    archive_channel_button: this.page.locator(CHANNEL_PANEL_ITEM_SELECTOR, {
+      hasText: 'Archive Channel',
+    }),
 
-    archive_thread_button: this.page.locator(
-      generateE2eSelector('clan_page.channel_list.panel.item'),
-      {
-        hasText: 'Archive Thread',
-      }
-    ),
+    archive_thread_button: this.page.locator(CHANNEL_PANEL_ITEM_SELECTOR, {
+      hasText: 'Archive Thread',
+    }),
     modal: {
       confirm_button: this.page.locator(generateE2eSelector('modal.confirm_modal.button.confirm'), {
         hasText: 'Archive',
@@ -298,10 +293,10 @@ export default class ChannelSettingSelector {
   };
 
   readonly mute_channel = {
-    mute_button: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+    mute_button: this.page.locator(CHANNEL_PANEL_ITEM_SELECTOR, {
       hasText: 'Mute Channel',
     }),
-    unmute_button: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item'), {
+    unmute_button: this.page.locator(CHANNEL_PANEL_ITEM_SELECTOR, {
       hasText: 'Unmute Channel',
     }),
   };
