@@ -158,7 +158,9 @@ test.describe('Direct Messages - Invoice Status, Conversation Pins, and Group Ca
 
     await AllureReporter.step('Add friend with a user and create dm', async () => {
       await friendPage.gotoFriendsPage();
+      await page.waitForTimeout(3000);
       await messagePage.openSearchModalbyPressCtrlK();
+      await page.waitForTimeout(1000);
       await messageHelpers.openDMByNameOnsearchModal(userNameB);
     });
 
@@ -196,7 +198,9 @@ test.describe('Direct Messages - Invoice Status, Conversation Pins, and Group Ca
 
     await AllureReporter.step('Add friend with a user and create dm', async () => {
       await friendPage.gotoFriendsPage();
+      await page.waitForTimeout(3000);
       await messagePage.openSearchModalbyPressCtrlK();
+      await page.waitForTimeout(1000);
       await messageHelpers.openDMByNameOnsearchModal(userNameB);
     });
 
