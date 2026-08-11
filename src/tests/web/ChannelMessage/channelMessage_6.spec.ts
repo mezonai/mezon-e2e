@@ -15,6 +15,7 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Chat', () => {
+  const CHANNEL_MESSAGE_TAG = 'channel-message';
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
@@ -71,7 +72,7 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
       `);
 
     await AllureReporter.addLabels({
-      tag: ['flash-message', 'quick-menu', 'channel-message'],
+      tag: ['flash-message', 'quick-menu', CHANNEL_MESSAGE_TAG],
     });
 
     const clanPage = new ClanPage(page);
@@ -125,7 +126,7 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
       `);
 
     await AllureReporter.addLabels({
-      tag: ['pin-message', 'channel-message', 'edit-message'],
+      tag: ['pin-message', CHANNEL_MESSAGE_TAG, 'edit-message'],
     });
 
     const originalMessage = `original message - ${generateRandomString(10)}`;
@@ -205,7 +206,6 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
       await clanPage.copyVoiceChannelLink();
       await clanPage.openChannelByName('general');
       await messageHelper.pasteAndSendText();
-      await page.waitForTimeout(3000);
     });
 
     await AllureReporter.step('Verify voice channel link is sent', async () => {
@@ -239,7 +239,7 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
     `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'jump-to-pinned-edited-message'],
+      tag: [CHANNEL_MESSAGE_TAG, 'jump-to-pinned-edited-message'],
     });
     const clanPage = new ClanPage(page);
     const messagePage = new MessagePage(page);
@@ -259,7 +259,6 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
     });
 
     await AllureReporter.step('Edit the message content', async () => {
-      await page.waitForTimeout(1000);
       await messageHelper.editMessage(lastMessage, editedMessage);
     });
 
@@ -328,7 +327,6 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
     await AllureReporter.step('Open chat box on channel', async () => {
       await messageHelper.openChatBox();
       await profilePage.sendMessage(message);
-      await page.waitForTimeout(2000);
     });
 
     await AllureReporter.step('Veirify message is visible on chat box', async () => {

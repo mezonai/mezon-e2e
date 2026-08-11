@@ -25,6 +25,18 @@ const getInsecureLocalOriginArgs = (): string[] => {
   }
 };
 
+const getHostResolverArgs = (): string[] => {
+  const devHostIp = process.env.DEV_HOST_IP?.trim();
+  const devMmnHostIp = process.env.DEV_MMN_HOST_IP?.trim();
+  const rules = [
+    devHostIp ? `MAP dev-mezon.nccsoft.vn ${devHostIp}` : '',
+    devHostIp ? `MAP dev-mezon-sock.nccsoft.vn ${devHostIp}` : '',
+    devMmnHostIp ? `MAP dev-mmn.nccsoft.vn ${devMmnHostIp}` : '',
+  ].filter(Boolean);
+
+  return rules.length > 0 ? [`--host-resolver-rules=${rules.join(',')}`] : [];
+};
+
 export default defineConfig({
   testDir: './src/tests',
   // testMatch: [
@@ -87,19 +99,21 @@ export default defineConfig({
     baseURL: process.env.BASE_URL as string,
     // trace: process.env.CI ? 'retain-on-failure' : 'on',
     // video: 'retain-on-failure',
-    trace: process.env.ENABLE_TRACE === 'true' ? 'on-first-retry' : 'off',
+    trace: process.env.ENABLE_TRACE === 'true' ? 'retain-on-failure' : 'off',
     video: process.env.ENABLE_VIDEO === 'true' ? 'retain-on-failure' : 'off',
     screenshot: 'only-on-failure',
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
     actionTimeout: 10 * 1000,
     navigationTimeout: 30 * 1000,
+    launchOptions: {
+      args: getHostResolverArgs(),
+    },
   },
   projects: [
     {
       name: 'Chrome',
       testDir: './src/tests/web',
-      testIgnore: [/CleanUp\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
@@ -110,7 +124,7 @@ export default defineConfig({
     {
       name: 'cleanup',
       testDir: './src/tests/cleanup',
-      testMatch: /CleanUp\.spec\.ts/,
+      testMatch: /CleanUp_\d+\.spec\.ts/,
       fullyParallel: true,
       use: {
         ...devices['Desktop Chrome'],
@@ -144,6 +158,7 @@ export default defineConfig({
             '--auto-select-desktop-capture-source=Entire screen',
             '--use-fake-device-for-media-stream',
             ...getInsecureLocalOriginArgs(),
+            ...getHostResolverArgs(),
           ],
         },
       },

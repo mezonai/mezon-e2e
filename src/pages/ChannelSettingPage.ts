@@ -15,8 +15,9 @@ export class ChannelSettingPage extends BasePage {
   async createChannelWebhook(): Promise<void> {
     await this.selector.side_bar_buttons.integrations.click();
     await this.selector.webhook.create_webhook_button.click();
+    await expect(this.selector.webhook.new_webhook_button).toBeVisible({ timeout: 5000 });
     await this.selector.webhook.new_webhook_button.click();
-    await this.page.waitForTimeout(500);
+    await expect(this.selector.webhook.view_webhook_button).toBeVisible({ timeout: 5000 });
     await this.selector.webhook.view_webhook_button.click();
     await this.page.waitForTimeout(500);
   }
@@ -36,7 +37,6 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async verifyChannelStatusIsPrivate(channelName: string): Promise<boolean> {
-    // await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(2000);
 
     try {
@@ -75,7 +75,6 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async verifyChannelStatusIsPublic(channelName: string): Promise<boolean> {
-    // await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(2000);
     try {
       await this.selector.permissions.section.member_role_section.waitFor({ state: 'hidden' });
@@ -100,7 +99,7 @@ export class ChannelSettingPage extends BasePage {
     await expect(this.selector.side_bar_buttons.quick_menu).toBeVisible({ timeout: 3000 });
 
     await this.selector.side_bar_buttons.quick_menu.click();
-    await this.page.waitForTimeout(500);
+    await expect(this.selector.quick_menu.flashMessagesTab).toBeVisible({ timeout: 3000 });
   }
 
   async openFlashMessageModal(): Promise<void> {
@@ -119,7 +118,7 @@ export class ChannelSettingPage extends BasePage {
     await this.selector.quick_menu.modal.input.command.fill(command);
     await this.selector.quick_menu.modal.input.messageContent.fill(messageContent);
     await this.selector.quick_menu.modal.button.submit.click();
-    expect(this.selector.quick_menu.modal.container).toBeHidden({ timeout: 5000 });
+    await expect(this.selector.quick_menu.modal.container).toBeHidden({ timeout: 5000 });
   }
 
   async verifyFlashMessageInQuickMenuList(command: string, messageContent: string): Promise<void> {
@@ -158,7 +157,7 @@ export class ChannelSettingPage extends BasePage {
     await confirmButton.click();
 
     await expect(popup).toBeHidden({ timeout: 5000 });
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(1000);
   }
 
   async openPermissionsTab() {
@@ -260,7 +259,7 @@ export class ChannelSettingPage extends BasePage {
     const save_changes = this.selector.permissions.modal.ask_change.button.save_changes;
     await expect(save_changes).toBeVisible({ timeout: 3000 });
     await save_changes.click();
-    await this.page.waitForTimeout(2000);
+    await expect(save_changes).toBeHidden({ timeout: 5000 });
   }
 
   async verifyRoleAndMemberExistAfterSave(roleName: string, memberName: string) {
@@ -346,7 +345,10 @@ export class ChannelSettingPage extends BasePage {
     await expect(confirmButton).toBeVisible({ timeout: 5000 });
     await confirmButton.click();
     await expect(confirmButton).toBeHidden({ timeout: 5000 });
-    await this.page.waitForTimeout(2000);
+    const archivedItem = isThread
+      ? this.selector.sidebar.threadItem.name.filter({ hasText: channelName })
+      : this.selector.sidebar.channelItem.name.filter({ hasText: channelName });
+    await expect(archivedItem).toBeHidden({ timeout: 5000 });
   }
 
   async isChannelInArchivedList(channelName: string): Promise<boolean> {
@@ -376,6 +378,6 @@ export class ChannelSettingPage extends BasePage {
       .locator(generateE2eSelector('clan_page.settings.archived_channels.item.restore_button'))
       .first();
     await restoreButton.click();
-    await this.page.waitForTimeout(2000);
+    await expect(archivedChannelItem).toBeHidden({ timeout: 5000 });
   }
 }

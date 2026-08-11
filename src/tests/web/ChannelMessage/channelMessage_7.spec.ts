@@ -12,6 +12,8 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
 
 test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
+  const TEXT_CHANNEL_TAG = 'text-channel';
+  const CHANNEL_MESSAGE_TAG = 'channel-message';
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account5;
   test.beforeAll(async ({ browser }) => {
@@ -95,7 +97,6 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
       await messageHelper.openGifsTrending();
       const res = await messageHelper.sendGifsMessage();
       gifName = res;
-      await page.waitForTimeout(2000);
     });
 
     await AllureReporter.step('Veirify message is visible on chat box', async () => {
@@ -104,7 +105,6 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
     });
 
     await AllureReporter.step('Verify modal error not visible', async () => {
-      await page.waitForTimeout(2000);
       const errorModal = await messageHelper.isErrorModalVisible();
       expect(errorModal).toBeFalsy();
     });
@@ -119,7 +119,7 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
     });
 
     await AllureReporter.addLabels({
-      tag: ['text-channel', 'GIF-message', 'chat-box'],
+      tag: [TEXT_CHANNEL_TAG, 'GIF-message', 'chat-box'],
     });
 
     const messageHelper = new MessageTestHelpers(page);
@@ -130,7 +130,6 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
       await messageHelper.openGifsTrending();
       const res = await messageHelper.sendGifsMessage();
       gifName = res;
-      await page.waitForTimeout(2000);
     });
 
     await AllureReporter.step('Veirify message is visible on chat box', async () => {
@@ -167,7 +166,7 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
   `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'anonymous', 'text-channel'],
+      tag: [CHANNEL_MESSAGE_TAG, 'anonymous', TEXT_CHANNEL_TAG],
     });
 
     const messageText = `Anonymous message ${Date.now()}`;
@@ -209,7 +208,7 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
   `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'anonymous', 'text-channel', 'prevent-anonymous'],
+      tag: [CHANNEL_MESSAGE_TAG, 'anonymous', TEXT_CHANNEL_TAG, 'prevent-anonymous'],
     });
 
     const messagePage = new MessagePage(page);
@@ -223,7 +222,6 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
 
     await AllureReporter.step('Enable anonymous mode', async () => {
       await page.keyboard.press('Control+Shift+Enter');
-      await page.waitForTimeout(3000);
     });
 
     await AllureReporter.step('Verify anonymous icon is not visible', async () => {
@@ -247,7 +245,7 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
       **Expected Result:** User can add message to inbox and verify message is present in inbox
     `);
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'inbox', 'add-to-inbox'],
+      tag: [CHANNEL_MESSAGE_TAG, 'inbox', 'add-to-inbox'],
     });
     const messageHelper = new MessageTestHelpers(page);
     const messageContent = `Test inbox message ${Date.now()}`;

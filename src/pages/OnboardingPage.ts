@@ -1,6 +1,5 @@
 import ClanSelector from '@/data/selectors/ClanSelector';
 import type { OnboardingTaskType } from '@/types/onboarding.types';
-import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, type Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
@@ -10,34 +9,8 @@ export class OnboardingPage extends BasePage {
     super(page, baseURL);
     this.selector = new ClanSelector(page);
   }
-  private readonly onboardingGuideSelectors = [
-    '[data-testid="onboarding-guide"]',
-    '.onboarding-guide',
-    'div:has-text("Onboarding guide")',
-    'div:has-text("Invite your friends")',
-    '.invite-friends-container',
-    '[aria-label*="onboarding" i]',
-    '.guide-container',
-    '.onboarding-container',
-    'div:has(div:has-text("Invite your friends"))',
-  ];
-
-  private readonly taskContainerSelectorByType: Record<OnboardingTaskType, string> = {
-    sendFirstMessage: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Send your first message")`,
-    invitePeople: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Invite your friends")`,
-    createChannel: `${generateE2eSelector('onboarding.chat.guide_sections')}, div:has-text("Create your channel")`,
-  };
-
-  private readonly taskDoneIndicators = [
-    'div.rounded-full.bg-green-600',
-    'div.flex.items-center.justify-center.rounded-full.aspect-square.h-8.bg-green-600',
-    '.bg-green-600.rounded-full',
-    '.bg-green-600',
-    'div.bg-green-600',
-  ];
-
   async openOnboardingGuide(): Promise<boolean> {
-    for (const selector of this.onboardingGuideSelectors) {
+    for (const selector of this.selector.onboarding.guideCandidates) {
       try {
         const element = this.page.locator(selector).first();
         if (await element.isVisible({ timeout: 3000 })) {
@@ -54,7 +27,7 @@ export class OnboardingPage extends BasePage {
   }
 
   async isOnboardingGuideVisible(): Promise<boolean> {
-    for (const selector of this.onboardingGuideSelectors) {
+    for (const selector of this.selector.onboarding.guideCandidates) {
       try {
         const element = this.page.locator(selector).first();
         if (await element.isVisible({ timeout: 2000 })) {
@@ -71,13 +44,13 @@ export class OnboardingPage extends BasePage {
   async getTaskStatus(
     taskType: OnboardingTaskType
   ): Promise<{ found: boolean; isDone: boolean; selector?: string }> {
-    const containerSelector = this.taskContainerSelectorByType[taskType];
-    const container = this.page.locator(containerSelector).first();
+    const containerSelector = this.selector.onboarding.getTaskContainerSelector(taskType);
+    const container = this.selector.onboarding.getTaskContainer(taskType);
 
     try {
       const visible = await container.isVisible({ timeout: 3000 });
       if (!visible) return { found: false, isDone: false };
-      for (const doneSelector of this.taskDoneIndicators) {
+      for (const doneSelector of this.selector.onboarding.taskDoneIndicators) {
         try {
           const doneIndicator = container.locator(doneSelector).first();
           if (await doneIndicator.isVisible({ timeout: 800 })) {
@@ -135,15 +108,25 @@ export class OnboardingPage extends BasePage {
     await this.selector.onboarding.buttons.enableOnboarding.click();
   }
 
+  async clickDisableOnboarding() {
+    await this.selector.onboarding.buttons.disableOnboarding.click();
+  }
+
   async addPrequestionOnboaring(question: string, answerTitle: string, answerDescription: string) {
     await this.selector.onboarding.setupQuestion.item.click();
     await this.selector.onboarding.setupQuestion.button.addQuestion.click();
-    this.page.waitForTimeout(500);
+    await expect(this.selector.onboarding.setupQuestion.button.questionItem.first()).toBeVisible({
+      timeout: 5000,
+    });
     await this.selector.onboarding.setupQuestion.button.questionItem.first().click();
-    this.page.waitForTimeout(500);
+    await expect(this.selector.onboarding.setupQuestion.input.question).toBeVisible({
+      timeout: 5000,
+    });
     await this.selector.onboarding.setupQuestion.input.question.fill(question);
     await this.selector.onboarding.setupQuestion.button.addAnswer.click();
-    this.page.waitForTimeout(500);
+    await expect(this.selector.onboarding.setupQuestion.input.answerTitle).toBeVisible({
+      timeout: 5000,
+    });
     await this.selector.onboarding.setupQuestion.input.answerTitle.fill(answerTitle);
     await this.selector.onboarding.setupQuestion.input.answerDescription.fill(answerDescription);
     await this.selector.onboarding.setupQuestion.button.confirmAnswer.click();
@@ -195,7 +178,7 @@ export class OnboardingPage extends BasePage {
       case 'question': {
         if (!question) return;
 
-        await expect(questionLocator).toHaveText(question);
+        await expect(questionLocator.first()).toHaveText(question);
         await expect(titleLocator.first()).toHaveText(title);
 
         if (description) {
