@@ -5,6 +5,8 @@ import { BasePage } from './BasePage';
 import { HomePage } from './HomePage';
 
 export class LoginPage extends BasePage {
+  private readonly authDiagnostics: string[] = [];
+
   private selectors = {
     emailInput:
       'input#inputEmail, input[placeholder="Email address"], input[type="email"], input[name="email"]',
@@ -20,7 +22,39 @@ export class LoginPage extends BasePage {
 
   constructor(page: Page) {
     super(page, WEBSITE_CONFIGS.MEZON.baseURL);
+
+    page.on('requestfailed', request => {
+      this.addAuthDiagnostic(
+        `request failed: ${request.method()} ${this.sanitizeUrl(request.url())} (${request.failure()?.errorText || 'unknown error'})`
+      );
+    });
+    page.on('response', response => {
+      if (response.status() >= 400) {
+        this.addAuthDiagnostic(
+          `HTTP ${response.status()}: ${response.request().method()} ${this.sanitizeUrl(response.url())}`
+        );
+      }
+    });
+    page.on('pageerror', error => {
+      this.addAuthDiagnostic(`page error: ${error.message}`);
+    });
   }
+
+  private addAuthDiagnostic(message: string): void {
+    if (this.authDiagnostics.length < 30) {
+      this.authDiagnostics.push(message);
+    }
+  }
+
+  private sanitizeUrl(rawUrl: string): string {
+    try {
+      const url = new URL(rawUrl);
+      return `${url.origin}${url.pathname}`;
+    } catch {
+      return rawUrl.split('?')[0];
+    }
+  }
+
   private async clickLogin(): Promise<void> {
     const currentUrl = this.page.url();
     if (currentUrl.includes('/login/callback')) {
@@ -63,16 +97,29 @@ export class LoginPage extends BasePage {
         lastError = error;
 
         if (attempt === 1) {
-          console.warn(
-            `Authenticated app was not ready after login; reloading once (${this.page.url()})`
-          );
-          await this.page.reload({ waitUntil: 'domcontentloaded' });
+          const currentUrl = this.sanitizeUrl(this.page.url());
+          if (currentUrl.endsWith('/login/callback')) {
+            // OAuth authorization codes are single-use. Reloading the callback
+            // can submit the same code twice, so give app hydration more time.
+            console.warn(
+              `Authenticated callback is still processing; waiting longer (${currentUrl})`
+            );
+          } else {
+            console.warn(`Authenticated app was not ready; reloading once (${currentUrl})`);
+            await this.page.reload({ waitUntil: 'domcontentloaded' });
+          }
         }
       }
     }
 
     const reason = lastError instanceof Error ? lastError.message : String(lastError);
-    throw new Error(`Authenticated app did not become ready at ${this.page.url()}: ${reason}`);
+    const diagnostics =
+      this.authDiagnostics.length > 0
+        ? `\nAuthentication diagnostics:\n- ${this.authDiagnostics.join('\n- ')}`
+        : '\nAuthentication diagnostics: no failed requests, HTTP errors or page errors captured';
+    throw new Error(
+      `Authenticated app did not become ready at ${this.sanitizeUrl(this.page.url())}: ${reason}${diagnostics}`
+    );
   }
 
   async loginWithPassword(email: string, password: string): Promise<void> {
