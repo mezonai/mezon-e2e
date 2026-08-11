@@ -25,6 +25,13 @@ const getInsecureLocalOriginArgs = (): string[] => {
   }
 };
 
+const getHostResolverArgs = (): string[] => {
+  const devHostIp = process.env.DEV_HOST_IP?.trim();
+  return devHostIp
+    ? [`--host-resolver-rules=MAP dev-mezon.nccsoft.vn ${devHostIp}`]
+    : [];
+};
+
 export default defineConfig({
   testDir: './src/tests',
   // testMatch: [
@@ -94,6 +101,9 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
     actionTimeout: 10 * 1000,
     navigationTimeout: 30 * 1000,
+    launchOptions: {
+      args: getHostResolverArgs(),
+    },
   },
   projects: [
     {
@@ -144,6 +154,7 @@ export default defineConfig({
             '--auto-select-desktop-capture-source=Entire screen',
             '--use-fake-device-for-media-stream',
             ...getInsecureLocalOriginArgs(),
+            ...getHostResolverArgs(),
           ],
         },
       },

@@ -96,6 +96,7 @@ jobs:
 
     env:
       ALLURE_VERCEL_ROOT: /home/nccsoft/allure-vercel-reports
+      DEV_HOST_IP: 172.16.100.198
       # Fixed browser path pre-installed on the VPS (one-time setup).
       # Playwright skips the download when the matching version already exists here.
       PLAYWRIGHT_BROWSERS_PATH: /home/member/pw-browsers
@@ -215,12 +216,75 @@ jobs:
           exit 1
 
       # -----------------------------------------------------------------------
-      # 5. Create .env file
+      # 5. Verify that the dev environment is reachable through the VPN
+      # -----------------------------------------------------------------------
+      - name: Verify dev environment access
+        timeout-minutes: 1
+        run: |
+          echo "=== Checking VPN route ==="
+          ROUTE=$(ip route get "$DEV_HOST_IP")
+          echo "$ROUTE"
+
+          if ! grep -q 'dev tun0' <<< "$ROUTE"; then
+            echo "::error::$DEV_HOST_IP is not routed through tun0"
+            exit 1
+          fi
+
+          echo "=== Checking dev-mezon ==="
+          HTTP_CODE=$(curl \
+            -sS \
+            -4 \
+            -L \
+            --resolve "dev-mezon.nccsoft.vn:443:$DEV_HOST_IP" \
+            -o /dev/null \
+            -w "%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 20 \
+            https://dev-mezon.nccsoft.vn/) || {
+              echo "::error::Cannot connect to dev-mezon.nccsoft.vn"
+              exit 1
+            }
+
+          echo "HTTP status: $HTTP_CODE"
+
+          if [[ "$HTTP_CODE" -lt 200 || "$HTTP_CODE" -ge 400 ]]; then
+            echo "::error::dev-mezon.nccsoft.vn is not accessible. HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "dev-mezon.nccsoft.vn is accessible"
+
+          echo "=== Checking dev-mezon API (port 7305) ==="
+          API_HTTP_CODE=$(curl \
+            -sS \
+            -4 \
+            --resolve "dev-mezon.nccsoft.vn:7305:$DEV_HOST_IP" \
+            -o /dev/null \
+            -w "%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 20 \
+            https://dev-mezon.nccsoft.vn:7305/) || {
+              echo "::error::Cannot connect to dev-mezon API on port 7305"
+              exit 1
+            }
+
+          echo "API HTTP status: $API_HTTP_CODE"
+
+          if [[ "$API_HTTP_CODE" == "000" ]]; then
+            echo "::error::dev-mezon API did not return an HTTP response"
+            exit 1
+          fi
+
+          echo "dev-mezon API is reachable"
+
+      # -----------------------------------------------------------------------
+      # 6. Create .env file
       # -----------------------------------------------------------------------
       - name: Create environment file
         run: |
           cat > .env << 'EOF'
           BASE_URL=https://dev-mezon.nccsoft.vn/
+          DEV_HOST_IP=172.16.100.198
           WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false
@@ -230,7 +294,7 @@ jobs:
           echo "--- .env contents ---" && cat .env
 
       # -----------------------------------------------------------------------
-      # 6. Run Playwright tests
+      # 7. Run Playwright tests
       #    continue-on-error: true — test failures must NOT block report generation
       # -----------------------------------------------------------------------
       - name: Clean previous test artifacts
@@ -334,7 +398,7 @@ jobs:
         continue-on-error: true
 
       # -----------------------------------------------------------------------
-      # 7. Stage Web results or merge them into the Multi results
+      # 8. Stage Web results or merge them into the Multi results
       # -----------------------------------------------------------------------
       - name: Stage Web results for the midnight report
         if: always() && steps.phase.outputs.phase == 'web'
@@ -382,7 +446,7 @@ jobs:
           echo "Combined raw result count: $COMBINED_COUNT"
 
       # -----------------------------------------------------------------------
-      # 8. Generate the combined report and deploy only after Multi
+      # 9. Generate the combined report and deploy only after Multi
       # -----------------------------------------------------------------------
       - name: Generate Allure report and deploy to Vercel
         id: deploy_report
@@ -425,7 +489,7 @@ jobs:
           fi
 
       # -----------------------------------------------------------------------
-      # 9. Disconnect VPN — cleanup, always runs
+      # 10. Disconnect VPN — cleanup, always runs
       # -----------------------------------------------------------------------
       - name: Disconnect VPN
         if: always()
@@ -440,7 +504,7 @@ jobs:
           fi
 
       # -----------------------------------------------------------------------
-      # 10. Upload any remaining allure-results for debugging
+      # 11. Upload any remaining allure-results for debugging
       # -----------------------------------------------------------------------
       - name: Upload allure-results artifact (debug fallback)
         if: always()
