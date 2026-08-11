@@ -348,7 +348,6 @@ jobs:
           DEV_MMN_HOST_IP=172.16.100.180
           WORKERS=1
           CI=true
-          ENABLE_TRACE=true
           MEZON_NOTIFICATIONS=false
           TEST_GAP_MS=10000
           EOF
@@ -574,17 +573,5 @@ jobs:
         with:
           name: allure-results-${{ steps.phase.outputs.phase }}-${{ steps.phase.outputs.report_date }}-${{ github.run_id }}
           path: allure-results/
-          retention-days: 3
-          if-no-files-found: ignore
-
-      # -----------------------------------------------------------------------
-      # 12. Upload Playwright traces separately from the Allure report
-      # -----------------------------------------------------------------------
-      - name: Upload Playwright traces
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-traces-${{ steps.phase.outputs.phase }}-${{ steps.phase.outputs.report_date }}-${{ github.run_id }}
-          path: test-results/**/trace.zip
           retention-days: 3
           if-no-files-found: ignore

@@ -1253,13 +1253,14 @@ export class MessageTestHelpers extends MessageContentHelpers {
   }
 
   async verifyReplyMessageIsVisibleInMainChat() {
-    const lastMessage = await this.selector.messages.last();
+    await this.page.waitForTimeout(2000);
+    const lastMessage = this.selector.messages.last();
     const replyMessageLocator = lastMessage.locator(generateE2eSelector('replied_message.item'));
     await expect(replyMessageLocator).toBeVisible({ timeout: 3000 });
   }
 
   async verifyReplyMessageIsVisibleInTopicBox(replyMessage: string) {
-    const topicMessageLocator = await this.selector.topicMessages.filter({ hasText: replyMessage });
+    const topicMessageLocator = this.selector.topicMessages.filter({ hasText: replyMessage });
     const replyMessageLocator = topicMessageLocator.locator(
       generateE2eSelector('replied_message.item')
     );

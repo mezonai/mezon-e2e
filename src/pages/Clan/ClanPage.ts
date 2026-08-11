@@ -857,12 +857,13 @@ export class ClanPage extends BasePage {
   }
 
   async countChannelsOnChannelList() {
-    await expect(this.selector.sidebar.channelsList.first()).toBeVisible({ timeout: 5000 });
+    await this.page.waitForTimeout(3000);
     return await this.selector.sidebar.channelsList.count();
   }
 
   async getTotalChannels() {
     await this.selector.buttons.channelManagementButton.click();
+    await this.page.waitForTimeout(2000);
     await expect(this.selector.channelManagement.totalChannels).toBeVisible({ timeout: 5000 });
     const text = await this.selector.channelManagement.totalChannels.innerText();
     const countChannelItems = await this.selector.channelManagement.channelItem.count();
@@ -872,6 +873,7 @@ export class ClanPage extends BasePage {
   }
 
   async countMessagesOnChannel() {
+    await this.page.waitForTimeout(3000);
     const messageSelector = new MessageSelector(this.page);
     return (await messageSelector.messages.count()) + 1;
   }
