@@ -11,12 +11,10 @@ import pressEsc from '@/utils/pressEsc';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { BrowserContext, expect, Page, test, TestInfo } from '@playwright/test';
 import { ClanSettingsPage } from '../../../pages/ClanSettingsPage';
-import { ProfilePage } from '../../../pages/ProfilePage';
 
 test.describe('File Upload Limits - Clan Assets, Canvas, Emoji, and Stickers', () => {
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
-  let profilePage: ProfilePage;
   let clanPage: ClanPage;
   const clanFactory = new ClanFactory();
 
@@ -57,7 +55,6 @@ test.describe('File Upload Limits - Clan Assets, Canvas, Emoji, and Stickers', (
 
       fileSizeHelpers = new FileSizeTestHelpers(page);
       clanSettingsPage = new ClanSettingsPage(page);
-      profilePage = new ProfilePage(page);
       clanPage = new ClanPage(page);
     }
   );

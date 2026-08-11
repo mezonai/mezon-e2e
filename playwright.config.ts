@@ -30,6 +30,7 @@ const getHostResolverArgs = (): string[] => {
   const devMmnHostIp = process.env.DEV_MMN_HOST_IP?.trim();
   const rules = [
     devHostIp ? `MAP dev-mezon.nccsoft.vn ${devHostIp}` : '',
+    devHostIp ? `MAP dev-mezon-sock.nccsoft.vn ${devHostIp}` : '',
     devMmnHostIp ? `MAP dev-mmn.nccsoft.vn ${devMmnHostIp}` : '',
   ].filter(Boolean);
 
@@ -98,7 +99,7 @@ export default defineConfig({
     baseURL: process.env.BASE_URL as string,
     // trace: process.env.CI ? 'retain-on-failure' : 'on',
     // video: 'retain-on-failure',
-    trace: process.env.ENABLE_TRACE === 'true' ? 'on-first-retry' : 'off',
+    trace: process.env.ENABLE_TRACE === 'true' ? 'retain-on-failure' : 'off',
     video: process.env.ENABLE_VIDEO === 'true' ? 'retain-on-failure' : 'off',
     screenshot: 'only-on-failure',
     viewport: { width: 1280, height: 720 },
@@ -113,7 +114,6 @@ export default defineConfig({
     {
       name: 'Chrome',
       testDir: './src/tests/web',
-      testIgnore: [/CleanUp\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
@@ -124,7 +124,7 @@ export default defineConfig({
     {
       name: 'cleanup',
       testDir: './src/tests/cleanup',
-      testMatch: /CleanUp\.spec\.ts/,
+      testMatch: /CleanUp_\d+\.spec\.ts/,
       fullyParallel: true,
       use: {
         ...devices['Desktop Chrome'],

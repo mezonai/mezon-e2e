@@ -62,9 +62,6 @@ test.describe('Clan Creation - Maximum Clan Limit', () => {
           await clanPage.createNewClan(clanName);
         }
         const isClanPresent = await clanPage.isClanPresent(clanName);
-        if (isClanPresent) {
-          createdClans.push(clanName);
-        }
         results.push(isClanPresent);
       }
     });

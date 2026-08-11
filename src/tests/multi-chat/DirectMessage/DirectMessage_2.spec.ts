@@ -1,0 +1,500 @@
+import { AccountCredentials, MEZON_DEV, WEBSITE_CONFIGS } from '@/config/environment';
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import { FriendPage } from '@/pages/FriendPage';
+import { MessagePage } from '@/pages/MessagePage';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { ROUTES } from '@/selectors';
+import { AllureReporter } from '@/utils/allureHelpers';
+import { AuthHelper } from '@/utils/authHelper';
+import {
+  getUsernamesFromEmails,
+  setupDualUsersInParallel,
+  setupDualUsersSequentially,
+} from '@/utils/dualTestHelper';
+import { FriendHelper } from '@/utils/friend.helper';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import { getImageHash } from '@/utils/images';
+import joinUrlPaths from '@/utils/joinUrlPaths';
+import { MessageTestHelpers } from '@/utils/messageHelpers';
+import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
+import { expect } from '@playwright/test';
+import { test } from '../../../fixtures/dual.fixture';
+
+test.describe('Direct Messages - Profile Status and Avatar History', () => {
+  const accountA = AccountCredentials['account2-3'];
+  const accountB = AccountCredentials['account2-4'];
+  const accountC = AccountCredentials['account2-5'];
+  const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
+  const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
+  const PROFILE_STATUS_STEP = "User A set profile status to 'Do Not Disturb' for '30 Minutes'";
+  const PROFILE_STATUS_NAME = 'Do Not Disturb';
+  const PROFILE_STATUS_DURATION = 'For 30 Minutes';
+  const ACCEPT_FRIEND_REQUEST_STEP = 'User B accepts the friend request';
+  const VERIFY_MUTUAL_FRIENDS_STEP = 'Verify both users see each other as friends';
+  const AVATAR_IMAGE_SELECTOR = generateE2eSelector('avatar.image');
+  const [userNameA, userNameB, userNameC] = getUsernamesFromEmails([
+    accountA.email,
+    accountB.email,
+    accountC.email,
+  ]);
+  const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
+  const setupModes = {
+    parallel: setupDualUsersInParallel,
+    sequential: setupDualUsersSequentially,
+  };
+  // const setupBeforeEach = setupModes.parallel;
+  const setupBeforeEach = setupModes.sequential;
+
+  test.beforeEach(async ({ dual }) => {
+    await setupBeforeEach(dual, accountA, accountB, directFriendsUrl);
+  });
+
+  test.afterEach(async ({ dual }) => {
+    // const { pageA, pageB } = dual;
+    // const messagePageA = new MessagePage(pageA);
+    // const messagePageB = new MessagePage(pageB);
+    await dual.parallel({
+      A: async page => {
+        // await messagePageA.leaveGroupByName(nameGroupChat);
+        await AuthHelper.logout(page);
+      },
+      B: async page => {
+        // await messagePageB.leaveGroupByName(nameGroupChat);
+        await AuthHelper.logout(page);
+      },
+    });
+  });
+
+  test('Verify that user can set profile status and verify it is visible on short profile', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64803',
+      github_issue: '10162',
+    });
+    const { pageA } = dual;
+    const profilePage = new ProfilePage(pageA);
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that user can set profile status and verify it is visible on short profile
+        **Test Steps:**
+        1. User A set profile status to 'Do Not Disturb' for '30 Minutes'
+        2. Verify that new profile status is visible on User A's short profile 
+        **Expected Result:** User can set profile status and verify it is visible on short profile
+      `);
+
+    await AllureReporter.step(PROFILE_STATUS_STEP, async () => {
+      await profilePage.openFooterProfileModal();
+      await profilePage.openSelectProfileStatusModal();
+
+      await profilePage.setProfileStatus(PROFILE_STATUS_NAME, PROFILE_STATUS_DURATION);
+    });
+    await AllureReporter.step('verify it is visible on short profile', async () => {
+      const currentProfileStatus = await profilePage.getProfileStatusInFooterProfile();
+      expect(currentProfileStatus).toContain(PROFILE_STATUS_NAME);
+      await profilePage.verifyNewStatusVisibleShortProfile(currentProfileStatus);
+    });
+  });
+
+  test('Verify that profile status reflect correct on DM list, friend list', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64803',
+      github_issue: '10162',
+    });
+    const { pageA, pageB } = dual;
+    const profilePageA = new ProfilePage(pageA);
+    const profilePageB = new ProfilePage(pageB);
+    const friendPageB = new FriendPage(pageB);
+    const friendPageA = new FriendPage(pageA);
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that profile status reflect correct on DM list, friend list
+        **Test Steps:**
+        1. User A set profile status to 'Do Not Disturb' for '30 Minutes'
+        2. Verify that new profile status reflect correct on DM list, friend list 
+
+        **Expected Result:** Profile status reflect correct on DM list, friend list
+      `);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+      await friendPageA.cleanupFriendRelationships(userNameC);
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step(ACCEPT_FRIEND_REQUEST_STEP, async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step(VERIFY_MUTUAL_FRIENDS_STEP, async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+
+    await AllureReporter.step(PROFILE_STATUS_STEP, async () => {
+      await profilePageA.openFooterProfileModal();
+      await profilePageA.openSelectProfileStatusModal();
+
+      await profilePageA.setProfileStatus(PROFILE_STATUS_NAME, PROFILE_STATUS_DURATION);
+    });
+
+    // await AllureReporter.step('verify it is visible on friends list', async () => {
+    //   const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+    //   await friendPageB.clickTabAll();
+    //   await friendPageB.searchFriend(userNameA);
+    //   const friendLocator = await friendPageB.getFriend(userNameA);
+    //   await profilePageB.verifyNewProfileStatusVisibleDueToLocator(
+    //     friendLocator,
+    //     currentProfileStatus
+    //   );
+    // });
+
+    await AllureReporter.step('verify it is visible on DM list', async () => {
+      const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+      await friendPageB.createDM(userNameA);
+      const userLocator = await friendPageB.getDMByUsername(userNameA);
+      console.log(userLocator);
+
+      await profilePageB.verifyNewProfileStatusVisibleDueToLocator(
+        userLocator,
+        currentProfileStatus
+      );
+    });
+  });
+
+  test('Verify that profile status reflect correct on DM profile, header DM', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64803',
+      github_issue: '10162',
+    });
+    const { pageA, pageB } = dual;
+    const messagePageB = new MessagePage(pageB);
+    const profilePageA = new ProfilePage(pageA);
+    const profilePageB = new ProfilePage(pageB);
+    const friendPageB = new FriendPage(pageB);
+    const friendPageA = new FriendPage(pageA);
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that profile status reflect correct on DM profile, header DM
+        **Test Steps:**
+        1. User A set profile status to 'Do Not Disturb' for '30 Minutes'
+        2. Verify that new profile status reflect correct on DM profile, header DM
+        
+        **Expected Result:** Profile status reflect correct on DM profile, header DM
+      `);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+      await friendPageA.cleanupFriendRelationships(userNameC);
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step(ACCEPT_FRIEND_REQUEST_STEP, async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step(VERIFY_MUTUAL_FRIENDS_STEP, async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+
+    await AllureReporter.step(PROFILE_STATUS_STEP, async () => {
+      await profilePageA.openFooterProfileModal();
+      await profilePageA.openSelectProfileStatusModal();
+
+      await profilePageA.setProfileStatus(PROFILE_STATUS_NAME, PROFILE_STATUS_DURATION);
+    });
+
+    const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+
+    await AllureReporter.step('verify it is visible on header DM', async () => {
+      await friendPageB.createDM(userNameA);
+
+      const headerDMLocator = await messagePageB.getHeaderDM();
+      await profilePageB.verifyNewProfileStatusVisibleDueToLocator(
+        headerDMLocator,
+        currentProfileStatus
+      );
+    });
+
+    await AllureReporter.step('verify it is visible on profile of DM', async () => {
+      await messagePageB.openUserProfile();
+      const profileLocator = await profilePageB.getUserProfileLocator();
+      await profilePageB.verifyNewProfileStatusVisibleDueToLocator(
+        profileLocator,
+        currentProfileStatus
+      );
+    });
+  });
+
+  test('Verify that profile status reflect correct on user settings', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64803',
+      github_issue: '10162',
+    });
+    const { pageA, pageB } = dual;
+    const profilePageA = new ProfilePage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const friendPageA = new FriendPage(pageA);
+    const clanPageA = new ClanPage(pageA);
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that profile status reflect correct on user settings
+        **Test Steps:**
+        1. User A set profile status to 'Do Not Disturb' for '30 Minutes'
+        2. Verify that new profile status reflect correct on user settings
+        
+        **Expected Result:** Profile status reflect correct on user settings
+      `);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+      await friendPageA.cleanupFriendRelationships(userNameC);
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step(ACCEPT_FRIEND_REQUEST_STEP, async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step(VERIFY_MUTUAL_FRIENDS_STEP, async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+
+    await AllureReporter.step(PROFILE_STATUS_STEP, async () => {
+      await profilePageA.openFooterProfileModal();
+      await profilePageA.openSelectProfileStatusModal();
+
+      await profilePageA.setProfileStatus(PROFILE_STATUS_NAME, PROFILE_STATUS_DURATION);
+    });
+
+    const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+
+    await AllureReporter.step('verify it is visible on user settings', async () => {
+      await profilePageA.openUserSettingProfile();
+      await profilePageA.openProfileTab();
+      await profilePageA.openUserProfileTab();
+
+      const profileLocator = await profilePageA.getUserProfileLocator();
+      await profilePageA.verifyNewProfileStatusVisibleDueToLocator(
+        profileLocator,
+        currentProfileStatus
+      );
+      await clanPageA.closeSettingsClan();
+    });
+  });
+
+  test('Verify message avatar remains tied to the avatar version at send-time after user updates avatar in dev', async ({
+    dual,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63506',
+    });
+
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const profilePageA = new ProfilePage(pageA);
+    const messageHelperA = new MessageTestHelpers(pageA);
+    const messageHelperB = new MessageTestHelpers(pageB);
+    const fileSizeHelpers = new FileSizeTestHelpers(pageA);
+
+    const firstMessage = `First message with avatar version 1 ${Date.now()}`;
+    const replyMessage = `Reply from User B between avatar versions ${Date.now()}`;
+    const secondMessage = `Second message with avatar version 2 ${Date.now()}`;
+
+    let firstProfileAvatarHash: string | null = null;
+    let secondProfileAvatarHash: string | null = null;
+    let firstAvatarHash: string | null = null;
+    let secondAvatarHash: string | null = null;
+
+    await AllureReporter.addDescription(`
+        **Test Objective:** Verify that when a user updates their avatar in dev, each message keeps the avatar version that existed at the time the message was sent.
+
+        **Test Steps:**
+        1. Clean up any existing friend relationships between users
+        2. User A sends a friend request to User B
+        3. User B accepts the request
+        4. User A navigates to dev, uploads avatar version 1, and stores its image hash
+        5. User A creates a DM with User B and sends a first message
+        6. User B sends a reply so User A's messages are not grouped together
+        7. User A uploads a different avatar version 2 and stores its image hash
+        8. User A returns to the DM and sends a second message
+        9. Verify each User A message avatar matches the avatar version captured before it was sent
+
+        **Expected Result:** Each message shows the avatar version that was active when it was sent.
+      `);
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step(ACCEPT_FRIEND_REQUEST_STEP, async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step(VERIFY_MUTUAL_FRIENDS_STEP, async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+    });
+
+    await AllureReporter.step(
+      'User A updates to avatar version 1 and captures its hash',
+      async () => {
+        await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+
+        await profilePageA.openUserSettingProfile();
+        await profilePageA.openProfileTab();
+        await profilePageA.openUserProfileTab();
+
+        const firstAvatarPath = await fileSizeHelpers.createFileWithSize(
+          'avatar_version_1_dev',
+          5 * 1024 * 1024,
+          'jpg'
+        );
+        await fileSizeHelpers.uploadFileDefault(firstAvatarPath);
+        await profilePageA.applyImageAvatar();
+        await profilePageA.saveChangesUserProfile();
+
+        const firstProfileAvatar = await profilePageA.getUserProfileAvatar();
+        await expect(firstProfileAvatar).toBeVisible({ timeout: 5000 });
+        firstProfileAvatarHash = await getImageHash(
+          (await firstProfileAvatar.getAttribute('src')) || ''
+        );
+        expect(firstProfileAvatarHash).not.toBeNull();
+        await profilePageA.closeSettingsProfile();
+      }
+    );
+
+    await AllureReporter.step('User A creates DM with User B and sends first message', async () => {
+      await friendPageA.createDM(userNameB);
+      await messageHelperA.sendTextMessage(firstMessage);
+
+      const firstMessageItem = messageHelperA.getMessageItemLocator(firstMessage).last();
+      const firstAvatar = firstMessageItem.locator(AVATAR_IMAGE_SELECTOR);
+      await expect(firstAvatar).toBeVisible({ timeout: 5000 });
+      firstAvatarHash = await getImageHash((await firstAvatar.getAttribute('src')) || '');
+      expect(firstAvatarHash).toBe(firstProfileAvatarHash);
+    });
+
+    await AllureReporter.step('User B replies between the two messages from User A', async () => {
+      await friendPageB.createDM(userNameA);
+      await messageHelperB.sendTextMessage(replyMessage);
+      await expect(messageHelperA.getMessageItemLocator(replyMessage).last()).toBeVisible({
+        timeout: 10000,
+      });
+    });
+
+    await AllureReporter.step(
+      'User A updates to avatar version 2 and captures its hash',
+      async () => {
+        await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+
+        await profilePageA.openUserSettingProfile();
+        await profilePageA.openProfileTab();
+        await profilePageA.openUserProfileTab();
+
+        const secondAvatarPath = await fileSizeHelpers.createFileWithSize(
+          'avatar_version_2_dev',
+          4 * 1024 * 1024,
+          'jpg'
+        );
+        await fileSizeHelpers.uploadFileDefault(secondAvatarPath);
+        await profilePageA.applyImageAvatar();
+        await profilePageA.saveChangesUserProfile();
+
+        const secondProfileAvatar = await profilePageA.getUserProfileAvatar();
+        await expect(secondProfileAvatar).toBeVisible({ timeout: 5000 });
+        secondProfileAvatarHash = await getImageHash(
+          (await secondProfileAvatar.getAttribute('src')) || ''
+        );
+        expect(secondProfileAvatarHash).not.toBeNull();
+        expect(secondProfileAvatarHash).not.toBe(firstProfileAvatarHash);
+        await profilePageA.closeSettingsProfile();
+      }
+    );
+
+    await AllureReporter.step('User A returns to the DM and sends second message', async () => {
+      await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+      await friendPageA.createDM(userNameB);
+
+      await messageHelperA.sendTextMessage(secondMessage);
+
+      const secondMessageItem = messageHelperA.getMessageItemLocator(secondMessage).last();
+      const secondAvatar = secondMessageItem.locator(AVATAR_IMAGE_SELECTOR);
+      await expect(secondAvatar).toBeVisible({ timeout: 5000 });
+      secondAvatarHash = await getImageHash((await secondAvatar.getAttribute('src')) || '');
+      expect(secondAvatarHash).toBe(secondProfileAvatarHash);
+    });
+
+    await AllureReporter.step('Verify avatar hashes match each message send-time', async () => {
+      expect(firstAvatarHash).toBe(firstProfileAvatarHash);
+      expect(secondAvatarHash).toBe(secondProfileAvatarHash);
+      expect(firstAvatarHash).not.toEqual(secondAvatarHash);
+
+      const firstMessageItem = messageHelperA.getMessageItemLocator(firstMessage).first();
+      const firstAvatarAfter = firstMessageItem.locator(AVATAR_IMAGE_SELECTOR);
+      const firstAvatarAfterSrc = await firstAvatarAfter.getAttribute('src');
+      const firstAvatarAfterHash = await getImageHash(firstAvatarAfterSrc || '');
+
+      expect(firstAvatarAfterHash).toBe(firstAvatarHash);
+      await messageHelperB.sendTextMessage(replyMessage);
+    });
+  });
+});

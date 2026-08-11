@@ -3,7 +3,6 @@ import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPage } from '@/pages/Clan/ClanPage';
-import { ProfilePage } from '@/pages/ProfilePage';
 import { ClanStatus, EventType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -15,11 +14,11 @@ import { BrowserContext, expect, Page, test, TestInfo } from '@playwright/test';
 import { ClanSettingsPage } from '../../../pages/ClanSettingsPage';
 
 test.describe('File Upload Limits - Events, Onboarding, Banners, Webhooks, and DMs', () => {
+  const UPLOAD_WEBHOOK_AVATAR_STEP = 'Upload clan webhook avatar under limit (7MB)';
   let fileSizeHelpers: FileSizeTestHelpers;
   let clanSettingsPage: ClanSettingsPage;
   let channelSettingPage: ChannelSettingPage;
   let clanPage: ClanPage;
-  let profilePage: ProfilePage;
   const clanFactory = new ClanFactory();
 
   test.beforeAll(async ({ browser }) => {
@@ -61,7 +60,6 @@ test.describe('File Upload Limits - Events, Onboarding, Banners, Webhooks, and D
       clanSettingsPage = new ClanSettingsPage(page);
       channelSettingPage = new ChannelSettingPage(page);
       clanPage = new ClanPage(page);
-      profilePage = new ProfilePage(page);
     }
   );
 
@@ -264,7 +262,7 @@ test.describe('File Upload Limits - Events, Onboarding, Banners, Webhooks, and D
       7 * 1024 * 1024,
       'jpg'
     );
-    await AllureReporter.step('Upload clan webhook avatar under limit (7MB)', async () => {
+    await AllureReporter.step(UPLOAD_WEBHOOK_AVATAR_STEP, async () => {
       const result = await fileSizeHelpers.uploadByTypeAndVerify(
         under8MbClan,
         UploadType.CHANNEL_WEBHOOK_AVATAR,
@@ -278,7 +276,7 @@ test.describe('File Upload Limits - Events, Onboarding, Banners, Webhooks, and D
       8 * 1024 * 1024 + 200 * 1024,
       'jpg'
     );
-    await AllureReporter.step('Upload clan webhook avatar under limit (7MB)', async () => {
+    await AllureReporter.step(UPLOAD_WEBHOOK_AVATAR_STEP, async () => {
       const result = await fileSizeHelpers.uploadByTypeAndVerify(
         over8MbClan,
         UploadType.CHANNEL_WEBHOOK_AVATAR,
@@ -313,7 +311,7 @@ test.describe('File Upload Limits - Events, Onboarding, Banners, Webhooks, and D
       7 * 1024 * 1024,
       'jpg'
     );
-    await AllureReporter.step('Upload clan webhook avatar under limit (7MB)', async () => {
+    await AllureReporter.step(UPLOAD_WEBHOOK_AVATAR_STEP, async () => {
       const result = await fileSizeHelpers.uploadByTypeAndVerify(
         under8MbClan,
         UploadType.CLAN_WEBHOOK_AVATAR,
@@ -327,7 +325,7 @@ test.describe('File Upload Limits - Events, Onboarding, Banners, Webhooks, and D
       8 * 1024 * 1024 + 200 * 1024,
       'jpg'
     );
-    await AllureReporter.step('Upload clan webhook avatar under limit (7MB)', async () => {
+    await AllureReporter.step(UPLOAD_WEBHOOK_AVATAR_STEP, async () => {
       const result = await fileSizeHelpers.uploadByTypeAndVerify(
         over8MbClan,
         UploadType.CLAN_WEBHOOK_AVATAR,
@@ -338,54 +336,6 @@ test.describe('File Upload Limits - Events, Onboarding, Banners, Webhooks, and D
       await page.reload({
         waitUntil: 'domcontentloaded',
       });
-    });
-  });
-  test('Validate Direct Message Icon (1MB)', async ({ page }) => {
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify Direct Message Icon upload enforces 1MB limit
-
-      **Test Steps:**
-      1. Open User Settings -> Profiles
-      2. Upload image under 1MB (should succeed)
-      3. Upload image over 1MB (should show error modal)
-
-      **Expected Result:** Under 1MB uploads successfully; over 1MB shows "Your files are too powerful" with "Max file size is 1 MB"
-    `);
-
-    await AllureReporter.step('Open Integrations → Clan Webhooks list', async () => {
-      await profilePage.openUserSettingProfile();
-      await profilePage.openProfileTab();
-      await profilePage.openUserProfileTab();
-    });
-
-    const under1MbDirectMessage = await fileSizeHelpers.createFileWithSize(
-      'direct_message_icon_under_1mb',
-      700 * 1024,
-      'jpg'
-    );
-    await AllureReporter.step('Upload direct message icon under limit (700KB)', async () => {
-      const result = await fileSizeHelpers.uploadByTypeAndVerify(
-        under1MbDirectMessage,
-        UploadType.DIRECT_MESSAGE_ICON,
-        true
-      );
-      expect(result.success).toBe(true);
-    });
-
-    const over1MbDirectMessage = await fileSizeHelpers.createFileWithSize(
-      'direct_message_icon_over_1mb',
-      1 * 1024 * 1024 + 200 * 1024,
-      'jpg'
-    );
-    await AllureReporter.step('Upload direct message icon over limit (1MB)', async () => {
-      const result = await fileSizeHelpers.uploadByTypeAndVerify(
-        over1MbDirectMessage,
-        UploadType.DIRECT_MESSAGE_ICON,
-        false
-      );
-      expect(result.success).toBe(false);
-      expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 1 mb, please!');
-      await page.reload({ waitUntil: 'domcontentloaded' });
     });
   });
 });

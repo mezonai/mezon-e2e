@@ -1,6 +1,3 @@
-/* eslint-disable no-unused-vars */
-import { AccountCredentials } from '@/config/environment';
-import { AuthHelper } from '@/utils/authHelper';
 import { Browser, BrowserContext, Locator, Page, test as base } from '@playwright/test';
 export type MultiProvider<K extends string> = {
   readonly keys: readonly K[];

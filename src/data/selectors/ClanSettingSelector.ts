@@ -2,9 +2,7 @@ import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 
 export default class ClanSettingSelector {
-  constructor(private readonly page: Page) {
-    this.page = page;
-  }
+  constructor(private readonly page: Page) {}
 
   readonly buttons = {
     sidebarItem: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item')),
@@ -28,12 +26,133 @@ export default class ClanSettingSelector {
     clanName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
   };
 
+  readonly general = {
+    clanName: this.page.locator(generateE2eSelector('clan_page.settings.overview.input.clan_name')),
+    settings_page: this.page.locator(generateE2eSelector('clan_page.settings')),
+    buttons: {
+      sidebarItem: this.buttons.sidebarItem,
+      roleSettings: this.buttons.sidebarItem.filter({ hasText: 'Roles' }),
+      integrations: this.buttons.sidebarItem.filter({ hasText: 'Integrations' }),
+      createRole: this.page.locator(generateE2eSelector('button.base'), {
+        hasText: 'Create Role',
+      }),
+      displayRoleOption: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_option.display')
+      ),
+      permissionsRole: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_option.permissions')
+      ),
+      roleColor: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.container.role_color')
+      ),
+      deleteClan: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.delete')),
+    },
+    input: {
+      roleName: this.page.locator(
+        `${generateE2eSelector('clan_page.settings.role.container.name_input')} input`
+      ),
+    },
+    roleContainer: this.page.locator(generateE2eSelector('clan_page.settings.role.container')),
+    rolePermissionsItem: this.page.locator(
+      generateE2eSelector('clan_page.settings.role.container.role_option.permissions.item')
+    ),
+    rolePermissionsSwitch: this.page.locator(
+      generateE2eSelector('clan_page.settings.role.container.role_option.permissions.item.switch')
+    ),
+    sidebarTitle: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.title')),
+    roleList: {
+      item: this.page.locator(generateE2eSelector('clan_page.settings.role.item')),
+      roleName: this.page.locator(generateE2eSelector('clan_page.settings.role.item.role_name')),
+      memberCount: this.page.locator(
+        generateE2eSelector('clan_page.settings.role.item.member_count')
+      ),
+      buttons: {
+        edit: this.page.locator(generateE2eSelector('clan_page.settings.role.item.button.edit')),
+        view: this.page.locator(generateE2eSelector('clan_page.settings.role.item.button.view')),
+        delete: this.page.locator(
+          generateE2eSelector('clan_page.settings.role.item.button.delete')
+        ),
+      },
+      override: {
+        item: this.page.locator(generateE2eSelector('clan_page.settings.role.override.item')),
+        button: {
+          remove: this.page.locator(
+            generateE2eSelector('clan_page.settings.role.override.item.button.remove')
+          ),
+          tick: this.page.locator(
+            generateE2eSelector('clan_page.settings.role.override.item.button.tick')
+          ),
+        },
+      },
+    },
+    category: {
+      input: {
+        categoryName: this.page.locator(
+          generateE2eSelector('clan_page.settings.category.input.category_name')
+        ),
+      },
+    },
+  };
+
+  readonly permissionModal = {
+    isVisible: async (timeout = 1000): Promise<boolean> => {
+      const modal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
+      try {
+        await modal.waitFor({ state: 'visible', timeout });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    cancel: this.page.locator(generateE2eSelector('clan_page.settings.modal.permission.cancel')),
+  };
+
+  readonly overview = {
+    system_messages_channel: {
+      selection: {
+        container: this.page.locator(
+          generateE2eSelector('clan_page.settings.overview.system_messages_channel')
+        ),
+        wrap_item: this.page.locator(
+          generateE2eSelector('clan_page.settings.overview.system_messages_channel.selection.item')
+        ),
+        item: {
+          channel_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.item.channel_name'
+            )
+          ),
+          category_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.item.category_name'
+            )
+          ),
+        },
+        selected: {
+          channel_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.selected.channel_name'
+            )
+          ),
+          category_name: this.page.locator(
+            generateE2eSelector(
+              'clan_page.settings.overview.system_messages_channel.selection.selected.category_name'
+            )
+          ),
+        },
+      },
+    },
+  };
+
   readonly integrations = {
     createWebhook: this.page.locator(
       generateE2eSelector('clan_page.settings.integrations.create_clan_webhook_button')
     ),
     newWebhook: this.page.locator(
       generateE2eSelector('clan_page.settings.integrations.new_clan_webhook_button')
+    ),
+    navigateWebhook: this.page.locator(
+      generateE2eSelector('channel_setting_page.webhook.button.view_webhook')
     ),
     webhookItem: {
       item: this.page.locator(generateE2eSelector('clan_page.settings.integrations.webhook_item')),
@@ -43,19 +162,6 @@ export default class ClanSettingSelector {
       description: this.page.locator(
         generateE2eSelector('clan_page.settings.integrations.webhook_item.webhook_description')
       ),
-    },
-  };
-
-  readonly communitySettings = {
-    input: {
-      description: this.page.locator(
-        generateE2eSelector('clan_page.settings.community.description')
-      ),
-      about: this.page.locator(generateE2eSelector('clan_page.settings.community.about')),
-      vanity_url: this.page.locator(generateE2eSelector('clan_page.settings.community.vanity_url')),
-    },
-    buttons: {
-      save: this.page.locator(generateE2eSelector('clan_page.settings.community.button.save')),
     },
   };
 }

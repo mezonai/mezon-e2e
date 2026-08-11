@@ -2,9 +2,7 @@ import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 
 export default class CategorySettingSelector {
-  constructor(private readonly page: Page) {
-    this.page = page;
-  }
+  constructor(private readonly page: Page) {}
 
   readonly buttons = {
     deleteSidebar: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.delete')),

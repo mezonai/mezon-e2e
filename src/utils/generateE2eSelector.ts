@@ -1,6 +1,6 @@
 import { E2eKeyType } from '@/selectors';
 
-function generateE2eId(path: E2eKeyType, identifier = ''): string {
+export function generateE2eId(path: E2eKeyType, identifier = ''): string {
   return [...path.split('.'), identifier].filter(Boolean).join('-');
 }
 

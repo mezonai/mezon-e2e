@@ -6,13 +6,14 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test as base, expect, Page } from '@playwright/test';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
 import { LINK_TEST_URLS, MessageTestHelpers } from '../../../utils/messageHelpers';
+import { CLIPBOARD_PERMISSIONS } from './ChannelMessageTestConstants';
 
 const test = base.extend<{
   pageWithClipboard: Page;
 }>({
   pageWithClipboard: async ({ browser }, use) => {
     const context = await browser.newContext({
-      permissions: ['clipboard-read', 'clipboard-write'],
+      permissions: CLIPBOARD_PERMISSIONS,
       baseURL: WEBSITE_CONFIGS.MEZON.baseURL,
     });
     const pageWithClipboard = await context.newPage();
@@ -70,8 +71,6 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
 
     const isMarkdownRendered = await messageHelpers.verifyMarkdownMessage(markdownMessage);
     expect(isMarkdownRendered).toBeTruthy();
-
-    await pageWithClipboard.waitForTimeout(2000);
   });
 
   test('Send Message with Emoji', async ({ pageWithClipboard, context }) => {
@@ -79,7 +78,7 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
       tms: '63405',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const baseMessage = `Test message with emoji ${Date.now()}`;
@@ -89,8 +88,6 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
 
     const hasEmoji = await messageHelpers.verifyLastMessageHasEmoji();
     expect(hasEmoji).toBeTruthy();
-
-    await pageWithClipboard.waitForTimeout(2000);
   });
 
   test('Send text too large for convert to file txt', async ({ pageWithClipboard, context }) => {
@@ -98,15 +95,13 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
       tms: '63406',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const longMessage = await messageHelpers.generateLongMessage(3000);
     const fileConverted = await messageHelpers.sendLongMessageAndCheckFileConversion(longMessage);
 
     expect(fileConverted).toBeTruthy();
-
-    await pageWithClipboard.waitForTimeout(2000);
   });
 
   test('Send message with hashtag', async ({ pageWithClipboard }) => {
@@ -117,31 +112,12 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
 
     const hasHashtag = await messageHelpers.verifyLastMessageHasHashtag('general');
     expect(hasHashtag).toBeTruthy();
-
-    await pageWithClipboard.waitForTimeout(1500);
   });
 
   test('Send message with multiple links', async ({ pageWithClipboard, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     await messageHelpers.sendMessageWithMultipleLinks(LINK_TEST_URLS);
-
-    await pageWithClipboard.waitForTimeout(2000);
-  });
-
-  test('Send message with buzz (Ctrl+G)', async ({ pageWithClipboard, context }) => {
-    await AllureReporter.addWorkItemLinks({
-      tms: '63407',
-    });
-
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    messageHelpers = new MessageTestHelpers(pageWithClipboard);
-
-    const buzzMessage = `Buzz message test ${Date.now()}`;
-
-    await messageHelpers.sendBuzzMessage(buzzMessage);
-
-    await pageWithClipboard.waitForTimeout(2000);
   });
 });

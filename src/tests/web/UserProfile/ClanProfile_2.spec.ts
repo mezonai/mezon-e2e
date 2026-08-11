@@ -14,6 +14,7 @@ import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, Locator, test } from '@playwright/test';
 
 test.describe('Clan Profile - Avatar Visibility in Member Views', () => {
+  const AVATAR_IMAGE_SELECTOR = generateE2eSelector('avatar.image');
   let profileHash: string | null = null;
   let profilePage: ProfilePage;
   let profileId: string | null = null;
@@ -111,12 +112,11 @@ test.describe('Clan Profile - Avatar Visibility in Member Views', () => {
       parrent_issue: '63364',
     });
 
-    await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
     const userName = await clanPage.getFooterProfileUserName();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
-    const memberAvatar = memberItem.locator(generateE2eSelector('avatar.image'));
+    const memberAvatar = memberItem.locator(AVATAR_IMAGE_SELECTOR);
     await expect(memberAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await memberAvatar.getAttribute('src');
     const avatarHash = await getImageHash(avatarSrc || '');
@@ -132,16 +132,15 @@ test.describe('Clan Profile - Avatar Visibility in Member Views', () => {
       parrent_issue: '63364',
     });
 
-    await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
     const userName = await clanPage.getFooterProfileUserName();
     const memberItem = await clanPage.getMemberFromMemberList(userName || '');
-    memberItem.click();
+    await memberItem.click();
     const popup = page.locator('div.fixed.z-50');
     await expect(popup).toBeVisible({ timeout: 5000 });
     const profileAvatar = popup.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${AVATAR_IMAGE_SELECTOR}`
     );
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
@@ -158,7 +157,6 @@ test.describe('Clan Profile - Avatar Visibility in Member Views', () => {
       parrent_issue: '63364',
     });
 
-    await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberList();
     const userName = await clanPage.getFooterProfileUserName();
@@ -173,11 +171,10 @@ test.describe('Clan Profile - Avatar Visibility in Member Views', () => {
     const popup = page.locator('div[class*="w-[600px]"][class*="h-[90vh]"]');
     await expect(popup).toBeVisible({ timeout: 5000 });
     const profileAvatar = popup.locator(
-      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${generateE2eSelector('avatar.image')}`
+      `${generateE2eSelector('user_setting.profile.user_profile.preview.avatar')} ${AVATAR_IMAGE_SELECTOR}`
     );
     await expect(profileAvatar).toBeVisible({ timeout: 5000 });
     const avatarSrc = await profileAvatar.getAttribute('src');
-    await page.waitForTimeout(1000);
     const avatarId = getImageId(avatarSrc);
     expect(profileId).not.toBeNull();
     expect(avatarId).not.toBeNull();
@@ -190,7 +187,6 @@ test.describe('Clan Profile - Avatar Visibility in Member Views', () => {
       parrent_issue: '63364',
     });
 
-    await page.waitForTimeout(1000);
     const clanPage = new ClanPage(page);
     await clanPage.openMemberListSetting();
 

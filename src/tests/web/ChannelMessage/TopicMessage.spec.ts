@@ -14,6 +14,8 @@ import test, { expect, Locator } from '@playwright/test';
 import { randomInt } from 'crypto';
 
 test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Navigation', () => {
+  const VERIFY_CHANNEL_PRESENT_STEP = 'Verify channel is present in channel list';
+  const SEND_AND_CREATE_TOPIC_STEP = 'Send messages on channel and create topic';
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account8;
   test.beforeAll(async ({ browser }) => {
@@ -83,13 +85,12 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
       await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_PRESENT_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
 
-    await AllureReporter.step('Send messages on channel and create topic', async () => {
-      await page.waitForTimeout(2000);
+    await AllureReporter.step(SEND_AND_CREATE_TOPIC_STEP, async () => {
       await messageHelper.sendTextMessage(testMessage);
       await messageHelper.createTopicToInitMessage(testMessage);
     });
@@ -148,7 +149,7 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
       await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_PRESENT_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
@@ -158,7 +159,7 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
       await profilePage.updateClanNickname(nickname);
     });
 
-    await AllureReporter.step('Send messages on channel and create topic', async () => {
+    await AllureReporter.step(SEND_AND_CREATE_TOPIC_STEP, async () => {
       await messageHelper.sendTextMessage(testMessage);
       await messageHelper.createTopicToInitMessage(testMessage);
     });
@@ -167,7 +168,6 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
       'Verify that nickname for init topic message on topic box is match with nickname setting on clan',
       async () => {
         await page.reload();
-        await page.waitForTimeout(2000);
         await messageHelper.verifyNameOnInitTopicMessageIsMatchWithClanSetting(
           nickname,
           testMessage
@@ -222,13 +222,12 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
       await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PUBLIC);
     });
 
-    await AllureReporter.step('Verify channel is present in channel list', async () => {
+    await AllureReporter.step(VERIFY_CHANNEL_PRESENT_STEP, async () => {
       const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
 
-    await AllureReporter.step('Send messages on channel and create topic', async () => {
-      await page.waitForTimeout(2000);
+    await AllureReporter.step(SEND_AND_CREATE_TOPIC_STEP, async () => {
       await messageHelper.sendTextMessage(testMessage);
       await messageHelper.createTopicToInitMessage(testMessage);
     });
@@ -240,7 +239,6 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
         const message = `Message in topic box ${i + 1} - ${Date.now()}`;
         await messageHelper.sendMessageInTopicBox(message);
       }
-      await page.waitForTimeout(2000);
       await messageHelper.closeTopicBox();
     });
 
@@ -344,7 +342,7 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
     const replyMessage = `Message in topic box ${Date.now()}`;
     let topicLocator: Locator;
 
-    await AllureReporter.step('Send messages on channel and create topic', async () => {
+    await AllureReporter.step(SEND_AND_CREATE_TOPIC_STEP, async () => {
       await messageHelper.sendTextMessage(testMessage);
       await messageHelper.createTopicToInitMessage(testMessage);
     });
@@ -352,7 +350,6 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
     await AllureReporter.step('Send messages on topic box', async () => {
       await messageHelper.openTopicBoxByMessage(testMessage);
       await messageHelper.sendMessageInTopicBox(replyMessage);
-      await page.waitForTimeout(2000);
       await messageHelper.closeTopicBox();
     });
 
@@ -362,10 +359,7 @@ test.describe('Topic Messages - Initial Message Actions, Counts, Replies, and Na
     });
 
     await AllureReporter.step('Verify that created topic is visible on topic tab', async () => {
-      const locator = await messageHelper.verifyCreatedTopicOnInboxPopover(
-        testMessage,
-        replyMessage
-      );
+      const locator = await messageHelper.verifyCreatedTopicOnInboxPopover(testMessage);
       topicLocator = locator;
     });
 

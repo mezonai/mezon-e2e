@@ -1,41 +1,53 @@
-import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
-import { ClanPage } from '@/pages/Clan/ClanPage';
-import { MessagePage } from '@/pages/MessagePage';
-import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { MessageTestHelpers } from '@/utils/messageHelpers';
 import TestSuiteHelper from '@/utils/testSuite.helper';
-import test, { expect } from '@playwright/test';
+import { test as base, expect, Page } from '@playwright/test';
+import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
+import { MessageTestHelpers } from '../../../utils/messageHelpers';
+import { CLIPBOARD_PERMISSIONS } from './ChannelMessageTestConstants';
+import { MessagePage } from '@/pages/MessagePage';
+import { ClanPage } from '@/pages/Clan/ClanPage';
+import { ChannelType } from '@/types/clan-page.types';
 
-test.describe('Channel Messages - Pinned Message List', () => {
+const test = base.extend<{
+  pageWithClipboard: Page;
+}>({
+  pageWithClipboard: async ({ browser }, use) => {
+    const context = await browser.newContext({
+      permissions: CLIPBOARD_PERMISSIONS,
+      baseURL: WEBSITE_CONFIGS.MEZON.baseURL,
+    });
+    const pageWithClipboard = await context.newPage();
+    await use(pageWithClipboard);
+    await context.close();
+  },
+});
+
+test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', () => {
+  let messageHelpers: MessageTestHelpers;
+  const credentials = AccountCredentials.account5;
   const clanFactory = new ClanFactory();
-  const credentials = AccountCredentials.account8;
 
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
       browser,
       clanFactory,
-      configs: ClanSetupHelper.configs.channelMessage8,
+      configs: ClanSetupHelper.configs.channelMessage5,
       credentials,
     });
   });
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
     await TestSuiteHelper.setupBeforeEach({
-      page,
+      page: pageWithClipboard,
       clanFactory,
       credentials,
     });
-  });
-
-  test.afterEach(async ({ page }) => {
-    await AuthHelper.logout(page);
   });
 
   test.afterAll(async ({ browser }) => {
@@ -46,21 +58,38 @@ test.describe('Channel Messages - Pinned Message List', () => {
     });
   });
 
+  test.afterEach(async ({ pageWithClipboard }) => {
+    await AuthHelper.logout(pageWithClipboard);
+  });
+
+  test('Send message with buzz (Ctrl+G)', async ({ pageWithClipboard, context }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '63407',
+    });
+
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    messageHelpers = new MessageTestHelpers(pageWithClipboard);
+
+    const buzzMessage = `Buzz message test ${Date.now()}`;
+
+    await messageHelpers.sendBuzzMessage(buzzMessage);
+  });
+
   test('Verify that user can unpin a message from the pinned message list', async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63400',
     });
     await AllureReporter.addDescription(`
-    **Test Objective:** Verify that user can remove a pinned message from the pinned message list
-    **Test Steps:**
-    1. Create a new text channel
-    2. Send a message to the channel
-    3. Pin the message
-    4. Open the pinned message list
-    5. Click Remove Pin and confirm Unpin in the confirmation modal
-    6. Verify the message is no longer pinned
-    **Expected Result:** User can unpin the message from the pinned message list
-  `);
+      **Test Objective:** Verify that user can remove a pinned message from the pinned message list
+      **Test Steps:**
+      1. Create a new text channel
+      2. Send a message to the channel
+      3. Pin the message
+      4. Open the pinned message list
+      5. Click Remove Pin and confirm Unpin in the confirmation modal
+      6. Verify the message is no longer pinned
+      **Expected Result:** User can unpin the message from the pinned message list
+    `);
 
     await AllureReporter.addLabels({
       tag: ['channel-message', 'pin-unpin', 'pinned-message-list', 'text-channel'],
@@ -80,7 +109,6 @@ test.describe('Channel Messages - Pinned Message List', () => {
     });
 
     await AllureReporter.step('Send message to the text channel', async () => {
-      await page.waitForTimeout(2000);
       await messageHelper.sendTextMessage(message);
     });
 

@@ -276,6 +276,37 @@ jobs:
 
           echo "dev-mezon API is reachable"
 
+          echo "=== Checking dev-mezon WebSocket (port 4433) ==="
+          SOCKET_HTTP_CODE=""
+          if SOCKET_HTTP_CODE=$(curl \
+            -sS \
+            -4 \
+            --resolve "dev-mezon-sock.nccsoft.vn:4433:$DEV_HOST_IP" \
+            -o /dev/null \
+            -w "%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 20 \
+            https://dev-mezon-sock.nccsoft.vn:4433/ws); then
+            echo "WebSocket HTTP status: $SOCKET_HTTP_CODE"
+            if [[ "$SOCKET_HTTP_CODE" == "000" ]]; then
+              echo "::error::dev-mezon WebSocket did not return an HTTP response"
+              exit 1
+            fi
+          else
+            SOCKET_CURL_EXIT=$?
+            if [[ "$SOCKET_CURL_EXIT" -eq 52 ]]; then
+              # The socket server may close a plain HTTPS request without an
+              # HTTP response because it expects a WebSocket upgrade + token.
+              # curl 52 still proves DNS, TCP and TLS connectivity succeeded.
+              echo "WebSocket endpoint is reachable (server requires a valid upgrade request)"
+            else
+              echo "::error::Cannot connect to dev-mezon WebSocket on port 4433 (curl exit $SOCKET_CURL_EXIT)"
+              exit 1
+            fi
+          fi
+
+          echo "dev-mezon WebSocket is reachable"
+
           echo "=== Checking dev-mmn route ==="
           MMN_ROUTE=$(ip route get "$DEV_MMN_HOST_IP")
           echo "$MMN_ROUTE"
@@ -374,10 +405,10 @@ jobs:
 
             if [ "$RUN_MULTI_ROOT_TESTS" = "true" ]; then
               MULTI_TARGETS+=(
-                "src/tests/multi-chat/ChannelManagement.spec.ts"
-                "src/tests/multi-chat/MarkAsRead.spec.ts"
-                "src/tests/multi-chat/MemberManagement.spec.ts"
-                "src/tests/multi-chat/UserSettings.spec.ts"
+                "src/tests/multi-chat/ChannelManagement"
+                "src/tests/multi-chat/MarkAsRead"
+                "src/tests/multi-chat/MemberManagement"
+                "src/tests/multi-chat/UserSettings"
               )
             fi
             return 0

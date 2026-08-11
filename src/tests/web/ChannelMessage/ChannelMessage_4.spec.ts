@@ -6,13 +6,14 @@ import TestSuiteHelper from '@/utils/testSuite.helper';
 import { test as base, expect, Page } from '@playwright/test';
 import { AccountCredentials, WEBSITE_CONFIGS } from '../../../config/environment';
 import { MessageTestHelpers } from '../../../utils/messageHelpers';
+import { CLIPBOARD_PERMISSIONS } from './ChannelMessageTestConstants';
 
 const test = base.extend<{
   pageWithClipboard: Page;
 }>({
   pageWithClipboard: async ({ browser }, use) => {
     const context = await browser.newContext({
-      permissions: ['clipboard-read', 'clipboard-write'],
+      permissions: CLIPBOARD_PERMISSIONS,
       baseURL: WEBSITE_CONFIGS.MEZON.baseURL,
     });
     const pageWithClipboard = await context.newPage();
@@ -63,7 +64,7 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
       tms: '63397',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
 
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
@@ -95,8 +96,6 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
 
     const isMessageVisible = await messageHelpers.verifyMessageVisibleInMainChat(messageToPin);
     expect(isMessageVisible).toBeTruthy();
-
-    await pageWithClipboard.waitForTimeout(2000);
   });
 
   test('Test hashtag channel functionality', async ({ pageWithClipboard, context }) => {
@@ -104,18 +103,16 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
       tms: '63398',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageInput = await messageHelpers.findMessageInput();
     await messageInput.click();
-    await pageWithClipboard.waitForTimeout(500);
 
     await messageInput.type('#');
-    await pageWithClipboard.waitForTimeout(2000);
-
-    const channelListVisible = await messageHelpers.verifyHashtagChannelList();
-    expect(channelListVisible).toBeTruthy();
+    await expect
+      .poll(() => messageHelpers.verifyHashtagChannelList(), { timeout: 3000 })
+      .toBe(true);
 
     const hasExpectedChannels = await messageHelpers.verifyExpectedChannelsInList();
     expect(hasExpectedChannels).toBeTruthy();
@@ -129,21 +126,18 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
       tms: '63399',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageInput = await messageHelpers.findMessageInput();
     await messageInput.click();
-    await pageWithClipboard.waitForTimeout(300);
 
     await messageInput.type('@');
-    await pageWithClipboard.waitForTimeout(1500);
-
-    const mentionVisible = await messageHelpers.verifyMentionListVisible();
-    expect(mentionVisible).toBeTruthy();
+    await expect
+      .poll(() => messageHelpers.verifyMentionListVisible(), { timeout: 3000 })
+      .toBe(true);
 
     await pageWithClipboard.keyboard.press('Escape');
-    await pageWithClipboard.waitForTimeout(500);
   });
 
   test('Mention specific user and send message', async ({ pageWithClipboard, context }) => {
@@ -151,7 +145,7 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
       tms: '63399',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const candidateNames = ['nguyen.nguyen'];
@@ -167,7 +161,6 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
 
     const msg = `Reaction test ${Date.now()}`;
     await messageHelpers.sendTextMessage(msg);
-    await pageWithClipboard.waitForTimeout(1000);
 
     const target = await messageHelpers.findLastMessage();
     const emojisToAdd = ['😂', '👍', '💯'];
@@ -177,16 +170,11 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
       const emoji = emojisToAdd[i];
 
       const picked = await messageHelpers.reactToMessage(target, [emoji]);
-      await pageWithClipboard.waitForTimeout(2000);
 
       if (picked) {
         addedEmojis.push(picked);
       }
-
-      await pageWithClipboard.waitForTimeout(500);
     }
-
-    await pageWithClipboard.waitForTimeout(2000);
 
     const hasAllReactions = await messageHelpers.verifyReactionOnMessage(target, addedEmojis);
     expect(hasAllReactions).toBeTruthy();
