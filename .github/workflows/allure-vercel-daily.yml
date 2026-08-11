@@ -97,6 +97,7 @@ jobs:
     env:
       ALLURE_VERCEL_ROOT: /home/nccsoft/allure-vercel-reports
       DEV_HOST_IP: 172.16.100.198
+      DEV_MMN_HOST_IP: 172.16.100.180
       # Fixed browser path pre-installed on the VPS (one-time setup).
       # Playwright skips the download when the matching version already exists here.
       PLAYWRIGHT_BROWSERS_PATH: /home/member/pw-browsers
@@ -275,6 +276,36 @@ jobs:
 
           echo "dev-mezon API is reachable"
 
+          echo "=== Checking dev-mmn route ==="
+          MMN_ROUTE=$(ip route get "$DEV_MMN_HOST_IP")
+          echo "$MMN_ROUTE"
+          if ! grep -q 'dev tun0' <<< "$MMN_ROUTE"; then
+            echo "::error::$DEV_MMN_HOST_IP is not routed through tun0"
+            exit 1
+          fi
+
+          echo "=== Checking dev-mmn prove endpoint ==="
+          MMN_HTTP_CODE=$(curl \
+            -sS \
+            -4 \
+            -X POST \
+            --resolve "dev-mmn.nccsoft.vn:443:$DEV_MMN_HOST_IP" \
+            -o /dev/null \
+            -w "%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 20 \
+            https://dev-mmn.nccsoft.vn/zk-api//prove) || {
+              echo "::error::Cannot connect to dev-mmn prove endpoint"
+              exit 1
+            }
+
+          echo "MMN HTTP status: $MMN_HTTP_CODE"
+          if [[ "$MMN_HTTP_CODE" == "000" ]]; then
+            echo "::error::dev-mmn did not return an HTTP response"
+            exit 1
+          fi
+          echo "dev-mmn is reachable"
+
       # -----------------------------------------------------------------------
       # 6. Create .env file
       # -----------------------------------------------------------------------
@@ -283,6 +314,7 @@ jobs:
           cat > .env << 'EOF'
           BASE_URL=https://dev-mezon.nccsoft.vn/
           DEV_HOST_IP=172.16.100.198
+          DEV_MMN_HOST_IP=172.16.100.180
           WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false

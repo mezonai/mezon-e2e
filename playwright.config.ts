@@ -27,9 +27,13 @@ const getInsecureLocalOriginArgs = (): string[] => {
 
 const getHostResolverArgs = (): string[] => {
   const devHostIp = process.env.DEV_HOST_IP?.trim();
-  return devHostIp
-    ? [`--host-resolver-rules=MAP dev-mezon.nccsoft.vn ${devHostIp}`]
-    : [];
+  const devMmnHostIp = process.env.DEV_MMN_HOST_IP?.trim();
+  const rules = [
+    devHostIp ? `MAP dev-mezon.nccsoft.vn ${devHostIp}` : '',
+    devMmnHostIp ? `MAP dev-mmn.nccsoft.vn ${devMmnHostIp}` : '',
+  ].filter(Boolean);
+
+  return rules.length > 0 ? [`--host-resolver-rules=${rules.join(',')}`] : [];
 };
 
 export default defineConfig({
