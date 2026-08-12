@@ -520,6 +520,8 @@ jobs:
           REPORT_RUN_ID: ${{ github.run_id }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERCEL_ORG_ID: team_dZPIwRmKbB0nPB0li3Gmr3t8
+          VERCEL_PROJECT_ID: prj_9IxF0sBzYsUNc3xbr09kzvmkBgp0
         run: |
           bash scripts/allure/allure-daily.sh
 
