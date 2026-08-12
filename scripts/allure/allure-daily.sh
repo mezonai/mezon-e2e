@@ -391,10 +391,22 @@ if [ -z "${VERCEL_TOKEN:-}" ]; then
   exit 1
 fi
 
+VERCEL_ORG_ID="${VERCEL_ORG_ID:-team_dZPIwRmKbB0nPB0li3Gmr3t8}"
+VERCEL_PROJECT_ID="${VERCEL_PROJECT_ID:-prj_9IxF0sBzYsUNc3xbr09kzvmkBgp0}"
+
+mkdir -p "$ALLURE_VERCEL_ROOT/reports/.vercel"
+cat > "$ALLURE_VERCEL_ROOT/reports/.vercel/project.json" <<EOF
+{
+  "orgId": "$VERCEL_ORG_ID",
+  "projectId": "$VERCEL_PROJECT_ID"
+}
+EOF
+
+log "   Target Vercel project: $VERCEL_PROJECT_ID (org $VERCEL_ORG_ID)"
 log "   Deploying $ALLURE_VERCEL_ROOT/reports to Vercel (--prod)..."
 # Pass token via environment variable — NOT via --token flag
 # to avoid exposure through process list or shell history
-export VERCEL_TOKEN
+export VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID
 npx vercel deploy --prod --yes "$ALLURE_VERCEL_ROOT/reports"
 
 log "✅ Deployed to Vercel successfully!"
