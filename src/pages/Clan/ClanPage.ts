@@ -924,6 +924,22 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async updateRoleName(roleName: string, newRoleName: string): Promise<void> {
+    const opened = await this.openRoleSettingsPage();
+    expect(opened).toBe(true);
+
+    const roleItem = this.selector.clanSettings.roleList.item.filter({ hasText: roleName }).first();
+    await expect(roleItem).toBeVisible({ timeout: 5000 });
+    await roleItem.click();
+
+    await this.selector.clanSettings.buttons.displayRoleOption.click();
+    const roleNameInput = this.selector.clanSettings.input.roleName;
+    await expect(roleNameInput).toBeVisible({ timeout: 5000 });
+    await roleNameInput.fill(newRoleName);
+    await this.selector.buttons.saveChanges.click();
+    await this.page.waitForTimeout(1000);
+  }
+
   async inviteUserToClanByUsername(username: string) {
     try {
       const messageSelector = new MessageSelector(this.page);
@@ -1212,6 +1228,19 @@ export class ClanPage extends BasePage {
     const channelLocator = this.page.locator(CHANNEL_NAME_SELECTOR, { hasText: channelName });
     await expect(channelLocator).toBeVisible({ timeout: 3000 });
     await channelLocator.click();
+  }
+
+  async copyChannelLinkFromChannelList(channelName: string): Promise<string> {
+    const channel = this.selector.channel.getSidebarItem(channelName);
+    await expect(channel).toBeVisible({ timeout: 5000 });
+    await channel.click({ button: 'right' });
+
+    const copyLinkAction = this.selector.sidebar.panelItem.item.filter({ hasText: 'Copy Link' });
+    await expect(copyLinkAction).toBeVisible({ timeout: 3000 });
+    await copyLinkAction.click();
+    await this.page.waitForTimeout(500);
+
+    return this.page.evaluate(async () => navigator.clipboard.readText());
   }
 
   async isMessageInputDisabled() {
