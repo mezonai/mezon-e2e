@@ -366,6 +366,10 @@ export const DATA_E2E_IDENTIFIER = {
           webhook_description: '',
         },
       },
+      audit_log: {
+        content: '',
+        time: '',
+      },
       sidebar: {
         title: '',
         delete: '',
@@ -949,6 +953,14 @@ export const DATA_E2E_IDENTIFIER = {
         button_reset: '',
         button_save_changes: '',
       },
+    },
+    activity: {
+      tab: '',
+      switch: '',
+    },
+    notification: {
+      tab: '',
+      switch: '',
     },
     logout: '',
   },

@@ -17,6 +17,7 @@ export class ProfilePage extends BasePage {
 
   async openUserSettingProfile() {
     await this.selector.buttons.userSettingProfile.click();
+    await this.page.waitForTimeout(500);
   }
 
   async openProfileTab() {
@@ -34,6 +35,71 @@ export class ProfilePage extends BasePage {
   async openLanguageTab() {
     await expect(this.selector.tabs.language).toBeVisible({ timeout: 3000 });
     await this.selector.tabs.language.click();
+  }
+
+  async openSettingsTab(type: 'activity' | 'notification'): Promise<void> {
+    const tab = type === 'activity' ? this.selector.tabs.activity : this.selector.tabs.notification;
+    await expect(tab).toBeVisible({ timeout: 5000 });
+    await tab.click();
+    await this.page.waitForTimeout(1000);
+
+    const settingsSwitch =
+      type === 'activity'
+        ? this.selector.settings.activitySwitch
+        : this.selector.settings.notificationSwitch;
+    await expect(settingsSwitch).toBeVisible({ timeout: 10000 });
+  }
+
+  async ensureSettingsTabOpen(type: 'activity' | 'notification'): Promise<void> {
+    const settingsSwitch =
+      type === 'activity'
+        ? this.selector.settings.activitySwitch
+        : this.selector.settings.notificationSwitch;
+    if (await settingsSwitch.isVisible({ timeout: 1000 })) return;
+
+    const tab = type === 'activity' ? this.selector.tabs.activity : this.selector.tabs.notification;
+    if (!(await tab.isVisible({ timeout: 1000 }))) await this.openUserSettingProfile();
+    await this.openSettingsTab(type);
+  }
+
+  private async getSettingsSwitch(type: 'activity' | 'notification'): Promise<Locator> {
+    const container =
+      type === 'activity'
+        ? this.selector.settings.activitySwitch
+        : this.selector.settings.notificationSwitch;
+    await expect(container).toBeVisible({ timeout: 10000 });
+
+    if ((await container.getAttribute('type')) === 'checkbox') return container;
+
+    const nestedCheckbox = container.locator('input[type="checkbox"]');
+    if ((await nestedCheckbox.count()) > 0) return nestedCheckbox.first();
+
+    return container;
+  }
+
+  async isSettingsSwitchEnabled(type: 'activity' | 'notification'): Promise<boolean> {
+    const settingsSwitch = await this.getSettingsSwitch(type);
+    if ((await settingsSwitch.getAttribute('type')) === 'checkbox') {
+      return settingsSwitch.isChecked();
+    }
+
+    const ariaChecked = await settingsSwitch.getAttribute('aria-checked');
+    if (ariaChecked !== null) return ariaChecked === 'true';
+
+    return (await settingsSwitch.getAttribute('data-state')) === 'checked';
+  }
+
+  async setSettingsSwitch(type: 'activity' | 'notification', enabled: boolean): Promise<void> {
+    const settingsSwitch = await this.getSettingsSwitch(type);
+    if ((await this.isSettingsSwitchEnabled(type)) !== enabled) {
+      if ((await settingsSwitch.getAttribute('type')) === 'checkbox') {
+        await settingsSwitch.setChecked(enabled, { force: true });
+      } else {
+        await settingsSwitch.click();
+      }
+      await this.page.waitForTimeout(500);
+    }
+    await expect.poll(() => this.isSettingsSwitchEnabled(type)).toBe(enabled);
   }
 
   async selectLanguage(languageName: string) {

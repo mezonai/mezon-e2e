@@ -7,9 +7,13 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { test } from '@playwright/test';
 
 export function registerCleanupTests(shardIndex: number, shardCount: number): void {
-  const accounts = Object.entries(AccountCredentials).filter(
-    (_, accountIndex) => accountIndex % shardCount === shardIndex
+  const sortedAccounts = Object.entries(AccountCredentials).sort(
+    ([firstAccountName], [secondAccountName]) =>
+      firstAccountName.localeCompare(secondAccountName, undefined, { numeric: true })
   );
+  const accountsPerShard = Math.ceil(sortedAccounts.length / shardCount);
+  const shardStartIndex = shardIndex * accountsPerShard;
+  const accounts = sortedAccounts.slice(shardStartIndex, shardStartIndex + accountsPerShard);
 
   for (const [accountName, account] of accounts) {
     test(`Clean up clans for ${accountName}`, async ({ page }) => {

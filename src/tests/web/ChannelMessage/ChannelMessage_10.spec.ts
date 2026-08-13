@@ -62,12 +62,11 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
     await AuthHelper.logout(pageWithClipboard);
   });
 
-  test('Send message with buzz (Ctrl+G)', async ({ pageWithClipboard, context }) => {
+  test('Send message with buzz (Ctrl+G)', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63407',
     });
 
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const buzzMessage = `Buzz message test ${Date.now()}`;
@@ -75,7 +74,9 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
     await messageHelpers.sendBuzzMessage(buzzMessage);
   });
 
-  test('Verify that user can unpin a message from the pinned message list', async ({ page }) => {
+  test('Verify that user can unpin a message from the pinned message list', async ({
+    pageWithClipboard: page,
+  }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63400',
     });

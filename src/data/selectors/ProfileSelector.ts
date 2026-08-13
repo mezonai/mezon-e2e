@@ -47,6 +47,8 @@ export default class ProfileSelector {
     clanProfile: this.page.locator(generateE2eSelector('user_setting.profile.clan_profile.button')),
     account: this.page.locator(generateE2eSelector('user_setting.account.tab_account')),
     language: this.page.locator(generateE2eSelector('user_setting.language.tab_language')),
+    activity: this.page.locator(generateE2eSelector('user_setting.activity')),
+    notification: this.page.locator(generateE2eSelector('user_setting.notification')),
     logout: this.page.locator(generateE2eSelector('user_setting.logout')),
   };
 
@@ -55,6 +57,11 @@ export default class ProfileSelector {
     name: this.page.locator(
       generateE2eSelector('user_setting.language.language_item.language_name')
     ),
+  };
+
+  readonly settings = {
+    activitySwitch: this.page.locator(generateE2eSelector('user_setting.activity.switch')),
+    notificationSwitch: this.page.locator(generateE2eSelector('user_setting.notification.switch')),
   };
 
   readonly userProfile = {

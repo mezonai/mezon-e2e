@@ -94,8 +94,7 @@ test.describe('Channel Messages - Reactions, Replies, and Topic Discussions', ()
     expect(addedEmojis.length).toBeGreaterThanOrEqual(2);
   });
 
-  test('Reply to a message and send', async ({ pageWithClipboard, context }) => {
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
+  test('Reply to a message and send', async ({ pageWithClipboard }) => {
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const original = `Reply base ${Date.now()}`;
@@ -107,12 +106,11 @@ test.describe('Channel Messages - Reactions, Replies, and Topic Discussions', ()
     expect(ok || visible).toBeTruthy();
   });
 
-  test('Search emoji in picker and apply reaction', async ({ pageWithClipboard, context }) => {
+  test('Search emoji in picker and apply reaction', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63401',
     });
 
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const msg = `Emoji search test ${Date.now()}`;
@@ -128,12 +126,11 @@ test.describe('Channel Messages - Reactions, Replies, and Topic Discussions', ()
     expect(hasReaction).toBeTruthy();
   });
 
-  test('Create topic discussion and send emoji message', async ({ pageWithClipboard, context }) => {
+  test('Create topic discussion and send emoji message', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63391',
     });
 
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const originalMsg = `Topic starter ${Date.now()}`;

@@ -77,4 +77,29 @@ export class ClanSettingsPage extends BasePage {
       return false;
     }
   }
+
+  async openAuditLogTab(): Promise<void> {
+    await this.selector.general.buttons.auditLog.click();
+    await expect(this.selector.auditLog.content.first()).toBeVisible({ timeout: 10000 });
+  }
+
+  async verifyUpdateRoleAuditLog(roleName: string, username: string): Promise<void> {
+    const entry = this.selector.auditLog.content
+      .filter({ hasText: username })
+      .filter({ hasText: /Update Role/i })
+      .filter({ hasText: roleName })
+      .first();
+
+    await expect(entry).toBeVisible({ timeout: 10000 });
+    await expect(entry).toContainText(username);
+    await expect(entry).toContainText(/Update Role/i);
+    await expect(entry.locator('strong')).toContainText(
+      new RegExp(`${roleName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\(\\d+\\)`)
+    );
+
+    const auditItem = entry.locator('xpath=../..');
+    const time = auditItem.locator(this.selector.auditLog.time);
+    await expect(time).toBeVisible();
+    await expect(time).toContainText(/^(Today at \d{1,2}:\d{2}|Yesterday at \d{1,2}:\d{2})$/);
+  }
 }

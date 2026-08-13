@@ -59,12 +59,10 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
     await AuthHelper.logout(pageWithClipboard);
   });
 
-  test('Jump to pinned message and verify in main chat', async ({ pageWithClipboard, context }) => {
+  test('Jump to pinned message and verify in main chat', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63397',
     });
-
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
 
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
@@ -98,12 +96,11 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
     expect(isMessageVisible).toBeTruthy();
   });
 
-  test('Test hashtag channel functionality', async ({ pageWithClipboard, context }) => {
+  test('Test hashtag channel functionality', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63398',
     });
 
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageInput = await messageHelpers.findMessageInput();
@@ -121,12 +118,11 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
     await pageWithClipboard.waitForTimeout(1000);
   });
 
-  test('Mention user list appears with @', async ({ pageWithClipboard, context }) => {
+  test('Mention user list appears with @', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63399',
     });
 
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const messageInput = await messageHelpers.findMessageInput();
@@ -140,12 +136,11 @@ test.describe('Channel Messages - Pinned Navigation, Hashtags, Mentions, and Rea
     await pageWithClipboard.keyboard.press('Escape');
   });
 
-  test('Mention specific user and send message', async ({ pageWithClipboard, context }) => {
+  test('Mention specific user and send message', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63399',
     });
 
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const candidateNames = ['nguyen.nguyen'];

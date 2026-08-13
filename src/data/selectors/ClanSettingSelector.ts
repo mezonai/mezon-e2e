@@ -33,6 +33,7 @@ export default class ClanSettingSelector {
       sidebarItem: this.buttons.sidebarItem,
       roleSettings: this.buttons.sidebarItem.filter({ hasText: 'Roles' }),
       integrations: this.buttons.sidebarItem.filter({ hasText: 'Integrations' }),
+      auditLog: this.buttons.sidebarItem.filter({ hasText: 'Audit Log' }),
       createRole: this.page.locator(generateE2eSelector('button.base'), {
         hasText: 'Create Role',
       }),
@@ -163,5 +164,10 @@ export default class ClanSettingSelector {
         generateE2eSelector('clan_page.settings.integrations.webhook_item.webhook_description')
       ),
     },
+  };
+
+  readonly auditLog = {
+    content: this.page.locator(generateE2eSelector('clan_page.settings.audit_log.content')),
+    time: this.page.locator(generateE2eSelector('clan_page.settings.audit_log.time')),
   };
 }
