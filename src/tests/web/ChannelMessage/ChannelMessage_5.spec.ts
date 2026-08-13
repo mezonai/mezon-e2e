@@ -73,12 +73,11 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
     expect(isMarkdownRendered).toBeTruthy();
   });
 
-  test('Send Message with Emoji', async ({ pageWithClipboard, context }) => {
+  test('Send Message with Emoji', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63405',
     });
 
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const baseMessage = `Test message with emoji ${Date.now()}`;
@@ -90,12 +89,11 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
     expect(hasEmoji).toBeTruthy();
   });
 
-  test('Send text too large for convert to file txt', async ({ pageWithClipboard, context }) => {
+  test('Send text too large for convert to file txt', async ({ pageWithClipboard }) => {
     await AllureReporter.addWorkItemLinks({
       tms: '63406',
     });
 
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     const longMessage = await messageHelpers.generateLongMessage(3000);
@@ -114,8 +112,7 @@ test.describe('Channel Messages - Markdown, Emoji, Links, Hashtags, and Buzz', (
     expect(hasHashtag).toBeTruthy();
   });
 
-  test('Send message with multiple links', async ({ pageWithClipboard, context }) => {
-    await context.grantPermissions(CLIPBOARD_PERMISSIONS);
+  test('Send message with multiple links', async ({ pageWithClipboard }) => {
     messageHelpers = new MessageTestHelpers(pageWithClipboard);
 
     await messageHelpers.sendMessageWithMultipleLinks(LINK_TEST_URLS);
