@@ -268,6 +268,7 @@ export const DATA_E2E_IDENTIFIER = {
       create_event: {
         start_modal: '',
         button_create: '',
+        button_edit: '',
         button_close: '',
         next: '',
         upload: {
@@ -305,12 +306,23 @@ export const DATA_E2E_IDENTIFIER = {
           location_name: '',
         },
         event_management: {
+          number_of_event: '',
           item: {
             modal_detail_item: {
               start_date_time: '',
               topic: '',
               channel_name: '',
               description: '',
+              number_of_interested: '',
+              tab: {
+                event_info: '',
+                number_of_interested: '',
+              },
+              user_interested: {
+                item: {
+                  display_name: '',
+                },
+              },
             },
             button: {
               open_detail_modal: '',
@@ -319,7 +331,9 @@ export const DATA_E2E_IDENTIFIER = {
               confirm_cancel_event: '',
               share_event: '',
               close_modal_copy_link: '',
+              interested: '',
             },
+            number_of_interested: '',
           },
         },
       },

@@ -380,6 +380,8 @@ jobs:
           RUN_MULTI_FRIEND_MANAGEMENT: ${{ inputs.multi_friend_management }}
           RUN_MULTI_VOICE_CHANNEL: ${{ inputs.multi_voice_channel }}
           RUN_MULTI_ROOT_TESTS: ${{ inputs.multi_root_tests }}
+          ENABLE_TRACE: 'true'
+          ENABLE_VIDEO: 'true'
         run: |
           WEB_TARGETS=()
           MULTI_TARGETS=()
@@ -567,8 +569,17 @@ jobs:
           fi
 
       # -----------------------------------------------------------------------
-      # 11. Upload any remaining allure-results for debugging
+      # 11. Upload Playwright diagnostics and Allure raw results
       # -----------------------------------------------------------------------
+      - name: Upload Playwright failure artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-${{ steps.phase.outputs.phase }}-${{ steps.phase.outputs.report_date }}-${{ github.run_id }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Upload allure-results artifact (debug fallback)
         if: always()
         uses: actions/upload-artifact@v4

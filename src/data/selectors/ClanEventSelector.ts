@@ -88,6 +88,9 @@ export default class ClanEventSelector {
     eventManagementItem: this.page.locator(
       generateE2eSelector('clan_page.modal.create_event.event_management.item')
     ),
+    numberOfEvent: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.event_management.number_of_event')
+    ),
     openEventDetailModalButton: this.page.locator(
       generateE2eSelector(
         'clan_page.modal.create_event.event_management.item.button.open_detail_modal'
@@ -108,6 +111,9 @@ export default class ClanEventSelector {
       editEvent: this.page.locator(CHANNEL_PANEL_ITEM_SELECTOR, {
         hasText: 'Edit Event',
       }),
+      updateEvent: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.button_edit')
+      ),
       cancelEvent: this.page.locator(CHANNEL_PANEL_ITEM_SELECTOR, {
         hasText: 'Cancel Event',
       }),
@@ -155,5 +161,42 @@ export default class ClanEventSelector {
         'clan_page.modal.create_event.event_management.item.modal_detail_item.description'
       )
     ),
+    numberOfInterestedInModal: this.page.locator(
+      generateE2eSelector(
+        'clan_page.modal.create_event.event_management.item.modal_detail_item.number_of_interested'
+      )
+    ),
+    numberOfInterested: this.page.locator(
+      generateE2eSelector('clan_page.modal.create_event.event_management.item.number_of_interested')
+    ),
+    tab: {
+      eventInfo: this.page.locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.modal_detail_item.tab.event_info'
+        )
+      ),
+      numberOfInterested: this.page.locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.modal_detail_item.tab.number_of_interested'
+        )
+      ),
+    },
+    userInterested: {
+      displayName: this.page.locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.modal_detail_item.user_interested.item.display_name'
+        )
+      ),
+    },
+    button: {
+      interested: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.interested'),
+        { hasText: 'Interested' }
+      ),
+      uninterested: this.page.locator(
+        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.interested'),
+        { hasText: 'Uninterested' }
+      ),
+    },
   };
 }
