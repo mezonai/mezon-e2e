@@ -240,8 +240,7 @@ test.describe('Channel Management - Overview, Privacy, Voice, and Deletion', () 
       tag: ['voice-channel', 'join-channel', 'leave-channel'],
     });
 
-    const ran = Math.floor(Math.random() * 999) + 1;
-    const channelName = `voice-channel-${ran}`;
+    const channelName = `voice-${Date.now().toString(36)}-${test.info().parallelIndex}`;
     const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('channelName', channelName);
@@ -254,13 +253,15 @@ test.describe('Channel Management - Overview, Privacy, Voice, and Deletion', () 
     });
 
     await AllureReporter.step('Join voice channel', async () => {
-      await clanPage.joinVoiceChannel(channelName);
+      const isJoinedVoiceChannel = await clanPage.joinVoiceChannel(channelName);
+      expect(isJoinedVoiceChannel).toBe(true);
       const isUserInVoiceChannel = await clanPage.isJoinVoiceChannel(channelName);
       expect(isUserInVoiceChannel).toBe(true);
     });
 
     await AllureReporter.step('Leave voice channel', async () => {
-      await clanPage.leaveVoiceChannel(channelName);
+      const isLeftVoiceChannel = await clanPage.leaveVoiceChannel(channelName);
+      expect(isLeftVoiceChannel).toBe(true);
       const isLeaveVoiceChannel = await clanPage.isLeaveVoiceChannel(channelName);
       expect(isLeaveVoiceChannel).toBe(true);
       await page.reload();
