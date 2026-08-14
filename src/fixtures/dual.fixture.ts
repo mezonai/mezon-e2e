@@ -37,7 +37,9 @@ async function buildMultiProvider<K extends string>(
   const pages: Record<K, Page> = Object.create(null);
 
   for (const k of keys) {
-    const ctx = await browser.newContext();
+    const ctx = await browser.newContext({
+      permissions: ['camera', 'microphone'],
+    });
     const pg = await ctx.newPage();
     contexts[k] = ctx;
     pages[k] = pg;

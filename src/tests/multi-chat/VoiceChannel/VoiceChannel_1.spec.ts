@@ -104,8 +104,7 @@ test.describe('Voice Channel - Share Screen', () => {
       await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage3, pageA);
     });
 
-    const ran = Math.floor(Math.random() * 999) + 1;
-    const channelName = `voice-channel-${ran}`;
+    const channelName = `voice-${Date.now().toString(36)}-${test.info().parallelIndex}`;
 
     await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
       await clanPageA.createNewChannel(ChannelType.VOICE, channelName);
@@ -120,9 +119,8 @@ test.describe('Voice Channel - Share Screen', () => {
     });
 
     await AllureReporter.step('User A joins voice channel', async () => {
-      await clanPageA.joinVoiceChannel(channelName);
-      // const isUserInVoiceChannel = await clanPageA.isJoinVoiceChannel(channelName);
-      // expect(isUserInVoiceChannel).toBe(true);
+      const isJoinedVoiceChannel = await clanPageA.joinVoiceChannel(channelName);
+      expect(isJoinedVoiceChannel).toBe(true);
     });
 
     // await AllureReporter.step('Verify voice room screen with control bar is visible', async () => {
@@ -214,8 +212,7 @@ test.describe('Voice Channel - Share Screen', () => {
       await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage3, pageA);
     });
 
-    const ran = Math.floor(Math.random() * 999) + 1;
-    const channelName = `voice-channel-${ran}`;
+    const channelName = `voice-${Date.now().toString(36)}-${test.info().parallelIndex}`;
 
     await AllureReporter.step(`Create new voice channel: ${channelName}`, async () => {
       await clanPageA.createNewChannel(ChannelType.VOICE, channelName);
@@ -230,7 +227,8 @@ test.describe('Voice Channel - Share Screen', () => {
     });
 
     await AllureReporter.step('User A joins voice channel', async () => {
-      await clanPageA.joinVoiceChannel(channelName);
+      const isJoinedVoiceChannel = await clanPageA.joinVoiceChannel(channelName);
+      expect(isJoinedVoiceChannel).toBe(true);
     });
 
     await AllureReporter.step('User A shares screen in voice channel', async () => {
