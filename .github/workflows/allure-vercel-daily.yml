@@ -380,8 +380,6 @@ jobs:
           RUN_MULTI_FRIEND_MANAGEMENT: ${{ inputs.multi_friend_management }}
           RUN_MULTI_VOICE_CHANNEL: ${{ inputs.multi_voice_channel }}
           RUN_MULTI_ROOT_TESTS: ${{ inputs.multi_root_tests }}
-          ENABLE_TRACE: 'true'
-          ENABLE_VIDEO: 'true'
         run: |
           WEB_TARGETS=()
           MULTI_TARGETS=()
