@@ -117,20 +117,29 @@ jobs:
         run: |
           if [ "$EVENT_SCHEDULE" = "0 13 * * *" ]; then
             RUN_PHASE="web"
+            REPORT_MODE="daily"
             REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
           elif [ "$EVENT_SCHEDULE" = "0 19 * * *" ]; then
             RUN_PHASE="multi"
+            REPORT_MODE="daily"
             REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
           else
             RUN_PHASE="manual"
+            if [ "$SELECTED_REF" = "main" ]; then
+              REPORT_MODE="daily"
+            else
+              REPORT_MODE="manual"
+            fi
             REPORT_DATE="$(TZ=Asia/Ho_Chi_Minh date +%F)"
           fi
 
           SAFE_REF="${SELECTED_REF//[^A-Za-z0-9._-]/_}"
           echo "phase=$RUN_PHASE" >> "$GITHUB_OUTPUT"
+          echo "report_mode=$REPORT_MODE" >> "$GITHUB_OUTPUT"
           echo "report_date=$REPORT_DATE" >> "$GITHUB_OUTPUT"
           echo "pipeline_key=$REPORT_DATE-$SAFE_REF" >> "$GITHUB_OUTPUT"
           echo "Run phase: $RUN_PHASE"
+          echo "Report mode: $REPORT_MODE"
           echo "Combined report date: $REPORT_DATE"
           echo "Pipeline key: $REPORT_DATE-$SAFE_REF"
 
@@ -518,7 +527,7 @@ jobs:
         env:
           ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
           REPORT_DATE: ${{ steps.phase.outputs.report_date }}
-          REPORT_MODE: ${{ steps.phase.outputs.phase == 'manual' && 'manual' || 'daily' }}
+          REPORT_MODE: ${{ steps.phase.outputs.report_mode }}
           REPORT_RUN_ID: ${{ github.run_id }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
