@@ -73,6 +73,12 @@ export default class ClanSettingSelector {
         delete: this.page.locator(
           generateE2eSelector('clan_page.settings.role.item.button.delete')
         ),
+        confirm: this.page.locator(
+          generateE2eSelector('clan_page.settings.role.item.button.confirm')
+        ),
+        cancel: this.page.locator(
+          generateE2eSelector('clan_page.settings.role.item.button.cancel')
+        ),
       },
       override: {
         item: this.page.locator(generateE2eSelector('clan_page.settings.role.override.item')),
@@ -109,6 +115,24 @@ export default class ClanSettingSelector {
   };
 
   readonly overview = {
+    messageManagement: {
+      actionLogs: this.page
+        .locator(
+          generateE2eSelector(
+            'clan_page.settings.overview.system_messages_channel.message_management'
+          ),
+          { hasText: 'Send a log when an action is applied to the clan' }
+        )
+        .locator(generateE2eSelector('input.base')),
+      helpfulTips: this.page
+        .locator(
+          generateE2eSelector(
+            'clan_page.settings.overview.system_messages_channel.message_management'
+          ),
+          { hasText: 'Send helpful tips for clan setup.' }
+        )
+        .locator(generateE2eSelector('input.base')),
+    },
     system_messages_channel: {
       selection: {
         container: this.page.locator(

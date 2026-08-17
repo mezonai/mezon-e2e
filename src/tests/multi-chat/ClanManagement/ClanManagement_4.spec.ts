@@ -24,6 +24,7 @@ test.describe('Clan Management - Role Permissions, Ownership, and Membership Dat
   const memberAccount = AccountCredentials['account2-4'];
   const CLEANUP_STEP_NAME = 'Clean up existing friend relationships';
   const SEND_REQUEST_STEP_NAME = 'User A sends friend request to User B';
+  const CREATE_CLAN_STEP_NAME = 'User A creates a clan';
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
   const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
   const setupModes = {
@@ -95,7 +96,7 @@ test.describe('Clan Management - Role Permissions, Ownership, and Membership Dat
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
     const clanFactory = new ClanFactory();
-    await AllureReporter.step('User A creates a clan', async () => {
+    await AllureReporter.step(CREATE_CLAN_STEP_NAME, async () => {
       await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement2, pageA);
     });
 
@@ -190,7 +191,7 @@ test.describe('Clan Management - Role Permissions, Ownership, and Membership Dat
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
     });
     const clanFactory = new ClanFactory();
-    await AllureReporter.step('User A creates a clan', async () => {
+    await AllureReporter.step(CREATE_CLAN_STEP_NAME, async () => {
       await clanFactory.setupClan(ClanSetupHelper.configs.createCategory, pageA);
     });
 
@@ -223,5 +224,84 @@ test.describe('Clan Management - Role Permissions, Ownership, and Membership Dat
     });
 
     await AllureReporter.attachScreenshot(pageB, 'Context Menu Without ManageClan');
+  });
+
+  test('Verify welcome system message is not sent when clan setup tips are disabled', async ({
+    dual,
+  }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify disabling clan setup tips prevents the welcome system message.
+
+      **Test Steps:**
+      1. User A creates a clan
+      2. User A opens Clan Settings > Overview
+      3. User A turns off "Send helpful tips for clan setup."
+      4. User A invites User B and User B joins the clan
+      5. User A opens the general channel
+      6. Verify chat.system_message.5 welcoming User B does not exist
+
+      **Expected Result:** No welcome system message is displayed for User B.
+    `);
+    await AllureReporter.addLabels({
+      tag: ['clan-management', 'system-message', 'helpful-tips', 'multi-user'],
+    });
+
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const clanFactory = new ClanFactory();
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step('User A and User B become friends', async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step(CREATE_CLAN_STEP_NAME, async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement4, pageA);
+    });
+
+    try {
+      await AllureReporter.step('User A disables clan setup helpful tips', async () => {
+        await clanPageA.disableClanSetupHelpfulTips();
+        await clanPageA.closeSettingsClan();
+      });
+
+      await AllureReporter.step('User A invites User B and User B joins the clan', async () => {
+        await clanPageA.clickButtonInvitePeopleFromMenu();
+        const inviteUrl = await clanPageA.inviteUserToClanByUsername(userNameB);
+        await clanPageB.joinClanByUrlInvite(inviteUrl);
+      });
+
+      await AllureReporter.step('Verify no welcome system message exists in general', async () => {
+        await clanPageA.verifyWelcomeSystemMessageDoesNotExist('general', userNameB);
+      });
+
+      await AllureReporter.attachScreenshot(pageA, 'Welcome system message is not displayed');
+    } finally {
+      await clanFactory.cleanupClan(pageA);
+    }
   });
 });

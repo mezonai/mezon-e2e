@@ -16,6 +16,8 @@ const THREAD_BOX_SELECTOR = generateE2eSelector('discussion.box.thread');
 export default class ClanSelector {
   constructor(private readonly page: Page) {}
 
+  readonly banner = this.page.locator(generateE2eSelector('clan_page.banner'));
+
   readonly member = new ClanMemberSelector(this.page);
   readonly channel = new ClanChannelSelector(this.page);
   readonly event = new ClanEventSelector(this.page);
