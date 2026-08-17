@@ -239,6 +239,15 @@ export default class MessageSelector {
   headerGalleryButton = this.page.locator(
     generateE2eSelector('chat.channel_message.header.button.gallery')
   );
+  sharedFiles = {
+    item: this.page.locator(generateE2eSelector('chat.channel_message.header.button.file.item')),
+    fileName: this.page.locator(
+      generateE2eSelector('chat.channel_message.header.button.file.item.file_name')
+    ),
+    byTime: this.page.locator(
+      generateE2eSelector('chat.channel_message.header.button.file.item.by_time')
+    ),
+  };
   waveToSayHiButton = this.page.locator(generateE2eSelector('chat.button.wave_to_say_hi'));
 
   readonly anonymous = {

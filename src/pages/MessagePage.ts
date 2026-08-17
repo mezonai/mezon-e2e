@@ -1129,6 +1129,29 @@ export class MessagePage extends BasePage {
     await expect(this.selector.polls.card.ended).toBeVisible();
   }
 
+  async openSharedFiles(): Promise<void> {
+    await this.selector.headerGalleryButton.click();
+    const filesTab = this.page.locator('[data-e2e="chat-channel_message-header-button-file"]');
+    await expect(filesTab).toBeVisible({ timeout: 5000 });
+    await filesTab.click();
+    await expect(this.selector.sharedFiles.item.first()).toBeVisible({ timeout: 5000 });
+  }
+
+  async verifySharedFileExists(fileName: string, sharedBy?: string): Promise<void> {
+    const fileItem = this.selector.sharedFiles.item
+      .filter({ has: this.selector.sharedFiles.fileName.filter({ hasText: fileName }) })
+      .last();
+
+    await expect(fileItem).toBeVisible({ timeout: 5000 });
+    await expect(fileItem.locator(this.selector.sharedFiles.fileName)).toHaveText(fileName);
+
+    const sharedDetails = fileItem.locator(this.selector.sharedFiles.byTime);
+    await expect(sharedDetails).toBeVisible();
+    if (sharedBy) {
+      await expect(sharedDetails).toContainText(`Shared by ${sharedBy}`);
+    }
+  }
+
   async clickShareContactButtonOnShortProfile() {
     const shareContactButton = this.page.locator(
       generateE2eSelector('short_profile.action.button.share_contact')

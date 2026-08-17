@@ -2,6 +2,7 @@ import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { FriendPage } from '@/pages/FriendPage';
+import { MessagePage } from '@/pages/MessagePage';
 import { ROUTES } from '@/selectors';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
@@ -10,6 +11,7 @@ import { getUsernamesFromEmails, setupDualUsersSequentially } from '@/utils/dual
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
+import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { Page } from '@playwright/test';
 import { test } from '../../../fixtures/dual.fixture';
 import { MULTI_CHAT_STEPS } from '../MultiChatTestConstants';
@@ -17,6 +19,8 @@ import { MULTI_CHAT_STEPS } from '../MultiChatTestConstants';
 test.describe('Channel Messages - For You Inbox', () => {
   const accountA = AccountCredentials['accountKien1'];
   const accountB = AccountCredentials['accountKien7'];
+  const CHANNEL_MESSAGE_TAG = 'channel-message';
+  const MULTI_USER_TAG = 'multi-user';
   const [userNameA, userNameB] = getUsernamesFromEmails([accountA.email, accountB.email]);
   const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
 
@@ -137,7 +141,7 @@ test.describe('Channel Messages - For You Inbox', () => {
     `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'inbox', 'mention', 'multi-user'],
+      tag: [CHANNEL_MESSAGE_TAG, 'inbox', 'mention', MULTI_USER_TAG],
     });
 
     await prepareFriendAndClan(friendPageA, friendPageB, clanPageA, clanPageB, clanFactory, pageA);
@@ -186,7 +190,7 @@ test.describe('Channel Messages - For You Inbox', () => {
     `);
 
     await AllureReporter.addLabels({
-      tag: ['channel-message', 'inbox', 'mention', 'jump', 'multi-user'],
+      tag: [CHANNEL_MESSAGE_TAG, 'inbox', 'mention', 'jump', MULTI_USER_TAG],
     });
 
     await prepareFriendAndClan(friendPageA, friendPageB, clanPageA, clanPageB, clanFactory, pageA);
@@ -208,6 +212,73 @@ test.describe('Channel Messages - For You Inbox', () => {
     await AllureReporter.step(MULTI_CHAT_STEPS.cleanupClan, async () => {
       await clanFactory.cleanupClan(pageA);
     });
+  });
+
+  test('Verify an uploaded attachment is displayed in the channel Files list', async ({ dual }) => {
+    const { pageA, pageB } = dual;
+    const clanFactory = new ClanFactory();
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const messageHelperA = new MessageTestHelpers(pageA);
+    const messagePageB = new MessagePage(pageB);
+    const fileSizeHelpers = new FileSizeTestHelpers(pageA);
+    const fileBaseName = `shared-${Date.now()}`;
+    const fileName = `${fileBaseName}.txt`;
+    let clanWasCreated = false;
+
+    await AllureReporter.addDescription(`
+    **Test Objective:** Verify a channel attachment is listed in the shared Files panel.
+
+    **Test Steps:**
+    1. User A and User B join the same clan
+    2. User A uploads and sends a text-file attachment
+    3. User B opens Gallery > Files
+    4. Verify the file item, file name, and shared details are visible
+
+    **Expected Result:** The uploaded file exists in the Files list. The test does not click the item because clicking downloads it.
+    `);
+    await AllureReporter.addLabels({
+      tag: [CHANNEL_MESSAGE_TAG, 'attachment', 'shared-files', MULTI_USER_TAG],
+    });
+
+    try {
+      await prepareFriendAndClan(
+        friendPageA,
+        friendPageB,
+        clanPageA,
+        clanPageB,
+        clanFactory,
+        pageA
+      );
+      clanWasCreated = true;
+
+      const filePath = await fileSizeHelpers.createFileWithSize(fileBaseName, 4 * 1024, 'txt');
+
+      await AllureReporter.step(`User A uploads and sends ${fileName}`, async () => {
+        await fileSizeHelpers.uploadFileDefault(filePath);
+        await pageA.locator('[data-e2e="mention-selected_file"]').waitFor({
+          state: 'visible',
+          timeout: 5000,
+        });
+        const messageInput = await messageHelperA.findMessageInput();
+        await messageInput.press('Enter');
+      });
+
+      await AllureReporter.step('User B verifies the attachment in Gallery > Files', async () => {
+        await pageB.reload({ waitUntil: 'domcontentloaded' });
+        await messagePageB.openSharedFiles();
+        await messagePageB.verifySharedFileExists(fileName, userNameA);
+      });
+
+      await AllureReporter.attachScreenshot(pageB, 'Shared attachment exists in Files list');
+    } finally {
+      await fileSizeHelpers.cleanupFiles();
+      if (clanWasCreated) {
+        await clanFactory.cleanupClan(pageA);
+      }
+    }
   });
 
   async function prepareFriendAndClan(

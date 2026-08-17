@@ -156,6 +156,7 @@ export const DATA_E2E_IDENTIFIER = {
     },
   },
   clan_page: {
+    banner: '',
     header: {
       title: {
         clan_name: '',
@@ -461,6 +462,7 @@ export const DATA_E2E_IDENTIFIER = {
               category_name: '',
             },
           },
+          message_management: '',
         },
         prevent_anonymous: '',
       },
@@ -496,6 +498,8 @@ export const DATA_E2E_IDENTIFIER = {
             edit: '',
             delete: '',
             view: '',
+            confirm: '',
+            cancel: '',
           },
           member_count: '',
         },
@@ -768,7 +772,12 @@ export const DATA_E2E_IDENTIFIER = {
           channel_name: '',
         },
         button: {
-          file: '',
+          file: {
+            item: {
+              file_name: '',
+              by_time: '',
+            },
+          },
           mute: '',
           inbox: '',
           member: '',
