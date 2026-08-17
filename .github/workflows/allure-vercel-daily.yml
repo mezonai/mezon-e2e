@@ -380,8 +380,6 @@ jobs:
           RUN_MULTI_FRIEND_MANAGEMENT: ${{ inputs.multi_friend_management }}
           RUN_MULTI_VOICE_CHANNEL: ${{ inputs.multi_voice_channel }}
           RUN_MULTI_ROOT_TESTS: ${{ inputs.multi_root_tests }}
-          ENABLE_TRACE: 'true'
-          ENABLE_VIDEO: 'true'
         run: |
           WEB_TARGETS=()
           MULTI_TARGETS=()
@@ -514,7 +512,9 @@ jobs:
       - name: Generate Allure report and deploy to Vercel
         id: deploy_report
         if: always() && (steps.phase.outputs.phase == 'manual' || (steps.phase.outputs.phase == 'multi' && steps.merge_results.outcome == 'success'))
-        timeout-minutes: 10
+        # The generated archive can be several hundred MB. Keep enough time for
+        # report generation, GitHub Release upload, and the Vercel deployment.
+        timeout-minutes: 30
         env:
           ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
           REPORT_DATE: ${{ steps.phase.outputs.report_date }}
