@@ -265,6 +265,7 @@ log "📦 Zip & upload to GitHub Release"
 RELEASE_TAG="allure-report-$YEAR_MONTH"
 RELEASE_NAME="Allure Report $YEAR_MONTH"
 ZIP_FILE="/tmp/allure-report-${ARCHIVE_ID}.zip"
+GH_RELEASE_TIMEOUT="${GH_RELEASE_TIMEOUT:-15m}"
 UPLOAD_FAILED=0
 
 # -- Pre-check: zip --
@@ -344,13 +345,13 @@ if [ "$UPLOAD_FAILED" -eq 0 ]; then
   VIEW_RC=$?
 
   if [ "$VIEW_RC" -eq 0 ]; then
-    log "   Release exists — uploading $ZIP_FILE ..."
-    GH_UP_OUT=$(gh release upload "$RELEASE_TAG" "$ZIP_FILE" \
+    log "   Release exists — uploading $ZIP_FILE (timeout: $GH_RELEASE_TIMEOUT) ..."
+    GH_UP_OUT=$(timeout "$GH_RELEASE_TIMEOUT" gh release upload "$RELEASE_TAG" "$ZIP_FILE" \
       --clobber --repo "$GITHUB_REPOSITORY" 2>&1)
     UPLOAD_RC=$?
   else
-    log "   Release not found — creating new release '$RELEASE_TAG'..."
-    GH_UP_OUT=$(gh release create "$RELEASE_TAG" "$ZIP_FILE" \
+    log "   Release not found — creating new release '$RELEASE_TAG' (timeout: $GH_RELEASE_TIMEOUT)..."
+    GH_UP_OUT=$(timeout "$GH_RELEASE_TIMEOUT" gh release create "$RELEASE_TAG" "$ZIP_FILE" \
       --repo "$GITHUB_REPOSITORY" \
       --title "$RELEASE_NAME" \
       --notes "Allure daily reports for $YEAR_MONTH" \
@@ -360,7 +361,10 @@ if [ "$UPLOAD_FAILED" -eq 0 ]; then
 
   set -e
 
-  if [ "$UPLOAD_RC" -ne 0 ]; then
+  if [ "$UPLOAD_RC" -eq 124 ]; then
+    log "⚠️  GitHub Release upload timed out after $GH_RELEASE_TIMEOUT; continuing to Vercel"
+    UPLOAD_FAILED=1
+  elif [ "$UPLOAD_RC" -ne 0 ]; then
     log "❌ ERROR: GitHub Release upload failed (exit code: $UPLOAD_RC)"
     log "   $GH_UP_OUT"
     UPLOAD_FAILED=1
