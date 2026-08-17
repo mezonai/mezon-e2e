@@ -18,6 +18,7 @@ interface SelectorResult {
 }
 
 const CHANNEL_NAME_SELECTOR = generateE2eSelector('clan_page.channel_list.item.name');
+const SYSTEM_MESSAGE_E2E_KEY = 'chat.system_message' as const;
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -198,6 +199,49 @@ export class ClanPage extends BasePage {
       console.error(`Error deleting clan: ${error}`);
       return false;
     }
+  }
+
+  async getClanBannerImage(): Promise<string | null> {
+    const banner = this.selector.banner;
+
+    if ((await banner.count()) === 0 || !(await banner.isVisible())) {
+      return null;
+    }
+
+    return await banner.evaluate(element => {
+      const image =
+        element instanceof HTMLImageElement
+          ? element.currentSrc || element.getAttribute('src')
+          : element.querySelector('img')?.currentSrc ||
+            element.querySelector('img')?.getAttribute('src');
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+
+      return image || (backgroundImage !== 'none' ? backgroundImage : null);
+    });
+  }
+
+  async uploadClanBanner(filePath: string): Promise<void> {
+    await this.openClanSettings();
+    const bannerInput = this.page.locator(
+      generateE2eSelector('clan_page.settings.upload.clan_banner_input')
+    );
+    await bannerInput.setInputFiles(filePath);
+    await expect(this.selector.buttons.saveChanges).toBeVisible({ timeout: 10000 });
+    await this.selector.buttons.saveChanges.click();
+    await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 15000 });
+  }
+
+  async verifyClanBannerChanged(previousBannerImage: string | null): Promise<void> {
+    await this.closeSettingsClan();
+    await expect
+      .poll(
+        async () => {
+          const currentBannerImage = await this.getClanBannerImage();
+          return currentBannerImage !== null && currentBannerImage !== previousBannerImage;
+        },
+        { timeout: 15000 }
+      )
+      .toBe(true);
   }
 
   async preventAnonymous() {
@@ -1068,6 +1112,33 @@ export class ClanPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
+  async deleteRole(roleName: string): Promise<void> {
+    const opened = await this.openRoleSettingsPage();
+    expect(opened).toBe(true);
+
+    const roleNameElement = this.selector.clanSettings.roleList.roleName
+      .filter({ hasText: new RegExp(`^${escapeRegExp(roleName)}$`) })
+      .first();
+    await expect(roleNameElement).toBeVisible({ timeout: 5000 });
+
+    const roleRow = roleNameElement.locator('xpath=ancestor::tr[1]');
+    await expect(roleRow).toBeVisible();
+    await roleRow.hover();
+
+    const deleteButton = roleRow.locator(
+      generateE2eSelector('clan_page.settings.role.item.button.delete')
+    );
+    await expect(deleteButton).toBeVisible({ timeout: 3000 });
+    await deleteButton.click();
+    await this.page.waitForTimeout(1000);
+
+    await expect(this.selector.clanSettings.roleList.buttons.confirm).toBeVisible({
+      timeout: 5000,
+    });
+    await this.selector.clanSettings.roleList.buttons.confirm.click();
+    await expect(roleNameElement).toHaveCount(0, { timeout: 5000 });
+  }
+
   async inviteUserToClanByUsername(username: string) {
     try {
       const messageSelector = new MessageSelector(this.page);
@@ -1533,6 +1604,67 @@ export class ClanPage extends BasePage {
     await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
   }
 
+  async enableClanManagementSystemMessages(): Promise<void> {
+    await this.openClanSettings();
+    const messageManagement = this.selector.clanOverviewSettings.messageManagement.actionLogs;
+    await expect(messageManagement).toBeVisible({ timeout: 5000 });
+    const wasEnabled = await messageManagement.isChecked();
+    if (!wasEnabled) {
+      await messageManagement.check();
+    }
+    await expect(messageManagement).toBeChecked();
+    if (!wasEnabled) {
+      await this.selector.buttons.saveChanges.click();
+      await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
+    }
+  }
+
+  async disableClanSetupHelpfulTips(): Promise<void> {
+    await this.openClanSettings();
+    const helpfulTips = this.selector.clanOverviewSettings.messageManagement.helpfulTips;
+    await expect(helpfulTips).toBeVisible({ timeout: 5000 });
+    const wasEnabled = await helpfulTips.isChecked();
+    if (wasEnabled) {
+      await helpfulTips.uncheck();
+      await this.selector.buttons.saveChanges.click();
+      await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
+    }
+    await expect(helpfulTips).not.toBeChecked();
+  }
+
+  async updateClanName(clanName: string): Promise<void> {
+    const clanNameInput = this.selector.clanSettings.clanName;
+    await expect(clanNameInput).toBeVisible({ timeout: 5000 });
+    await clanNameInput.fill(clanName);
+    await this.selector.buttons.saveChanges.click();
+    await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
+  }
+
+  async verifyClanUpdateSystemMessage(channelName: string, clanName: string): Promise<void> {
+    const messageSelector = new MessageSelector(this.page);
+    await this.openChannelByName(channelName);
+    const updateClanMessage = messageSelector.systemMessages
+      .locator(generateE2eSelector(SYSTEM_MESSAGE_E2E_KEY, '10'))
+      .filter({ hasText: `update clan: ${clanName}` })
+      .last();
+    await expect(updateClanMessage).toBeVisible({ timeout: 10000 });
+  }
+
+  async verifyWelcomeSystemMessageDoesNotExist(
+    channelName: string,
+    username: string
+  ): Promise<void> {
+    const messageSelector = new MessageSelector(this.page);
+    await this.openChannelByName(channelName);
+    await this.page.waitForTimeout(3000);
+    const welcomeMessage = messageSelector.systemMessages
+      .filter({
+        has: this.page.locator(generateE2eSelector(SYSTEM_MESSAGE_E2E_KEY, '5')),
+      })
+      .filter({ hasText: `Welcome @${username} to ${channelName}. Say hi!` });
+    await expect(welcomeMessage).toHaveCount(0);
+  }
+
   async closeSettingsClan() {
     await this.selector.buttons.closeSettingClan.click();
     await expect(this.selector.buttons.closeSettingClan).toBeHidden({ timeout: 3000 });
@@ -1549,7 +1681,7 @@ export class ClanPage extends BasePage {
     const lastMessageLocator = messageSelector.systemMessages.last();
     await expect(lastMessageLocator).toBeVisible({ timeout: 3000 });
 
-    const code = lastMessageLocator.locator(generateE2eSelector('chat.system_message', '5'));
+    const code = lastMessageLocator.locator(generateE2eSelector(SYSTEM_MESSAGE_E2E_KEY, '5'));
     await expect(code).toBeVisible({ timeout: 3000 });
 
     const mentionUserLocator = code.locator(

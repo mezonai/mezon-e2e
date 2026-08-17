@@ -1,5 +1,5 @@
 import { AllureConfig } from '@/config/allure.config';
-import { AccountCredentials } from '@/config/environment';
+import { AccountCredentials, MEZON_DEV } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSettingsPage } from '@/pages/ClanSettingsPage';
@@ -8,7 +8,10 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import { splitDomainAndPath } from '@/utils/domain';
+import joinUrlPaths from '@/utils/joinUrlPaths';
 import TestSuiteHelper from '@/utils/testSuite.helper';
+import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, test } from '@playwright/test';
 
 test.describe('Clan Management - Audit Log, Count Events, Interested Event', () => {
@@ -274,5 +277,56 @@ test.describe('Clan Management - Audit Log, Count Events, Interested Event', () 
     );
 
     await AllureReporter.attachScreenshot(page, `Interested count updated correctly`);
+  });
+
+  test('Verify clan banner is updated after uploading an image', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that an uploaded clan banner is displayed on the clan page.
+
+      **Test Steps:**
+      1. Open the current clan using the dev URL
+      2. Capture the current clan banner
+      3. Upload a new banner from Clan Settings
+      4. Verify clan_page.banner displays the new image
+
+      **Expected Result:** The clan banner image changes after the upload completes.
+    `);
+    await AllureReporter.addLabels({ tag: ['clan-management', 'clan-banner', 'upload'] });
+
+    const clanPage = new ClanPage(page);
+    const fileSizeHelpers = new FileSizeTestHelpers(page);
+    const clanPath = splitDomainAndPath(clanFactory.getClanUrl()).path;
+
+    try {
+      await AllureReporter.step('Open the clan on dev and capture its current banner', async () => {
+        await page.goto(joinUrlPaths(MEZON_DEV, clanPath), { waitUntil: 'domcontentloaded' });
+      });
+      const previousBannerImage = await clanPage.getClanBannerImage();
+      const bannerPath = await fileSizeHelpers.createFileWithSize(
+        `clan-banner-${Date.now()}`,
+        1024 * 1024,
+        'jpg'
+      );
+
+      await AllureReporter.step('Upload a new clan banner', async () => {
+        await clanPage.uploadClanBanner(bannerPath);
+      });
+
+      await AllureReporter.step(
+        'Verify clan_page.banner displays the uploaded banner',
+        async () => {
+          await clanPage.verifyClanBannerChanged(previousBannerImage);
+        }
+      );
+
+      await AllureReporter.attachScreenshot(page, 'Clan banner updated successfully');
+    } finally {
+      await fileSizeHelpers.cleanupFiles();
+    }
   });
 });
