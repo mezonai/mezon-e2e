@@ -68,8 +68,16 @@ export default class ClanChannelSelector {
     panelItem: {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
     },
+    button: {
+      dragChannel: this.page.locator(
+        generateE2eSelector('clan_page.channel_list.button.drag_channel')
+      ),
+    },
     channelsList: this.page.locator(generateE2eSelector('clan_page.channel_list.item')),
     category: this.page.locator(generateE2eSelector('clan_page.side_bar.channel_list.category')),
+    categoryName: this.page.locator(
+      generateE2eSelector('clan_page.side_bar.channel_list.category.name')
+    ),
   };
 
   readonly management = {

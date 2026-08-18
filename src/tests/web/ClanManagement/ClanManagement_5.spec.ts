@@ -1,7 +1,14 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
+import {
+  CLAN_MANAGEMENT_TAG,
+  CONTEXT_MENU_TAG,
+  PUBLIC_CHANNELS_CATEGORY_NAME,
+  TEST_ENTITY_NAME_MAX_LENGTH,
+} from '@/constants/ClanManagement';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
+import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
 import { MezonCredentials } from '@/types';
 import { ChannelStatus, ChannelType, ClanStatus, EventType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
@@ -69,8 +76,8 @@ test.describe('Clan Management - Categories, Invitations, and Voice Events', () 
       tag: ['event-creation', 'Private-event', 'voice-event'],
     });
     const unique = Date.now().toString(36).slice(-6);
-    const voiceChannelName = `vc-${unique}`.slice(0, 20);
-    const textChannelName = `ptc-${unique}`.slice(0, 20);
+    const voiceChannelName = `vc-${unique}`.slice(0, TEST_ENTITY_NAME_MAX_LENGTH);
+    const textChannelName = `ptc-${unique}`.slice(0, TEST_ENTITY_NAME_MAX_LENGTH);
     const clanPage = new ClanPage(page);
 
     await AllureReporter.addParameter('voiceChannelName', voiceChannelName);
@@ -158,5 +165,122 @@ test.describe('Clan Management - Categories, Invitations, and Voice Events', () 
       page,
       `Private Voice Event Created - ${voiceChannelName}`
     );
+  });
+
+  test('Verify category context menu displays mute and notification actions', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify the expected actions are available from a category context menu.
+
+      **Test Steps:**
+      1. Locate the Public Channels category in the channel list
+      2. Right-click the category name
+      3. Verify "Mute Category" is displayed
+      4. Verify "Notification Settings" is displayed
+
+      **Expected Result:** Both category actions are visible in the context menu.
+    `);
+    await AllureReporter.addLabels({
+      tag: [CLAN_MANAGEMENT_TAG, 'category', CONTEXT_MENU_TAG, 'notification'],
+    });
+
+    const clanPage = new ClanPage(page);
+
+    await AllureReporter.step(
+      'Open the Public Channels context menu and verify its actions',
+      async () => {
+        await clanPage.verifyCategoryContextMenuActions(PUBLIC_CHANNELS_CATEGORY_NAME, [
+          'Mute Category',
+          'Notification Settings',
+        ]);
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, 'Category context menu actions displayed');
+  });
+
+  test('Verify category context menu displays collapse actions', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify the category context menu provides controls for collapsing categories.
+
+      **Test Steps:**
+      1. Locate the Public Channels category in the channel list
+      2. Right-click the category name
+      3. Verify "Collapse Category" is displayed
+      4. Verify "Collapse All Categories" is displayed
+
+      **Expected Result:** Both category collapse actions are visible in the context menu.
+    `);
+    await AllureReporter.addLabels({
+      tag: [CLAN_MANAGEMENT_TAG, 'category', CONTEXT_MENU_TAG, 'collapse'],
+    });
+
+    const clanPage = new ClanPage(page);
+
+    await AllureReporter.step(
+      'Open the Public Channels context menu and verify collapse actions',
+      async () => {
+        await clanPage.verifyCategoryContextMenuActions(PUBLIC_CHANNELS_CATEGORY_NAME, [
+          'Collapse Category',
+          'Collapse All Categories',
+        ]);
+      }
+    );
+
+    await AllureReporter.attachScreenshot(page, 'Category collapse actions displayed');
+  });
+
+  test('Verify an empty category can be deleted from Edit Category', async ({ page }) => {
+    await AllureReporter.addWorkItemLinks({ tms: '64058' });
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify a clan owner can delete an empty category from its edit page.
+
+      **Test Steps:**
+      1. Create an empty category
+      2. Right-click the category in the channel list
+      3. Click "Edit Category"
+      4. Click the Delete Category button
+      5. Confirm the deletion in the confirmation modal
+      6. Verify the category no longer appears in the channel list
+
+      **Expected Result:** The empty category is deleted after confirmation.
+    `);
+    await AllureReporter.addLabels({
+      tag: [CLAN_MANAGEMENT_TAG, 'category', 'delete-category'],
+    });
+
+    const clanPage = new ClanPage(page);
+    const menuPanel = new ClanMenuPanel(page);
+    const categoryName = `delete-cat-${Date.now().toString(36).slice(-6)}`;
+
+    await AllureReporter.step(`Create empty category: ${categoryName}`, async () => {
+      await menuPanel.createCategory(categoryName);
+      expect(await menuPanel.isCategoryPresent(categoryName)).toBe(true);
+    });
+
+    await AllureReporter.step(`Delete category: ${categoryName}`, async () => {
+      await clanPage.deleteCategory(categoryName);
+      await page.waitForTimeout(1000);
+    });
+
+    await AllureReporter.step('Verify the category is removed from the channel list', async () => {
+      expect(await menuPanel.isCategoryPresent(categoryName)).toBe(false);
+    });
+
+    await AllureReporter.attachScreenshot(page, `Category Deleted - ${categoryName}`);
   });
 });

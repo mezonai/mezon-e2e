@@ -26,6 +26,8 @@ export const DATA_E2E_IDENTIFIER = {
   button: {
     base: '',
     copy: '',
+    previous: '',
+    next: '',
   },
   base_profile: {
     display_name: '',
@@ -177,7 +179,9 @@ export const DATA_E2E_IDENTIFIER = {
         name: '',
       },
       channel_list: {
-        category: '',
+        category: {
+          name: '',
+        },
       },
       button: {
         add_clan: '',
@@ -477,6 +481,11 @@ export const DATA_E2E_IDENTIFIER = {
           error: '',
         },
       },
+      category_order: {
+        item: {
+          category_name: '',
+        },
+      },
       role: {
         container: {
           role_option: {
@@ -559,6 +568,9 @@ export const DATA_E2E_IDENTIFIER = {
           role_name: '',
           role_color: '',
         },
+      },
+      button: {
+        drag_channel: '',
       },
     },
     channel_management: {
@@ -911,6 +923,17 @@ export const DATA_E2E_IDENTIFIER = {
     },
     button: {
       wave_to_say_hi: '',
+    },
+    search_message: {
+      button: {
+        select: '',
+      },
+      input: {
+        select: '',
+      },
+      select: {
+        item: '',
+      },
     },
   },
   onboarding: {

@@ -1,5 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials } from '@/config/environment';
+import { CLAN_MANAGEMENT_TAG, PUBLIC_CHANNELS_CATEGORY_NAME } from '@/constants/ClanManagement';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ToastSelector } from '@/data/selectors/ToastSelector';
 import { ClanMenuPanel } from '@/pages/Clan/ClanMenuPanel';
@@ -201,7 +202,7 @@ test.describe('Clan Management - Events and Category Updates', () => {
     **Expected Result:** The category name is updated successfully and reflected in the category list.
   `);
     await AllureReporter.addLabels({
-      tag: ['edit-category', 'clan-management'],
+      tag: ['edit-category', CLAN_MANAGEMENT_TAG],
     });
 
     const clanPage = new ClanPage(page);
@@ -247,7 +248,7 @@ test.describe('Clan Management - Events and Category Updates', () => {
     **Expected Result:** The category cannot be deleted and an error message is displayed.
   `);
     await AllureReporter.addLabels({
-      tag: ['delete-category', 'clan-management'],
+      tag: ['delete-category', CLAN_MANAGEMENT_TAG],
     });
 
     const clanPage = new ClanPage(page);
@@ -265,7 +266,7 @@ test.describe('Clan Management - Events and Category Updates', () => {
     await AllureReporter.step(
       `Click delete category, verify that category cannot be deleted and error message is displayed`,
       async () => {
-        await clanPage.deleteCategory('Public Channels');
+        await clanPage.deleteCategory(PUBLIC_CHANNELS_CATEGORY_NAME);
         const message = 'This category has welcome channel';
         await toastSelector.verifyErrorToast(message);
         await clanPage.closeSettingsChannel();
