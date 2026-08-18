@@ -91,8 +91,8 @@ jobs:
   allure-daily:
     runs-on: mezon-e2e
 
-    # Job-level timeout: never let a hung step block the runner for hours
-    timeout-minutes: 420
+    # Job-level timeout: allow the scheduled test pipeline to run for up to 10 hours
+    timeout-minutes: 600
 
     env:
       ALLURE_VERCEL_ROOT: /home/nccsoft/allure-vercel-reports
@@ -358,7 +358,7 @@ jobs:
           WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false
-          TEST_GAP_MS=10000
+          TEST_GAP_MS=5000
           EOF
           sed -i 's/^[[:space:]]*//' .env
           echo "--- .env contents ---" && cat .env
