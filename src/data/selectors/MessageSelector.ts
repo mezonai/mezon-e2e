@@ -178,6 +178,19 @@ export default class MessageSelector {
   searchModal = this.page.locator(generateE2eSelector('modal.search'));
   searchInput = this.page.locator(`${generateE2eSelector('modal.search.input')} input`);
   searchTriggerButton = this.page.locator(generateE2eSelector('chat.direct_message.button.search'));
+  searchMessage = {
+    button: {
+      select: this.page.locator(generateE2eSelector('chat.search_message.button.select')),
+      previous: this.page.locator(generateE2eSelector('button.previous')),
+      next: this.page.locator(generateE2eSelector('button.next')),
+    },
+    input: {
+      select: this.page.locator(generateE2eSelector('chat.search_message.input.select')),
+    },
+    select: {
+      item: this.page.locator(generateE2eSelector('chat.search_message.select.item')),
+    },
+  };
   messageInput = this.page.locator(generateE2eSelector('mention.input'));
   inboxMessages = this.page.locator(
     `${generateE2eSelector('chat.channel_message.inbox.mentions')} div[class*="w-full"][class*="text-theme-message"]`

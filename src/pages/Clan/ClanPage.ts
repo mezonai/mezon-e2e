@@ -18,6 +18,7 @@ interface SelectorResult {
 }
 
 const CHANNEL_NAME_SELECTOR = generateE2eSelector('clan_page.channel_list.item.name');
+const ROLE_ROW_XPATH = 'xpath=ancestor::tr[1]';
 const SYSTEM_MESSAGE_E2E_KEY = 'chat.system_message' as const;
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -319,6 +320,54 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async verifyCreateChannelTypeFromContextMenu(
+    channelName: string,
+    channelType: ChannelType.TEXT | ChannelType.VOICE
+  ): Promise<void> {
+    const channel = this.selector.channel.getSidebarItem(channelName);
+    await expect(channel).toBeVisible({ timeout: 5000 });
+    await channel.click({ button: 'right' });
+
+    const actionLabel =
+      channelType === ChannelType.TEXT ? 'Create Text Channel' : 'Create Voice Channel';
+    const createChannelAction = this.selector.sidebar.panelItem.item.filter({
+      hasText: new RegExp(`^${actionLabel}$`),
+    });
+    await expect(createChannelAction).toBeVisible({ timeout: 3000 });
+    await createChannelAction.click();
+
+    await expect(this.selector.createChannelModal.input.channelName).toBeVisible({
+      timeout: 5000,
+    });
+    const selectedType =
+      channelType === ChannelType.TEXT
+        ? this.selector.createChannelModal.type.text
+        : this.selector.createChannelModal.type.voice;
+
+    await expect(selectedType.locator('input[type="radio"]')).toBeChecked();
+
+    await this.selector.createChannelModal.button.cancel.click();
+    await expect(this.selector.createChannelModal.input.channelName).toBeHidden({ timeout: 5000 });
+  }
+
+  async verifyCategoryContextMenuActions(
+    categoryName: string,
+    actionLabels: string[]
+  ): Promise<void> {
+    const category = this.selector.sidebar.categoryName
+      .filter({ hasText: new RegExp(`^${escapeRegExp(categoryName)}$`) })
+      .first();
+    await expect(category).toBeVisible({ timeout: 5000 });
+    await category.click({ button: 'right' });
+
+    for (const actionLabel of actionLabels) {
+      const action = this.selector.sidebar.panelItem.item.filter({
+        has: this.page.locator('li', { hasText: new RegExp(`^${actionLabel}$`) }),
+      });
+      await expect(action).toBeVisible({ timeout: 3000 });
+    }
+  }
+
   async editCategoryName(categoryName: string, newCategoryName: string): Promise<void> {
     try {
       const categoryLocator = this.selector.sidebar.category.filter({ hasText: categoryName });
@@ -342,16 +391,27 @@ export class ClanPage extends BasePage {
   }
 
   async deleteCategory(categoryName: string): Promise<void> {
-    try {
-      const categoryLocator = this.selector.sidebar.category.filter({ hasText: categoryName });
-      await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
-      await categoryLocator.click({ button: 'right' });
-      await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Category' }).click();
-      await expect(this.selector.buttons.deleteCategory).toBeVisible({ timeout: 5000 });
-      await this.selector.buttons.deleteCategory.click();
-    } catch (error) {
-      console.error(`Error deleting category: ${error}`);
-    }
+    const category = this.selector.sidebar.categoryName
+      .filter({ hasText: new RegExp(`^${escapeRegExp(categoryName)}$`) })
+      .first();
+    await expect(category).toBeVisible({ timeout: 5000 });
+    await category.click({ button: 'right' });
+
+    const editCategoryAction = this.selector.sidebar.panelItem.item.filter({
+      has: this.page.locator('li', { hasText: /^Edit Category$/ }),
+    });
+    await expect(editCategoryAction).toBeVisible({ timeout: 3000 });
+    await editCategoryAction.click();
+
+    await expect(this.selector.clanSettings.category.input.categoryName).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(this.selector.buttons.deleteCategory).toBeVisible({ timeout: 5000 });
+    await this.selector.buttons.deleteCategory.click();
+
+    await expect(this.selector.buttons.confirm).toBeVisible({ timeout: 5000 });
+    await this.selector.buttons.confirm.click();
+    await expect(this.selector.buttons.confirm).toBeHidden({ timeout: 5000 });
   }
 
   async closeCreateThreadModal(): Promise<void> {
@@ -1121,7 +1181,7 @@ export class ClanPage extends BasePage {
       .first();
     await expect(roleNameElement).toBeVisible({ timeout: 5000 });
 
-    const roleRow = roleNameElement.locator('xpath=ancestor::tr[1]');
+    const roleRow = roleNameElement.locator(ROLE_ROW_XPATH);
     await expect(roleRow).toBeVisible();
     await roleRow.hover();
 
@@ -1137,6 +1197,55 @@ export class ClanPage extends BasePage {
     });
     await this.selector.clanSettings.roleList.buttons.confirm.click();
     await expect(roleNameElement).toHaveCount(0, { timeout: 5000 });
+  }
+
+  async reorderRolesByDragAndDrop(sourceRoleName: string, targetRoleName: string): Promise<void> {
+    const opened = await this.openRoleSettingsPage();
+    expect(opened).toBe(true);
+
+    try {
+      const sourceRole = this.selector.clanSettings.roleList.roleName
+        .filter({ hasText: new RegExp(`^${escapeRegExp(sourceRoleName)}$`) })
+        .first();
+      const targetRole = this.selector.clanSettings.roleList.roleName
+        .filter({ hasText: new RegExp(`^${escapeRegExp(targetRoleName)}$`) })
+        .first();
+      await expect(sourceRole).toBeVisible({ timeout: 5000 });
+      await expect(targetRole).toBeVisible({ timeout: 5000 });
+
+      const roleNamesBefore = await this.selector.clanSettings.roleList.roleName.allTextContents();
+      const sourceIndexBefore = roleNamesBefore.indexOf(sourceRoleName);
+      const targetIndexBefore = roleNamesBefore.indexOf(targetRoleName);
+      expect(sourceIndexBefore).toBeGreaterThanOrEqual(0);
+      expect(targetIndexBefore).toBeGreaterThanOrEqual(0);
+      const sourceWasBeforeTarget = sourceIndexBefore < targetIndexBefore;
+
+      const sourceRow = sourceRole.locator(ROLE_ROW_XPATH);
+      const targetRow = targetRole.locator(ROLE_ROW_XPATH);
+      await sourceRow.dragTo(targetRow);
+
+      await expect
+        .poll(
+          async () => {
+            const roleNamesAfter =
+              await this.selector.clanSettings.roleList.roleName.allTextContents();
+            const sourceIndexAfter = roleNamesAfter.indexOf(sourceRoleName);
+            const targetIndexAfter = roleNamesAfter.indexOf(targetRoleName);
+
+            return (
+              sourceIndexAfter >= 0 &&
+              targetIndexAfter >= 0 &&
+              sourceIndexAfter < targetIndexAfter !== sourceWasBeforeTarget
+            );
+          },
+          { timeout: 10000 }
+        )
+        .toBe(true);
+    } finally {
+      if (await this.selector.buttons.closeSettingClan.isVisible()) {
+        await this.closeSettingsClan();
+      }
+    }
   }
 
   async inviteUserToClanByUsername(username: string) {
