@@ -92,6 +92,12 @@ export default class ClanSettingSelector {
         },
       },
     },
+    categoryOrder: {
+      item: this.page.locator(generateE2eSelector('clan_page.settings.category_order.item')),
+      categoryName: this.page.locator(
+        generateE2eSelector('clan_page.settings.category_order.item.category_name')
+      ),
+    },
     category: {
       input: {
         categoryName: this.page.locator(

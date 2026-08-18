@@ -1,5 +1,6 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, MEZON_DEV } from '@/config/environment';
+import { CLAN_MANAGEMENT_TAG, TEST_ENTITY_NAME_MAX_LENGTH } from '@/constants/ClanManagement';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSettingsPage } from '@/pages/ClanSettingsPage';
@@ -75,12 +76,18 @@ test.describe('Clan Management - Audit Log, Count Events, Interested Event', () 
 
       **Expected Result:** Audit Log displays the correct Update Role entry and timestamp.
     `);
-    await AllureReporter.addLabels({ tag: ['clan-management', 'audit-log', 'update-role'] });
+    await AllureReporter.addLabels({ tag: [CLAN_MANAGEMENT_TAG, 'audit-log', 'update-role'] });
 
     const clanPage = new ClanPage(page);
     const clanSettingsPage = new ClanSettingsPage(page);
-    const originalRoleName = `audit-${Date.now().toString(36)}`.slice(0, 20);
-    const updatedRoleName = `updated-${Date.now().toString(36)}`.slice(0, 20);
+    const originalRoleName = `audit-${Date.now().toString(36)}`.slice(
+      0,
+      TEST_ENTITY_NAME_MAX_LENGTH
+    );
+    const updatedRoleName = `updated-${Date.now().toString(36)}`.slice(
+      0,
+      TEST_ENTITY_NAME_MAX_LENGTH
+    );
 
     await AllureReporter.step(`Create role: ${originalRoleName}`, async () => {
       await clanPage.openRoleSettingsPage();
@@ -296,7 +303,7 @@ test.describe('Clan Management - Audit Log, Count Events, Interested Event', () 
 
       **Expected Result:** The clan banner image changes after the upload completes.
     `);
-    await AllureReporter.addLabels({ tag: ['clan-management', 'clan-banner', 'upload'] });
+    await AllureReporter.addLabels({ tag: [CLAN_MANAGEMENT_TAG, 'clan-banner', 'upload'] });
 
     const clanPage = new ClanPage(page);
     const fileSizeHelpers = new FileSizeTestHelpers(page);
