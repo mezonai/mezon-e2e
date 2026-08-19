@@ -192,6 +192,8 @@ export default class MessageSelector {
     },
   };
   messageInput = this.page.locator(generateE2eSelector('mention.input'));
+  emojiButton = this.page.locator(generateE2eSelector('mention.button.emoji'));
+  stickerButton = this.page.locator(generateE2eSelector('mention.button.sticker'));
   inboxMessages = this.page.locator(
     `${generateE2eSelector('chat.channel_message.inbox.mentions')} div[class*="w-full"][class*="text-theme-message"]`
   );

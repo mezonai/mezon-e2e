@@ -304,4 +304,107 @@ test.describe('Clan Management - Role Permissions, Ownership, and Membership Dat
       await clanFactory.cleanupClan(pageA);
     }
   });
+
+  test('Highest role color changes after roles are reordered by drag and drop', async ({
+    dual,
+  }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify a member's display color follows their highest role after role reordering.
+
+      **Test Steps:**
+      1. User A creates a clan and invites User B
+      2. User A creates Role A and Role B with different colors so Role A has higher priority
+      3. User A assigns both roles to User B
+      4. Verify User B displays Role A's color
+      5. Drag Role B above Role A
+      6. Verify User B displays Role B's color
+
+      **Expected Result:** User B's display color changes to the color of the new highest role.
+    `);
+    await AllureReporter.addLabels({
+      tag: ['clan-management', 'role', 'role-color', 'drag-and-drop', 'role-priority'],
+    });
+
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const unique = Date.now().toString(36).slice(-6);
+    const roleAName = `color-a-${unique}`;
+    const roleBName = `color-b-${unique}`;
+    const clanFactory = new ClanFactory();
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step('User A and User B become friends', async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    await AllureReporter.step(CREATE_CLAN_STEP_NAME, async () => {
+      await clanFactory.setupClan(ClanSetupHelper.configs.clanManagement4, pageA);
+    });
+
+    try {
+      await AllureReporter.step('User A invites User B to the clan', async () => {
+        await clanPageA.clickButtonInvitePeopleFromMenu();
+        const inviteUrl = await clanPageA.inviteUserToClanByUsername(userNameB);
+        await clanPageB.joinClanByUrlInvite(inviteUrl);
+      });
+
+      let roleAColor = '';
+      let roleBColor = '';
+      await AllureReporter.step('Create higher-priority Role A, then Role B', async () => {
+        expect(await clanPageA.openRoleSettingsPage()).toBe(true);
+        roleAColor = (await clanPageA.addNewRoleWithColorOnClan(roleAName, 1)) ?? '';
+        expect(await clanPageA.openRoleSettingsPage()).toBe(true);
+        roleBColor = (await clanPageA.addNewRoleWithColorOnClan(roleBName, 0)) ?? '';
+        expect(roleAColor).not.toBe('');
+        expect(roleBColor).not.toBe('');
+        expect(roleAColor).not.toBe(roleBColor);
+      });
+
+      await AllureReporter.step('Assign Role A and Role B to User B', async () => {
+        await clanPageA.addRoleForUserByUsername(userNameB, roleAName);
+        await clanPageA.addRoleForUserByUsername(userNameB, roleBName);
+      });
+
+      await AllureReporter.step("Verify User B displays Role A's color", async () => {
+        await clanPageA.verifyUserHasRoleOnMemberSettings(userNameB, roleAName, true, roleAColor);
+      });
+
+      await AllureReporter.step('Drag Role B above Role A', async () => {
+        await clanPageA.reorderRolesByDragAndDrop(roleBName, roleAName);
+      });
+
+      await AllureReporter.step("Verify User B displays Role B's color", async () => {
+        await clanPageA.openMemberListSetting();
+        await clanPageA.verifyUserHasRoleOnMemberSettings(userNameB, roleBName, true, roleBColor);
+      });
+
+      await AllureReporter.attachScreenshot(pageA, 'Member color follows highest reordered role');
+    } finally {
+      await clanFactory.cleanupClan(pageA);
+    }
+  });
 });
