@@ -123,9 +123,10 @@ test.describe('Voice Channel - Share Screen', () => {
       expect(isJoinedVoiceChannel).toBe(true);
     });
 
-    // await AllureReporter.step('Verify voice room screen with control bar is visible', async () => {
-    //   await clanPageA.verifyVoiceChannelScreenVisible(channelName);
-    // });
+    await AllureReporter.step('Verify User A is in voice channel', async () => {
+      const isInVoiceChannel = await clanPageA.isJoinVoiceChannel(channelName);
+      expect(isInVoiceChannel).toBe(true);
+    });
 
     await AllureReporter.step('User A shares screen in voice channel', async () => {
       const isScreenSharing = await clanPageA.shareScreen();

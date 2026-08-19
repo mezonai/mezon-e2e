@@ -266,7 +266,7 @@ test.describe('Clan Management - Events and Category Updates', () => {
     await AllureReporter.step(
       `Click delete category, verify that category cannot be deleted and error message is displayed`,
       async () => {
-        await clanPage.deleteCategory(PUBLIC_CHANNELS_CATEGORY_NAME);
+        await clanPage.deleteCategory(PUBLIC_CHANNELS_CATEGORY_NAME, false);
         const message = 'This category has welcome channel';
         await toastSelector.verifyErrorToast(message);
         await clanPage.closeSettingsChannel();

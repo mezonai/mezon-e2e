@@ -435,7 +435,11 @@ export const DATA_E2E_IDENTIFIER = {
         vanity_url: '',
       },
       emoji: {
-        upload: '',
+        upload: {
+          input: {
+            emoji_name: '',
+          },
+        },
       },
       voice_sticker: {
         button_upload: '',
@@ -558,7 +562,9 @@ export const DATA_E2E_IDENTIFIER = {
         name: '',
       },
       panel: {
-        item: '',
+        item: {
+          sub_text: '',
+        },
       },
       settings: {
         overview: '',
@@ -957,6 +963,16 @@ export const DATA_E2E_IDENTIFIER = {
       set_password: '',
       tab_account: '',
       info: '',
+    },
+    devices: {
+      tab_devices: {
+        current_device: '',
+        other_devices: '',
+        no_devices: '',
+        button: {
+          remove_device: '',
+        },
+      },
     },
     language: {
       tab_language: '',

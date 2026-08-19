@@ -390,7 +390,7 @@ export class ClanPage extends BasePage {
     }
   }
 
-  async deleteCategory(categoryName: string): Promise<void> {
+  async deleteCategory(categoryName: string, couldBeDeleted: boolean = true): Promise<void> {
     const category = this.selector.sidebar.categoryName
       .filter({ hasText: new RegExp(`^${escapeRegExp(categoryName)}$`) })
       .first();
@@ -409,9 +409,12 @@ export class ClanPage extends BasePage {
     await expect(this.selector.buttons.deleteCategory).toBeVisible({ timeout: 5000 });
     await this.selector.buttons.deleteCategory.click();
 
-    await expect(this.selector.buttons.confirm).toBeVisible({ timeout: 5000 });
-    await this.selector.buttons.confirm.click();
-    await expect(this.selector.buttons.confirm).toBeHidden({ timeout: 5000 });
+    if (couldBeDeleted) {
+      await expect(this.selector.buttons.confirm).toBeVisible({ timeout: 5000 });
+      await this.selector.buttons.confirm.click();
+      await expect(this.selector.buttons.confirm).toBeHidden({ timeout: 5000 });
+    }
+    await this.page.waitForTimeout(300);
   }
 
   async closeCreateThreadModal(): Promise<void> {
@@ -1241,11 +1244,278 @@ export class ClanPage extends BasePage {
           { timeout: 10000 }
         )
         .toBe(true);
+
+      await expect(this.selector.buttons.saveChanges).toBeVisible({ timeout: 5000 });
+      await this.selector.buttons.saveChanges.click();
+      await this.page.waitForTimeout(2000);
     } finally {
       if (await this.selector.buttons.closeSettingClan.isVisible()) {
         await this.closeSettingsClan();
       }
     }
+  }
+
+  async reorderCategoriesByDragAndDrop(
+    sourceCategoryName: string,
+    targetCategoryName: string
+  ): Promise<void> {
+    await this.openClanSettings();
+    await expect(this.selector.clanSettings.buttons.categoryOrder).toBeVisible({ timeout: 5000 });
+    await this.selector.clanSettings.buttons.categoryOrder.click();
+
+    const categoryNames = this.selector.clanSettings.categoryOrder.categoryName;
+    const sourceName = categoryNames
+      .filter({ hasText: new RegExp(`^${escapeRegExp(sourceCategoryName)}$`) })
+      .first();
+    const targetName = categoryNames
+      .filter({ hasText: new RegExp(`^${escapeRegExp(targetCategoryName)}$`) })
+      .first();
+    await expect(sourceName).toBeVisible({ timeout: 5000 });
+    await expect(targetName).toBeVisible({ timeout: 5000 });
+
+    const namesBefore = await categoryNames.allTextContents();
+    const sourceIndexBefore = namesBefore.indexOf(sourceCategoryName);
+    const targetIndexBefore = namesBefore.indexOf(targetCategoryName);
+    expect(sourceIndexBefore).toBeGreaterThanOrEqual(0);
+    expect(targetIndexBefore).toBeGreaterThanOrEqual(0);
+    const sourceWasBeforeTarget = sourceIndexBefore < targetIndexBefore;
+
+    const sourceBox = await sourceName.boundingBox();
+    const targetBox = await targetName.boundingBox();
+    if (!sourceBox || !targetBox) {
+      throw new Error('Could not resolve category positions for drag and drop');
+    }
+
+    await this.page.mouse.move(
+      sourceBox.x + sourceBox.width / 2,
+      sourceBox.y + sourceBox.height / 2
+    );
+    await this.page.mouse.down();
+    await this.page.mouse.move(
+      targetBox.x + targetBox.width / 2,
+      targetBox.y + targetBox.height / 2,
+      { steps: 10 }
+    );
+    await this.page.mouse.up();
+
+    await expect
+      .poll(
+        async () => {
+          const namesAfter = await categoryNames.allTextContents();
+          const sourceIndexAfter = namesAfter.indexOf(sourceCategoryName);
+          const targetIndexAfter = namesAfter.indexOf(targetCategoryName);
+          return (
+            sourceIndexAfter >= 0 &&
+            targetIndexAfter >= 0 &&
+            sourceIndexAfter < targetIndexAfter !== sourceWasBeforeTarget
+          );
+        },
+        { timeout: 10000 }
+      )
+      .toBe(true);
+
+    await this.page.waitForTimeout(2000);
+    await this.selector.clanSettings.categoryOrder.buttons.saveChanges.click();
+    await this.page.waitForTimeout(2000);
+    await this.closeSettingsClan();
+    await this.page.waitForTimeout(1000);
+    await this.page.reload();
+    await this.page.waitForLoadState('domcontentloaded');
+
+    await expect
+      .poll(
+        async () => {
+          const sidebarNames: string[] = [];
+          for (const categoryName of await this.selector.sidebar.categoryName.all()) {
+            if (await categoryName.isVisible()) {
+              sidebarNames.push((await categoryName.innerText()).trim().toLowerCase());
+            }
+          }
+          const sourceIndexAfter = sidebarNames.indexOf(sourceCategoryName.toLowerCase());
+          const targetIndexAfter = sidebarNames.indexOf(targetCategoryName.toLowerCase());
+          return (
+            sourceIndexAfter >= 0 &&
+            targetIndexAfter >= 0 &&
+            sourceIndexAfter < targetIndexAfter !== sourceWasBeforeTarget
+          );
+        },
+        { timeout: 10000 }
+      )
+      .toBe(true);
+  }
+
+  async reorderSidebarCategoriesByDragAndDrop(
+    sourceCategoryName: string,
+    targetCategoryName: string
+  ): Promise<void> {
+    const reorderButton = this.selector.sidebar.button.dragChannel;
+    await expect(reorderButton).toBeVisible({ timeout: 5000 });
+    await reorderButton.click();
+    await expect(reorderButton).toHaveClass(/text-green-500/);
+    await expect(reorderButton).toHaveClass(/bg-green-500\/10/);
+    await expect(reorderButton).toHaveClass(/hover:bg-green-500\/20/);
+
+    try {
+      const categoryNames = this.selector.sidebar.categoryName;
+      const sourceName = categoryNames
+        .filter({ hasText: new RegExp(`^${escapeRegExp(sourceCategoryName)}$`) })
+        .first();
+      const targetName = categoryNames
+        .filter({ hasText: new RegExp(`^${escapeRegExp(targetCategoryName)}$`) })
+        .first();
+      await expect(sourceName).toBeVisible({ timeout: 5000 });
+      await expect(targetName).toBeVisible({ timeout: 5000 });
+
+      const visibleNamesBefore: string[] = [];
+      for (const categoryName of await categoryNames.all()) {
+        if (await categoryName.isVisible()) {
+          visibleNamesBefore.push((await categoryName.innerText()).trim().toLowerCase());
+        }
+      }
+      const sourceIndexBefore = visibleNamesBefore.indexOf(sourceCategoryName.toLowerCase());
+      const targetIndexBefore = visibleNamesBefore.indexOf(targetCategoryName.toLowerCase());
+      expect(sourceIndexBefore).toBeGreaterThanOrEqual(0);
+      expect(targetIndexBefore).toBeGreaterThanOrEqual(0);
+      const sourceWasBeforeTarget = sourceIndexBefore < targetIndexBefore;
+
+      const sourceBox = await sourceName.boundingBox();
+      const targetBox = await targetName.boundingBox();
+      if (!sourceBox || !targetBox) {
+        throw new Error('Could not resolve sidebar category positions for drag and drop');
+      }
+
+      await this.page.mouse.move(
+        sourceBox.x + sourceBox.width / 2,
+        sourceBox.y + sourceBox.height / 2
+      );
+      await this.page.mouse.down();
+      await this.page.mouse.move(
+        targetBox.x + targetBox.width / 2,
+        targetBox.y + targetBox.height / 2,
+        { steps: 10 }
+      );
+      await this.page.mouse.up();
+
+      await expect
+        .poll(
+          async () => {
+            const visibleNamesAfter: string[] = [];
+            for (const categoryName of await categoryNames.all()) {
+              if (await categoryName.isVisible()) {
+                visibleNamesAfter.push((await categoryName.innerText()).trim().toLowerCase());
+              }
+            }
+            const sourceIndexAfter = visibleNamesAfter.indexOf(sourceCategoryName.toLowerCase());
+            const targetIndexAfter = visibleNamesAfter.indexOf(targetCategoryName.toLowerCase());
+            return (
+              sourceIndexAfter >= 0 &&
+              targetIndexAfter >= 0 &&
+              sourceIndexAfter < targetIndexAfter !== sourceWasBeforeTarget
+            );
+          },
+          { timeout: 10000 }
+        )
+        .toBe(true);
+    } finally {
+      if ((await reorderButton.getAttribute('class'))?.includes('text-green-500')) {
+        await reorderButton.click();
+      }
+    }
+  }
+
+  async muteChannelForOneHourFromContextMenu(channelName: string): Promise<void> {
+    const channel = this.selector.channel.getSidebarItem(channelName);
+    await expect(channel).toBeVisible({ timeout: 5000 });
+    await channel.click({ button: 'right' });
+
+    const muteChannel = this.selector.sidebar.panelItem.item.filter({
+      has: this.page.locator('li', { hasText: /^Mute Channel$/ }),
+    });
+    await expect(muteChannel).toBeVisible({ timeout: 3000 });
+    await muteChannel.hover();
+
+    for (const duration of [
+      'For 15 Minutes',
+      'For 1 Hour',
+      'For 3 Hours',
+      'For 8 Hours',
+      'For 24 Hours',
+    ]) {
+      await expect(
+        this.selector.sidebar.panelItem.item.filter({
+          has: this.page.locator('li', { hasText: new RegExp(`^${duration}$`, 'i') }),
+        })
+      ).toBeVisible({ timeout: 3000 });
+    }
+
+    await this.selector.sidebar.panelItem.item
+      .filter({ has: this.page.locator('li', { hasText: /^For 1 Hour$/i }) })
+      .click();
+
+    await channel.click({ button: 'right' });
+    const unmuteChannel = this.selector.sidebar.panelItem.item.filter({
+      has: this.page.locator('li', { hasText: /^Unmute Channel$/ }),
+    });
+    await expect(unmuteChannel).toBeVisible({ timeout: 5000 });
+    await expect(unmuteChannel.locator(this.selector.sidebar.panelItem.subText)).toHaveText(
+      /^\s*Muted until \d{2}\/\d{2}, \d{2}:\d{2}\s*$/
+    );
+  }
+
+  async sendMessageInStreamChannel(channelName: string, message: string): Promise<void> {
+    await this.openChannelByName(channelName);
+
+    const messageSelector = new MessageSelector(this.page);
+    await expect(messageSelector.headerChatButton.first()).toBeVisible({ timeout: 5000 });
+    await messageSelector.headerChatButton.first().click();
+
+    await expect(messageSelector.messageInput).toBeVisible({ timeout: 5000 });
+    await messageSelector.messageInput.fill(message);
+    await messageSelector.messageInput.press('Enter');
+    await expect(messageSelector.messages.filter({ hasText: message }).last()).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
+  async sendCustomEmojiMessage(emojiName: string): Promise<void> {
+    await this.openChannelByName('general');
+    const messageSelector = new MessageSelector(this.page);
+    const uploadedEmojiName = emojiName.replace(/\s+/g, '');
+    await expect(messageSelector.emojiButton).toBeVisible({ timeout: 5000 });
+    await messageSelector.emojiButton.click();
+
+    const emojiSearchInput = this.page.getByPlaceholder('Find the perfect reaction');
+    await expect(emojiSearchInput).toBeVisible({ timeout: 5000 });
+    await emojiSearchInput.fill(uploadedEmojiName);
+
+    const emojiItem = emojiSearchInput.locator('xpath=following::img[1]');
+    await expect(emojiItem).toBeVisible({ timeout: 5000 });
+    await emojiItem.click();
+    await messageSelector.messageInput.press('Enter');
+
+    const lastMessage = messageSelector.messages.last();
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
+    await expect(lastMessage.locator('img').last()).toBeVisible({ timeout: 5000 });
+  }
+
+  async sendCustomImageStickerMessage(stickerName: string): Promise<void> {
+    await this.openChannelByName('general');
+    const messageSelector = new MessageSelector(this.page);
+    const uploadedStickerName = stickerName.replace(/\s+/g, '');
+    await expect(messageSelector.stickerButton).toBeVisible({ timeout: 5000 });
+    await messageSelector.stickerButton.click();
+
+    const stickerSearchInput = this.page.getByPlaceholder('Find the perfect sticker');
+    await expect(stickerSearchInput).toBeVisible({ timeout: 5000 });
+    await stickerSearchInput.fill(uploadedStickerName);
+
+    const stickerItem = stickerSearchInput.locator('xpath=following::img[1]');
+    await expect(stickerItem).toBeVisible({ timeout: 5000 });
+    await stickerItem.click();
+
+    const lastMessage = messageSelector.messages.last();
+    await expect(lastMessage).toBeVisible({ timeout: 5000 });
+    await expect(lastMessage.locator('img').last()).toBeVisible({ timeout: 5000 });
   }
 
   async inviteUserToClanByUsername(username: string) {
@@ -1549,6 +1819,26 @@ export class ClanPage extends BasePage {
     await channelLocator.click();
   }
 
+  async verifyChannelHistoryNavigation(
+    previousChannelName: string,
+    nextChannelName: string
+  ): Promise<void> {
+    await this.openChannelByName(previousChannelName);
+    const previousChannelUrl = this.page.url();
+
+    await this.openChannelByName(nextChannelName);
+    await expect.poll(() => this.page.url(), { timeout: 5000 }).not.toBe(previousChannelUrl);
+    const nextChannelUrl = this.page.url();
+
+    await expect(this.selector.channel.navigation.previous).toBeVisible({ timeout: 5000 });
+    await this.selector.channel.navigation.previous.click();
+    await expect(this.page).toHaveURL(previousChannelUrl, { timeout: 5000 });
+
+    await expect(this.selector.channel.navigation.next).toBeVisible({ timeout: 5000 });
+    await this.selector.channel.navigation.next.click();
+    await expect(this.page).toHaveURL(nextChannelUrl, { timeout: 5000 });
+  }
+
   async copyChannelLinkFromChannelList(channelName: string): Promise<string> {
     const channel = this.selector.channel.getSidebarItem(channelName);
     await expect(channel).toBeVisible({ timeout: 5000 });
@@ -1777,6 +2067,12 @@ export class ClanPage extends BasePage {
   async closeSettingsClan() {
     await this.selector.buttons.closeSettingClan.click();
     await expect(this.selector.buttons.closeSettingClan).toBeHidden({ timeout: 3000 });
+  }
+
+  async closeSettingsClanIfOpen(): Promise<void> {
+    if (await this.selector.buttons.closeSettingClan.isVisible()) {
+      await this.closeSettingsClan();
+    }
   }
 
   async closeSettingsChannel() {
@@ -2060,7 +2356,7 @@ export class ClanPage extends BasePage {
     }
   }
 
-  async addNewRoleWithColorOnClan(roleName: string): Promise<string | undefined> {
+  async addNewRoleWithColorOnClan(roleName: string, colorIndex = 0): Promise<string | undefined> {
     try {
       await this.selector.clanSettings.buttons.createRole.click();
       await expect(this.selector.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
@@ -2070,13 +2366,11 @@ export class ClanPage extends BasePage {
 
       await this.selector.clanSettings.input.roleName.fill(roleName);
 
-      const firstRoleColorLocator = this.selector.clanSettings.buttons.roleColor.first();
+      const roleColorLocator = this.selector.clanSettings.buttons.roleColor.nth(colorIndex);
 
-      const color = await firstRoleColorLocator.evaluate(
-        el => getComputedStyle(el).backgroundColor
-      );
+      const color = await roleColorLocator.evaluate(el => getComputedStyle(el).backgroundColor);
 
-      await firstRoleColorLocator.click();
+      await roleColorLocator.click();
       await this.selector.buttons.saveChanges.click();
       await this.selector.buttons.closeSettingClan.click();
 

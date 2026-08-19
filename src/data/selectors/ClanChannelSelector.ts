@@ -6,6 +6,11 @@ const CREATE_CHANNEL_TYPE_SELECTOR = generateE2eSelector('clan_page.modal.create
 export default class ClanChannelSelector {
   constructor(private readonly page: Page) {}
 
+  readonly navigation = {
+    previous: this.page.locator(generateE2eSelector('button.previous')),
+    next: this.page.locator(generateE2eSelector('button.next')),
+  };
+
   readonly createModal = {
     type: {
       text: this.page.locator(CREATE_CHANNEL_TYPE_SELECTOR, {
@@ -67,6 +72,7 @@ export default class ClanChannelSelector {
     },
     panelItem: {
       item: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item')),
+      subText: this.page.locator(generateE2eSelector('clan_page.channel_list.panel.item.sub_text')),
     },
     button: {
       dragChannel: this.page.locator(
