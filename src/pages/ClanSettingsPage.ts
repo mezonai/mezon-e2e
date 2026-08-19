@@ -31,6 +31,27 @@ export class ClanSettingsPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
+  async nameAndSaveEmoji(emojiName: string): Promise<void> {
+    await expect(this.selector.emoji.upload.input.name).toBeVisible({ timeout: 5000 });
+    await this.selector.emoji.upload.input.name.fill(emojiName);
+    await expect(this.selector.emoji.upload.button.save).toBeVisible({ timeout: 5000 });
+    await this.selector.emoji.upload.button.save.click();
+    await expect(this.selector.emoji.upload.button.save).toBeHidden({ timeout: 5000 });
+  }
+
+  async clickUploadImageSticker(): Promise<void> {
+    await this.selector.buttons.uploadImageSticker.click();
+    await this.page.waitForTimeout(1000);
+  }
+
+  async nameAndSaveImageSticker(stickerName: string): Promise<void> {
+    await expect(this.selector.imageSticker.upload.input.name).toBeVisible({ timeout: 5000 });
+    await this.selector.imageSticker.upload.input.name.fill(stickerName);
+    await expect(this.selector.imageSticker.upload.button.save).toBeVisible({ timeout: 5000 });
+    await this.selector.imageSticker.upload.button.save.click();
+    await expect(this.selector.imageSticker.upload.button.save).toBeHidden({ timeout: 5000 });
+  }
+
   async clickUploadVoiceStickers(): Promise<void> {
     await this.selector.buttons.uploadVoiceSticker.click();
     await this.page.waitForTimeout(1000);

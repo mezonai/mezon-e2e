@@ -1,12 +1,18 @@
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { Page } from '@playwright/test';
 
+const BASE_BUTTON_SELECTOR = generateE2eSelector('button.base');
+
 export default class ClanSettingSelector {
   constructor(private readonly page: Page) {}
 
   readonly buttons = {
     sidebarItem: this.page.locator(generateE2eSelector('clan_page.settings.sidebar.item')),
     uploadEmoji: this.page.locator(generateE2eSelector('clan_page.settings.emoji.upload')),
+    uploadImageSticker: this.page
+      .locator(generateE2eSelector('clan_page.settings.emoji.upload'))
+      .or(this.page.getByRole('button', { name: /^upload sticker$/i }))
+      .first(),
     uploadVoiceSticker: this.page.locator(
       generateE2eSelector('clan_page.settings.voice_sticker.button_upload')
     ),
@@ -32,9 +38,10 @@ export default class ClanSettingSelector {
     buttons: {
       sidebarItem: this.buttons.sidebarItem,
       roleSettings: this.buttons.sidebarItem.filter({ hasText: 'Roles' }),
+      categoryOrder: this.buttons.sidebarItem.filter({ hasText: 'Category Order' }),
       integrations: this.buttons.sidebarItem.filter({ hasText: 'Integrations' }),
       auditLog: this.buttons.sidebarItem.filter({ hasText: 'Audit Log' }),
-      createRole: this.page.locator(generateE2eSelector('button.base'), {
+      createRole: this.page.locator(BASE_BUTTON_SELECTOR, {
         hasText: 'Create Role',
       }),
       displayRoleOption: this.page.locator(
@@ -97,12 +104,49 @@ export default class ClanSettingSelector {
       categoryName: this.page.locator(
         generateE2eSelector('clan_page.settings.category_order.item.category_name')
       ),
+      buttons: {
+        saveChanges: this.page.locator(BASE_BUTTON_SELECTOR, {
+          hasText: 'Save Changes',
+        }),
+      },
     },
     category: {
       input: {
         categoryName: this.page.locator(
           generateE2eSelector('clan_page.settings.category.input.category_name')
         ),
+      },
+    },
+  };
+
+  readonly emoji = {
+    upload: {
+      input: {
+        name: this.page
+          .locator(generateE2eSelector('clan_page.settings.emoji.upload.input.emoji_name'))
+          .or(this.page.locator('input[placeholder="Ex: cat_hug"]'))
+          .first(),
+      },
+      button: {
+        save: this.page.locator(BASE_BUTTON_SELECTOR, {
+          hasText: /^Upload Emoji$/,
+        }),
+      },
+    },
+  };
+
+  readonly imageSticker = {
+    upload: {
+      input: {
+        name: this.page
+          .locator(generateE2eSelector('clan_page.settings.emoji.upload.input.emoji_name'))
+          .or(this.page.locator('input[placeholder="Ex: cat_hug"]'))
+          .first(),
+      },
+      button: {
+        save: this.page.locator(BASE_BUTTON_SELECTOR, {
+          hasText: /^Upload Sticker$/,
+        }),
       },
     },
   };
