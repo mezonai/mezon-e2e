@@ -1221,6 +1221,23 @@ export class MessageTestHelpers extends MessageContentHelpers {
     await expect(messageInput).toHaveText(contentMessage, { timeout: 3000 });
   }
 
+  async sendFlashMessageAndVerify(command: string, contentMessage: string): Promise<void> {
+    await this.verifyFlashMessageOnMessageInput(command, contentMessage);
+    await this.selector.messageInput.press('Enter');
+    await expect(this.selector.messages.last()).toContainText(contentMessage, { timeout: 5000 });
+  }
+
+  async verifyDeletedFlashMessageIsUnavailable(command: string): Promise<void> {
+    const messageInput = this.selector.messageInput;
+    await messageInput.fill(`/${command}`);
+
+    const deletedCommand = this.page
+      .locator('div.mention-popover-container')
+      .locator(generateE2eSelector('suggest_item'))
+      .filter({ hasText: command });
+    await expect(deletedCommand).toHaveCount(0, { timeout: 5000 });
+  }
+
   async verifyMessageIsHighlighted(message: string): Promise<void> {
     const messageLocator = this.getMessageItemLocator(message);
     await expect(messageLocator).toHaveClass(/!bg-\[#eab30833\]/, { timeout: 1000 });

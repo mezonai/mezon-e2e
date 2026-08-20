@@ -200,7 +200,35 @@ export class FileSizeTestHelpers {
     return filePath;
   }
 
+  private async createWavFileWithSize(fileName: string, targetBytes: number): Promise<string> {
+    await this.ensureTmpDir();
+    const filePath = path.join(this.tmpDir, `${fileName}.wav`);
+    const fileSize = Math.max(targetBytes, 44);
+    const wav = Buffer.alloc(fileSize, 0);
+    const dataSize = fileSize - 44;
+
+    wav.write('RIFF', 0);
+    wav.writeUInt32LE(fileSize - 8, 4);
+    wav.write('WAVE', 8);
+    wav.write('fmt ', 12);
+    wav.writeUInt32LE(16, 16);
+    wav.writeUInt16LE(1, 20);
+    wav.writeUInt16LE(1, 22);
+    wav.writeUInt32LE(8000, 24);
+    wav.writeUInt32LE(16000, 28);
+    wav.writeUInt16LE(2, 32);
+    wav.writeUInt16LE(16, 34);
+    wav.write('data', 36);
+    wav.writeUInt32LE(dataSize, 40);
+
+    await writeFile(filePath, wav);
+    return filePath;
+  }
+
   async createFileWithSize(name: string, sizeBytes: number, ext: string): Promise<string> {
+    if (ext.toLowerCase() === 'wav') {
+      return await this.createWavFileWithSize(name, sizeBytes);
+    }
     const imageExts = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp']);
     if (imageExts.has(ext.toLowerCase())) {
       return await this.createImageFileWithSize(name, sizeBytes, ext);

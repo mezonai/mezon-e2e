@@ -201,6 +201,21 @@ export default class ChannelSettingSelector {
     },
     item: {
       container: this.page.locator(generateE2eSelector('channel_setting_page.quick_menu.item')),
+      command: this.page.locator(
+        generateE2eSelector('channel_setting_page.quick_menu.item.command')
+      ),
+      type: this.page.locator(generateE2eSelector('channel_setting_page.quick_menu.item.type')),
+      messageContent: this.page.locator(
+        generateE2eSelector('channel_setting_page.quick_menu.item.message_content')
+      ),
+      button: {
+        edit: this.page.locator(
+          generateE2eSelector('channel_setting_page.quick_menu.item.button.edit')
+        ),
+        delete: this.page.locator(
+          generateE2eSelector('channel_setting_page.quick_menu.item.button.delete')
+        ),
+      },
     },
   };
 
