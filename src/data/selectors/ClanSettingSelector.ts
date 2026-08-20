@@ -133,6 +133,12 @@ export default class ClanSettingSelector {
         }),
       },
     },
+    item: {
+      nameInput: this.page.locator(generateE2eSelector('clan_page.settings.emoji.item.name_input')),
+      delete: this.page.locator(
+        generateE2eSelector('clan_page.settings.emoji.item.actions.delete')
+      ),
+    },
   };
 
   readonly imageSticker = {
@@ -148,6 +154,44 @@ export default class ClanSettingSelector {
           hasText: /^Upload Sticker$/,
         }),
       },
+    },
+    item: {
+      name: this.page.locator(generateE2eSelector('clan_page.settings.image_sticker.item.name')),
+      edit: this.page.locator(
+        generateE2eSelector('clan_page.settings.image_sticker.item.actions.edit')
+      ),
+      delete: this.page.locator(
+        generateE2eSelector('clan_page.settings.image_sticker.item.actions.delete')
+      ),
+    },
+  };
+
+  readonly voiceSticker = {
+    upload: {
+      input: {
+        name: this.page.locator('input:not([type="file"]):not([type="checkbox"]):visible').last(),
+      },
+      button: {
+        save: this.page
+          .locator(BASE_BUTTON_SELECTOR)
+          .filter({ hasText: /^Upload$/ })
+          .or(this.page.getByRole('button', { name: 'Upload', exact: true }))
+          .last(),
+        update: this.page
+          .locator(BASE_BUTTON_SELECTOR)
+          .filter({ hasText: /^Update$/ })
+          .or(this.page.getByRole('button', { name: 'Update', exact: true }))
+          .last(),
+      },
+    },
+    item: {
+      name: this.page.locator(generateE2eSelector('clan_page.settings.voice_sticker.item.name')),
+      edit: this.page.locator(
+        generateE2eSelector('clan_page.settings.voice_sticker.item.actions.edit')
+      ),
+      delete: this.page.locator(
+        generateE2eSelector('clan_page.settings.voice_sticker.item.actions.delete')
+      ),
     },
   };
 

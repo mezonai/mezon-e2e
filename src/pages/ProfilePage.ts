@@ -37,6 +37,53 @@ export class ProfilePage extends BasePage {
     await this.selector.tabs.language.click();
   }
 
+  async openDevicesTab(): Promise<void> {
+    await expect(this.selector.tabs.devices).toBeVisible({ timeout: 5000 });
+    await this.selector.tabs.devices.click();
+    await expect(this.selector.devices.currentDevice).toBeVisible({ timeout: 10000 });
+  }
+
+  async verifyDevicesPage(): Promise<void> {
+    const { currentDevice, otherDevices, item, removeButton } = this.selector.devices;
+    const currentDeviceItems = currentDevice.locator(
+      generateE2eSelector('user_setting.devices.tab_devices.item')
+    );
+    const otherDeviceItems = otherDevices.locator(
+      generateE2eSelector('user_setting.devices.tab_devices.item')
+    );
+
+    await expect(currentDevice).toContainText('Current Device');
+    await expect(currentDeviceItems).toHaveCount(1);
+    await expect(currentDeviceItems.first()).toContainText(/DESKTOP|MOBILE|WEB/i);
+    await expect(currentDevice.locator(removeButton)).toHaveCount(0);
+
+    const deviceCount = await item.count();
+    expect(deviceCount).toBeGreaterThanOrEqual(1);
+    await expect(removeButton).toHaveCount(deviceCount - 1);
+
+    if (deviceCount > 1) {
+      await expect(otherDevices).toBeVisible();
+      await expect(otherDeviceItems).toHaveCount(deviceCount - 1);
+      await expect(otherDevices.locator(removeButton)).toHaveCount(deviceCount - 1);
+      await expect(removeButton.first()).toHaveAttribute('title', 'Log out of this device');
+    } else {
+      await expect(otherDevices).toHaveCount(0);
+    }
+  }
+
+  async removeOtherDeviceIfAvailable(): Promise<boolean> {
+    const { item, removeButton } = this.selector.devices;
+    const initialDeviceCount = await item.count();
+    const initialRemoveButtonCount = await removeButton.count();
+
+    if (initialRemoveButtonCount === 0) return false;
+
+    await removeButton.first().click();
+    await expect(item).toHaveCount(initialDeviceCount - 1, { timeout: 10000 });
+    await expect(removeButton).toHaveCount(initialRemoveButtonCount - 1, { timeout: 10000 });
+    return true;
+  }
+
   async openSettingsTab(type: 'activity' | 'notification'): Promise<void> {
     const tab = type === 'activity' ? this.selector.tabs.activity : this.selector.tabs.notification;
     await expect(tab).toBeVisible({ timeout: 5000 });

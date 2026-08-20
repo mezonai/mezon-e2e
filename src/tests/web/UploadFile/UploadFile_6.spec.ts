@@ -1,17 +1,17 @@
 import { AllureConfig } from '@/config/allure.config';
-import { AccountCredentials, MEZON_DEV } from '@/config/environment';
+import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSettingsPage } from '@/pages/ClanSettingsPage';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { splitDomainAndPath } from '@/utils/domain';
-import joinUrlPaths from '@/utils/joinUrlPaths';
 import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
 import { expect, test } from '@playwright/test';
 
-test.describe('File Uploads - Custom Emoji', () => {
+const UPLOAD_FILE_TAG = 'upload-file';
+
+test.describe('File Uploads - Custom Emoji and Image Stickers', () => {
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account9;
   let fileSizeHelpers: FileSizeTestHelpers;
@@ -21,9 +21,6 @@ test.describe('File Uploads - Custom Emoji', () => {
     const page = await context.newPage();
     await AuthHelper.setupAuthWithEmailPassword(page, credentials);
     await clanFactory.setupClan(ClanSetupHelper.configs.uploadFile2, page);
-    clanFactory.setClanUrl(
-      joinUrlPaths(MEZON_DEV, splitDomainAndPath(clanFactory.getClanUrl()).path)
-    );
     await context.close();
   });
 
@@ -56,7 +53,7 @@ test.describe('File Uploads - Custom Emoji', () => {
       **Test Objective:** Verify an uploaded custom emoji can be sent in a clan channel.
 
       **Test Steps:**
-      1. Open the clan through the configured dev URL
+      1. Open the clan through the configured local URL
       2. Open Clan Settings > Emoji and upload a valid PNG
       3. Enter Upload Emoji in the emoji_name field and save
       4. Open general, select the uploaded emoji, and send it
@@ -65,10 +62,8 @@ test.describe('File Uploads - Custom Emoji', () => {
       **Expected Result:** The custom emoji is uploaded and displayed in the sent message.
     `);
     await AllureReporter.addLabels({
-      tag: ['upload-file', 'custom-emoji', 'channel-message'],
+      tag: [UPLOAD_FILE_TAG, 'custom-emoji', 'channel-message'],
     });
-
-    expect(new URL(page.url()).origin).toBe(new URL(MEZON_DEV).origin);
 
     const clanPage = new ClanPage(page);
     const clanSettingsPage = new ClanSettingsPage(page);
@@ -89,7 +84,6 @@ test.describe('File Uploads - Custom Emoji', () => {
         true
       );
       expect(result.success).toBe(true);
-      expect(new URL(page.url()).origin).toBe(new URL(MEZON_DEV).origin);
       await clanSettingsPage.nameAndSaveEmoji(emojiName);
       await clanPage.closeSettingsClanIfOpen();
     });
@@ -111,7 +105,7 @@ test.describe('File Uploads - Custom Emoji', () => {
       **Test Objective:** Verify an uploaded custom image sticker can be sent in a clan channel.
 
       **Test Steps:**
-      1. Open the clan through the configured dev URL
+      1. Open the clan through the configured local URL
       2. Open Clan Settings > Image Stickers and upload a valid PNG
       3. Enter Upload Sticker in the sticker name field and save
       4. Open general, select the uploaded sticker, and send it
@@ -120,10 +114,8 @@ test.describe('File Uploads - Custom Emoji', () => {
       **Expected Result:** The custom image sticker is uploaded and displayed in the sent message.
     `);
     await AllureReporter.addLabels({
-      tag: ['upload-file', 'custom-image-sticker', 'channel-message'],
+      tag: [UPLOAD_FILE_TAG, 'custom-image-sticker', 'channel-message'],
     });
-
-    expect(new URL(page.url()).origin).toBe(new URL(MEZON_DEV).origin);
 
     const clanPage = new ClanPage(page);
     const clanSettingsPage = new ClanSettingsPage(page);
@@ -144,7 +136,6 @@ test.describe('File Uploads - Custom Emoji', () => {
         true
       );
       expect(result.success).toBe(true);
-      expect(new URL(page.url()).origin).toBe(new URL(MEZON_DEV).origin);
       await clanSettingsPage.nameAndSaveImageSticker(stickerName);
       await clanPage.closeSettingsClanIfOpen();
     });

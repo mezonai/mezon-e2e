@@ -52,9 +52,133 @@ export class ClanSettingsPage extends BasePage {
     await expect(this.selector.imageSticker.upload.button.save).toBeHidden({ timeout: 5000 });
   }
 
+  async editEmojiName(oldName: string, newName: string): Promise<void> {
+    const oldNormalizedName = oldName.replace(/\s+/g, '');
+    const newNormalizedName = newName.replace(/\s+/g, '');
+    const nameInput = this.selector.emoji.item.nameInput
+      .and(this.page.locator(`[value="${oldNormalizedName}"]`))
+      .or(this.page.locator(`input:not([placeholder])[value="${oldNormalizedName}"]`))
+      .first();
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    await nameInput.fill(newNormalizedName);
+    await this.page.keyboard.press('Enter');
+    const editedNameInput = this.page
+      .locator(`input:not([placeholder])[value="${newNormalizedName}"]`)
+      .first();
+    await expect(editedNameInput).toBeVisible({ timeout: 5000 });
+    await this.page.waitForTimeout(1000);
+  }
+
+  async deleteEmoji(emojiName: string): Promise<void> {
+    const normalizedName = emojiName.replace(/\s+/g, '');
+    const nameInput = this.selector.emoji.item.nameInput
+      .and(this.page.locator(`[value="${normalizedName}"]`))
+      .or(this.page.locator(`input:not([placeholder])[value="${normalizedName}"]`))
+      .first();
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    const emojiItem = nameInput.locator('xpath=ancestor::div[contains(@class, "border-b")][1]');
+    await emojiItem.hover();
+    await emojiItem
+      .locator(this.selector.emoji.item.delete)
+      .or(emojiItem.getByRole('button', { name: 'X', exact: true }))
+      .first()
+      .click();
+    await expect(nameInput).toBeHidden({ timeout: 5000 });
+  }
+
+  async editImageStickerName(oldName: string, newName: string): Promise<void> {
+    const oldNormalizedName = oldName.replace(/\s+/g, '');
+    const newNormalizedName = newName.replace(/\s+/g, '');
+    const stickerName = this.selector.imageSticker.item.name
+      .filter({ hasText: oldNormalizedName })
+      .or(this.page.getByText(oldNormalizedName, { exact: true }))
+      .first();
+    await expect(stickerName).toBeVisible({ timeout: 5000 });
+    const stickerItem = stickerName.locator('xpath=ancestor::div[.//img][1]');
+    await stickerItem.hover();
+    await stickerItem
+      .locator(this.selector.imageSticker.item.edit)
+      .or(stickerItem.locator('button').first())
+      .first()
+      .click();
+
+    const nameInput = this.page.locator(`input[value="${oldNormalizedName}"]`).last();
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    await nameInput.fill(newNormalizedName);
+    await this.selector.imageSticker.upload.button.save.click();
+    await expect(this.selector.imageSticker.upload.button.save).toBeHidden({ timeout: 5000 });
+
+    const editedStickerName = this.page.getByText(newNormalizedName, { exact: true });
+    await expect(editedStickerName).toBeVisible({ timeout: 5000 });
+  }
+
+  async deleteImageSticker(stickerName: string): Promise<void> {
+    const normalizedName = stickerName.replace(/\s+/g, '');
+    const name = this.selector.imageSticker.item.name
+      .filter({ hasText: normalizedName })
+      .or(this.page.getByText(normalizedName, { exact: true }))
+      .first();
+    await expect(name).toBeVisible({ timeout: 5000 });
+    const stickerItem = name.locator('xpath=ancestor::div[.//img][1]');
+    await stickerItem.hover();
+    await stickerItem
+      .locator(this.selector.imageSticker.item.delete)
+      .or(stickerItem.getByRole('button', { name: 'x', exact: true }))
+      .first()
+      .click();
+    await expect(name).toBeHidden({ timeout: 5000 });
+  }
+
   async clickUploadVoiceStickers(): Promise<void> {
     await this.selector.buttons.uploadVoiceSticker.click();
     await this.page.waitForTimeout(1000);
+  }
+
+  async nameAndSaveVoiceSticker(voiceStickerName: string): Promise<void> {
+    await expect(this.selector.voiceSticker.upload.input.name).toBeVisible({ timeout: 5000 });
+    await this.selector.voiceSticker.upload.input.name.fill(voiceStickerName);
+    await expect(this.selector.voiceSticker.upload.button.save).toBeVisible({ timeout: 5000 });
+    await this.selector.voiceSticker.upload.button.save.click();
+    await expect(this.selector.voiceSticker.upload.button.save).toBeHidden({ timeout: 5000 });
+    await expect(this.getVoiceStickerName(voiceStickerName)).toBeVisible({ timeout: 5000 });
+  }
+
+  async editVoiceStickerName(oldName: string, newName: string): Promise<void> {
+    const oldStickerName = this.getVoiceStickerName(oldName);
+    await expect(oldStickerName).toBeVisible({ timeout: 5000 });
+    const stickerItem = oldStickerName.locator('xpath=ancestor::div[.//button][1]');
+    await stickerItem.hover();
+    await stickerItem
+      .locator(this.selector.voiceSticker.item.edit)
+      .or(stickerItem.locator('button').first())
+      .first()
+      .click();
+
+    const nameInput = this.page.locator(`input[value="${oldName}"]`).last();
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    await nameInput.fill(newName);
+    await this.selector.voiceSticker.upload.button.update.click();
+    await expect(this.getVoiceStickerName(newName)).toBeVisible({ timeout: 5000 });
+  }
+
+  async deleteVoiceSticker(voiceStickerName: string): Promise<void> {
+    const stickerName = this.getVoiceStickerName(voiceStickerName);
+    await expect(stickerName).toBeVisible({ timeout: 5000 });
+    const stickerItem = stickerName.locator('xpath=ancestor::div[.//button][1]');
+    await stickerItem.hover();
+    await stickerItem
+      .locator(this.selector.voiceSticker.item.delete)
+      .or(stickerItem.getByRole('button', { name: /x/i }))
+      .last()
+      .click();
+    await expect(stickerName).toBeHidden({ timeout: 5000 });
+  }
+
+  private getVoiceStickerName(voiceStickerName: string) {
+    return this.selector.voiceSticker.item.name
+      .filter({ hasText: voiceStickerName })
+      .or(this.page.getByText(voiceStickerName, { exact: true }))
+      .first();
   }
 
   async openEditOnboardingResource(): Promise<void> {

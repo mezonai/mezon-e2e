@@ -522,6 +522,57 @@ export class MessagePage extends BasePage {
     });
   }
 
+  async verifyChannelSearchFromUserSuggestions(expectedUsers: string[]): Promise<void> {
+    await this.verifyChannelSearchSuggestions('>', 'From user', [
+      ...expectedUsers,
+      'Everyone',
+      '@here',
+    ]);
+  }
+
+  async verifyChannelSearchMentionSuggestions(expectedUsers: string[]): Promise<void> {
+    await this.verifyChannelSearchSuggestions('~', 'Mentions', [
+      ...expectedUsers,
+      'Everyone',
+      '@here',
+    ]);
+  }
+
+  async verifyChannelSearchHasSuggestions(): Promise<void> {
+    await this.verifyChannelSearchSuggestions('&', 'Has', ['video', 'link', 'image']);
+  }
+
+  private async verifyChannelSearchSuggestions(
+    trigger: '>' | '~' | '&',
+    heading: 'From user' | 'Mentions' | 'Has',
+    expectedItems: string[]
+  ): Promise<void> {
+    await expect(this.selector.searchMessage.input.select).toBeVisible({ timeout: 5000 });
+    await this.selector.searchMessage.input.select.click();
+    await this.selector.searchMessage.input.select.fill('');
+    await this.selector.searchMessage.input.select.pressSequentially(trigger);
+
+    await expect(this.page.getByRole('heading', { name: heading })).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(this.page.getByText('Search for:', { exact: true })).toBeVisible({
+      timeout: 5000,
+    });
+
+    const suggestionItems = this.selector.searchMessage.select.item;
+    for (const item of expectedItems) {
+      await expect(suggestionItems.filter({ hasText: item })).toBeVisible({ timeout: 5000 });
+    }
+  }
+
+  async sendMessageInCurrentChannel(message: string): Promise<void> {
+    await this.selector.messageInput.fill(message);
+    await this.selector.messageInput.press('Enter');
+    await expect(this.selector.messages.filter({ hasText: message }).last()).toBeVisible({
+      timeout: 5000,
+    });
+  }
+
   async getAvatarHashOnSearchModal(groupName: string): Promise<string> {
     await expect(this.selector.searchInput).toBeVisible({ timeout: 5000 });
     await this.selector.searchInput.fill(groupName);

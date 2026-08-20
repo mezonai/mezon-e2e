@@ -339,10 +339,7 @@ export class ClanPage extends BasePage {
     await expect(this.selector.createChannelModal.input.channelName).toBeVisible({
       timeout: 5000,
     });
-    const selectedType =
-      channelType === ChannelType.TEXT
-        ? this.selector.createChannelModal.type.text
-        : this.selector.createChannelModal.type.voice;
+    const selectedType = this.selector.createChannelModal.type.text;
 
     await expect(selectedType.locator('input[type="radio"]')).toBeChecked();
 
@@ -1200,6 +1197,30 @@ export class ClanPage extends BasePage {
     });
     await this.selector.clanSettings.roleList.buttons.confirm.click();
     await expect(roleNameElement).toHaveCount(0, { timeout: 5000 });
+  }
+
+  async getRoleMemberCount(roleName: string): Promise<string> {
+    const opened = await this.openRoleSettingsPage();
+    expect(opened).toBe(true);
+
+    const roleRow = this.selector.clanSettings.roleList.roleName
+      .filter({ hasText: new RegExp(`^${escapeRegExp(roleName)}$`) })
+      .first()
+      .locator(ROLE_ROW_XPATH);
+
+    await expect(roleRow).toBeVisible({ timeout: 5000 });
+
+    const memberCountLocator = roleRow.locator(
+      generateE2eSelector('clan_page.settings.role.item.member_count')
+    );
+    await expect(memberCountLocator).toBeVisible({ timeout: 5000 });
+
+    return (await memberCountLocator.textContent()) ?? '';
+  }
+
+  async verifyRoleMemberCount(roleName: string, expectedCount: string): Promise<void> {
+    const count = await this.getRoleMemberCount(roleName);
+    expect(count.trim()).toBe(expectedCount);
   }
 
   async reorderRolesByDragAndDrop(sourceRoleName: string, targetRoleName: string): Promise<void> {
