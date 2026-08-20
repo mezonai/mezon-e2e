@@ -84,6 +84,11 @@ export class ClanSetupHelper {
       suiteName: 'Clan Management - Module 4',
     }),
 
+    clanManagement5: ClanSetupHelper.createConfig({
+      clanNamePrefix: 'ClanManagementTest',
+      suiteName: 'Clan Management - Module 5',
+    }),
+
     channelManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ChannelMgmtTest',
       suiteName: 'Channel Management',

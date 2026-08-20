@@ -1,7 +1,7 @@
 import ChannelSettingSelector from '@/data/selectors/ChannelSettingSelector';
 import ClanSelector from '@/data/selectors/ClanSelector';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class ChannelSettingPage extends BasePage {
@@ -114,6 +114,92 @@ export class ChannelSettingPage extends BasePage {
     await expect(this.selector.quick_menu.modal.container).toBeVisible({ timeout: 3000 });
   }
 
+  async openFlashMessagesTab(): Promise<void> {
+    await expect(this.selector.quick_menu.flashMessagesTab).toBeVisible({ timeout: 3000 });
+    await this.selector.quick_menu.flashMessagesTab.click();
+    await expect(this.selector.quick_menu.button.addFlashMessage).toBeVisible({ timeout: 3000 });
+  }
+
+  async getQuickActionTabCount(type: 'flash-message' | 'quick-menu'): Promise<number> {
+    const tab =
+      type === 'flash-message'
+        ? this.selector.quick_menu.flashMessagesTab
+        : this.selector.quick_menu.quickMenusTab;
+    await expect(tab).toBeVisible({ timeout: 3000 });
+    const text = await tab.innerText();
+    const count = text.match(/(\d+)\s*$/)?.[1];
+    if (count === undefined) throw new Error(`Could not read item count from tab: ${text}`);
+    return Number(count);
+  }
+
+  async verifyQuickActionTabCount(
+    type: 'flash-message' | 'quick-menu',
+    expectedCount: number
+  ): Promise<void> {
+    await expect
+      .poll(() => this.getQuickActionTabCount(type), { timeout: 5000 })
+      .toBe(expectedCount);
+  }
+
+  async openQuickMenusTab(): Promise<void> {
+    await expect(this.selector.quick_menu.quickMenusTab).toBeVisible({ timeout: 3000 });
+    await this.selector.quick_menu.quickMenusTab.click();
+    await expect(this.selector.quick_menu.button.addQuickMenu).toBeVisible({ timeout: 3000 });
+  }
+
+  async openQuickMenuModal(): Promise<void> {
+    await this.openQuickMenusTab();
+    await this.selector.quick_menu.button.addQuickMenu.click();
+    await expect(this.selector.quick_menu.modal.container).toBeVisible({ timeout: 3000 });
+  }
+
+  async createQuickMenu(menuName: string): Promise<void> {
+    await this.selector.quick_menu.modal.input.command.fill(menuName);
+    await this.selector.quick_menu.modal.button.submit.click();
+    await expect(this.selector.quick_menu.modal.container).toBeHidden({ timeout: 5000 });
+    await this.verifyQuickMenuInList(menuName);
+  }
+
+  async verifyQuickMenuInList(menuName: string): Promise<void> {
+    const quickMenuItem = this.getQuickMenuItem(menuName);
+    await expect(quickMenuItem).toBeVisible({ timeout: 5000 });
+    await expect(quickMenuItem.locator(this.selector.quick_menu.item.type)).toHaveText(
+      'Quick Menu'
+    );
+    await expect(quickMenuItem).toContainText('Triggers bot event');
+  }
+
+  private getQuickMenuItem(menuName: string): Locator {
+    return this.selector.quick_menu.item.container.filter({
+      has: this.selector.quick_menu.item.command.filter({ hasText: menuName }),
+    });
+  }
+
+  async editQuickMenu(currentName: string, newName: string): Promise<void> {
+    const quickMenuItem = this.getQuickMenuItem(currentName);
+    await expect(quickMenuItem).toBeVisible({ timeout: 5000 });
+    await quickMenuItem.locator(this.selector.quick_menu.item.button.edit).click();
+    await expect(this.selector.quick_menu.modal.container).toBeVisible({ timeout: 3000 });
+
+    await this.selector.quick_menu.modal.input.command.fill(newName);
+    await this.selector.quick_menu.modal.button.submit.click();
+
+    await expect(this.selector.quick_menu.modal.container).toBeHidden({ timeout: 5000 });
+    await expect(this.getQuickMenuItem(currentName)).toHaveCount(0);
+    await this.verifyQuickMenuInList(newName);
+  }
+
+  async deleteQuickMenu(menuName: string): Promise<void> {
+    const quickMenuItem = this.getQuickMenuItem(menuName);
+    await expect(quickMenuItem).toBeVisible({ timeout: 5000 });
+    await quickMenuItem.locator(this.selector.quick_menu.item.button.delete).click();
+
+    const confirmDeleteButton = this.page.getByRole('button', { name: 'Delete', exact: true });
+    await expect(confirmDeleteButton).toBeVisible({ timeout: 3000 });
+    await confirmDeleteButton.click();
+    await expect(quickMenuItem).toHaveCount(0, { timeout: 5000 });
+  }
+
   async createFlashMessage(command: string, messageContent: string): Promise<void> {
     await this.selector.quick_menu.modal.input.command.fill(command);
     await this.selector.quick_menu.modal.input.messageContent.fill(messageContent);
@@ -139,7 +225,50 @@ export class ChannelSettingPage extends BasePage {
     await expect(matchedItem).toBeVisible();
   }
 
+  private getFlashMessageItem(command: string): Locator {
+    return this.selector.quick_menu.item.container.filter({
+      has: this.selector.quick_menu.item.command.filter({ hasText: command }),
+    });
+  }
+
+  async editFlashMessage(
+    currentCommand: string,
+    newCommand: string,
+    newMessageContent: string
+  ): Promise<void> {
+    const flashMessageItem = this.getFlashMessageItem(currentCommand);
+    await expect(flashMessageItem).toBeVisible({ timeout: 5000 });
+    await flashMessageItem.locator(this.selector.quick_menu.item.button.edit).click();
+    await expect(this.selector.quick_menu.modal.container).toBeVisible({ timeout: 3000 });
+
+    await this.selector.quick_menu.modal.input.command.fill(newCommand);
+    await this.selector.quick_menu.modal.input.messageContent.fill(newMessageContent);
+    await this.selector.quick_menu.modal.button.submit.click();
+
+    await expect(this.selector.quick_menu.modal.container).toBeHidden({ timeout: 5000 });
+    await expect(this.getFlashMessageItem(currentCommand)).toHaveCount(0);
+    await this.verifyFlashMessageInQuickMenuList(newCommand, newMessageContent);
+  }
+
+  async deleteFlashMessage(command: string): Promise<void> {
+    const flashMessageItem = this.getFlashMessageItem(command);
+    await expect(flashMessageItem).toBeVisible({ timeout: 5000 });
+    await flashMessageItem.locator(this.selector.quick_menu.item.button.delete).click();
+
+    const confirmDeleteButton = this.page.getByRole('button', { name: 'Delete', exact: true });
+    await expect(confirmDeleteButton).toBeVisible({ timeout: 3000 });
+    await confirmDeleteButton.click();
+    await expect(flashMessageItem).toHaveCount(0, { timeout: 5000 });
+  }
+
   async closeChannelSettings() {
+    await this.selector.button.close_settings.click();
+    await expect(this.selector.side_bar_buttons.quick_menu).toBeHidden({ timeout: 3000 });
+  }
+
+  async closeChannelSettingsIfVisible(): Promise<void> {
+    if (!(await this.selector.button.close_settings.isVisible({ timeout: 1000 }))) return;
+
     await this.selector.button.close_settings.click();
     await expect(this.selector.side_bar_buttons.quick_menu).toBeHidden({ timeout: 3000 });
   }

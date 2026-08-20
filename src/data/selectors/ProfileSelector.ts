@@ -49,7 +49,24 @@ export default class ProfileSelector {
     language: this.page.locator(generateE2eSelector('user_setting.language.tab_language')),
     activity: this.page.locator(generateE2eSelector('user_setting.activity')),
     notification: this.page.locator(generateE2eSelector('user_setting.notification')),
+    devices: this.page.getByText('Devices', { exact: true }).first(),
     logout: this.page.locator(generateE2eSelector('user_setting.logout')),
+  };
+
+  readonly devices = {
+    currentDevice: this.page.locator(
+      generateE2eSelector('user_setting.devices.tab_devices.current_device')
+    ),
+    otherDevices: this.page.locator(
+      generateE2eSelector('user_setting.devices.tab_devices.other_devices')
+    ),
+    noDevices: this.page.locator(
+      generateE2eSelector('user_setting.devices.tab_devices.no_devices')
+    ),
+    item: this.page.locator(generateE2eSelector('user_setting.devices.tab_devices.item')),
+    removeButton: this.page.locator(
+      generateE2eSelector('user_setting.devices.tab_devices.button.remove_device')
+    ),
   };
 
   readonly language = {
