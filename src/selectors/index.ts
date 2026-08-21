@@ -26,8 +26,6 @@ export const DATA_E2E_IDENTIFIER = {
   button: {
     base: '',
     copy: '',
-    previous: '',
-    next: '',
   },
   base_profile: {
     display_name: '',
@@ -623,8 +621,14 @@ export const DATA_E2E_IDENTIFIER = {
         control_bar: '',
         button: {
           join_voice: '',
-          share_screen: '',
+          send_flower: '',
+          kick: '',
+          mute_mic: '',
+          record: '',
+          open_context: '',
         },
+        time_record: '',
+        username: '',
       },
       canvas_editor: {
         input: {
@@ -1290,6 +1294,49 @@ export const DATA_E2E_IDENTIFIER = {
   invite_card: {
     button: {
       goto_clan: '',
+    },
+  },
+  send_token: {
+    modal: {
+      send: {
+        input: {
+          search_user: '',
+          amount: '',
+          note: '',
+        },
+        select: {
+          item: '',
+        },
+        button: {
+          send: '',
+          cancel: '',
+        },
+      },
+      transaction_history: {
+        tab: {
+          item: '',
+        },
+        item: {
+          amount: '',
+          status: '',
+          time: '',
+          button: {
+            open_detail: '',
+            close_transaction: '',
+          },
+          detail: {
+            label: '',
+            value: '',
+          },
+        },
+      },
+    },
+    message: {
+      title: '',
+      detail: '',
+      button: {
+        open_history: '',
+      },
     },
   },
 };

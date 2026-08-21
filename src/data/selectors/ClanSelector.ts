@@ -237,6 +237,16 @@ export default class ClanSelector {
       screenShareIcon: this.page.locator(
         generateE2eSelector('clan_page.channel_list.item.user_list.item.screen_share')
       ),
+      username: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.username')),
+      button: {
+        openContext: this.page.locator(
+          generateE2eSelector('clan_page.screen.voice_room.button.open_context')
+        ),
+        kick: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.button.kick')),
+        sendFlower: this.page.locator(
+          generateE2eSelector('clan_page.screen.voice_room.button.send_flower')
+        ),
+      },
     },
     canvasEditor: {
       input: {

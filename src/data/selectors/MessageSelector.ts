@@ -181,8 +181,6 @@ export default class MessageSelector {
   searchMessage = {
     button: {
       select: this.page.locator(generateE2eSelector('chat.search_message.button.select')),
-      previous: this.page.locator(generateE2eSelector('button.previous')),
-      next: this.page.locator(generateE2eSelector('button.next')),
     },
     input: {
       select: this.page.locator(generateE2eSelector('chat.search_message.input.select')),
