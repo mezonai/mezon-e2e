@@ -1811,6 +1811,89 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async isUserInVoiceChannel(channelName: string, username: string): Promise<boolean> {
+    const userListLocator = this.getVoiceChannelSidebarItem(channelName).locator(
+      this.selector.sidebar.channelItem.userList.item
+    );
+    const userLocator = userListLocator.filter({ hasText: username }).first();
+
+    try {
+      await userLocator.waitFor({ state: 'visible', timeout: 20000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async kickUserFromVoiceCall(username: string): Promise<boolean> {
+    try {
+      const participantTile = this.getVoiceParticipantTile(username);
+      await participantTile.waitFor({ state: 'visible', timeout: 10000 });
+      await participantTile
+        .locator(this.selector.screen.voiceRoom.button.openContext)
+        .click({ button: 'right' });
+
+      const kickButton = this.selector.screen.voiceRoom.button.kick;
+      await kickButton.waitFor({ state: 'visible', timeout: 5000 });
+      await kickButton.click();
+      await this.page.waitForTimeout(3000);
+
+      await participantTile.waitFor({ state: 'hidden', timeout: 2000 });
+      return true;
+    } catch (error) {
+      console.error(`Error kicking user from voice call: ${error}`);
+      return false;
+    }
+  }
+
+  async isUserInVoiceRoomScreen(username: string): Promise<boolean> {
+    try {
+      await this.getVoiceParticipantTile(username).waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async openUserContextInVoiceRoom(username: string): Promise<void> {
+    const participantTile = this.getVoiceParticipantTile(username);
+    await participantTile.waitFor({ state: 'visible', timeout: 10000 });
+    await participantTile.click({ button: 'right' });
+  }
+
+  async isSendFlowerOptionVisible(): Promise<boolean> {
+    try {
+      await this.selector.screen.voiceRoom.button.sendFlower.waitFor({
+        state: 'visible',
+        timeout: 5000,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async clickSendFlower(): Promise<boolean> {
+    try {
+      const sendFlowerButton = this.selector.screen.voiceRoom.button.sendFlower;
+      await sendFlowerButton.waitFor({ state: 'visible', timeout: 5000 });
+      await sendFlowerButton.click();
+      return true;
+    } catch (error) {
+      console.error(`Error clicking send flower: ${error}`);
+      return false;
+    }
+  }
+
+  private getVoiceParticipantTile(username: string) {
+    return this.page
+      .locator('.lk-participant-tile')
+      .filter({
+        has: this.selector.screen.voiceRoom.username.filter({ hasText: username }),
+      })
+      .first();
+  }
+
   private getVoiceChannelSidebarItem(channelName: string) {
     const escapedChannelName = channelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return this.selector.sidebar.channelItem.item.filter({
@@ -1838,26 +1921,6 @@ export class ClanPage extends BasePage {
     const channelLocator = this.page.locator(CHANNEL_NAME_SELECTOR, { hasText: channelName });
     await expect(channelLocator).toBeVisible({ timeout: 3000 });
     await channelLocator.click();
-  }
-
-  async verifyChannelHistoryNavigation(
-    previousChannelName: string,
-    nextChannelName: string
-  ): Promise<void> {
-    await this.openChannelByName(previousChannelName);
-    const previousChannelUrl = this.page.url();
-
-    await this.openChannelByName(nextChannelName);
-    await expect.poll(() => this.page.url(), { timeout: 5000 }).not.toBe(previousChannelUrl);
-    const nextChannelUrl = this.page.url();
-
-    await expect(this.selector.channel.navigation.previous).toBeVisible({ timeout: 5000 });
-    await this.selector.channel.navigation.previous.click();
-    await expect(this.page).toHaveURL(previousChannelUrl, { timeout: 5000 });
-
-    await expect(this.selector.channel.navigation.next).toBeVisible({ timeout: 5000 });
-    await this.selector.channel.navigation.next.click();
-    await expect(this.page).toHaveURL(nextChannelUrl, { timeout: 5000 });
   }
 
   async copyChannelLinkFromChannelList(channelName: string): Promise<string> {

@@ -116,6 +116,42 @@ test.describe('User Settings - Activity and Notification Switches', () => {
     await verifySwitchCanTurnOffAndOn(page, 'activity');
   });
 
+  test('Verify current and other devices in User Settings', async ({ page }) => {
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify device sessions are displayed with the correct logout controls.
+
+      **Test Steps:**
+      1. Open User Settings
+      2. Open the Devices tab
+      3. Verify the current device information and that it has no logout button
+      4. Verify other device sessions have logout buttons
+      5. If another device exists, log it out and verify it is removed
+
+      **Expected Result:** Current and other device sessions display the correct actions, and an available other device can be removed.
+    `);
+
+    const profilePage = new ProfilePage(page);
+
+    await AllureReporter.step('Open the Devices tab in User Settings', async () => {
+      await profilePage.openUserSettingProfile();
+      await profilePage.openDevicesTab();
+    });
+
+    await AllureReporter.step('Verify current and other device sessions', async () => {
+      await profilePage.verifyDevicesPage();
+    });
+
+    await AllureReporter.step('Remove an other device when available', async () => {
+      const removed = await profilePage.removeOtherDeviceIfAvailable();
+      await AllureReporter.addParameter('otherDeviceRemoved', removed ? 'Yes' : 'Not available');
+    });
+  });
+
   test('Verify that Notification can be turned OFF and ON in User Settings', async ({ page }) => {
     await AllureReporter.addDescription(`
       **Test Objective:** Verify that the Notification setting can be turned OFF and ON.

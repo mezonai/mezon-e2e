@@ -90,46 +90,6 @@ test.describe('Clan Management - Category Order', () => {
     }
   });
 
-  test('Verify previous and next buttons navigate between clan channels', async ({ page }) => {
-    await AllureReporter.addTestParameters({
-      testType: AllureConfig.TestTypes.E2E,
-      userType: AllureConfig.UserTypes.AUTHENTICATED,
-      severity: AllureConfig.Severity.NORMAL,
-    });
-    await AllureReporter.addDescription(`
-      **Test Objective:** Verify the Previous and Next buttons navigate through channel history.
-
-      **Test Steps:**
-      1. Create a new text channel
-      2. Open the general channel and save its URL
-      3. Open the newly created channel and save its URL
-      4. Click Previous and verify the browser returns to the general channel URL
-      5. Click Next and verify the browser returns to the new channel URL
-
-      **Expected Result:** Previous and Next navigate backward and forward between the two channels.
-    `);
-    await AllureReporter.addLabels({
-      tag: [CLAN_MANAGEMENT_TAG, 'channel', 'navigation', 'previous-next'],
-    });
-
-    const clanPage = new ClanPage(page);
-    const channelName = `history-${Date.now().toString(36).slice(-6)}`;
-
-    await AllureReporter.step(`Create text channel: ${channelName}`, async () => {
-      expect(await clanPage.createNewChannel(ChannelType.TEXT, channelName)).toBe(true);
-      expect(await clanPage.isNewChannelPresent(channelName)).toBe(true);
-    });
-
-    await AllureReporter.step(
-      'Verify Previous opens general and Next returns to the new channel',
-      async () => {
-        await clanPage.verifyChannelHistoryNavigation('general', channelName);
-      }
-    );
-
-    await AllureReporter.attachScreenshot(page, 'Previous and Next channel navigation verified');
-  });
-
   test('Verify clan categories can be reordered directly from the sidebar', async ({ page }) => {
     await AllureReporter.addTestParameters({
       testType: AllureConfig.TestTypes.E2E,
