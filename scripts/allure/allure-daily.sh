@@ -200,23 +200,23 @@ fi
 # ---------------------------------------------------------------------------
 log "🧹 Removing reports from previous weeks..."
 
-CURRENT_WEEK=$(date +%G-%V)
+CURRENT_WEEK=$(date -d "$REPORT_DATE" +%G-%V)
 
 find "$ALLURE_VERCEL_ROOT/reports" \
   -mindepth 2 \
   -maxdepth 2 \
   -type d | while read -r REPORT_DIR; do
 
-    REPORT_DATE=$(basename "$REPORT_DIR")
+    REPORT_DAY=$(basename "$REPORT_DIR")
 
-    if [[ ! "$REPORT_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+    if [[ ! "$REPORT_DAY" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
         continue
     fi
 
-    REPORT_WEEK=$(date -d "$REPORT_DATE" +%G-%V)
+    REPORT_WEEK=$(date -d "$REPORT_DAY" +%G-%V)
 
     if [ "$REPORT_WEEK" != "$CURRENT_WEEK" ]; then
-        log "🗑️ Removing old report: $REPORT_DATE"
+        log "🗑️ Removing old report: $REPORT_DAY"
         rm -rf "$REPORT_DIR"
     fi
 done
