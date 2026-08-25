@@ -28,7 +28,7 @@ export function registerCleanupTests(shardIndex: number, shardCount: number): vo
       const messagePage = new MessagePage(page);
       await clanPage.deleteAllClans({});
       await messagePage.leaveAllGroup();
-      await AuthHelper.logout(page);
+      await AuthHelper.logout(page, false);
     });
   }
 }

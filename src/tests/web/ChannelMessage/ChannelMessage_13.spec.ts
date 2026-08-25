@@ -22,10 +22,10 @@ test.describe('Channel Messages - Safe Content and Composer State', () => {
     await AllureReporter.addWorkItemLinks({ parrent_issue: '63366' });
     await TestSuiteHelper.setupBeforeEach({ page, clanFactory, credentials });
   });
-  test.afterEach(async ({ page }) => AuthHelper.logout(page));
-  test.afterAll(async ({ browser }) =>
-    TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials })
-  );
+  test.afterEach(async ({ page }) => await AuthHelper.logout(page));
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials });
+  });
   async function execute(page: Page, id: number, title: string): Promise<void> {
     await AllureReporter.addDescription(
       `**Test Objective:** ${title}.\n\n**Test Steps:**\n1. Open the clan channel.\n2. Perform the content or composer action.\n3. Verify the expected state.\n\n**Expected Result:** The content and composer remain consistent.`

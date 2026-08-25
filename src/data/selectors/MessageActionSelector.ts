@@ -27,4 +27,5 @@ export default class MessageActionSelector {
     generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
     { hasText: 'Delete' }
   );
+  readonly sendCoffee = this.items.filter({ hasText: 'Give A Coffee' });
 }

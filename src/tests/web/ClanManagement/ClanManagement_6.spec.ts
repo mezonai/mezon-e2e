@@ -54,10 +54,16 @@ test.describe('Clan Management - Audit Log, Count Events, Interested Event', () 
     await TestSuiteHelper.setupBeforeEach({ page, clanFactory, credentials });
   });
 
-  test.afterEach(async ({ page }) => AuthHelper.logout(page));
-  test.afterAll(async ({ browser }) =>
-    TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials })
-  );
+  test.afterEach(async ({ page }) => {
+    await AuthHelper.logout(page);
+  });
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({
+      browser,
+      clanFactory,
+      credentials,
+    });
+  });
 
   test('Verify that updating a role name is recorded in Clan Audit Log', async ({ page }) => {
     await AllureReporter.addTestParameters({
