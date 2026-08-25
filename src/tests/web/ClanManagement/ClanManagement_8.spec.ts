@@ -29,10 +29,10 @@ test.describe('Clan Management - Category Order', () => {
     await TestSuiteHelper.setupBeforeEach({ page, clanFactory, credentials });
   });
 
-  test.afterEach(async ({ page }) => AuthHelper.logout(page));
-  test.afterAll(async ({ browser }) =>
-    TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials })
-  );
+  test.afterEach(async ({ page }) => await AuthHelper.logout(page));
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials });
+  });
 
   test('Verify clan categories can be reordered by drag and drop', async ({ page }) => {
     await AllureReporter.addTestParameters({

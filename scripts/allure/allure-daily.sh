@@ -196,28 +196,27 @@ EOF
 fi
 
 # ---------------------------------------------------------------------------
-# 10. Remove reports from previous weeks
+# 10. Remove reports older than 7 days (rolling window: 1 in, 1 out)
 # ---------------------------------------------------------------------------
-log "🧹 Removing reports from previous weeks..."
+log "🧹 Removing reports older than 7 days..."
 
-CURRENT_WEEK=$(date -d "$REPORT_DATE" +%G-%V)
+CUTOFF_DATE=$(date -d "$DAY -6 days" +%F)
+log "   Keeping reports from $CUTOFF_DATE to $DAY"
 
 find "$ALLURE_VERCEL_ROOT/reports" \
   -mindepth 2 \
   -maxdepth 2 \
-  -type d | while read -r REPORT_DIR; do
+  -type d | while read -r OLD_REPORT_DIR; do
 
-    REPORT_DAY=$(basename "$REPORT_DIR")
+    REPORT_DAY=$(basename "$OLD_REPORT_DIR")
 
     if [[ ! "$REPORT_DAY" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
         continue
     fi
 
-    REPORT_WEEK=$(date -d "$REPORT_DAY" +%G-%V)
-
-    if [ "$REPORT_WEEK" != "$CURRENT_WEEK" ]; then
+    if [[ "$REPORT_DAY" < "$CUTOFF_DATE" ]]; then
         log "🗑️ Removing old report: $REPORT_DAY"
-        rm -rf "$REPORT_DIR"
+        rm -rf "$OLD_REPORT_DIR"
     fi
 done
 
@@ -238,9 +237,7 @@ elif [ -d "$MANUAL_REPORTS_ROOT" ]; then
           continue
       fi
 
-      MANUAL_REPORT_WEEK=$(date -d "$MANUAL_REPORT_DATE" +%G-%V)
-
-      if [ "$MANUAL_REPORT_WEEK" != "$CURRENT_WEEK" ]; then
+      if [[ "$MANUAL_REPORT_DATE" < "$CUTOFF_DATE" ]]; then
           log "🗑️ Removing old manual report: $MANUAL_REPORT_NAME"
           rm -rf "$MANUAL_REPORT_DIR"
       fi

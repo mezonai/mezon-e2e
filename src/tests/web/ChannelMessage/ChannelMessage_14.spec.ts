@@ -22,10 +22,10 @@ test.describe('Channel Messages - Ordering, Editing, and Deleting', () => {
     await AllureReporter.addWorkItemLinks({ parrent_issue: '63366' });
     await TestSuiteHelper.setupBeforeEach({ page, clanFactory, credentials });
   });
-  test.afterEach(async ({ page }) => AuthHelper.logout(page));
-  test.afterAll(async ({ browser }) =>
-    TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials })
-  );
+  test.afterEach(async ({ page }) => await AuthHelper.logout(page));
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials });
+  });
   async function execute(page: Page, id: number, title: string): Promise<void> {
     await AllureReporter.addDescription(
       `**Test Objective:** ${title}.\n\n**Test Steps:**\n1. Open the clan channel.\n2. Perform the message action.\n3. Verify message order or content.\n\n**Expected Result:** The message state is updated correctly.`
