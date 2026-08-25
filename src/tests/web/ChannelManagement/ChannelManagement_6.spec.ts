@@ -27,7 +27,7 @@ test.describe('Channel Management - Copy Channel Link', () => {
     await TestSuiteHelper.setupBeforeEach({ page, clanFactory, credentials });
   });
 
-  test.afterEach(async ({ page }) => AuthHelper.logout(page));
+  test.afterEach(async ({ page }) => await AuthHelper.logout(page));
 
   test.afterAll(async ({ browser }) => {
     await TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials });

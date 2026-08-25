@@ -32,10 +32,10 @@ test.describe('Clan Management - System Messages and Roles', () => {
     await TestSuiteHelper.setupBeforeEach({ page, clanFactory, credentials });
   });
 
-  test.afterEach(async ({ page }) => AuthHelper.logout(page));
-  test.afterAll(async ({ browser }) =>
-    TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials })
-  );
+  test.afterEach(async ({ page }) => await AuthHelper.logout(page));
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials });
+  });
 
   test('Verify clan update is sent to general when management system messages are enabled', async ({
     page,

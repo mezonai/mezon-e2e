@@ -358,7 +358,7 @@ jobs:
           WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false
-          TEST_GAP_MS=5000
+          TEST_GAP_MS=40000
           EOF
           sed -i 's/^[[:space:]]*//' .env
           echo "--- .env contents ---" && cat .env
@@ -563,7 +563,19 @@ jobs:
           fi
 
       # -----------------------------------------------------------------------
-      # 10. Disconnect VPN — cleanup, always runs
+      # 10. Run data cleanup after the nightly Multi run (02:00 Vietnam)
+      #     Deletes leftover clans/groups created by tests on the dev env.
+      #     Runs before the VPN is disconnected and never blocks the pipeline.
+      #     --reporter=list keeps cleanup entries out of the Allure report.
+      # -----------------------------------------------------------------------
+      - name: Run cleanup tests
+        if: always() && steps.phase.outputs.phase == 'multi'
+        timeout-minutes: 240
+        continue-on-error: true
+        run: npx playwright test --project cleanup --reporter=list
+
+      # -----------------------------------------------------------------------
+      # 11. Disconnect VPN — cleanup, always runs
       # -----------------------------------------------------------------------
       - name: Disconnect VPN
         if: always()
@@ -578,7 +590,7 @@ jobs:
           fi
 
       # -----------------------------------------------------------------------
-      # 11. Upload Playwright diagnostics and Allure raw results
+      # 12. Upload Playwright diagnostics and Allure raw results
       # -----------------------------------------------------------------------
       - name: Upload Playwright failure artifacts
         if: always()

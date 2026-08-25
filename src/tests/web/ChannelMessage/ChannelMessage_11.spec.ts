@@ -23,10 +23,10 @@ test.describe('Channel Messages - Empty Input and Duplicate Submission', () => {
     await AllureReporter.addWorkItemLinks({ parrent_issue: '63366' });
     await TestSuiteHelper.setupBeforeEach({ page, clanFactory, credentials });
   });
-  test.afterEach(async ({ page }) => AuthHelper.logout(page));
-  test.afterAll(async ({ browser }) =>
-    TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials })
-  );
+  test.afterEach(async ({ page }) => await AuthHelper.logout(page));
+  test.afterAll(async ({ browser }) => {
+    await TestSuiteHelper.onAfterAll({ browser, clanFactory, credentials });
+  });
 
   async function execute(page: Page, id: number, title: string): Promise<void> {
     await AllureReporter.addDescription(

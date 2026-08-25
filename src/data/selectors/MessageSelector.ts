@@ -112,6 +112,7 @@ export default class MessageSelector {
   forwardAllMessagesButton = this.actions.forwardAll;
   createThreadButton = this.actions.createThread;
   confirmDeleteMessageButton = this.actions.confirmDelete;
+  sendCoffeeButton = this.actions.sendCoffee;
   displayListPinButton = this.page.locator(
     generateE2eSelector('chat.channel_message.header.button.pin')
   );

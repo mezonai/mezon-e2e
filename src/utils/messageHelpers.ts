@@ -1413,6 +1413,28 @@ export class MessageTestHelpers extends MessageContentHelpers {
     await expect(button).toBeVisible({ timeout: 3000 });
     await button.click();
   }
+
+  async giveCoffeeToMessage(messageElement: Locator): Promise<void> {
+    await messageElement.scrollIntoViewIfNeeded();
+    await messageElement.hover();
+    await messageElement.click({ button: 'right' });
+
+    const giveCoffeeButton = this.selector.sendCoffeeButton;
+    await expect(giveCoffeeButton).toBeVisible({ timeout: 3000 });
+    await giveCoffeeButton.click();
+
+    await expect(giveCoffeeButton).toBeHidden({ timeout: 5000 });
+  }
+
+  getCoffeeReactionIcon(messageElement: Locator): Locator {
+    return messageElement.locator('div:has(> img[src*="emojis"])').first();
+  }
+
+  async verifyCoffeeReactionOnMessage(messageElement: Locator): Promise<void> {
+    const reactionIcon = this.getCoffeeReactionIcon(messageElement);
+    await expect(reactionIcon).toBeVisible({ timeout: 20000 });
+    await expect(reactionIcon).toHaveText(/^\d+$/, { timeout: 5000 });
+  }
 }
 
 export const LINK_TEST_URLS = [
