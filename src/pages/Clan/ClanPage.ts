@@ -101,29 +101,97 @@ export class ClanPage extends BasePage {
   }
 
   async deleteAllClans({ onlyDeleteExpired }: { onlyDeleteExpired?: boolean }): Promise<boolean> {
-    const clanElements = this.selector.sidebar.clanItem;
-    const clanTitles = await this.mapLocator(clanElements, async element => {
-      return element.getAttribute('title');
-    });
-    for (const clanName of clanTitles) {
-      if (onlyDeleteExpired && clanName && !this.shouldDeleteClan(clanName)) {
-        continue;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await this.recoverToStableState();
+        const clanElements = this.selector.sidebar.clanItem;
+        const clanTitles = await this.mapLocator(clanElements, async element => {
+          return element.getAttribute('title');
+        });
+        if (clanTitles.length === 0) return true;
+
+        for (const clanName of clanTitles) {
+          if (onlyDeleteExpired && clanName && !this.shouldDeleteClan(clanName)) {
+            continue;
+          }
+          await this.deleteClan(clanName || '');
+        }
+        return true;
+      } catch (error) {
+        console.error(`Error in deleteAllClans attempt ${attempt + 1}: ${error}`);
+        await this.recoverToStableState();
       }
-      await this.deleteClan(clanName || '');
-      // await this.page.goto(joinUrlPaths(this.page.url(), ROUTES.DIRECT_FRIENDS));
-      await this.page.waitForLoadState('domcontentloaded');
     }
     return true;
   }
 
+  private async recoverToStableState(): Promise<void> {
+    try {
+      await this.closeAllModals();
+      const currentUrl = this.page.url();
+      if (
+        !currentUrl.includes('/chat') ||
+        currentUrl.includes('authentication') ||
+        currentUrl.includes('login')
+      ) {
+        await this.page.goto(ROUTES.DIRECT_FRIENDS, { waitUntil: 'domcontentloaded' });
+        await this.page.waitForLoadState('domcontentloaded');
+      }
+      await this.closeAllModals();
+    } catch {
+      try {
+        await this.page.goto(ROUTES.DIRECT_FRIENDS, { waitUntil: 'domcontentloaded' });
+      } catch {
+        // Last resort - just continue
+      }
+    }
+  }
+
+  private async closeAllModals(): Promise<void> {
+    try {
+      while (await this.selector.permissionModal.isVisible()) {
+        await this.selector.permissionModal.cancel.first().click();
+        await this.page.waitForTimeout(500);
+      }
+    } catch {
+      // No modal visible, continue
+    }
+    try {
+      const closeButtons = this.page.locator(
+        'button[aria-label="Close"], button:has-text("Cancel"), div[role="dialog"] button:last-child'
+      );
+      const count = await closeButtons.count();
+      for (let i = 0; i < count; i++) {
+        if (
+          await closeButtons
+            .nth(i)
+            .isVisible({ timeout: 500 })
+            .catch(() => false)
+        ) {
+          await closeButtons
+            .nth(i)
+            .click({ timeout: 1000 })
+            .catch(() => {});
+          await this.page.waitForTimeout(300);
+        }
+      }
+    } catch {
+      // No other modals
+    }
+  }
+
   async deleteClan(clanName: string): Promise<boolean> {
     try {
+      await this.closeAllModals();
+
       const categoryPage = new ClanMenuPanel(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
 
       const clanLocator = await this.selector.findClanByTitle(clanName);
+      await clanLocator.click({ timeout: 5000 });
 
-      await clanLocator.click();
+      await this.closeAllModals();
+
       await expect(categoryPage.text.clanName).toContainText(
         new RegExp(escapeRegExp(clanName), 'i'),
         { timeout: 5000 }
@@ -132,6 +200,8 @@ export class ClanPage extends BasePage {
       await categoryPage.text.clanName.click();
       await categoryPage.buttons.clanSettings.click();
       await this.page.waitForLoadState('domcontentloaded');
+
+      await this.closeAllModals();
 
       let isOwner = false;
 
@@ -146,18 +216,22 @@ export class ClanPage extends BasePage {
       if (!isOwner) {
         console.error(`You are not the owner of the clan "${clanName}".`);
         await this.page.goto(ROUTES.DIRECT_FRIENDS);
+        await this.page.waitForLoadState('domcontentloaded');
         return false;
       }
       await categorySettingPage.clickDeleteSidebarButton();
       await categorySettingPage.fillDeleteInput(clanName || '');
       await categorySettingPage.clickConfirmDeleteButton();
       await this.page.waitForLoadState('domcontentloaded');
-      while (await this.selector.permissionModal.isVisible()) {
-        await this.selector.permissionModal.cancel.first().click();
-      }
+      await this.closeAllModals();
       return true;
     } catch (error) {
       console.error(`Error deleting clan: ${error}`);
+      try {
+        await this.recoverToStableState();
+      } catch {
+        // Recovery also failed, just continue
+      }
       return false;
     }
   }
@@ -1738,7 +1812,7 @@ export class ClanPage extends BasePage {
     try {
       await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
       await joinButtonLocator.click();
-      await this.page.waitForTimeout(1000);
+      await this.page.waitForTimeout(3000);
       return true;
     } catch {
       return false;
@@ -1828,17 +1902,28 @@ export class ClanPage extends BasePage {
   async kickUserFromVoiceCall(username: string): Promise<boolean> {
     try {
       const participantTile = this.getVoiceParticipantTile(username);
-      await participantTile.waitFor({ state: 'visible', timeout: 10000 });
-      await participantTile
-        .locator(this.selector.screen.voiceRoom.button.openContext)
-        .click({ button: 'right' });
+
+      await participantTile.waitFor({
+        state: 'visible',
+        timeout: 10000,
+      });
+
+      await participantTile.click({ button: 'right' });
 
       const kickButton = this.selector.screen.voiceRoom.button.kick;
-      await kickButton.waitFor({ state: 'visible', timeout: 5000 });
-      await kickButton.click();
-      await this.page.waitForTimeout(3000);
 
-      await participantTile.waitFor({ state: 'hidden', timeout: 2000 });
+      await kickButton.waitFor({
+        state: 'visible',
+        timeout: 5000,
+      });
+
+      await kickButton.click();
+
+      await participantTile.waitFor({
+        state: 'hidden',
+        timeout: 2000,
+      });
+
       return true;
     } catch (error) {
       console.error(`Error kicking user from voice call: ${error}`);
@@ -1886,12 +1971,10 @@ export class ClanPage extends BasePage {
   }
 
   private getVoiceParticipantTile(username: string) {
-    return this.page
-      .locator('.lk-participant-tile')
-      .filter({
-        has: this.selector.screen.voiceRoom.username.filter({ hasText: username }),
-      })
-      .first();
+    return this.selector.screen.voiceRoom.username
+      .filter({ hasText: username })
+      .first()
+      .locator('..');
   }
 
   private getVoiceChannelSidebarItem(channelName: string) {
@@ -2589,7 +2672,7 @@ export class ClanPage extends BasePage {
   }
 
   async verifyAdministratorPermissionRole(hasRole = true) {
-    const intergrationsSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({
+    const integrationsSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({
       hasText: 'Integrations',
     });
     const auditLogSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({
@@ -2607,7 +2690,7 @@ export class ClanPage extends BasePage {
     const roleSidebar = this.selector.clanSettings.buttons.sidebarItem.filter({ hasText: 'Roles' });
     const deleteSidebar = this.selector.clanSettings.buttons.deleteClan;
     if (hasRole) {
-      await expect(intergrationsSidebar).toBeVisible({ timeout: 3000 });
+      await expect(integrationsSidebar).toBeVisible({ timeout: 3000 });
       await expect(auditLogSidebar).toBeVisible({ timeout: 3000 });
       await expect(onboardingSidebar).toBeVisible({ timeout: 3000 });
       await expect(enableCommunitySidebar).toBeVisible({ timeout: 3000 });
@@ -2615,7 +2698,7 @@ export class ClanPage extends BasePage {
       await expect(roleSidebar).toBeVisible({ timeout: 3000 });
       await expect(deleteSidebar).toBeHidden({ timeout: 3000 });
     } else {
-      await expect(intergrationsSidebar).toBeHidden({ timeout: 3000 });
+      await expect(integrationsSidebar).toBeHidden({ timeout: 3000 });
       await expect(auditLogSidebar).toBeHidden({ timeout: 3000 });
       await expect(onboardingSidebar).toBeHidden({ timeout: 3000 });
       await expect(enableCommunitySidebar).toBeHidden({ timeout: 3000 });
@@ -2837,6 +2920,7 @@ export class ClanPage extends BasePage {
       });
 
       await shareScreenButton.click();
+      await this.page.waitForTimeout(1000);
       return await this.isScreenSharing();
     } catch (error) {
       console.error('Failed to share screen:', error);
