@@ -143,7 +143,20 @@ export class AuthHelper {
 
   static async logout(page: Page, waitBeforeNextTest: boolean = true) {
     const profilePage = new ProfilePage(page);
-    await profilePage.clickLogout();
+    const logoutSuccess = await profilePage.clickLogout();
+
+    if (!logoutSuccess) {
+      console.warn('Logout encountered issues - ensuring session cleanup');
+      // Additional session cleanup if logout failed
+      try {
+        await page.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+      } catch (e) {
+        console.error('Failed to clear storage:', e);
+      }
+    }
 
     if (waitBeforeNextTest) {
       const testGapMs = Number.parseInt(process.env.TEST_GAP_MS || '40000', 10);
