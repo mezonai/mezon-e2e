@@ -147,15 +147,19 @@ export class AuthHelper {
 
     if (!logoutSuccess) {
       console.warn('Logout encountered issues - ensuring session cleanup');
-      // Additional session cleanup if logout failed
-      try {
-        await page.evaluate(() => {
-          localStorage.clear();
-          sessionStorage.clear();
-        });
-      } catch (e) {
-        console.error('Failed to clear storage:', e);
-      }
+    }
+
+    // Every test should finish with a clean browser session, even when the UI
+    // logout succeeded. This prevents a partially completed redirect from
+    // leaving OAuth cookies or storage behind in reused pages/contexts.
+    try {
+      await page.context().clearCookies();
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    } catch (error) {
+      console.error('Failed to clear browser authentication state:', error);
     }
 
     if (waitBeforeNextTest) {

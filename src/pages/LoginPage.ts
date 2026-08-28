@@ -123,6 +123,30 @@ export class LoginPage extends BasePage {
   }
 
   async loginWithPassword(email: string, password: string): Promise<void> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        await this.performPasswordLogin(email, password);
+        return;
+      } catch (error) {
+        lastError = error;
+        if (attempt === 2) break;
+
+        console.warn('Login callback failed; starting one fresh authentication flow');
+        await this.page.context().clearCookies();
+        await this.page.goto(MEZON_DEV || '', { waitUntil: 'domcontentloaded' });
+        await this.page.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+      }
+    }
+
+    throw lastError;
+  }
+
+  private async performPasswordLogin(email: string, password: string): Promise<void> {
     const homePage = new HomePage(this.page);
     await this.page.goto(MEZON_DEV || '', { waitUntil: 'domcontentloaded' });
     await this.page.waitForTimeout(2000);

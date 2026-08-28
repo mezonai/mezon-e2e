@@ -223,13 +223,17 @@ export class ProfilePage extends BasePage {
         hasText: 'Log Out',
       });
       await logoutButton.waitFor({ state: 'visible', timeout: 8000 });
-      await logoutButton.click({ force: true });
 
-      // Wait for logout to complete
-      await this.page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {
-        // Navigation might not happen or might be caught, that's ok
-      });
-      await this.page.waitForTimeout(1000);
+      // Register the navigation waiter before clicking so a fast logout redirect
+      // cannot be missed. Some app versions update in place, therefore the
+      // authenticated profile button is the final logout signal.
+      await Promise.all([
+        this.page
+          .waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15_000 })
+          .catch(() => null),
+        logoutButton.click({ force: true }),
+      ]);
+      await settingBtn.waitFor({ state: 'hidden', timeout: 15_000 });
 
       return true;
     } catch (error) {
