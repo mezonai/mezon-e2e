@@ -212,21 +212,42 @@ export class ProfilePage extends BasePage {
       const settingBtn = this.selector.buttons.userSettingProfile;
       await settingBtn.waitFor({ state: 'visible', timeout: 5000 });
       await settingBtn.click({ force: true });
+      await this.page.waitForTimeout(500);
 
       const logoutTab = this.selector.tabs.logout;
-      await logoutTab.waitFor({ state: 'visible', timeout: 5000 });
+      await logoutTab.waitFor({ state: 'visible', timeout: 8000 });
       await logoutTab.click({ force: true });
+      await this.page.waitForTimeout(500);
 
       const logoutButton = this.page.locator(generateE2eSelector('button.base'), {
         hasText: 'Log Out',
       });
-      await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+      await logoutButton.waitFor({ state: 'visible', timeout: 8000 });
       await logoutButton.click({ force: true });
+
+      // Wait for logout to complete
+      await this.page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {
+        // Navigation might not happen or might be caught, that's ok
+      });
+      await this.page.waitForTimeout(1000);
 
       return true;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn(`clickLogout skipped. Could not complete logout flow: ${message}`);
+      console.error(`clickLogout failed: ${message}`);
+
+      // Attempt alternative logout: clear session storage and navigate to login
+      try {
+        await this.page.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+        await this.page.goto('/');
+        console.warn(`clickLogout: Fallback logout completed via session clear`);
+      } catch (fallbackError) {
+        console.error(`clickLogout: Fallback logout also failed: ${fallbackError}`);
+      }
+
       return false;
     }
   }

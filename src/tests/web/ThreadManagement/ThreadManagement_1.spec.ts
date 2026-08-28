@@ -32,8 +32,11 @@ test.describe('Thread in Private Channel', () => {
       tms: '63519',
     });
 
-    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
+    await TestSuiteHelper.setupBeforeEach({
+      page,
+      clanFactory,
+      credentials,
+    });
 
     await AllureReporter.step('Create private channel for thread testing', async () => {
       const clanPage = new ClanPage(page);
@@ -161,8 +164,11 @@ test.describe('Thread in Public Channel', () => {
       tms: '63519',
     });
 
-    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
+    await TestSuiteHelper.setupBeforeEach({
+      page,
+      clanFactory,
+      credentials,
+    });
 
     await AllureReporter.step('Create public channel for thread testing', async () => {
       const clanPage = new ClanPage(page);
