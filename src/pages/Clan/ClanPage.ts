@@ -1806,20 +1806,71 @@ export class ClanPage extends BasePage {
   }
 
   async joinVoiceChannel(channelName: string): Promise<boolean> {
+    console.log(`\n🎯 Attempting to join voice channel: "${channelName}"`);
+    console.log(`📍 Base URL: ${this.page.url()}`);
+    console.log(`🌍 Environment: ${process.env.CI ? 'CI' : 'Local'}`);
+
     await this.getVoiceChannelSidebarItem(channelName).click();
     const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
     await this.page.waitForTimeout(1000);
+
     try {
-      await joinButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
+      // Wait longer for CI environments where WebRTC initialization is slower
+      const timeout = process.env.CI ? 10000 : 5000;
+      console.log(`⏳ Waiting for join button (timeout: ${timeout}ms)...`);
+
+      await joinButtonLocator.waitFor({ state: 'visible', timeout });
+      console.log(`✅ Join button is visible`);
+
+      // Check environment before clicking
+      const envBefore = await this.page.evaluate(() => ({
+        sfuUrl: (window as any).NX_CHAT_APP_SFU_WS_URL || 'Not configured',
+        hasWebSocket: !!(window as any).WebSocket,
+        hasRTC: !!(window as any).RTCPeerConnection,
+      }));
+      console.log(`🔍 Environment check:`, envBefore);
+
       await joinButtonLocator.click();
-      await this.page.waitForTimeout(3000);
+      console.log(`🔔 Join button clicked`);
+
+      // Wait longer for media stream initialization
+      const waitTime = process.env.CI ? 5000 : 3000;
+      console.log(`⏱️  Waiting ${waitTime}ms for media stream initialization...`);
+      await this.page.waitForTimeout(waitTime);
+
+      // Log connection state after join
+      const connState = await this.page.evaluate(() => ({
+        timestamp: new Date().toISOString(),
+        voiceConnections: (window as any).__voiceConnectionState ?? 'Instrumentation unavailable',
+      }));
+      console.log(`📊 Connection state after join:`, connState);
+      console.log(`✅ Successfully joined voice channel: "${channelName}"`);
+
       return true;
-    } catch {
+    } catch (error) {
+      const errorDetails = {
+        timestamp: new Date().toISOString(),
+        channelName,
+        error: error instanceof Error ? error.message : String(error),
+        wsState: await this.page
+          .evaluate(
+            () => (window as any).__voiceConnectionState?.sockets ?? 'Instrumentation unavailable'
+          )
+          .catch(() => 'Error checking'),
+        rtcState: await this.page
+          .evaluate(
+            () => (window as any).__voiceConnectionState?.peers ?? 'Instrumentation unavailable'
+          )
+          .catch(() => 'Error checking'),
+      };
+      console.error(`❌ Failed to join voice channel "${channelName}":`, errorDetails);
       return false;
     }
   }
 
   async isJoinVoiceChannel(channelName: string): Promise<boolean> {
+    console.log(`\n🔍 Verifying voice channel join: "${channelName}"`);
+
     const userListLocator = this.getVoiceChannelSidebarItem(channelName).locator(
       this.selector.sidebar.channelItem.userList.item
     );
@@ -1831,19 +1882,48 @@ export class ClanPage extends BasePage {
     const generalChannel = this.getVoiceChannelSidebarItem('general');
 
     try {
-      await userListLocator.waitFor({ state: 'visible', timeout: 20000 });
+      const voiceStatusTimeout = process.env.CI ? 30000 : 20000;
+      const memberVisibleTimeout = process.env.CI ? 10000 : 5000;
+
+      console.log(`⏳ Waiting for user list in sidebar (${voiceStatusTimeout}ms)...`);
+      await userListLocator.waitFor({ state: 'visible', timeout: voiceStatusTimeout });
+      console.log(`✅ User list visible in voice channel`);
+
       const sidebar = this.selector.secondarySideBar.container;
       const membersButton = this.selector.header.button.member.nth(0);
       await generalChannel.click();
 
       if (await sidebar.isHidden({ timeout: 2000 })) {
+        console.log(`📂 Sidebar hidden, clicking members button...`);
         await membersButton.click();
         await expect(sidebar).toBeVisible({ timeout: 5000 });
+        console.log(`📂 Sidebar now visible`);
       }
 
-      await memberInVoice.waitFor({ state: 'visible', timeout: 5000 });
+      console.log(`⏳ Waiting for member to show as in-voice (${memberVisibleTimeout}ms)...`);
+      await memberInVoice.waitFor({ state: 'visible', timeout: memberVisibleTimeout });
+      console.log(`✅ Member confirmed in voice channel`);
+
+      // Final connection status
+      const finalState = await this.page
+        .evaluate(() => ({
+          sockets: (window as any).__voiceConnectionState?.sockets ?? [],
+          peers: (window as any).__voiceConnectionState?.peers ?? [],
+        }))
+        .catch(() => ({ wsOpen: false, rtcConnected: false, iceConnected: false }));
+
+      console.log(`📊 Final connection state:`, finalState);
       return true;
-    } catch {
+    } catch (error) {
+      const errorState = await this.page
+        .evaluate(() => ({
+          sockets: (window as any).__voiceConnectionState?.sockets ?? [],
+          peers: (window as any).__voiceConnectionState?.peers ?? [],
+        }))
+        .catch(() => ({}));
+
+      console.error(`❌ Failed to verify voice channel join "${channelName}":`, error);
+      console.error(`🔧 Debug info:`, errorState);
       return false;
     }
   }
