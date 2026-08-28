@@ -17,6 +17,7 @@ export class VoiceConnectionLogger {
   private rtcConnected = false;
   private logs: string[] = [];
   private logLevel: LogLevel;
+  private monitoringStarted = false;
 
   constructor(page: Page, logLevel: LogLevel = process.env.CI ? 'normal' : 'verbose') {
     this.page = page;
@@ -26,13 +27,20 @@ export class VoiceConnectionLogger {
 
   private shouldLog(level: LogLevel): boolean {
     const levels: Record<LogLevel, number> = { verbose: 3, normal: 2, minimal: 1 };
-    return levels[level] >= levels[this.logLevel];
+    return levels[this.logLevel] >= levels[level];
+  }
+
+  private sanitize(message: string): string {
+    return message.replace(/([?&]access_token=)[^&'\s]+/gi, '$1***');
   }
 
   /**
    * Start monitoring browser console for voice/WebSocket/WebRTC logs
    */
   async startMonitoring() {
+    if (this.monitoringStarted) return;
+    this.monitoringStarted = true;
+
     console.log('🔊 Starting Voice Connection monitoring...');
 
     // These globals are installed before every document navigation.  The app does
@@ -117,7 +125,7 @@ export class VoiceConnectionLogger {
 
     // Capture browser console messages
     this.page.on('console', msg => {
-      const logMessage = `[${msg.type().toUpperCase()}] ${msg.text()}`;
+      const logMessage = this.sanitize(`[${msg.type().toUpperCase()}] ${msg.text()}`);
 
       // Only log console messages in verbose mode
       if (this.shouldLog('verbose')) {
@@ -128,11 +136,12 @@ export class VoiceConnectionLogger {
 
     // Monitor network WebSocket connections
     this.page.on('websocket', ws => {
+      const sanitizedUrl = this.sanitize(ws.url());
       if (this.shouldLog('normal')) {
-        console.log(`📨 WebSocket created: ${ws.url}`);
+        console.log(`📨 WebSocket created: ${sanitizedUrl}`);
       }
       this.wsConnected = true;
-      this.logs.push(`WebSocket URL: ${ws.url}`);
+      this.logs.push(`WebSocket URL: ${sanitizedUrl}`);
 
       ws.on('framesent', event => {
         // Only log frames in verbose mode (very noisy)
@@ -150,7 +159,7 @@ export class VoiceConnectionLogger {
 
       ws.on('close', () => {
         // Always log critical events
-        console.log(`❌ WebSocket closed: ${ws.url}`);
+        console.log(`❌ WebSocket closed: ${sanitizedUrl}`);
         // A page can have several sockets. The browser-side snapshot below is
         // the authoritative status; do not mark every socket close as a voice failure.
       });
@@ -170,28 +179,40 @@ export class VoiceConnectionLogger {
       const openSockets = sockets.filter(
         (socket: { readyState: number }) => socket.readyState === 1
       );
+      const sfuSockets = sockets.filter((socket: { url: string }) => {
+        try {
+          return new URL(socket.url).hostname.includes('sfu');
+        } catch {
+          return false;
+        }
+      });
+      const openSfuSockets = sfuSockets.filter(
+        (socket: { readyState: number }) => socket.readyState === 1
+      );
       const connectedPeers = peers.filter(
         (peer: { connectionState: string }) => peer.connectionState === 'connected'
       );
       const wsStatus = `WebSocket: ${openSockets.length}/${sockets.length} OPEN`;
+      const sfuWsStatus = `SFU WebSocket: ${openSfuSockets.length}/${sfuSockets.length} OPEN`;
       const rtcStatus = peers.length
         ? `RTC: ${peers.map((peer: { connectionState: string }) => peer.connectionState).join(', ')}`
         : 'RTC: no peer created';
       const iceStatus = peers.length
         ? `ICE: ${peers.map((peer: { iceConnectionState: string }) => peer.iceConnectionState).join(', ')}`
         : 'ICE: no peer created';
-      this.wsConnected = openSockets.length > 0;
+      this.wsConnected = openSfuSockets.length > 0;
       this.rtcConnected = connectedPeers.length > 0;
 
       // Always log status checks (important for debugging)
       console.log(`
         🔊 Voice Connection Status:
         ${wsStatus}
+        ${sfuWsStatus}
         ${rtcStatus}
         ${iceStatus}
       `);
 
-      return { wsStatus, rtcStatus, iceStatus, sockets, peers };
+      return { wsStatus, sfuWsStatus, rtcStatus, iceStatus, sockets, peers };
     } catch (error) {
       console.error('Failed to check connection status:', error);
       return null;
@@ -237,7 +258,7 @@ export class VoiceConnectionLogger {
     if (this.logLevel === 'minimal') {
       // Minimal: Only print critical info
       console.log('\n📋 Voice Connection Log Summary:');
-      console.log(`   WS Status: ${this.wsConnected ? '✅ Connected' : '❌ Disconnected'}`);
+      console.log(`   SFU WS Status: ${this.wsConnected ? '✅ Connected' : '❌ Disconnected'}`);
       console.log(`   RTC Status: ${this.rtcConnected ? '✅ Connected' : '❌ Disconnected'}`);
       console.log(`   Total Events: ${this.logs.length}`);
       return;
@@ -247,7 +268,7 @@ export class VoiceConnectionLogger {
       // Normal: Print summary + errors/warnings
       console.log('\n📋 Voice Connection Log Summary (CI Mode):');
       console.log(`   Captured Events: ${this.logs.length}`);
-      console.log(`   WS Status: ${this.wsConnected ? '✅ Connected' : '❌ Disconnected'}`);
+      console.log(`   SFU WS Status: ${this.wsConnected ? '✅ Connected' : '❌ Disconnected'}`);
       console.log(`   RTC Status: ${this.rtcConnected ? '✅ Connected' : '❌ Disconnected'}`);
 
       // Print only critical logs (errors, warnings)
@@ -262,8 +283,11 @@ export class VoiceConnectionLogger {
 
       if (criticalLogs.length > 0) {
         console.log('\n   ⚠️  Critical Events:');
-        criticalLogs.forEach((log, i) => {
-          console.log(`      ${i + 1}. ${log}`);
+        const occurrences = new Map<string, number>();
+        criticalLogs.forEach(log => occurrences.set(log, (occurrences.get(log) || 0) + 1));
+        [...occurrences.entries()].forEach(([log, count], i) => {
+          const suffix = count > 1 ? ` (repeated ${count} times)` : '';
+          console.log(`      ${i + 1}. ${log}${suffix}`);
         });
       } else {
         console.log('   ✅ No critical events');

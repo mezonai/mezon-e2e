@@ -19,7 +19,7 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
   const CHANNEL_MESSAGE_TAG = 'channel-message';
   const clanFactory = new ClanFactory();
   const credentials = AccountCredentials.account8;
-  let voiceLogger: VoiceConnectionLogger;
+  let voiceLogger: VoiceConnectionLogger | undefined;
 
   test.beforeAll(async ({ browser }) => {
     await TestSuiteHelper.setupBeforeAll({
@@ -30,21 +30,25 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
     });
   });
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63366',
     });
 
-    // Initialize voice connection logger
-    voiceLogger = new VoiceConnectionLogger(page);
-    await voiceLogger.startMonitoring();
+    if (testInfo.title === 'Verify that can send voice channel link') {
+      voiceLogger = new VoiceConnectionLogger(page);
+      await voiceLogger.startMonitoring();
+    }
 
     await TestSuiteHelper.setupBeforeEach({
       page,
       clanFactory,
       credentials,
     });
-    await voiceLogger.logEnvironmentInfo();
+
+    if (voiceLogger) {
+      await voiceLogger.logEnvironmentInfo();
+    }
   });
 
   test.afterAll(async ({ browser }) => {
@@ -59,6 +63,7 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
     // Print voice connection logs before logout
     if (voiceLogger) {
       voiceLogger.printLogs();
+      voiceLogger = undefined;
     }
     await AuthHelper.logout(page);
   });
@@ -177,6 +182,11 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
   });
 
   test('Verify that can send voice channel link', async ({ page }) => {
+    const logger = voiceLogger;
+    if (!logger) {
+      throw new Error('Voice connection logger was not initialized');
+    }
+
     await AllureReporter.addWorkItemLinks({
       tms: '64645',
       github_issue: '9816',
@@ -214,7 +224,7 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
       console.log(`🔧 Voice Connection Logger: Ready`);
 
       // Check connection before join
-      const connStatusBefore = await voiceLogger.checkConnectionStatus();
+      const connStatusBefore = await logger.checkConnectionStatus();
       console.log('Connection status before join:', connStatusBefore);
 
       await clanPage.joinVoiceChannel(channelName);
@@ -223,7 +233,7 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
       await page.waitForTimeout(2000);
 
       // Check connection after join
-      const connStatusAfter = await voiceLogger.checkConnectionStatus();
+      const connStatusAfter = await logger.checkConnectionStatus();
       console.log('Connection status after join:', connStatusAfter);
 
       const isUserInVoiceChannel = await clanPage.isJoinVoiceChannel(channelName);

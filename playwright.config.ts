@@ -28,10 +28,12 @@ const getInsecureLocalOriginArgs = (): string[] => {
 const getHostResolverArgs = (): string[] => {
   const devHostIp = process.env.DEV_HOST_IP?.trim();
   const devMmnHostIp = process.env.DEV_MMN_HOST_IP?.trim();
+  const sfuHostIp = process.env.SFU_HOST_IP?.trim() || devHostIp;
   const rules = [
     devHostIp ? `MAP dev-mezon.nccsoft.vn ${devHostIp}` : '',
     devHostIp ? `MAP dev-mezon-sock.nccsoft.vn ${devHostIp}` : '',
     devMmnHostIp ? `MAP dev-mmn.nccsoft.vn ${devMmnHostIp}` : '',
+    sfuHostIp ? `MAP test-sfu.nccsoft.vn ${sfuHostIp}` : '',
   ].filter(Boolean);
 
   return rules.length > 0 ? [`--host-resolver-rules=${rules.join(',')}`] : [];

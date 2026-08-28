@@ -98,6 +98,8 @@ jobs:
       ALLURE_VERCEL_ROOT: /home/nccsoft/allure-vercel-reports
       DEV_HOST_IP: 172.16.100.198
       DEV_MMN_HOST_IP: 172.16.100.180
+      # test-sfu is served through the same internal ingress as dev-mezon.
+      SFU_HOST_IP: 172.16.100.198
       # Fixed browser path pre-installed on the VPS (one-time setup).
       # Playwright skips the download when the matching version already exists here.
       PLAYWRIGHT_BROWSERS_PATH: /home/member/pw-browsers
@@ -355,10 +357,11 @@ jobs:
           BASE_URL=https://dev-mezon.nccsoft.vn/
           DEV_HOST_IP=172.16.100.198
           DEV_MMN_HOST_IP=172.16.100.180
+          SFU_HOST_IP=172.16.100.198
           WORKERS=1
           CI=true
           MEZON_NOTIFICATIONS=false
-          TEST_GAP_MS=5000
+          TEST_GAP_MS=10000
           EOF
           sed -i 's/^[[:space:]]*//' .env
           echo "--- .env contents ---" && cat .env
