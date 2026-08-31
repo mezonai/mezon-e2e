@@ -3,6 +3,7 @@ import ProfileSelector from '@/data/selectors/ProfileSelector';
 import { ToastSelector } from '@/data/selectors/ToastSelector';
 import { ROUTES } from '@/selectors';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
+import joinUrlPaths from '@/utils/joinUrlPaths';
 import { Locator, Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 const SUCCESS_MESSAGE = 'Friend request sent successfully!';
@@ -65,31 +66,35 @@ export class FriendPage extends BasePage {
 
   async friendExistsInTab(username: string, tab: Tabs) {
     await this.gotoFriendsPage();
+    const friendTab = this.selector.tabs[tab];
+
     try {
-      // Try click with timeout 2s. If blocked, it will throw an error and go to catch.
-      await this.page.waitForTimeout(2000);
-      await this.selector.tabs[tab].click({ timeout: 2000 });
+      await friendTab.waitFor({ state: 'visible', timeout: 10000 });
+      await friendTab.click({ timeout: 5000 });
       return this.getFriend(username);
-    } catch (error) {
+    } catch {
       const cancelBtn = this.selector.permissionModal.cancel;
       if (await cancelBtn.isVisible()) {
         await cancelBtn.first().click();
       } else {
-        // Navigation may have changed while selecting the tab. Let the caller
-        // retry from the Friends page rather than clicking against a stale page.
-        throw error;
+        // The route can remain unchanged while the SPA is still hydrating.
+        // Reload it once before surfacing an unavailable Friends UI.
+        await this.page.goto(joinUrlPaths(this.baseURL, ROUTES.DIRECT_FRIENDS), {
+          waitUntil: 'domcontentloaded',
+        });
+        await friendTab.waitFor({ state: 'visible', timeout: 10000 });
       }
-      console.log('Closed permission modal');
 
-      // Click again smoothly
-      await this.selector.tabs[tab].click();
+      await friendTab.click({ timeout: 5000 });
       return this.getFriend(username);
     }
   }
 
   async gotoFriendsPage(): Promise<void> {
     if (this.page.url() !== `${this.baseURL}${ROUTES.DIRECT_FRIENDS}`) {
-      await this.navigate(ROUTES.DIRECT_FRIENDS);
+      await this.page.goto(joinUrlPaths(this.baseURL, ROUTES.DIRECT_FRIENDS), {
+        waitUntil: 'domcontentloaded',
+      });
     }
   }
 
