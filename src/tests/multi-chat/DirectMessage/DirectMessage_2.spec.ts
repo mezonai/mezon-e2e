@@ -32,6 +32,7 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
   const ACCEPT_FRIEND_REQUEST_STEP = 'User B accepts the friend request';
   const VERIFY_MUTUAL_FRIENDS_STEP = 'Verify both users see each other as friends';
   const AVATAR_IMAGE_SELECTOR = generateE2eSelector('avatar.image');
+  const FRIEND_TAB_SELECTOR = generateE2eSelector('friend_page.tab');
   const [userNameA, userNameB, userNameC] = getUsernamesFromEmails([
     accountA.email,
     accountB.email,
@@ -397,7 +398,12 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
     await AllureReporter.step(
       'User A updates to avatar version 1 and captures its hash',
       async () => {
-        await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+        await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS), {
+          waitUntil: 'domcontentloaded',
+        });
+        await expect(dual.pageA.locator(FRIEND_TAB_SELECTOR).first()).toBeVisible({
+          timeout: 10000,
+        });
 
         await profilePageA.openUserSettingProfile();
         await profilePageA.openProfileTab();
@@ -444,7 +450,12 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
     await AllureReporter.step(
       'User A updates to avatar version 2 and captures its hash',
       async () => {
-        await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+        await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS), {
+          waitUntil: 'domcontentloaded',
+        });
+        await expect(dual.pageA.locator(FRIEND_TAB_SELECTOR).first()).toBeVisible({
+          timeout: 10000,
+        });
 
         await profilePageA.openUserSettingProfile();
         await profilePageA.openProfileTab();
@@ -471,7 +482,12 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
     );
 
     await AllureReporter.step('User A returns to the DM and sends second message', async () => {
-      await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS));
+      await dual.pageA.goto(joinUrlPaths(MEZON_DEV || '', ROUTES.DIRECT_FRIENDS), {
+        waitUntil: 'domcontentloaded',
+      });
+      await expect(dual.pageA.locator(FRIEND_TAB_SELECTOR).first()).toBeVisible({
+        timeout: 10000,
+      });
       await friendPageA.createDM(userNameB);
 
       await messageHelperA.sendTextMessage(secondMessage);

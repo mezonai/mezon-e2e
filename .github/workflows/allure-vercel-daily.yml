@@ -85,6 +85,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
+  actions: read
   contents: write
 
 jobs:
@@ -105,6 +106,93 @@ jobs:
       PLAYWRIGHT_BROWSERS_PATH: /home/member/pw-browsers
 
     steps:
+      - name: Log schedule and runner timing
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_API_URL: ${{ github.api_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          NOW_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          NOW_VIETNAM="$(TZ=Asia/Ho_Chi_Minh date '+%Y-%m-%d %H:%M:%S %Z')"
+
+          echo '=== Workflow timing ==='
+          echo "Runner started this job (UTC): $NOW_UTC"
+          echo "Runner started this job (Vietnam): $NOW_VIETNAM"
+          echo "Event: $EVENT_NAME"
+          echo "Scheduled cron (UTC): ${EVENT_SCHEDULE:-manual dispatch}"
+          echo "Run: $RUN_ID (attempt $RUN_ATTEMPT)"
+          echo "Workflow ref: $WORKFLOW_REF"
+
+          # A scheduled job can sit in GitHub's queue or wait for this self-hosted runner.
+          # Calculate the elapsed time from the most recent scheduled occurrence.
+          case "$EVENT_SCHEDULE" in
+            '0 13 * * *')
+              EXPECTED_UTC_HOUR=13
+              EXPECTED_VIETNAM='20:00'
+              ;;
+            '0 19 * * *')
+              EXPECTED_UTC_HOUR=19
+              EXPECTED_VIETNAM='02:00'
+              ;;
+            *)
+              echo 'Delay calculation skipped because this was not a configured scheduled run.'
+              exit 0
+              ;;
+          esac
+
+          NOW_EPOCH="$(date -u +%s)"
+          EXPECTED_EPOCH="$(date -u -d "today ${EXPECTED_UTC_HOUR}:00:00" +%s)"
+          if [ "$EXPECTED_EPOCH" -gt "$NOW_EPOCH" ]; then
+            EXPECTED_EPOCH="$((EXPECTED_EPOCH - 86400))"
+          fi
+
+          EXPECTED_UTC="$(date -u -d "@$EXPECTED_EPOCH" '+%Y-%m-%dT%H:%M:%SZ')"
+          DELAY_MINUTES="$(((NOW_EPOCH - EXPECTED_EPOCH) / 60))"
+          echo "Expected schedule (UTC): $EXPECTED_UTC"
+          echo "Expected schedule (Vietnam): $EXPECTED_VIETNAM"
+          echo "Delay before this runner started: ${DELAY_MINUTES} minute(s)"
+          echo 'Note: this delay includes GitHub scheduling, concurrency, and self-hosted runner queue time.'
+
+          # The workflow-run API exposes the timestamps that distinguish a delayed
+          # GitHub schedule from a run that was queued for concurrency or a runner.
+          if RUN_METADATA="$(curl --silent --show-error --fail --retry 2 \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID")"; then
+            json_timestamp() {
+              printf '%s' "$RUN_METADATA" | sed -n "s/.*\"$1\":\"\\([^\"]*\\)\".*/\\1/p"
+            }
+
+            format_duration() {
+              local seconds="$1"
+              printf '%dm %02ds' "$((seconds / 60))" "$((seconds % 60))"
+            }
+
+            CREATED_AT="$(json_timestamp created_at)"
+            RUN_STARTED_AT="$(json_timestamp run_started_at)"
+
+            echo "Workflow created by GitHub (UTC): ${CREATED_AT:-unavailable}"
+            echo "Workflow run started (UTC): ${RUN_STARTED_AT:-unavailable}"
+
+            if [ -n "$CREATED_AT" ]; then
+              CREATED_EPOCH="$(date -u -d "$CREATED_AT" +%s)"
+              echo "GitHub scheduler delay: $(format_duration "$((CREATED_EPOCH - EXPECTED_EPOCH))")"
+            fi
+
+            if [ -n "$CREATED_AT" ] && [ -n "$RUN_STARTED_AT" ]; then
+              RUN_STARTED_EPOCH="$(date -u -d "$RUN_STARTED_AT" +%s)"
+              echo "Queue delay (concurrency or self-hosted runner): $(format_duration "$((RUN_STARTED_EPOCH - CREATED_EPOCH))")"
+              echo "Runner bootstrap delay: $(format_duration "$((NOW_EPOCH - RUN_STARTED_EPOCH))")"
+            fi
+          else
+            echo '::warning::Could not read workflow timing from the GitHub Actions API.'
+          fi
+
       # -----------------------------------------------------------------------
       # 1. Checkout source code
       # -----------------------------------------------------------------------
