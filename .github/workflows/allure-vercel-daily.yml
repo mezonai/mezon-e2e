@@ -247,6 +247,15 @@ jobs:
         timeout-minutes: 10
         run: yarn install
 
+      - name: Send Mezon Start Webhook
+        env:
+          RUN_PHASE: ${{ steps.phase.outputs.phase }}
+          EVENT_NAME: ${{ github.event_name }}
+          SELECTED_REF: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: npx tsx libs/mezon-reporter/notify.ts start
+
       # -----------------------------------------------------------------------
       # 3. Install Playwright browsers
       #    Near-instant no-op when the pinned version already exists in
@@ -440,15 +449,18 @@ jobs:
       # 6. Create .env file
       # -----------------------------------------------------------------------
       - name: Create environment file
+        env:
+          RUN_PHASE: ${{ steps.phase.outputs.phase }}
         run: |
-          cat > .env << 'EOF'
+          cat > .env << EOF
           BASE_URL=https://dev-mezon.nccsoft.vn/
           DEV_HOST_IP=172.16.100.198
           DEV_MMN_HOST_IP=172.16.100.180
           SFU_HOST_IP=172.16.100.198
           WORKERS=1
           CI=true
-          MEZON_NOTIFICATIONS=false
+          RUN_PHASE=$RUN_PHASE
+          SKIP_INLINE_REPORTER_END=true
           TEST_GAP_MS=10000
           EOF
           sed -i 's/^[[:space:]]*//' .env

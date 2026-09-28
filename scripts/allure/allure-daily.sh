@@ -408,7 +408,31 @@ log "   Deploying $ALLURE_VERCEL_ROOT/reports to Vercel (--prod)..."
 # Pass token via environment variable — NOT via --token flag
 # to avoid exposure through process list or shell history
 export VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID
-npx vercel deploy --prod --yes "$ALLURE_VERCEL_ROOT/reports"
+VERCEL_OUT=$(npx vercel deploy --prod --yes "$ALLURE_VERCEL_ROOT/reports" 2>&1 | tee /dev/tty) || true
+
+DEPLOY_URL=$(echo "$VERCEL_OUT" | grep -oE 'https://[a-zA-Z0-9.-]+\.vercel\.app' | tail -n 1 || echo "")
+if [ -n "$DEPLOY_URL" ]; then
+  FINAL_REPORT_URL="${DEPLOY_URL}/${REPORT_RELATIVE_PATH}/"
+else
+  FINAL_REPORT_URL="https://allure-vercel-reports.vercel.app/${REPORT_RELATIVE_PATH}/"
+fi
 
 log "✅ Deployed to Vercel successfully!"
+log "🔗 Report URL: $FINAL_REPORT_URL"
+
+echo "report_url=$FINAL_REPORT_URL" >> "${GITHUB_OUTPUT:-/dev/null}"
+echo "report_relative_path=$REPORT_RELATIVE_PATH" >> "${GITHUB_OUTPUT:-/dev/null}"
+
+# ---------------------------------------------------------------------------
+# 14. Send Mezon End Webhook (if not already sent or for daily deployment)
+# ---------------------------------------------------------------------------
+log "🔔 Triggering Mezon End Webhook..."
+export VERCEL_REPORT_URL="$FINAL_REPORT_URL"
+export REPORT_RELATIVE_PATH="$REPORT_RELATIVE_PATH"
+
+if [ -f "libs/mezon-reporter/notify.ts" ]; then
+  npx tsx libs/mezon-reporter/notify.ts end || log "⚠️ Failed to send Mezon End Webhook"
+fi
+
 log "=== allure-daily.sh finished ==="
+

@@ -1,15 +1,11 @@
-import { MEZON_THREAD_URL } from 'libs/mezon-reporter/constant';
+import * as fs from 'fs';
+import { MEZON_THREAD_URL } from './constant';
 import { ReportExporter } from './reportExporter';
 
-interface MezonWebhookPayload {
+interface ChannelWebhookPayload {
   type: string;
   message: {
     t: string;
-    mentions?: Array<{
-      user_id: string;
-      s: number;
-      e: number;
-    }>;
   };
 }
 
@@ -19,6 +15,7 @@ export interface NotificationPayload {
   error?: string;
   passed?: number;
   failed?: number;
+  skipped?: number;
   flaky?: number;
   totalDuration?: number;
   failedTests?: Array<{
@@ -40,51 +37,153 @@ export interface NotificationPayload {
   branch?: string;
   actor?: string;
   reportUrl?: string;
+  jobName?: string;
+  status?: string;
+  notRanTests?: number;
 }
 
 export class MezonNotifier {
-  private webhookUrl?: string;
-  private isEnabled: boolean;
-  private mentionUserId?: string;
+  private initialWebhookUrl?: string;
 
-  constructor() {
-    this.webhookUrl = process.env.MEZON_WEBHOOK_URL || MEZON_THREAD_URL;
-    this.isEnabled = process.env.MEZON_NOTIFICATIONS !== 'false' && !!this.webhookUrl;
+  constructor(webhookUrl?: string) {
+    this.initialWebhookUrl = webhookUrl;
   }
 
-  async send(message: string, payload?: NotificationPayload): Promise<void> {
-    if (!this.isEnabled) {
+  private getWebhookUrl(targetWebhookUrl?: string): string | undefined {
+    return (
+      targetWebhookUrl ||
+      this.initialWebhookUrl ||
+      process.env.MEZON_WEBHOOK_URL ||
+      MEZON_THREAD_URL
+    );
+  }
+
+  private isNotificationEnabled(url?: string): boolean {
+    return process.env.MEZON_NOTIFICATIONS !== 'false' && !!url;
+  }
+
+  async send(
+    message: string,
+    payload?: NotificationPayload & { skipReport?: boolean },
+    targetWebhookUrl?: string
+  ): Promise<void> {
+    const url = this.getWebhookUrl(targetWebhookUrl);
+    if (!this.isNotificationEnabled(url) || !url) {
       return;
     }
 
     try {
       const githubInfo = this.getGitHubInfo();
-      const reportExporter = new ReportExporter();
-      const exportResult = await reportExporter.exportPlaywrightReport();
-      const enrichedPayload = {
+      const shouldExportReport =
+        !payload?.skipReport && !payload?.reportUrl && process.env.UPLOAD_REPORT === 'true';
+
+      const exportResult = shouldExportReport
+        ? await new ReportExporter().exportPlaywrightReport()
+        : null;
+
+      const enrichedPayload: NotificationPayload = {
         ...payload,
         ...githubInfo,
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        project: 'Mezon E2E Tests',
-        reportUrl: exportResult?.reportUrl,
+        environment: payload?.environment || process.env.NODE_ENV || 'development',
+        reportUrl: payload?.reportUrl || exportResult?.reportUrl,
       };
 
       const messageToSend = this.formatSimpleMessage(message, enrichedPayload);
       const body = this.createMezonWebhookPayload(messageToSend);
 
-      if (this.webhookUrl) {
-        await fetch(this.webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        console.warn(
+          `[Mezon] Notification fetch returned status: ${response.status} ${response.statusText}`
+        );
       }
     } catch (error) {
       console.warn('[Mezon] Error sending notification:', error);
     }
+  }
+
+  async sendCronStart(jobName?: string, payload?: NotificationPayload): Promise<void> {
+    const timestamp = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    const githubInfo = this.getGitHubInfo();
+    const name = jobName || payload?.jobName || 'Mezon E2E Automation Cronjob';
+    const envName = payload?.environment || process.env.NODE_ENV || 'development';
+
+    let message = `🚀 [CRONJOB STARTED] ${name}\n`;
+    message += `🌍 ${envName} | ⏰ ${timestamp}`;
+
+    if (githubInfo.branch || githubInfo.actor) {
+      const gitParts: string[] = [];
+      if (githubInfo.branch) gitParts.push(`🌿 ${githubInfo.branch}`);
+      if (githubInfo.actor) gitParts.push(`👤 ${githubInfo.actor}`);
+      message += `\n${gitParts.join(' | ')}`;
+    }
+
+    await this.send(message, { ...payload, skipReport: true });
+  }
+
+  async sendCronEnd(message: string, payload?: NotificationPayload): Promise<void> {
+    await this.send(message, payload);
+  }
+
+  async sendInterrupted(payload?: NotificationPayload): Promise<void> {
+    const timestamp = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    const passed = payload?.passed || 0;
+    const failed = payload?.failed || 0;
+    const flaky = payload?.flaky || 0;
+    const total = payload?.totalTests || 0;
+    const notRan = payload?.notRanTests || 0;
+    const duration = payload?.totalDuration ? this.formatDuration(payload.totalDuration) : 'N/A';
+    const envName = payload?.environment || process.env.NODE_ENV || 'development';
+    const githubInfo = this.getGitHubInfo();
+
+    let message = `⛔ Test Suite Interrupted / Cancelled\n`;
+    message += `📊 ${passed}✅ ${failed}❌ ${flaky}🔄 / ${total} tests`;
+    if (duration !== 'N/A') {
+      message += ` in ${duration}`;
+    }
+    message += `\n`;
+    if (notRan > 0) {
+      message += `⏭️ ${notRan} tests did not run\n`;
+    }
+
+    const gitParts: string[] = [];
+    const branch = githubInfo.branch || payload?.branch;
+    const actor = githubInfo.actor || payload?.actor;
+    const commitSha = githubInfo.commitSha || payload?.commitSha;
+    if (branch) gitParts.push(`🌿${branch}`);
+    if (actor) gitParts.push(`👤${actor}`);
+    if (commitSha) gitParts.push(`📝${commitSha}`);
+    if (gitParts.length > 0) {
+      message += `${gitParts.join(' ')} | `;
+    }
+    message += `🌍${envName} | ⏰${timestamp}`;
+
+    await this.send(message, { ...payload, skipReport: true });
   }
 
   private formatSimpleMessage(message: string, payload: NotificationPayload): string {
@@ -98,12 +197,12 @@ export class MezonNotifier {
     const passed = payload.passed || 0;
     const failed = payload.failed || 0;
     const flaky = payload.flaky || 0;
-    const total = payload.totalTests || passed + failed + flaky;
+    const total = payload.totalTests || (passed + failed + flaky > 0 ? passed + failed + flaky : 0);
     const duration = payload.totalDuration ? this.formatDuration(payload.totalDuration) : 'N/A';
 
     let formattedMessage = `${message}\n`;
 
-    // Test results summary (always show)
+    // Test results summary
     if (total > 0) {
       formattedMessage += `📊 ${passed}✅ ${failed}❌ ${flaky}🔄 / ${total} tests`;
       if (duration !== 'N/A') {
@@ -137,29 +236,13 @@ export class MezonNotifier {
     return formattedMessage;
   }
 
-  private createMezonWebhookPayload(message: string): MezonWebhookPayload {
-    const payload: MezonWebhookPayload = {
+  private createMezonWebhookPayload(message: string): ChannelWebhookPayload {
+    return {
       type: 'hook',
       message: {
         t: message,
       },
     };
-
-    if (this.mentionUserId) {
-      const mentionText = `\n\n@mezon.bot`;
-      const fullMessage = `${message}${mentionText}`;
-
-      payload.message.t = fullMessage;
-      payload.message.mentions = [
-        {
-          user_id: this.mentionUserId,
-          s: fullMessage.length - mentionText.length + 2, // +2 for \n\n
-          e: fullMessage.length,
-        },
-      ];
-    }
-
-    return payload;
   }
 
   private formatDuration(duration: number): string {
@@ -231,7 +314,6 @@ export class MezonNotifier {
 
     if (!githubInfo.prUrl && process.env.GITHUB_EVENT_PATH) {
       try {
-        const fs = require('fs');
         const eventPayload = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
         if (eventPayload.pull_request?.html_url) {
           githubInfo.prUrl = eventPayload.pull_request.html_url;

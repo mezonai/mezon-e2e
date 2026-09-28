@@ -1,8 +1,8 @@
-import generateRandomString from '@/utils/randomString';
+import generateRandomString from '../../src/utils/randomString';
 import * as archiver from 'archiver';
 import AWS from 'aws-sdk';
 import * as fs from 'fs';
-import { REPORT_SERVER_URL } from 'libs/mezon-reporter/constant';
+import { REPORT_SERVER_URL } from './constant';
 import * as path from 'path';
 export interface ReportUploadResult {
   success: boolean;
@@ -122,7 +122,7 @@ export class ReportExporter {
         });
         archive.pipe(output);
         archive.directory(reportPath, path.basename(reportPath));
-        archive.finalize();
+        void archive.finalize();
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
