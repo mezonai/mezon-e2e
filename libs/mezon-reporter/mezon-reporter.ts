@@ -41,9 +41,16 @@ class MezonReporter implements Reporter {
   async onBegin(config: FullConfig, suite: Suite): Promise<void> {
     this.startTime = new Date();
     this.testStats.total = suite.allTests().length;
+
+    if (process.env.MEZON_NOTIFY_ON_START === 'true') {
+      await this.notifier.sendCronStart('Playwright Test Suite', {
+        totalTests: this.testStats.total,
+        environment: process.env.NODE_ENV || 'development',
+      });
+    }
   }
 
-  async onTestBegin(test: TestCase): Promise<void> {}
+  async onTestBegin(_test: TestCase): Promise<void> {}
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
     if (test.location?.file) {
@@ -85,8 +92,46 @@ class MezonReporter implements Reporter {
   }
 
   async onEnd(result: FullResult): Promise<void> {
+    if (process.env.RUN_PHASE === 'web') {
+      console.log(
+        'ℹ️ [MezonReporter] Web phase of daily cronjob completed. Skipping intermediate END webhook.'
+      );
+      return;
+    }
+
+    if (process.env.SKIP_INLINE_REPORTER_END === 'true') {
+      console.log('ℹ️ [MezonReporter] Deferring END webhook to post-deployment pipeline step.');
+      return;
+    }
+
     const endTime = new Date();
     const duration = endTime.getTime() - this.startTime.getTime();
+
+    if (result.status === 'interrupted') {
+      const ranSoFar = this.testStats.passed + this.testStats.failed + this.testStats.skipped;
+      const notRan = this.testStats.total - ranSoFar;
+      const reportData = {
+        status: 'interrupted' as const,
+        totalTests: this.testStats.total,
+        passed: this.testStats.passed,
+        failed: this.testStats.failed,
+        skipped: this.testStats.skipped,
+        flaky: this.testStats.flaky,
+        totalDuration: duration,
+        startTime: this.startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        projectName: 'Mezon E2E Automation',
+        failedTests: this.failedTests,
+        flakyTests: this.flakyTests,
+        testSuites: Array.from(this.testSuites),
+        testFiles: Array.from(this.testFiles).map(file => file.split('/').pop() || file),
+        workers: process.env.WORKERS || '1',
+        notRanTests: notRan,
+      };
+      await this.notifier.sendInterrupted(reportData);
+      return;
+    }
 
     const hasTrulyFailedTests = this.testStats.failed > 0;
     const success = !hasTrulyFailedTests;
