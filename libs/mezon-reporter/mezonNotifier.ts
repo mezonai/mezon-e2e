@@ -2,10 +2,17 @@ import * as fs from 'fs';
 import { MEZON_THREAD_URL } from './constant';
 import { ReportExporter } from './reportExporter';
 
+interface MarkdownEntity {
+  type: string;
+  s: number;
+  e: number;
+}
+
 interface ChannelWebhookPayload {
   type: string;
   message: {
     t: string;
+    mk?: MarkdownEntity[];
   };
 }
 
@@ -230,17 +237,42 @@ export class MezonNotifier {
     }
 
     if (payload.reportUrl) {
-      formattedMessage += `\n📊 [Report](${payload.reportUrl})`;
+      formattedMessage += `\n📊 Report: ${payload.reportUrl}`;
     }
 
     return formattedMessage;
   }
 
+  private extractMarkdownEntities(text: string): MarkdownEntity[] {
+    const mk: MarkdownEntity[] = [];
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = urlRegex.exec(text)) !== null) {
+      let url = match[0];
+      const start = match.index;
+      while (url.length > 0 && /[.,;:!?)]$/.test(url)) {
+        url = url.slice(0, -1);
+      }
+      if (url.length > 0) {
+        mk.push({
+          type: 'lk',
+          s: start,
+          e: start + url.length,
+        });
+      }
+    }
+
+    return mk;
+  }
+
   private createMezonWebhookPayload(message: string): ChannelWebhookPayload {
+    const mk = this.extractMarkdownEntities(message);
     return {
       type: 'hook',
       message: {
         t: message,
+        ...(mk.length > 0 ? { mk } : {}),
       },
     };
   }
@@ -263,11 +295,11 @@ export class MezonNotifier {
     const links: string[] = [];
 
     if (payload.prUrl) {
-      links.push(`🔗 [View Pull Request](${payload.prUrl})`);
+      links.push(`🔗 PR: ${payload.prUrl}`);
     }
 
     if (payload.actionUrl) {
-      links.push(`⚡ [GitHub Action Run](${payload.actionUrl})`);
+      links.push(`⚡ GitHub Actions: ${payload.actionUrl}`);
     }
 
     return links.length > 0 ? links.join('\n') : '';
