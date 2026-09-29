@@ -92,7 +92,12 @@ export class MezonNotifier {
         ...payload,
         ...githubInfo,
         environment: payload?.environment || process.env.NODE_ENV || 'development',
-        reportUrl: payload?.reportUrl || exportResult?.reportUrl,
+        reportUrl:
+          payload?.reportUrl ||
+          process.env.VERCEL_REPORT_URL ||
+          process.env.REPORT_URL ||
+          exportResult?.reportUrl ||
+          (payload?.skipReport ? undefined : 'https://mezon-automation.io.vn/'),
       };
 
       const messageToSend = this.formatSimpleMessage(message, enrichedPayload);
