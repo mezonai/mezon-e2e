@@ -80,6 +80,14 @@ async function run(): Promise<void> {
       ? 'Test Suite Completed Successfully'
       : 'Test Suite Completed with Issues';
 
+    const isScheduled = eventName === 'schedule';
+    const targetReportUrl =
+      vercelReportUrl ||
+      process.env.REPORT_URL ||
+      (reportRelativePath
+        ? `https://mezon-automation.io.vn/${reportRelativePath}/`
+        : 'https://mezon-automation.io.vn/');
+
     const payload: NotificationPayload = {
       passed,
       failed,
@@ -91,7 +99,8 @@ async function run(): Promise<void> {
       actor,
       commitSha,
       environment: envName,
-      reportUrl: vercelReportUrl,
+      reportUrl: targetReportUrl,
+      captureScreenshot: isScheduled,
     };
 
     await notifier.send(`${emoji} ${statusText}`, payload);
