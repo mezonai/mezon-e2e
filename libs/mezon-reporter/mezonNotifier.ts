@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { MEZON_THREAD_URL } from './constant';
 import { ReportExporter } from './reportExporter';
+import { captureReportScreenshot } from './reportScreenshot';
 
 interface MarkdownEntity {
   type: string;
@@ -8,12 +9,42 @@ interface MarkdownEntity {
   e: number;
 }
 
+export interface AttachmentImage {
+  url: string;
+  filename?: string;
+  filetype?: string;
+  size?: number;
+  width?: number;
+  height?: number;
+}
+
+interface WebhookImageItem {
+  fn: string;
+  sz: number;
+  url: string;
+  ft: string;
+  w: number;
+  h: number;
+}
+
+interface WebhookAttachmentItem {
+  filename: string;
+  size: number;
+  url: string;
+  filetype: string;
+  width: number;
+  height: number;
+}
+
 interface ChannelWebhookPayload {
   type: string;
   message: {
     t: string;
     mk?: MarkdownEntity[];
+    images?: WebhookImageItem[];
+    attachments?: WebhookAttachmentItem[];
   };
+  attachments?: WebhookAttachmentItem[];
 }
 
 export interface NotificationPayload {
@@ -47,6 +78,11 @@ export interface NotificationPayload {
   jobName?: string;
   status?: string;
   notRanTests?: number;
+  screenshotUrl?: string;
+  images?: AttachmentImage[];
+  attachments?: AttachmentImage[];
+  captureScreenshot?: boolean;
+  eventName?: string;
 }
 
 export class MezonNotifier {
@@ -100,8 +136,58 @@ export class MezonNotifier {
           (payload?.skipReport ? undefined : 'https://mezon-automation.io.vn/'),
       };
 
+      const images: AttachmentImage[] = payload?.images ? [...payload.images] : [];
+
+      if (payload?.screenshotUrl) {
+        images.push({
+          url: payload.screenshotUrl,
+          filename: 'report_screenshot.png',
+          filetype: 'image/png',
+          width: 1280,
+          height: 800,
+        });
+      }
+
+      const isScheduled =
+        githubInfo.eventName === 'schedule' ||
+        process.env.EVENT_NAME === 'schedule' ||
+        process.env.GITHUB_EVENT_NAME === 'schedule';
+
+      const shouldCaptureScreenshot =
+        !payload?.skipReport &&
+        (payload?.captureScreenshot === true ||
+          (payload?.captureScreenshot !== false &&
+            (isScheduled || process.env.CAPTURE_SCREENSHOT === 'true')));
+
+      if (shouldCaptureScreenshot && images.length === 0) {
+        try {
+          const targetUrl =
+            enrichedPayload.reportUrl ||
+            process.env.VERCEL_REPORT_URL ||
+            process.env.REPORT_URL ||
+            'https://mezon-automation.io.vn/';
+
+          console.log(
+            `📸 [Mezon] Scheduled / Report run detected — capturing screenshot of ${targetUrl} via Playwright...`
+          );
+          const screenshot = await captureReportScreenshot(targetUrl);
+          if (screenshot?.url) {
+            images.push({
+              url: screenshot.url,
+              filename: screenshot.filename,
+              filetype: screenshot.filetype,
+              size: screenshot.size,
+              width: screenshot.width,
+              height: screenshot.height,
+            });
+          }
+        } catch (err) {
+          console.warn('⚠️ [Mezon] Failed to capture report screenshot:', err);
+        }
+      }
+
       const messageToSend = this.formatSimpleMessage(message, enrichedPayload);
-      const body = this.createMezonWebhookPayload(messageToSend);
+      const body = this.createMezonWebhookPayload(messageToSend, images);
 
       const response = await fetch(url, {
         method: 'POST',
@@ -271,15 +357,44 @@ export class MezonNotifier {
     return mk;
   }
 
-  private createMezonWebhookPayload(message: string): ChannelWebhookPayload {
+  private createMezonWebhookPayload(
+    message: string,
+    images?: AttachmentImage[]
+  ): ChannelWebhookPayload {
     const mk = this.extractMarkdownEntities(message);
-    return {
+    const payload: ChannelWebhookPayload = {
       type: 'hook',
       message: {
         t: message,
         ...(mk.length > 0 ? { mk } : {}),
       },
     };
+
+    if (images && images.length > 0) {
+      const formattedImages: WebhookImageItem[] = images.map(img => ({
+        fn: img.filename || 'report_screenshot.png',
+        sz: img.size || 0,
+        url: img.url,
+        ft: img.filetype || 'image/png',
+        w: img.width || 1280,
+        h: img.height || 800,
+      }));
+
+      const formattedAttachments: WebhookAttachmentItem[] = images.map(img => ({
+        filename: img.filename || 'report_screenshot.png',
+        size: img.size || 0,
+        url: img.url,
+        filetype: img.filetype || 'image/png',
+        width: img.width || 1280,
+        height: img.height || 800,
+      }));
+
+      payload.message.images = formattedImages;
+      payload.message.attachments = formattedAttachments;
+      payload.attachments = formattedAttachments;
+    }
+
+    return payload;
   }
 
   private formatDuration(duration: number): string {
@@ -322,6 +437,7 @@ export class MezonNotifier {
 
     if (sha) githubInfo.commitSha = sha.substring(0, 7);
     if (actor) githubInfo.actor = actor;
+    if (eventName) githubInfo.eventName = eventName;
 
     if (ref) {
       if (ref.startsWith('refs/heads/')) {
