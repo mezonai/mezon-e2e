@@ -233,7 +233,13 @@ export default class ClanSelector {
         generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
       ),
       controlBar: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.control_bar')),
+      connectionStatus: this.page
+        .locator('#mezonSfuRoom header span')
+        .filter({ hasText: /^\s*·/ })
+        .first(),
       shareScreenButton: this.page.locator('#btn-meet-screen'),
+      cameraButton: this.page.locator('#btn-meet-camera'),
+      microphoneButton: this.page.locator('#btn-meet-micro'),
       screenShareIcon: this.page.locator(
         generateE2eSelector('clan_page.channel_list.item.user_list.item.screen_share')
       ),
@@ -246,7 +252,9 @@ export default class ClanSelector {
         sendFlower: this.page.locator(
           generateE2eSelector('clan_page.screen.voice_room.button.send_flower')
         ),
+        record: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.button.record')),
       },
+      timeRecord: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.time_record')),
     },
     canvasEditor: {
       input: {
