@@ -3012,6 +3012,26 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async openInteractiveApp(appName: 'blackboard' | 'quiz' | 'interactive'): Promise<void> {
+    const { button, interactiveApps } = this.selector.screen.voiceRoom;
+    const appLabel = `${appName.charAt(0).toUpperCase()}${appName.slice(1)}`;
+
+    await button.openInteractiveApps.click();
+    const appItem = interactiveApps.item(appName, appLabel);
+    await expect(appItem).toBeVisible();
+    await appItem.click();
+    await expect(interactiveApps.window(appLabel)).toBeVisible({ timeout: 15_000 });
+  }
+
+  async closeInteractiveApp(appName: 'blackboard' | 'quiz' | 'interactive'): Promise<void> {
+    const { interactiveApps } = this.selector.screen.voiceRoom;
+    const appLabel = `${appName.charAt(0).toUpperCase()}${appName.slice(1)}`;
+    const appWindow = interactiveApps.window(appLabel);
+
+    await appWindow.getByRole('button', { name: 'Close' }).click();
+    await expect(appWindow).toBeHidden();
+  }
+
   async cancelEvent() {
     await this.selector.createEventModal.button.openPanel.click();
     await this.selector.createEventModal.button.cancelEvent.click();
