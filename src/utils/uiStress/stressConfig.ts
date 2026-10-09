@@ -10,9 +10,13 @@ const readPositiveNumber = (name: string, fallback: number): number => {
 
 const soakMode = process.env.UI_STRESS_MODE === 'soak';
 const requireMedia = process.env.STRESS_REQUIRE_MEDIA === 'true' || soakMode;
+const historyMessageCount = readPositiveInteger(
+  'STRESS_HISTORY_MESSAGE_COUNT',
+  soakMode ? 500 : 120
+);
 
 export const UI_STRESS_CONFIG = {
-  historyMessageCount: readPositiveInteger('STRESS_HISTORY_MESSAGE_COUNT', soakMode ? 500 : 120),
+  historyMessageCount,
   historyMaxPageLoads: readPositiveInteger('STRESS_HISTORY_MAX_PAGE_LOADS', soakMode ? 30 : 12),
   minHistoryPageLoads: readPositiveInteger('STRESS_MIN_HISTORY_PAGE_LOADS', 1),
   historySendIntervalMs: readPositiveInteger('STRESS_HISTORY_SEND_INTERVAL_MS', 200),
