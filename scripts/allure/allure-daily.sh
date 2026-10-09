@@ -408,7 +408,7 @@ log "   Deploying $ALLURE_VERCEL_ROOT/reports to Vercel (--prod)..."
 # Pass token via environment variable — NOT via --token flag
 # to avoid exposure through process list or shell history
 export VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID
-if ! VERCEL_OUT=$(npx vercel deploy --prod --yes "$ALLURE_VERCEL_ROOT/reports" 2>&1 | tee /dev/tty); then
+if ! VERCEL_OUT=$(npx vercel deploy --prod --yes "$ALLURE_VERCEL_ROOT/reports" 2>&1 | tee /dev/stderr); then
   log "ERROR: Vercel deployment failed."
   exit 1
 fi
@@ -428,16 +428,5 @@ log "🔗 Report URL: $FINAL_REPORT_URL"
 
 echo "report_url=$FINAL_REPORT_URL" >> "${GITHUB_OUTPUT:-/dev/null}"
 echo "report_relative_path=$REPORT_RELATIVE_PATH" >> "${GITHUB_OUTPUT:-/dev/null}"
-
-# ---------------------------------------------------------------------------
-# 14. Send Mezon End Webhook (if not already sent or for daily deployment)
-# ---------------------------------------------------------------------------
-log "🔔 Triggering Mezon End Webhook..."
-export VERCEL_REPORT_URL="$FINAL_REPORT_URL"
-export REPORT_RELATIVE_PATH="$REPORT_RELATIVE_PATH"
-
-if [ -f "libs/mezon-reporter/notify.ts" ]; then
-  npx tsx libs/mezon-reporter/notify.ts end || log "⚠️ Failed to send Mezon End Webhook"
-fi
 
 log "=== allure-daily.sh finished ==="

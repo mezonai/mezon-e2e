@@ -19,6 +19,7 @@ log() {
 ALLURE_VERCEL_ROOT="${ALLURE_VERCEL_ROOT:-/home/nccsoft/allure-vercel-reports}"
 REPORTS_DIR="$ALLURE_VERCEL_ROOT/reports"
 OUTPUT_FILE="$REPORTS_DIR/index.html"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log "📂 Scanning directory: $REPORTS_DIR"
 
@@ -133,42 +134,7 @@ log "✅ $OUTPUT_FILE written"
 MANUAL_REPORTS_DIR="$REPORTS_DIR/manual"
 MANUAL_INDEX="$MANUAL_REPORTS_DIR/index.html"
 mkdir -p "$MANUAL_REPORTS_DIR"
-
-MANUAL_LINKS=""
-while IFS= read -r MANUAL_RUN_DIR; do
-  MONTH_NAME="$(basename "$(dirname "$MANUAL_RUN_DIR")")"
-  RUN_NAME="$(basename "$MANUAL_RUN_DIR")"
-  if [[ ! "$MONTH_NAME" =~ ^[0-9]{4}-[0-9]{2}$ ]] || [ ! -f "$MANUAL_RUN_DIR/index.html" ]; then
-    continue
-  fi
-  MANUAL_LINKS+="<li><a href=\"/manual/$MONTH_NAME/$RUN_NAME/\">$RUN_NAME</a></li>"
-done < <(find "$MANUAL_REPORTS_DIR" -mindepth 2 -maxdepth 2 -type d | sort -r)
-
-if [ -z "$MANUAL_LINKS" ]; then
-  MANUAL_LINKS='<li>No manual reports available</li>'
-fi
-
-cat > "$MANUAL_INDEX" <<HTMLEOF
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Manual Allure Reports</title>
-  <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; background: #0f172a; color: #e2e8f0; }
-    h1 { margin-bottom: 24px; }
-    ul { padding: 0; list-style: none; }
-    li { margin: 10px 0; padding: 12px 16px; background: #1e293b; border-radius: 8px; }
-    a { color: #93c5fd; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <h1>Manual Allure Reports</h1>
-  <ul>$MANUAL_LINKS</ul>
-</body>
-</html>
-HTMLEOF
+node "$SCRIPT_DIR/build-manual-dashboard.mjs" "$MANUAL_REPORTS_DIR"
 
 log "✅ $MANUAL_INDEX written"
 

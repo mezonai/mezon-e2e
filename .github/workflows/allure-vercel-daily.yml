@@ -92,6 +92,14 @@ on:
         options:
           - '60'
           - '120'
+      ui_stress_mode:
+        description: 'UI Stress / execution mode'
+        type: choice
+        required: false
+        default: 'soak'
+        options:
+          - 'soak'
+          - 'smoke'
 
 concurrency:
   group: allure-daily-pipeline
@@ -264,10 +272,14 @@ jobs:
       - name: Send Mezon Start Webhook
         env:
           RUN_PHASE: ${{ steps.phase.outputs.phase }}
+          RUN_UI_STRESS: ${{ inputs.ui_stress }}
+          STRESS_HISTORY_MESSAGE_COUNT: ${{ inputs.ui_stress_history_messages || '120' }}
+          UI_STRESS_MODE: ${{ inputs.ui_stress_mode || 'soak' }}
           EVENT_NAME: ${{ github.event_name }}
           SELECTED_REF: ${{ github.ref_name }}
           ACTOR: ${{ github.actor }}
           COMMIT_SHA: ${{ github.sha }}
+          MEZON_WEBHOOK_URL: ${{ secrets.MEZON_WEBHOOK_URL }}
         run: npx tsx libs/mezon-reporter/notify.ts start
 
       # -----------------------------------------------------------------------
@@ -507,7 +519,9 @@ jobs:
           RUN_MULTI_VOICE_CHANNEL: ${{ inputs.multi_voice_channel }}
           RUN_MULTI_ROOT_TESTS: ${{ inputs.multi_root_tests }}
           RUN_UI_STRESS: ${{ inputs.ui_stress }}
-          STRESS_HISTORY_MESSAGE_COUNT: ${{ inputs.ui_stress_history_messages || '60' }}
+          STRESS_HISTORY_MESSAGE_COUNT: ${{ inputs.ui_stress_history_messages || '120' }}
+          UI_STRESS_MODE: ${{ inputs.ui_stress_mode || 'soak' }}
+          STRESS_REQUIRE_MEDIA: ${{ inputs.ui_stress }}
         run: |
           WEB_TARGETS=()
           MULTI_TARGETS=()
@@ -661,6 +675,44 @@ jobs:
           PUBLIC_REPORT_ORIGIN: https://mezon-automation.io.vn
         run: |
           bash scripts/allure/allure-daily.sh
+
+      - name: Send Mezon End Webhook
+        if: always() && (steps.phase.outputs.phase == 'manual' || (steps.phase.outputs.phase == 'multi' && steps.merge_results.outcome == 'success'))
+        continue-on-error: true
+        env:
+          ALLURE_VERCEL_ROOT: ${{ env.ALLURE_VERCEL_ROOT }}
+          REPORT_DATE: ${{ steps.phase.outputs.report_date }}
+          REPORT_MODE: ${{ steps.phase.outputs.report_mode }}
+          REPORT_RUN_ID: ${{ github.run_id }}
+          REPORT_RELATIVE_PATH: ${{ steps.deploy_report.outputs.report_relative_path }}
+          VERCEL_REPORT_URL: ${{ steps.deploy_report.outputs.report_url }}
+          REPORT_DEPLOY_OUTCOME: ${{ steps.deploy_report.outcome }}
+          PUBLIC_REPORT_ORIGIN: https://mezon-automation.io.vn
+          RUN_PHASE: ${{ steps.phase.outputs.phase }}
+          RUN_UI_STRESS: ${{ inputs.ui_stress }}
+          STRESS_HISTORY_MESSAGE_COUNT: ${{ inputs.ui_stress_history_messages || '120' }}
+          UI_STRESS_MODE: ${{ inputs.ui_stress_mode || 'soak' }}
+          EVENT_NAME: ${{ github.event_name }}
+          SELECTED_REF: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_SHA: ${{ github.sha }}
+          MEZON_WEBHOOK_URL: ${{ secrets.MEZON_WEBHOOK_URL }}
+        run: |
+          if [ -z "$REPORT_RELATIVE_PATH" ]; then
+            YEAR_MONTH="${REPORT_DATE:0:7}"
+            if [ "$REPORT_MODE" = "manual" ]; then
+              REPORT_RELATIVE_PATH="manual/$YEAR_MONTH/$REPORT_DATE-$REPORT_RUN_ID"
+            else
+              REPORT_RELATIVE_PATH="$YEAR_MONTH/$REPORT_DATE"
+            fi
+          fi
+
+          if [ -z "$VERCEL_REPORT_URL" ]; then
+            VERCEL_REPORT_URL="${PUBLIC_REPORT_ORIGIN%/}/$REPORT_RELATIVE_PATH/"
+          fi
+
+          export REPORT_RELATIVE_PATH VERCEL_REPORT_URL
+          npx tsx libs/mezon-reporter/notify.ts end
 
       - name: Clean staged Web results after successful daily deploy
         if: always() && steps.phase.outputs.phase == 'multi' && steps.deploy_report.outcome == 'success'

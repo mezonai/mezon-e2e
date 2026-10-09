@@ -58,8 +58,19 @@ test.describe('Chat UI stress and resilience', () => {
 
   test.afterEach(async ({ dual }, testInfo) => {
     try {
-      for (const attachment of metricAttachments) {
-        await UiStressProbe.attachJson(testInfo, attachment.name, attachment.value());
+      const resolvedMetrics = metricAttachments.map(attachment => ({
+        name: attachment.name,
+        value: attachment.value(),
+      }));
+      for (const attachment of resolvedMetrics) {
+        await UiStressProbe.attachJson(testInfo, attachment.name, attachment.value);
+      }
+      if (resolvedMetrics.length > 0) {
+        await UiStressProbe.attachMetricsTable(
+          testInfo,
+          'UI Stress Metrics Summary',
+          resolvedMetrics
+        );
       }
     } finally {
       metricAttachments = [];
@@ -114,13 +125,22 @@ test.describe('Chat UI stress and resilience', () => {
     const markers = markerList('history', env.runId, UI_STRESS_CONFIG.historyMessageCount);
     const sendAttempts: number[] = [];
     const anchorShifts: number[] = [];
+    const observedHistoryMarkers = new Set<string>();
     const historySeedStartedAt = Date.now();
     let historySeedDurationMs = 0;
+    let oldestMessageLoaded = false;
+    let latestMessageRestored = false;
+    let jumpToOldestCompleted = false;
     registerMetrics('history-scroll-metrics', () => ({
       generatedMessages: markers.length,
       sendAttempts,
       retriedMessages: sendAttempts.filter(attempts => attempts > 1).length,
       anchorShifts,
+      observedHistoryMarkerCount: observedHistoryMarkers.size,
+      observedHistoryMarkers: [...observedHistoryMarkers],
+      oldestMessageLoaded,
+      latestMessageRestored,
+      jumpToOldestCompleted,
       maxAllowedShiftPx: UI_STRESS_CONFIG.maxAnchorShiftPx,
       successfulPageLoads: anchorShifts.length,
       minimumRequiredPageLoads: UI_STRESS_CONFIG.minHistoryPageLoads,
@@ -149,6 +169,9 @@ test.describe('Chat UI stress and resilience', () => {
     await expect
       .poll(() => helper.getMessageItemLocator(`[history-${env.runId}-`).count())
       .toBeGreaterThan(0);
+    for (const marker of await probe.getRenderedExpectedMarkers(markers)) {
+      observedHistoryMarkers.add(marker);
+    }
     expect(
       await helper.getMessageItemLocator(markers[0]).count(),
       'The oldest generated message must require history pagination after reload'
@@ -156,20 +179,32 @@ test.describe('Chat UI stress and resilience', () => {
 
     await AllureReporter.step('Load older history and measure scroll anchoring', async () => {
       for (let attempt = 0; attempt < UI_STRESS_CONFIG.historyMaxPageLoads; attempt++) {
+        const observedBeforeLoad = observedHistoryMarkers.size;
         const shift = await probe.loadOlderMessagesAndMeasureAnchor();
-        if (shift !== null) anchorShifts.push(shift);
+        if (shift !== null) {
+          anchorShifts.push(shift);
+          for (const marker of await probe.getRenderedExpectedMarkers(markers)) {
+            observedHistoryMarkers.add(marker);
+          }
+          expect(
+            observedHistoryMarkers.size,
+            'Each successful history page load must expose additional expected messages'
+          ).toBeGreaterThan(observedBeforeLoad);
+        }
         if ((await helper.getMessageItemLocator(markers[0]).count()) > 0) break;
       }
       await probe.waitForMessage(markers[0]);
-      expect(
-        anchorShifts.length,
-        'The test must observe at least the configured number of successful history page loads'
-      ).toBeGreaterThanOrEqual(UI_STRESS_CONFIG.minHistoryPageLoads);
+      oldestMessageLoaded = true;
+      expect
+        .soft(
+          anchorShifts.length,
+          'The test must observe at least the configured number of successful history page loads'
+        )
+        .toBeGreaterThanOrEqual(UI_STRESS_CONFIG.minHistoryPageLoads);
       for (const shift of anchorShifts) {
-        expect(
-          shift,
-          'History pagination must preserve the visible scroll anchor'
-        ).toBeLessThanOrEqual(UI_STRESS_CONFIG.maxAnchorShiftPx);
+        expect
+          .soft(shift, 'History pagination must preserve the visible scroll anchor')
+          .toBeLessThanOrEqual(UI_STRESS_CONFIG.maxAnchorShiftPx);
       }
     });
 
@@ -178,12 +213,23 @@ test.describe('Chat UI stress and resilience', () => {
       await oldMessage.scrollIntoViewIfNeeded();
       await probe.expectMessageInScrollerViewport(markers[0], true);
       await helper.pinMessage(oldMessage);
-      await probe.scrollToBottom(markers.at(-1));
+      try {
+        await probe.scrollToBottom(markers.at(-1));
+        latestMessageRestored = true;
+      } catch (error) {
+        expect
+          .soft(
+            false,
+            error instanceof Error ? error.message : 'Could not return to latest message'
+          )
+          .toBe(true);
+      }
       await probe.expectMessageInScrollerViewport(markers[0], false);
       await helper.openPinnedMessagesModal();
       await helper.clickJumpToMessage(markers[0]);
       await probe.waitForMessage(markers[0]);
       await probe.expectMessageInScrollerViewport(markers[0], true);
+      jumpToOldestCompleted = true;
     });
   });
 
