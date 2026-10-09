@@ -79,6 +79,19 @@ on:
         type: boolean
         required: false
         default: false
+      ui_stress:
+        description: 'UI Stress'
+        type: boolean
+        required: false
+        default: false
+      ui_stress_history_messages:
+        description: 'UI Stress / history message count'
+        type: choice
+        required: false
+        default: '120'
+        options:
+          - '60'
+          - '120'
 
 concurrency:
   group: allure-daily-pipeline
@@ -204,6 +217,7 @@ jobs:
         env:
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           SELECTED_REF: ${{ github.ref_name }}
+          RUN_UI_STRESS: ${{ inputs.ui_stress }}
         run: |
           if [ "$EVENT_SCHEDULE" = "0 13 * * *" ]; then
             RUN_PHASE="web"
@@ -215,7 +229,7 @@ jobs:
             REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
           else
             RUN_PHASE="manual"
-            if [ "$SELECTED_REF" = "main" ]; then
+            if [ "$SELECTED_REF" = "main" ] && [ "$RUN_UI_STRESS" != "true" ]; then
               REPORT_MODE="daily"
             else
               REPORT_MODE="manual"
@@ -492,6 +506,8 @@ jobs:
           RUN_MULTI_FRIEND_MANAGEMENT: ${{ inputs.multi_friend_management }}
           RUN_MULTI_VOICE_CHANNEL: ${{ inputs.multi_voice_channel }}
           RUN_MULTI_ROOT_TESTS: ${{ inputs.multi_root_tests }}
+          RUN_UI_STRESS: ${{ inputs.ui_stress }}
+          STRESS_HISTORY_MESSAGE_COUNT: ${{ inputs.ui_stress_history_messages || '60' }}
         run: |
           WEB_TARGETS=()
           MULTI_TARGETS=()
@@ -541,7 +557,7 @@ jobs:
           elif [ "$RUN_PHASE" = "manual" ]; then
             add_web_targets
             add_multi_targets
-            if [ "${#WEB_TARGETS[@]}" -eq 0 ] && [ "${#MULTI_TARGETS[@]}" -eq 0 ]; then
+            if [ "${#WEB_TARGETS[@]}" -eq 0 ] && [ "${#MULTI_TARGETS[@]}" -eq 0 ] && [ "$RUN_UI_STRESS" != "true" ]; then
               WEB_TARGETS=("src/tests/web")
               MULTI_TARGETS=("src/tests/multi-chat")
               echo "No folder selected; running all Web and MultiChat tests."
@@ -563,6 +579,12 @@ jobs:
           if [ "${#MULTI_TARGETS[@]}" -gt 0 ]; then
             printf 'Selected multi-chat target: %s\n' "${MULTI_TARGETS[@]}"
             xvfb-run npx playwright test "${MULTI_TARGETS[@]}" --project Multi
+            [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
+          fi
+
+          if [ "$RUN_UI_STRESS" = "true" ]; then
+            echo "Selected UI Stress suite with $STRESS_HISTORY_MESSAGE_COUNT history messages."
+            xvfb-run npx playwright test --project UI-Stress
             [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
           fi
 
@@ -636,6 +658,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERCEL_ORG_ID: team_dZPIwRmKbB0nPB0li3Gmr3t8
           VERCEL_PROJECT_ID: prj_9IxF0sBzYsUNc3xbr09kzvmkBgp0
+          PUBLIC_REPORT_ORIGIN: https://mezon-automation.io.vn
         run: |
           bash scripts/allure/allure-daily.sh
 
@@ -712,3 +735,9 @@ jobs:
           path: allure-results/
           retention-days: 3
           if-no-files-found: ignore
+
+      - name: Mark workflow failed when Playwright tests failed
+        if: always() && steps.run-tests.outcome == 'failure'
+        run: |
+          echo "::error::One or more Playwright test runs failed. See the deployed Allure report and uploaded artifacts."
+          exit 1
