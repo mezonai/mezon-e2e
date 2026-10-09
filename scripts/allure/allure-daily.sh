@@ -408,16 +408,22 @@ log "   Deploying $ALLURE_VERCEL_ROOT/reports to Vercel (--prod)..."
 # Pass token via environment variable — NOT via --token flag
 # to avoid exposure through process list or shell history
 export VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID
-VERCEL_OUT=$(npx vercel deploy --prod --yes "$ALLURE_VERCEL_ROOT/reports" 2>&1 | tee /dev/tty) || true
-
-DEPLOY_URL=$(echo "$VERCEL_OUT" | grep -oE 'https://[a-zA-Z0-9.-]+\.vercel\.app' | tail -n 1 || echo "")
-if [ -n "$DEPLOY_URL" ]; then
-  FINAL_REPORT_URL="${DEPLOY_URL}/${REPORT_RELATIVE_PATH}/"
-else
-  FINAL_REPORT_URL="https://allure-vercel-reports.vercel.app/${REPORT_RELATIVE_PATH}/"
+if ! VERCEL_OUT=$(npx vercel deploy --prod --yes "$ALLURE_VERCEL_ROOT/reports" 2>&1 | tee /dev/tty); then
+  log "ERROR: Vercel deployment failed."
+  exit 1
 fi
 
+DEPLOY_URL=$(echo "$VERCEL_OUT" | grep -oE 'https://[a-zA-Z0-9.-]+\.vercel\.app' | tail -n 1 || echo "")
+if [ -z "$DEPLOY_URL" ]; then
+  log "ERROR: Vercel deployment did not return a deployment URL."
+  exit 1
+fi
+
+PUBLIC_REPORT_ORIGIN="${PUBLIC_REPORT_ORIGIN:-https://mezon-automation.io.vn}"
+FINAL_REPORT_URL="${PUBLIC_REPORT_ORIGIN%/}/${REPORT_RELATIVE_PATH}/"
+
 log "✅ Deployed to Vercel successfully!"
+log "🔗 Vercel deployment: $DEPLOY_URL"
 log "🔗 Report URL: $FINAL_REPORT_URL"
 
 echo "report_url=$FINAL_REPORT_URL" >> "${GITHUB_OUTPUT:-/dev/null}"
@@ -435,4 +441,3 @@ if [ -f "libs/mezon-reporter/notify.ts" ]; then
 fi
 
 log "=== allure-daily.sh finished ==="
-
