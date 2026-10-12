@@ -36,6 +36,75 @@ export class ChannelSettingPage extends BasePage {
     }
   }
 
+  async updateOverview(channelName: string, topic: string): Promise<void> {
+    await expect(this.selector.overview.channelName).toBeVisible({ timeout: 5000 });
+    await this.selector.overview.channelName.fill(channelName);
+    await this.selector.overview.channelTopic.fill(topic);
+    await expect(this.selector.button.save_changes).toBeVisible({ timeout: 5000 });
+    await this.selector.button.save_changes.click();
+    await expect(this.selector.button.save_changes).toBeHidden({ timeout: 10000 });
+  }
+
+  async verifyOverview(channelName: string, topic: string): Promise<void> {
+    await expect(this.selector.overview.channelName).toHaveValue(channelName, { timeout: 5000 });
+    await expect(this.selector.overview.channelTopic).toHaveValue(topic, { timeout: 5000 });
+    await expect(this.selector.side_bar_buttons.channel_label).toHaveText(channelName);
+  }
+
+  async verifyCoreSettingsTabsVisible(): Promise<void> {
+    await expect(this.selector.side_bar_buttons.overview).toBeVisible({ timeout: 5000 });
+    await expect(this.selector.side_bar_buttons.category).toBeVisible({ timeout: 5000 });
+    await expect(this.selector.side_bar_buttons.permissions).toBeVisible({ timeout: 5000 });
+  }
+
+  async openCategoryTab(): Promise<void> {
+    await expect(this.selector.side_bar_buttons.category).toBeVisible({ timeout: 5000 });
+    await this.selector.side_bar_buttons.category.click();
+    await expect(this.selector.category.dropdown).toBeVisible({ timeout: 5000 });
+  }
+
+  async verifyCategoryChannelName(channelName: string): Promise<void> {
+    await expect(this.selector.category.channelName).toHaveText(channelName);
+  }
+
+  async verifyCategory(categoryName: string): Promise<void> {
+    await expect(this.selector.category.dropdown).toContainText(categoryName, { timeout: 10000 });
+  }
+
+  async changeCategory(categoryName: string): Promise<void> {
+    await this.selector.category.dropdown.click();
+    const category = this.selector.category.item.filter({
+      hasText: new RegExp(`^${categoryName}$`, 'i'),
+    });
+    await expect(category).toBeVisible({ timeout: 5000 });
+    await category.click();
+    await expect
+      .poll(
+        async () => {
+          if (!(await this.selector.category.dropdown.isVisible())) return true;
+          return (await this.selector.category.dropdown.innerText())
+            .toLowerCase()
+            .includes(categoryName.toLowerCase());
+        },
+        { timeout: 10000 }
+      )
+      .toBe(true);
+  }
+
+  async setPrivateMode(enabled: boolean): Promise<void> {
+    await this.openPermissionsTab();
+    const toggle = this.selector.permissions.button.change_status;
+    await expect(toggle).toBeVisible({ timeout: 5000 });
+    if ((await toggle.isChecked()) !== enabled) {
+      await toggle.click();
+      await expect(this.selector.permissions.modal.ask_change.button.save_changes).toBeVisible({
+        timeout: 5000,
+      });
+      await this.selector.permissions.modal.ask_change.button.save_changes.click();
+      await expect(toggle).toBeChecked({ checked: enabled, timeout: 10000 });
+    }
+  }
+
   async verifyChannelStatusIsPrivate(channelName: string): Promise<boolean> {
     await this.page.waitForTimeout(2000);
 
@@ -302,55 +371,98 @@ export class ChannelSettingPage extends BasePage {
     const isChecked = await checkbox.isChecked();
     expect(isChecked).toBe(true);
 
-    const addButton = this.selector.permissions.button.add_members_roles;
-    await expect(addButton).toBeVisible({ timeout: 3000 });
-    await addButton.click();
-
-    await expect(
-      this.selector.permissions.section.member_role_management.modal_container
-    ).toBeVisible({
-      timeout: 3000,
-    });
+    await this.openAddMembersRolesModal();
   }
 
-  async addMembersAndRolesForPrivateChannel(roleName: string, username?: string) {
+  async addMembersAndRolesForPrivateChannel(roleName?: string, username?: string) {
     const modal = this.selector.permissions.section.member_role_management.modal_container;
 
     await expect(modal).toBeVisible({ timeout: 3000 });
 
-    const roles = this.selector.permissions.section.member_role_management.modal.role_item;
     const roleTitles = this.selector.permissions.section.member_role_management.modal.role_title;
     const roleCheckboxes =
       this.selector.permissions.section.member_role_management.modal.role_checkbox;
 
-    const roleCount = await roles.count();
-    for (let i = 0; i < roleCount; i++) {
-      const title = (await roleTitles.nth(i).innerText()).trim().toLowerCase();
-      if (title === roleName.trim().toLowerCase()) {
-        await roleCheckboxes.nth(i).check();
-        console.log(`✅ Checked role: ${title}`);
-        break;
+    if (roleName) {
+      let roleFound = false;
+      const expectedRole = roleName.trim().toLowerCase();
+      const roleCount = await roleTitles.count();
+      for (let i = 0; i < roleCount; i++) {
+        const title = (await roleTitles.nth(i).innerText()).trim().toLowerCase();
+        if (title === expectedRole) {
+          await roleCheckboxes.nth(i).check();
+          console.log(`✅ Checked role: ${title}`);
+          roleFound = true;
+          break;
+        }
       }
+      expect(roleFound, `Role "${roleName}" was not found in the access modal`).toBe(true);
     }
 
-    const members = this.selector.permissions.section.member_role_management.modal.member_item;
     const memberUsernames =
       this.selector.permissions.section.member_role_management.modal.member_username;
     const memberCheckboxes =
       this.selector.permissions.section.member_role_management.modal.member_checkbox;
 
-    const memberCount = await members.count();
-    for (let i = 0; i < memberCount; i++) {
-      const name = (await memberUsernames.nth(i).innerText()).trim().toLowerCase();
-      if (username && name === username.trim().toLowerCase()) {
-        await memberCheckboxes.nth(i).check();
-        console.log(`✅ Checked member: ${name}`);
-        break;
+    if (username) {
+      let memberFound = false;
+      const expectedUsername = username.trim().toLowerCase();
+      const memberCount = await memberUsernames.count();
+      for (let i = 0; i < memberCount; i++) {
+        const name = (await memberUsernames.nth(i).innerText()).trim().toLowerCase();
+        if (name === expectedUsername) {
+          await memberCheckboxes.nth(i).check();
+          console.log(`✅ Checked member: ${name}`);
+          memberFound = true;
+          break;
+        }
       }
+      expect(memberFound, `Member "${username}" was not found in the access modal`).toBe(true);
     }
 
     await this.selector.permissions.button.submit.click();
     await expect(modal).toBeHidden({ timeout: 3000 });
+  }
+
+  async openAddMembersRolesModal(): Promise<void> {
+    const addButton = this.selector.permissions.button.add_members_roles;
+    await expect(addButton).toBeVisible({ timeout: 5000 });
+    await addButton.click();
+    await expect(
+      this.selector.permissions.section.member_role_management.modal_container
+    ).toBeVisible({ timeout: 5000 });
+  }
+
+  async removeMemberFromPrivateChannel(username: string): Promise<void> {
+    const management = this.selector.permissions.section.member_role_management;
+    const member = management.member_item.filter({ hasText: username });
+    const removeButton = member
+      .locator(
+        `${generateE2eSelector(
+          'channel_setting_page.permissions.section.member_role_management.member_list.button_remove'
+        )}, button`
+      )
+      .first();
+    await expect(member).toBeVisible({ timeout: 10000 });
+    await expect(removeButton).toBeVisible({ timeout: 10000 });
+    await removeButton.click();
+    await expect(member).toBeHidden({ timeout: 10000 });
+  }
+
+  async removeRoleFromPrivateChannel(roleName: string): Promise<void> {
+    const management = this.selector.permissions.section.member_role_management;
+    const role = management.role_item.filter({ hasText: roleName });
+    const removeButton = role
+      .locator(
+        `${generateE2eSelector(
+          'channel_setting_page.permissions.section.member_role_management.role_list.button_remove'
+        )}, button`
+      )
+      .first();
+    await expect(role).toBeVisible({ timeout: 10000 });
+    await expect(removeButton).toBeVisible({ timeout: 10000 });
+    await removeButton.click();
+    await expect(role).toBeHidden({ timeout: 10000 });
   }
 
   async overridePermissionsForPrivateChannel() {

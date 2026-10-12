@@ -3,11 +3,18 @@ import { Page } from '@playwright/test';
 
 const SIDEBAR_ITEM_SELECTOR = generateE2eSelector('channel_setting_page.side_bar.item');
 const CHANNEL_PANEL_ITEM_SELECTOR = generateE2eSelector('clan_page.channel_list.panel.item');
+const OVERVIEW_PANEL_SELECTOR = generateE2eSelector('clan_page.channel_list.settings.overview');
 
 export default class ChannelSettingSelector {
   constructor(private readonly page: Page) {}
 
   readonly side_bar_buttons = {
+    overview: this.page.locator(SIDEBAR_ITEM_SELECTOR, {
+      hasText: 'Overview',
+    }),
+    category: this.page.locator(SIDEBAR_ITEM_SELECTOR, {
+      hasText: 'Category',
+    }),
     integrations: this.page.locator(SIDEBAR_ITEM_SELECTOR, {
       hasText: 'Integrations',
     }),
@@ -23,6 +30,31 @@ export default class ChannelSettingSelector {
     deleteChannel: this.page.locator(generateE2eSelector('button.base'), {
       hasText: 'Delete Channel',
     }),
+  };
+
+  readonly overview = {
+    channelName: this.page
+      .locator(
+        `${generateE2eSelector(
+          'channel_setting_page.overview.input.channel_name'
+        )}, ${OVERVIEW_PANEL_SELECTOR} input`
+      )
+      .first(),
+    channelTopic: this.page
+      .locator(
+        `${generateE2eSelector(
+          'channel_setting_page.overview.input.channel_topic'
+        )} textarea, ${OVERVIEW_PANEL_SELECTOR} textarea`
+      )
+      .first(),
+  };
+
+  readonly category = {
+    channelName: this.page.locator(
+      generateE2eSelector('channel_setting_page.category.channel_name')
+    ),
+    dropdown: this.page.locator(generateE2eSelector('channel_setting_page.category.dropdown')),
+    item: this.page.locator(generateE2eSelector('channel_setting_page.category.item')),
   };
 
   readonly webhook = {
@@ -160,6 +192,7 @@ export default class ChannelSettingSelector {
 
   readonly button = {
     close_settings: this.page.locator(generateE2eSelector('clan_page.settings.button.exit')),
+    save_changes: this.page.getByRole('button', { name: 'Save Changes', exact: true }),
   };
 
   readonly quick_menu = {
