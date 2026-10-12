@@ -566,6 +566,8 @@ export const DATA_E2E_IDENTIFIER = {
         icon: {
           hashtag: '',
           hashtag_lock: '',
+          speaker: '',
+          speaker_lock: '',
           voice: '',
           stream: '',
         },
@@ -652,6 +654,17 @@ export const DATA_E2E_IDENTIFIER = {
       item: '',
       channel_label: '',
     },
+    overview: {
+      input: {
+        channel_name: '',
+        channel_topic: '',
+      },
+    },
+    category: {
+      channel_name: '',
+      dropdown: '',
+      item: '',
+    },
     permissions: {
       button: {
         change_status: '',
@@ -678,9 +691,11 @@ export const DATA_E2E_IDENTIFIER = {
           },
           role_list: {
             role_item: '',
+            button_remove: '',
           },
           member_list: {
             member_item: '',
+            button_remove: '',
           },
         },
         advanced_permissions: '',

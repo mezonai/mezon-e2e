@@ -346,6 +346,20 @@ export class ClanPage extends BasePage {
     await expect(this.selector.channelManagement.totalChannels).toBeVisible({ timeout: 5000 });
   }
 
+  async openChannelsListSettingByUrl(): Promise<void> {
+    const currentUrl = new URL(this.page.url());
+    const clanPath = currentUrl.pathname.match(/\/chat\/clans\/[^/]+/)?.[0];
+    if (!clanPath) {
+      throw new Error(`Cannot resolve clan ID from URL: ${currentUrl.toString()}`);
+    }
+
+    currentUrl.pathname = `${clanPath}/channel-setting`;
+    currentUrl.search = '';
+    currentUrl.hash = '';
+    await this.page.goto(currentUrl.toString(), { waitUntil: 'domcontentloaded' });
+    await expect(this.selector.channelManagement.totalChannels).toBeVisible({ timeout: 10000 });
+  }
+
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
@@ -369,8 +383,12 @@ export class ClanPage extends BasePage {
           break;
       }
       await this.selector.createChannelModal.input.channelName.fill(channelName);
-      if (status === ChannelStatus.PRIVATE && typeChannel === ChannelType.TEXT) {
+      if (
+        status === ChannelStatus.PRIVATE &&
+        (typeChannel === ChannelType.TEXT || typeChannel === ChannelType.VOICE)
+      ) {
         await this.selector.createChannelModal.toggle.isPrivate.click();
+        await expect(this.selector.createChannelModal.toggle.isPrivate).toBeChecked();
       }
       await this.selector.createChannelModal.button.confirm.click();
       await expect(this.selector.createChannelModal.input.channelName).toBeHidden({
@@ -393,6 +411,24 @@ export class ClanPage extends BasePage {
     } catch {
       return false;
     }
+  }
+
+  async verifyChannelVisibility(channelName: string, shouldBeVisible: boolean): Promise<void> {
+    const channel = this.selector.channel.getSidebarItem(channelName);
+    if (shouldBeVisible) {
+      await expect(channel).toBeVisible({ timeout: 15000 });
+    } else {
+      await expect(channel).toBeHidden({ timeout: 15000 });
+    }
+  }
+
+  async verifyVoiceChannelPrivacyIcon(channelName: string, isPrivate: boolean): Promise<void> {
+    const channel = this.selector.channel.getSidebarItem(channelName);
+    await expect(channel).toBeVisible({ timeout: 10000 });
+    const icon = isPrivate
+      ? this.selector.sidebar.channelItem.iconSpeakerLock
+      : this.selector.sidebar.channelItem.iconSpeaker;
+    await expect(channel.locator(icon)).toBeVisible({ timeout: 5000 });
   }
 
   async verifyCreateChannelTypeFromContextMenu(
