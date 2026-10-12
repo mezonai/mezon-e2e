@@ -244,6 +244,18 @@ export default class ClanSelector {
       cameraButton: this.page.locator('#btn-meet-camera'),
       microphoneButton: this.page.locator('#btn-meet-micro'),
       pushToTalkButton: this.page.locator('#btn-meet-push-to-talk'),
+      microphonePermission: {
+        requestDialog: this.page.getByRole('dialog', {
+          name: 'Allow Mezon to use your microphone',
+        }),
+        blockedDialog: this.page.getByRole('dialog', {
+          name: /(?:Mezon|Your browser) is blocked from using your microphone/,
+        }),
+        allowButton: this.page.getByRole('button', { name: 'Allow', exact: true }),
+        closeButton: this.page
+          .getByRole('dialog')
+          .getByRole('button', { name: 'Close', exact: true }),
+      },
       screenShareIcon: this.page.locator(
         generateE2eSelector('clan_page.channel_list.item.user_list.item.screen_share')
       ),
