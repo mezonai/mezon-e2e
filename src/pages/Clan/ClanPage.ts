@@ -3,7 +3,13 @@ import ClanSelector from '@/data/selectors/ClanSelector';
 import MessageSelector from '@/data/selectors/MessageSelector';
 import { CategorySettingPage } from '@/pages/CategorySettingPage';
 import { ROUTES } from '@/selectors';
-import { ChannelStatus, ChannelType, ClanStatus, ThreadStatus } from '@/types/clan-page.types';
+import {
+  ChannelStatus,
+  ChannelType,
+  ClanStatus,
+  ThreadStatus,
+  VoiceJoinRole,
+} from '@/types/clan-page.types';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, Locator, Page } from '@playwright/test';
 import { EventType } from '../../types/clan-page.types';
@@ -1809,12 +1815,19 @@ export class ClanPage extends BasePage {
     await this.selector.buttons.exitSettings.click();
   }
 
-  async joinVoiceChannel(channelName: string): Promise<boolean> {
+  async joinVoiceChannel(channelName: string, joinRole?: VoiceJoinRole): Promise<boolean> {
     try {
       const timeout = process.env.CI ? 10000 : 5000;
       await this.getVoiceChannelSidebarItem(channelName).click();
       const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
       await joinButtonLocator.waitFor({ state: 'visible', timeout });
+
+      if (joinRole) {
+        await this.selector.screen.voiceRoom.joinRoleMenuButton.click();
+        await this.selector.screen.voiceRoom.joinRoleOption(joinRole).click();
+        await expect(joinButtonLocator).toHaveText(`Join as ${joinRole}`);
+      }
+
       await joinButtonLocator.click();
       await this.selector.screen.voiceRoom.controlBar.waitFor({
         state: 'visible',
@@ -1830,6 +1843,51 @@ export class ClanPage extends BasePage {
       console.error(`Failed to enter voice room "${channelName}":`, error);
       return false;
     }
+  }
+
+  async verifySpeakerVoiceControls(): Promise<void> {
+    await expect(this.selector.screen.voiceRoom.microphoneButton).toBeVisible();
+    await expect(this.selector.screen.voiceRoom.cameraButton).toBeVisible();
+    await expect(this.selector.screen.voiceRoom.shareScreenButton).toBeVisible();
+    await expect(this.selector.screen.voiceRoom.pushToTalkButton).toBeHidden();
+  }
+
+  async verifyAudienceVoiceControls(): Promise<void> {
+    await expect(this.selector.screen.voiceRoom.pushToTalkButton).toBeVisible();
+    await expect(this.selector.screen.voiceRoom.microphoneButton).toBeHidden();
+    await expect(this.selector.screen.voiceRoom.cameraButton).toBeHidden();
+    await expect(this.selector.screen.voiceRoom.shareScreenButton).toBeHidden();
+  }
+
+  async isAudienceStateVisible(timeout = process.env.CI ? 30000 : 20000): Promise<boolean> {
+    try {
+      await this.page.getByText('Audience', { exact: true }).waitFor({
+        state: 'visible',
+        timeout,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async verifyHoldToTalkStateChanges(): Promise<void> {
+    const pushToTalkButton = this.selector.screen.voiceRoom.pushToTalkButton;
+    await pushToTalkButton.hover();
+
+    try {
+      await this.page.mouse.down();
+      await expect(pushToTalkButton).toHaveAttribute(ARIA_LABEL_ATTRIBUTE, 'Push to talk');
+      await expect(pushToTalkButton).toHaveAttribute('aria-pressed', 'true', {
+        timeout: 10000,
+      });
+    } finally {
+      await this.page.mouse.up();
+    }
+
+    await expect(pushToTalkButton).toHaveAttribute('aria-pressed', 'false', {
+      timeout: 10000,
+    });
   }
 
   async isJoinVoiceChannel(channelName: string): Promise<boolean> {

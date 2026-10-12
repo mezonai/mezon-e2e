@@ -232,6 +232,9 @@ export default class ClanSelector {
       joinButton: this.page.locator(
         generateE2eSelector('clan_page.screen.voice_room.button.join_voice')
       ),
+      joinRoleMenuButton: this.page.getByRole('button', { name: 'Choose join role' }),
+      joinRoleOption: (role: 'speaker' | 'audience') =>
+        this.page.getByRole('button', { name: `Join as ${role}`, exact: true }).last(),
       controlBar: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.control_bar')),
       connectionStatus: this.page
         .locator('#mezonSfuRoom header span')
@@ -240,6 +243,7 @@ export default class ClanSelector {
       shareScreenButton: this.page.locator('#btn-meet-screen'),
       cameraButton: this.page.locator('#btn-meet-camera'),
       microphoneButton: this.page.locator('#btn-meet-micro'),
+      pushToTalkButton: this.page.locator('#btn-meet-push-to-talk'),
       screenShareIcon: this.page.locator(
         generateE2eSelector('clan_page.channel_list.item.user_list.item.screen_share')
       ),
