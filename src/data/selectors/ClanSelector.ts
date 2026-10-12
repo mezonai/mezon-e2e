@@ -253,6 +253,22 @@ export default class ClanSelector {
           generateE2eSelector('clan_page.screen.voice_room.button.send_flower')
         ),
         record: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.button.record')),
+        openInteractiveApps: this.page
+          .locator(
+            `${generateE2eSelector('clan_page.screen.voice_room.button.open_interactive_apps')}, svg:has(path.icon-Joystick-fill-1)`
+          )
+          .first(),
+      },
+      interactiveApps: {
+        item: (appName: string, appLabel: string) =>
+          this.page
+            .locator(
+              generateE2eSelector('clan_page.screen.voice_room.interactive_apps.item', appName)
+            )
+            .or(this.page.getByText(appLabel, { exact: true }))
+            .first(),
+        window: (appLabel: string) =>
+          this.page.locator(`iframe[title^="${appLabel}"]`).locator('..'),
       },
       timeRecord: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.time_record')),
     },
