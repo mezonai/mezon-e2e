@@ -49,6 +49,12 @@ export default class ClanChannelSelector {
       iconHashtag: this.page.locator(
         generateE2eSelector('clan_page.channel_list.item.icon.hashtag')
       ),
+      iconSpeakerLock: this.page.locator(
+        generateE2eSelector('clan_page.channel_list.item.icon.speaker_lock')
+      ),
+      iconSpeaker: this.page.locator(
+        generateE2eSelector('clan_page.channel_list.item.icon.speaker')
+      ),
       userList: {
         item: this.page.locator(generateE2eSelector('clan_page.channel_list.item.user_list.item')),
       },

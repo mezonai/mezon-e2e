@@ -23,6 +23,8 @@
     "test:user-profile": "npx playwright test src/tests/web/UserProfile --project Chrome",
     "test:debug": "npx playwright test --debug",
     "test:multi": "npx playwright test --project Multi",
+    "test:ui-stress": "npx playwright test --project UI-Stress",
+    "test:ui-stress:soak": "UI_STRESS_MODE=soak npx playwright test --project UI-Stress",
     "cleanup": "npx playwright test --project cleanup",
     "test:report": "npx playwright show-report --host=127.0.0.1",
     "report:playwright": "npx playwright show-report",

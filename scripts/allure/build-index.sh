@@ -19,6 +19,7 @@ log() {
 ALLURE_VERCEL_ROOT="${ALLURE_VERCEL_ROOT:-/home/nccsoft/allure-vercel-reports}"
 REPORTS_DIR="$ALLURE_VERCEL_ROOT/reports"
 OUTPUT_FILE="$REPORTS_DIR/index.html"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log "📂 Scanning directory: $REPORTS_DIR"
 
@@ -128,7 +129,17 @@ fi
 log "✅ $OUTPUT_FILE written"
 
 # ---------------------------------------------------------------------------
-# 4. Generate app-nav.js for the internal report navigation
+# 4. Generate an index for reports created by workflow_dispatch.
+# ---------------------------------------------------------------------------
+MANUAL_REPORTS_DIR="$REPORTS_DIR/manual"
+MANUAL_INDEX="$MANUAL_REPORTS_DIR/index.html"
+mkdir -p "$MANUAL_REPORTS_DIR"
+node "$SCRIPT_DIR/build-manual-dashboard.mjs" "$MANUAL_REPORTS_DIR"
+
+log "✅ $MANUAL_INDEX written"
+
+# ---------------------------------------------------------------------------
+# 5. Generate app-nav.js for the internal report navigation
 # ---------------------------------------------------------------------------
 log "⚡ Generating app-nav.js..."
 APP_NAV_JS="$REPORTS_DIR/app-nav.js"
@@ -222,7 +233,7 @@ JSEOF
 log "✅ app-nav.js written"
 
 # ---------------------------------------------------------------------------
-# 5. Inject app-nav.js script tag into all generated report index.html files
+# 6. Inject app-nav.js script tag into all generated report index.html files
 # ---------------------------------------------------------------------------
 log "💉 Injecting app-nav.js into all report index.html files..."
 # Find all index.html inside month/day directories

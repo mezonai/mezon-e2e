@@ -83,6 +83,7 @@ export interface NotificationPayload {
   attachments?: AttachmentImage[];
   captureScreenshot?: boolean;
   eventName?: string;
+  metricSummary?: string[];
 }
 
 export class MezonNotifier {
@@ -307,6 +308,11 @@ export class MezonNotifier {
         formattedMessage += ` in ${duration}`;
       }
       formattedMessage += `\n`;
+    }
+
+    if (payload.metricSummary?.length) {
+      const metricLines = payload.metricSummary.map(metric => `⚡ ${metric}`).join('\n');
+      formattedMessage += `${metricLines}\n`;
     }
 
     // Git info (compact)

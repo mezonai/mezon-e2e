@@ -181,6 +181,30 @@ export default defineConfig({
       dependencies: ['setup'],
     },
     {
+      name: 'UI-Stress',
+      testDir: './src/tests/ui-stress',
+      timeout: 30 * 60 * 1000,
+      retries: 0,
+      workers: 1,
+      use: {
+        ...devices['Desktop Chrome'],
+        ...getBrowserConfig(),
+        headless: true,
+        launchOptions: {
+          args: [
+            '--disable-popup-blocking',
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--disable-features=ExternalProtocolDialog',
+            '--lang=en-US',
+            ...getInsecureLocalOriginArgs(),
+            ...getHostResolverArgs(),
+          ],
+        },
+      },
+      dependencies: ['setup'],
+    },
+    {
       name: 'Chrome-Standalone',
       testDir: './src/standalone-tests',
       use: {

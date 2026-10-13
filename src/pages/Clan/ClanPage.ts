@@ -20,6 +20,7 @@ interface SelectorResult {
 const CHANNEL_NAME_SELECTOR = generateE2eSelector('clan_page.channel_list.item.name');
 const ROLE_ROW_XPATH = 'xpath=ancestor::tr[1]';
 const SYSTEM_MESSAGE_E2E_KEY = 'chat.system_message' as const;
+const ARIA_LABEL_ATTRIBUTE = 'aria-label';
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -345,6 +346,20 @@ export class ClanPage extends BasePage {
     await expect(this.selector.channelManagement.totalChannels).toBeVisible({ timeout: 5000 });
   }
 
+  async openChannelsListSettingByUrl(): Promise<void> {
+    const currentUrl = new URL(this.page.url());
+    const clanPath = currentUrl.pathname.match(/\/chat\/clans\/[^/]+/)?.[0];
+    if (!clanPath) {
+      throw new Error(`Cannot resolve clan ID from URL: ${currentUrl.toString()}`);
+    }
+
+    currentUrl.pathname = `${clanPath}/channel-setting`;
+    currentUrl.search = '';
+    currentUrl.hash = '';
+    await this.page.goto(currentUrl.toString(), { waitUntil: 'domcontentloaded' });
+    await expect(this.selector.channelManagement.totalChannels).toBeVisible({ timeout: 10000 });
+  }
+
   async createNewChannel(
     typeChannel: ChannelType,
     channelName: string,
@@ -368,8 +383,12 @@ export class ClanPage extends BasePage {
           break;
       }
       await this.selector.createChannelModal.input.channelName.fill(channelName);
-      if (status === ChannelStatus.PRIVATE && typeChannel === ChannelType.TEXT) {
+      if (
+        status === ChannelStatus.PRIVATE &&
+        (typeChannel === ChannelType.TEXT || typeChannel === ChannelType.VOICE)
+      ) {
         await this.selector.createChannelModal.toggle.isPrivate.click();
+        await expect(this.selector.createChannelModal.toggle.isPrivate).toBeChecked();
       }
       await this.selector.createChannelModal.button.confirm.click();
       await expect(this.selector.createChannelModal.input.channelName).toBeHidden({
@@ -392,6 +411,24 @@ export class ClanPage extends BasePage {
     } catch {
       return false;
     }
+  }
+
+  async verifyChannelVisibility(channelName: string, shouldBeVisible: boolean): Promise<void> {
+    const channel = this.selector.channel.getSidebarItem(channelName);
+    if (shouldBeVisible) {
+      await expect(channel).toBeVisible({ timeout: 15000 });
+    } else {
+      await expect(channel).toBeHidden({ timeout: 15000 });
+    }
+  }
+
+  async verifyVoiceChannelPrivacyIcon(channelName: string, isPrivate: boolean): Promise<void> {
+    const channel = this.selector.channel.getSidebarItem(channelName);
+    await expect(channel).toBeVisible({ timeout: 10000 });
+    const icon = isPrivate
+      ? this.selector.sidebar.channelItem.iconSpeakerLock
+      : this.selector.sidebar.channelItem.iconSpeaker;
+    await expect(channel.locator(icon)).toBeVisible({ timeout: 5000 });
   }
 
   async verifyCreateChannelTypeFromContextMenu(
@@ -1637,6 +1674,8 @@ export class ClanPage extends BasePage {
       await this.selector.buttons.closeInviteModal.click();
       await this.selector.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
 
+      await this.closeAllModals();
+
       await this.page.keyboard.press('Control+k');
       await expect(messageSelector.searchModal).toBeVisible({ timeout: 5000 });
       await expect(messageSelector.searchInput).toBeVisible({ timeout: 5000 });
@@ -1650,7 +1689,8 @@ export class ClanPage extends BasePage {
         .first();
 
       await expect(userLocator).toBeVisible({ timeout: 5000 });
-      await userLocator.click();
+      await this.closeAllModals();
+      await userLocator.click({ force: true });
       await this.page.waitForTimeout(1000);
 
       await expect(messageSelector.messageInput).toBeVisible({ timeout: 5000 });
@@ -1806,64 +1846,24 @@ export class ClanPage extends BasePage {
   }
 
   async joinVoiceChannel(channelName: string): Promise<boolean> {
-    console.log(`\n🎯 Attempting to join voice channel: "${channelName}"`);
-    console.log(`📍 Base URL: ${this.page.url()}`);
-    console.log(`🌍 Environment: ${process.env.CI ? 'CI' : 'Local'}`);
-
-    await this.getVoiceChannelSidebarItem(channelName).click();
-    const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
-    await this.page.waitForTimeout(1000);
-
     try {
-      // Wait longer for CI environments where WebRTC initialization is slower
       const timeout = process.env.CI ? 10000 : 5000;
-      console.log(`⏳ Waiting for join button (timeout: ${timeout}ms)...`);
-
+      await this.getVoiceChannelSidebarItem(channelName).click();
+      const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
       await joinButtonLocator.waitFor({ state: 'visible', timeout });
-      console.log(`✅ Join button is visible`);
-
-      // Check environment before clicking
-      const envBefore = await this.page.evaluate(() => ({
-        sfuUrl: (window as any).NX_CHAT_APP_SFU_WS_URL || 'Not configured',
-        hasWebSocket: !!(window as any).WebSocket,
-        hasRTC: !!(window as any).RTCPeerConnection,
-      }));
-      console.log(`🔍 Environment check:`, envBefore);
-
       await joinButtonLocator.click();
-      console.log(`🔔 Join button clicked`);
-
-      // Wait longer for media stream initialization
-      const waitTime = process.env.CI ? 5000 : 3000;
-      console.log(`⏱️  Waiting ${waitTime}ms for media stream initialization...`);
-      await this.page.waitForTimeout(waitTime);
-
-      // Log connection state after join
-      const connState = await this.page.evaluate(() => ({
-        timestamp: new Date().toISOString(),
-        voiceConnections: (window as any).__voiceConnectionState ?? 'Instrumentation unavailable',
-      }));
-      console.log(`📊 Connection state after join:`, connState);
-      console.log(`✅ Successfully joined voice channel: "${channelName}"`);
-
+      await this.selector.screen.voiceRoom.controlBar.waitFor({
+        state: 'visible',
+        timeout: process.env.CI ? 30000 : 15000,
+      });
+      await joinButtonLocator.waitFor({ state: 'hidden', timeout: 5000 });
+      await expect(this.selector.screen.voiceRoom.connectionStatus).toHaveText(
+        /^\s*· connected\s*$/i,
+        { timeout: process.env.CI ? 45000 : 30000 }
+      );
       return true;
     } catch (error) {
-      const errorDetails = {
-        timestamp: new Date().toISOString(),
-        channelName,
-        error: error instanceof Error ? error.message : String(error),
-        wsState: await this.page
-          .evaluate(
-            () => (window as any).__voiceConnectionState?.sockets ?? 'Instrumentation unavailable'
-          )
-          .catch(() => 'Error checking'),
-        rtcState: await this.page
-          .evaluate(
-            () => (window as any).__voiceConnectionState?.peers ?? 'Instrumentation unavailable'
-          )
-          .catch(() => 'Error checking'),
-      };
-      console.error(`❌ Failed to join voice channel "${channelName}":`, errorDetails);
+      console.error(`Failed to enter voice room "${channelName}":`, error);
       return false;
     }
   }
@@ -2011,9 +2011,34 @@ export class ClanPage extends BasePage {
     }
   }
 
-  async isUserInVoiceRoomScreen(username: string): Promise<boolean> {
+  async isUserInVoiceRoomScreen(
+    username: string,
+    timeout = process.env.CI ? 30000 : 20000
+  ): Promise<boolean> {
     try {
-      await this.getVoiceParticipantTile(username).waitFor({ state: 'visible', timeout: 5000 });
+      await this.getVoiceParticipantUsername(username).waitFor({ state: 'visible', timeout });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isUserAvatarVisibleInVoiceRoom(username: string): Promise<boolean> {
+    try {
+      await this.getVoiceParticipantTile(username)
+        .locator(generateE2eSelector('avatar.image'))
+        .waitFor({ state: 'visible', timeout: 10000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async isUserCameraVisibleInVoiceRoom(username: string): Promise<boolean> {
+    try {
+      await this.getVoiceParticipantTile(username)
+        .locator('div.opacity-100 video')
+        .waitFor({ state: 'visible', timeout: process.env.CI ? 30000 : 20000 });
       return true;
     } catch {
       return false;
@@ -2051,10 +2076,13 @@ export class ClanPage extends BasePage {
   }
 
   private getVoiceParticipantTile(username: string) {
-    return this.selector.screen.voiceRoom.username
-      .filter({ hasText: username })
-      .first()
-      .locator('..');
+    return this.getVoiceParticipantUsername(username).locator(
+      'xpath=ancestor::div[contains(@class, "aspect-video")][1]'
+    );
+  }
+
+  private getVoiceParticipantUsername(username: string) {
+    return this.selector.screen.voiceRoom.username.filter({ hasText: username }).first();
   }
 
   private getVoiceChannelSidebarItem(channelName: string) {
@@ -3020,6 +3048,26 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async openInteractiveApp(appName: 'blackboard' | 'quiz' | 'interactive'): Promise<void> {
+    const { button, interactiveApps } = this.selector.screen.voiceRoom;
+    const appLabel = `${appName.charAt(0).toUpperCase()}${appName.slice(1)}`;
+
+    await button.openInteractiveApps.click();
+    const appItem = interactiveApps.item(appName, appLabel);
+    await expect(appItem).toBeVisible();
+    await appItem.click();
+    await expect(interactiveApps.window(appLabel)).toBeVisible({ timeout: 15_000 });
+  }
+
+  async closeInteractiveApp(appName: 'blackboard' | 'quiz' | 'interactive'): Promise<void> {
+    const { interactiveApps } = this.selector.screen.voiceRoom;
+    const appLabel = `${appName.charAt(0).toUpperCase()}${appName.slice(1)}`;
+    const appWindow = interactiveApps.window(appLabel);
+
+    await appWindow.getByRole('button', { name: 'Close' }).click();
+    await expect(appWindow).toBeHidden();
+  }
+
   async cancelEvent() {
     await this.selector.createEventModal.button.openPanel.click();
     await this.selector.createEventModal.button.cancelEvent.click();
@@ -3047,5 +3095,107 @@ export class ClanPage extends BasePage {
     });
     const shareIcon = userJoinedVoice.locator(this.selector.screen.voiceRoom.screenShareIcon);
     return await expect(shareIcon).toBeVisible({ timeout: 3000 });
+  }
+
+  async startRecordingVoiceCall(): Promise<boolean> {
+    try {
+      await this.page.evaluate(() => {
+        const recordingWindow = window as Window & { showSaveFilePicker?: unknown };
+        try {
+          Object.defineProperty(recordingWindow, 'showSaveFilePicker', {
+            value: undefined,
+            writable: true,
+            configurable: true,
+          });
+        } catch {
+          delete recordingWindow.showSaveFilePicker;
+        }
+      });
+
+      const recordButton = this.selector.screen.voiceRoom.button.record;
+      await recordButton.waitFor({ state: 'visible', timeout: 5000 });
+      await recordButton.click();
+      await this.selector.screen.voiceRoom.timeRecord.waitFor({
+        state: 'visible',
+        timeout: 10_000,
+      });
+      await expect(recordButton).toHaveAttribute(ARIA_LABEL_ATTRIBUTE, 'Stop recording');
+      return true;
+    } catch (error) {
+      console.error('Failed to start voice call recording:', error);
+      return false;
+    }
+  }
+
+  async stopRecordingVoiceCall(): Promise<boolean> {
+    try {
+      const recordButton = this.selector.screen.voiceRoom.button.record;
+      await recordButton.waitFor({ state: 'visible', timeout: 10_000 });
+      await recordButton.click();
+      await this.selector.screen.voiceRoom.timeRecord.waitFor({
+        state: 'hidden',
+        timeout: 10_000,
+      });
+      await expect(recordButton).toHaveAttribute(ARIA_LABEL_ATTRIBUTE, 'Record call');
+      return true;
+    } catch (error) {
+      console.error('Failed to stop voice call recording:', error);
+      return false;
+    }
+  }
+
+  async isVoiceRecordingActive(): Promise<boolean> {
+    try {
+      return await this.selector.screen.voiceRoom.timeRecord.isVisible();
+    } catch {
+      return false;
+    }
+  }
+
+  async waitForVoiceRecordingClockToAdvance(): Promise<boolean> {
+    try {
+      const clock = this.selector.screen.voiceRoom.timeRecord;
+      const initialText = await clock.innerText();
+      await expect.poll(() => clock.innerText(), { timeout: 5000 }).not.toBe(initialText);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async enableCamera(): Promise<boolean> {
+    try {
+      const cameraBtn = this.selector.screen.voiceRoom.cameraButton;
+      await cameraBtn.waitFor({ state: 'visible', timeout: 5000 });
+      const label = await cameraBtn.getAttribute(ARIA_LABEL_ATTRIBUTE);
+      if (label === 'Turn On Camera') {
+        await cameraBtn.click();
+      }
+      await expect(cameraBtn).toHaveAttribute(ARIA_LABEL_ATTRIBUTE, 'Turn Off Camera', {
+        timeout: 10_000,
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to enable camera:', error);
+      return false;
+    }
+  }
+
+  async enableMicrophone(): Promise<boolean> {
+    try {
+      const micBtn = this.selector.screen.voiceRoom.microphoneButton;
+      await micBtn.waitFor({ state: 'visible', timeout: 5000 });
+      const label = await micBtn.getAttribute(ARIA_LABEL_ATTRIBUTE);
+      if (label === 'Turn On Microphone') {
+        await micBtn.click();
+      }
+      await expect(micBtn).toHaveAttribute(ARIA_LABEL_ATTRIBUTE, 'Turn Off Microphone', {
+        timeout: 10_000,
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to enable microphone:', error);
+      return false;
+    }
   }
 }
