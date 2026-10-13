@@ -3256,4 +3256,43 @@ export class ClanPage extends BasePage {
       return false;
     }
   }
+
+  async verifyMicrophonePermissionWarning(): Promise<void> {
+    await expect(this.selector.screen.voiceRoom.microphoneButton).toHaveAttribute(
+      ARIA_LABEL_ATTRIBUTE,
+      'Microphone access needed'
+    );
+  }
+
+  async verifyMicrophonePermissionDialog(kind: 'request' | 'blocked'): Promise<void> {
+    const dialog =
+      kind === 'request'
+        ? this.selector.screen.voiceRoom.microphonePermission.requestDialog
+        : this.selector.screen.voiceRoom.microphonePermission.blockedDialog;
+    await expect(dialog).toBeVisible();
+  }
+
+  async openMicrophonePermissionDialog(): Promise<void> {
+    await this.selector.screen.voiceRoom.microphoneButton.click();
+    await this.verifyMicrophonePermissionDialog('request');
+  }
+
+  async denyMicrophonePermissionRequest(): Promise<void> {
+    await this.selector.screen.voiceRoom.microphonePermission.allowButton.click();
+    await this.verifyMicrophonePermissionDialog('blocked');
+  }
+
+  async verifyMicrophonePermissionWarningHidden(): Promise<void> {
+    await expect(this.selector.screen.voiceRoom.microphonePermission.requestDialog).toBeHidden();
+    await expect(this.selector.screen.voiceRoom.microphonePermission.blockedDialog).toBeHidden();
+    await expect(this.selector.screen.voiceRoom.microphoneButton).not.toHaveAttribute(
+      ARIA_LABEL_ATTRIBUTE,
+      'Microphone access needed'
+    );
+  }
+
+  async closeMicrophonePermissionWarning(): Promise<void> {
+    await this.selector.screen.voiceRoom.microphonePermission.closeButton.click();
+    await expect(this.page.getByRole('dialog')).toBeHidden();
+  }
 }
