@@ -9,6 +9,8 @@ export enum ChannelStatus {
   PRIVATE = 'PRIVATE',
 }
 
+export type VoiceJoinRole = 'speaker' | 'audience';
+
 export enum ThreadStatus {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
