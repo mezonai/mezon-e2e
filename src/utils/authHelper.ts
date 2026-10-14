@@ -56,22 +56,25 @@ export class AuthHelper {
       return;
     }
 
-    await page.goto(endpoint, { waitUntil: 'domcontentloaded' });
-    await this.clearAuth(page);
-    await this.setAuthForAccount(page, credentials);
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.goto(`${endpoint}chat`, { waitUntil: 'domcontentloaded' });
-    // const homePage = new HomePage(page);
-    // await homePage.clickLogin();
+    // Seed storage on a blank same-origin document. Loading the application before
+    // injecting credentials starts its unauthenticated bootstrap, whose delayed
+    // logout can overwrite the credentials and redirect an otherwise ready page
+    // back to the login screen.
+    const authBootstrapUrl = new URL('/__e2e_auth_bootstrap__', endpoint).toString();
+    await page.route(authBootstrapUrl, route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<!doctype html><title>E2E auth bootstrap</title>',
+      })
+    );
 
-    const clanSelector = new ClanSelector(page);
     try {
-      if (await clanSelector.permissionModal.isVisible(4000)) {
-        await clanSelector.permissionModal.cancel.first().click();
-        console.log('Closed permission modal');
-      }
-    } catch {
-      // Ignored if modal does not appear
+      await page.goto(authBootstrapUrl, { waitUntil: 'domcontentloaded' });
+      await this.clearAuth(page);
+      await this.setAuthForAccount(page, credentials);
+    } finally {
+      await page.unroute(authBootstrapUrl);
     }
   }
 
@@ -97,6 +100,22 @@ export class AuthHelper {
     if (isDevEnvironment()) {
       return {};
     }
+
+    // The authenticated shell can render just before redux-persist finishes
+    // writing the session. Wait for the transferable session itself rather than
+    // racing the first localStorage snapshot.
+    await page.waitForFunction(() => {
+      try {
+        const persistedAuth = localStorage.getItem('persist:auth');
+        if (!persistedAuth) return false;
+        const authState = JSON.parse(persistedAuth);
+        if (!authState?.session) return false;
+        const session = JSON.parse(authState.session);
+        return Boolean(session?.session_id);
+      } catch {
+        return false;
+      }
+    });
 
     return await page.evaluate(() => {
       // Get all localStorage data

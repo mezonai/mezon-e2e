@@ -45,11 +45,19 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async nameAndSaveImageSticker(stickerName: string): Promise<void> {
-    await expect(this.selector.imageSticker.upload.input.name).toBeVisible({ timeout: 5000 });
-    await this.selector.imageSticker.upload.input.name.fill(stickerName);
-    await expect(this.selector.imageSticker.upload.button.save).toBeVisible({ timeout: 5000 });
-    await this.selector.imageSticker.upload.button.save.click();
-    await expect(this.selector.imageSticker.upload.button.save).toBeHidden({ timeout: 5000 });
+    const normalizedStickerName = stickerName.replace(/\s+/g, '');
+    const nameInput = this.selector.imageSticker.upload.input.name;
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    await nameInput.fill(stickerName);
+
+    const uploadModal = nameInput.locator('xpath=ancestor::div[contains(@class, "fixed")][1]');
+    const saveButton = uploadModal.locator(this.selector.imageSticker.upload.button.save);
+    await expect(saveButton).toBeVisible({ timeout: 5000 });
+    await saveButton.click();
+    await expect(uploadModal).toBeHidden({ timeout: 30000 });
+    await expect(
+      this.selector.imageSticker.item.name.filter({ hasText: normalizedStickerName })
+    ).toBeVisible({ timeout: 10000 });
   }
 
   async editEmojiName(oldName: string, newName: string): Promise<void> {
