@@ -837,6 +837,13 @@ export const DATA_E2E_IDENTIFIER = {
       pin_list_container: '',
     },
     channel_message: {
+      topic_pin_banner: {
+        container: '',
+        topic_item: '',
+        pin_item: '',
+        topic: '',
+        pin: '',
+      },
       header: {
         left_container: '',
         right_container: '',

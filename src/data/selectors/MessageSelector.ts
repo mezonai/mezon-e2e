@@ -120,6 +120,23 @@ export default class MessageSelector {
     `${generateE2eSelector('footer_profile.avatar')} ${AVATAR_IMAGE_SELECTOR}`
   );
   pinnedMessages = this.page.locator(generateE2eSelector('common.pin_message'));
+  readonly topicPinBanner = {
+    container: this.page.locator(
+      generateE2eSelector('chat.channel_message.topic_pin_banner.container')
+    ),
+    topicItem: this.page.locator(
+      generateE2eSelector('chat.channel_message.topic_pin_banner.topic_item')
+    ),
+    pinItem: this.page.locator(
+      generateE2eSelector('chat.channel_message.topic_pin_banner.pin_item')
+    ),
+    dismissButton: this.page.locator(
+      generateE2eSelector('chat.channel_message.topic_pin_banner.container', 'dismiss_button')
+    ),
+    confirmDismissButton: this.page.locator(
+      generateE2eSelector('modal.confirm_modal.button.confirm')
+    ),
+  };
   welcomeDM = this.page.locator(generateE2eSelector('chat_welcome'));
   welcomeDMAvatar = this.welcomeDM.locator(AVATAR_IMAGE_SELECTOR);
   headerDM = this.page.locator(DM_HEADER_LEFT_SELECTOR);

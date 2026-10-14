@@ -281,6 +281,64 @@ export class MessagePage extends BasePage {
     await this.selector.confirmPinMessageButton.click();
   }
 
+  async verifyLatestTopicInHeader(
+    expectedContent?: string,
+    supersededContent?: string
+  ): Promise<void> {
+    const topicItem = this.selector.topicPinBanner.topicItem;
+    await expect(topicItem).toBeVisible({ timeout: 15000 });
+    if (expectedContent) {
+      await expect(topicItem).toContainText(expectedContent, { timeout: 10000 });
+    }
+    if (supersededContent) {
+      await expect(topicItem).not.toContainText(supersededContent);
+    }
+  }
+
+  async verifyLatestPinnedMessageInHeader(
+    expectedContent?: string,
+    supersededContent?: string
+  ): Promise<void> {
+    const pinItem = this.selector.topicPinBanner.pinItem;
+    await expect(pinItem).toBeVisible({ timeout: 15000 });
+    if (expectedContent) {
+      await expect(pinItem).toContainText(expectedContent, { timeout: 10000 });
+    }
+    if (supersededContent) {
+      await expect(pinItem).not.toContainText(supersededContent);
+    }
+  }
+
+  async verifyLatestPinnedAttachmentInHeader(fileName: string): Promise<void> {
+    const pinItem = this.selector.topicPinBanner.pinItem;
+    await expect(pinItem).toBeVisible({ timeout: 15000 });
+    const attachment = pinItem
+      .getByText(fileName, { exact: true })
+      .or(pinItem.locator(`img[alt="${fileName}"]`));
+    await expect(attachment.first()).toBeVisible({ timeout: 15000 });
+  }
+
+  async openLatestTopicFromHeader(): Promise<void> {
+    await this.selector.topicPinBanner.topicItem.click();
+    await expect(this.selector.topicBox).toBeVisible({ timeout: 10000 });
+  }
+
+  async openLatestPinnedMessageFromHeader(): Promise<void> {
+    await this.selector.topicPinBanner.pinItem.click();
+  }
+
+  async dismissTopicPinBanner(): Promise<void> {
+    await expect(this.selector.topicPinBanner.container).toBeVisible({ timeout: 10000 });
+    await this.selector.topicPinBanner.dismissButton.click();
+    await expect(this.selector.topicPinBanner.confirmDismissButton).toBeVisible({ timeout: 5000 });
+    await this.selector.topicPinBanner.confirmDismissButton.click();
+    await expect(this.selector.topicPinBanner.container).toBeHidden({ timeout: 10000 });
+  }
+
+  async verifyTopicPinBannerHidden(): Promise<void> {
+    await expect(this.selector.topicPinBanner.container).toBeHidden({ timeout: 10000 });
+  }
+
   async getLastMessageWithProfileName(profileName: string): Promise<Locator> {
     return this.selector.messages.filter({ hasText: profileName }).last();
   }
