@@ -144,6 +144,19 @@ export class FileSizeTestHelpers {
     await this.ensureTmpDir();
     const filePath = path.join(this.tmpDir, `${fileName}.${ext}`);
 
+    if (ext.toLowerCase() === 'png') {
+      const png = Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64'
+      );
+      const out =
+        png.length >= targetBytes
+          ? png
+          : Buffer.concat([png, Buffer.alloc(targetBytes - png.length, 0)]);
+      await writeFile(filePath, out);
+      return filePath;
+    }
+
     const candidates = [
       'https://picsum.photos/4096/4096.jpg',
       'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2048&q=80',

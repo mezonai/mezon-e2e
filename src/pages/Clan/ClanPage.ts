@@ -1636,8 +1636,8 @@ export class ClanPage extends BasePage {
     await expect(lastMessage.locator('img').last()).toBeVisible({ timeout: 5000 });
   }
 
-  async sendCustomImageStickerMessage(stickerName: string): Promise<void> {
-    await this.openChannelByName('general');
+  async sendCustomImageStickerMessage(stickerName: string, channelName = 'general'): Promise<void> {
+    await this.openChannelByName(channelName);
     const messageSelector = new MessageSelector(this.page);
     const uploadedStickerName = stickerName.replace(/\s+/g, '');
     await expect(messageSelector.stickerButton).toBeVisible({ timeout: 5000 });

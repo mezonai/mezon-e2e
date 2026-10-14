@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { generateE2eSelector } from '../generateE2eSelector';
 import { MessageContactHelpers } from './MessageContactHelpers';
 
@@ -37,6 +37,30 @@ export class MessageTopicHelpers extends MessageContactHelpers {
       timeout: 5000,
     });
     await this.page.reload();
+  }
+
+  async createTopicFromMessageItem(
+    messageItem: Locator,
+    topicMessage: string,
+    reloadAfterCreate = true
+  ): Promise<void> {
+    await expect(messageItem).toBeVisible({ timeout: 5000 });
+    await messageItem.scrollIntoViewIfNeeded();
+    await messageItem.click({ button: 'right' });
+    await expect(this.selector.topicDiscussionMessageButton).toBeVisible({ timeout: 3000 });
+    await this.selector.topicDiscussionMessageButton.click();
+    await expect(this.selector.topicInput).toBeVisible({ timeout: 3000 });
+    await this.selector.topicInput.fill(topicMessage);
+    await this.selector.topicInput.press('Enter');
+    await expect(this.selector.topicMessages.filter({ hasText: topicMessage })).toBeVisible({
+      timeout: 10000,
+    });
+    if (reloadAfterCreate) {
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      return;
+    }
+    await this.selector.closeTopicBoxButton.click();
+    await expect(this.selector.topicBox).toBeHidden({ timeout: 5000 });
   }
 
   async verifyNameOnInitTopicMessageIsMatchWithClanSetting(name: string, messageText: string) {
