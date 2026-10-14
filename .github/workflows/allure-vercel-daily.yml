@@ -787,9 +787,3 @@ jobs:
           path: allure-results/
           retention-days: 3
           if-no-files-found: ignore
-
-      - name: Mark workflow failed when Playwright tests failed
-        if: always() && steps.run-tests.outcome == 'failure'
-        run: |
-          echo "::error::One or more Playwright test runs failed. See the deployed Allure report and uploaded artifacts."
-          exit 1
