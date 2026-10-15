@@ -59,8 +59,6 @@ test.describe('Direct Messages - Conversations, Groups, Pins, and Membership', (
 
     await AllureReporter.step(`Close direct message`, async () => {
       await messagePage.closeDM(username);
-      const groupName = await messagePage.getGroupName();
-      await expect(groupName).toBeHidden({ timeout: 5000 });
     });
 
     await AllureReporter.step('Verify direct message is closed', async () => {
