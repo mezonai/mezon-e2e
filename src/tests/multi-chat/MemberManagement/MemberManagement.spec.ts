@@ -358,7 +358,7 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
       await pageB.reload();
       // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openMemberList();
-      const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameA);
+      const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
       await clanPageB.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(memberItem, roleStyle);
       await clanPageB.leaveClan();
     });
