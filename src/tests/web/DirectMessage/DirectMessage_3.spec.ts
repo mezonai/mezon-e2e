@@ -143,6 +143,10 @@ test.describe('Direct Messages - Conversations, Groups, Pins, and Membership', (
 
     const messagePage = new MessagePage(page);
 
+    await test.step('Create a group for this test', async () => {
+      await messagePage.createGroup();
+    });
+
     await test.step(`Add more member to group chat`, async () => {
       await messagePage.addMoreMemberToGroup();
     });

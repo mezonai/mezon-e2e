@@ -15,6 +15,7 @@ import {
   setupDualUsersSequentially,
 } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { expect } from '@playwright/test';
 
@@ -166,15 +167,15 @@ test.describe('Clan Management - Private Channel Roles and Permission Overrides'
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
     await AllureReporter.addDescription(`
-      **Test Objective:** Verify that I can add role to private channel and verify that user is visible on member lists of channel.
+      **Test Objective:** Verify that a private-channel override prevents User B from sending messages.
 
       **Test Steps:**
       1. Invite User B to clan
-      2. Add new role with delete message permissions to User B
-      3. Create public channel
-      4. Change permission of channel to private
-      5. Add role to channel
-      **Expected Result:** I can add role to private channel and verify that user is visible on member lists of channel.
+      2. Assign a role to User B and add the role to a private channel
+      3. Verify User B can use the message composer before the override
+      4. Deny Send Messages in the channel override and save
+      5. Verify User B sees the permission-denied composer
+      **Expected Result:** User B can compose before the override and cannot compose after it.
     `);
 
     const clanPageA = new ClanPage(pageA);
@@ -250,6 +251,14 @@ test.describe('Clan Management - Private Channel Roles and Permission Overrides'
     );
 
     await AllureReporter.step(
+      'Verify User B can compose before the permission override',
+      async () => {
+        await clanPageB.openChannelByName(channelName);
+        await expect(pageB.locator(generateE2eSelector('mention.input'))).toBeVisible();
+      }
+    );
+
+    await AllureReporter.step(
       'User A override permissions (cannot send messages) for User B on private channel',
       async () => {
         await channelSettingsA.overridePermissionsForPrivateChannel();
@@ -261,9 +270,8 @@ test.describe('Clan Management - Private Channel Roles and Permission Overrides'
     await AllureReporter.step(
       'Verify that user B cannot send message on private channel',
       async () => {
-        await clanPageA.openChannelByName(channelName);
-        const isMessageInputDisabled = await clanPageA.isMessageInputDisabled();
-        expect(isMessageInputDisabled).toBe(true);
+        await clanPageB.openChannelByName(channelName);
+        await expect.poll(() => clanPageB.isMessageInputDisabled()).toBe(true);
       }
     );
 

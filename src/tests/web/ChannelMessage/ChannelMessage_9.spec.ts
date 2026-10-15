@@ -1,9 +1,10 @@
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import pressEsc from '@/utils/pressEsc';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import test, { expect } from '@playwright/test';
+import path from 'node:path';
 import { AccountCredentials } from '../../../config/environment';
 
 import { ClanFactory } from '@/data/factories/ClanFactory';
@@ -67,7 +68,7 @@ test.describe('Channel Messages - Clear Attachment Preview with Escape', () => {
 
     const clanPage = new ClanPage(page);
     const fileSizeHelpers = new FileSizeTestHelpers(page);
-    const previewRoot = await clanPage.getSelectedFilePreview();
+    const composer = page.locator(generateE2eSelector('mention.input'));
 
     const unique = Date.now().toString(36);
     const channelName = `tc-${unique}`.slice(0, 20);
@@ -80,20 +81,27 @@ test.describe('Channel Messages - Clear Attachment Preview with Escape', () => {
     const filePath = await fileSizeHelpers.createFileWithSize(
       'esc_cancel_upload',
       80 * 1024,
-      'jpg'
+      'png'
     );
+    const preview = page.getByTitle(path.basename(filePath), { exact: true });
 
     await AllureReporter.step('Upload file to composer without sending', async () => {
       await fileSizeHelpers.uploadFileDefault(filePath);
-      await expect(previewRoot).toBeVisible({ timeout: 5000 });
+      await expect(preview).toBeVisible({ timeout: 10000 });
     });
 
     await AllureReporter.step('Press Escape before send', async () => {
-      await pressEsc(page);
+      await composer.press('Escape');
     });
 
     await AllureReporter.step('Verify file preview is cleared', async () => {
-      await expect(previewRoot).toBeHidden({ timeout: 5000 });
+      await expect(preview).toHaveCount(0);
+      await expect(composer).toBeVisible();
+      await expect(
+        page
+          .locator(generateE2eSelector('message.item'))
+          .filter({ hasText: path.basename(filePath) })
+      ).toHaveCount(0);
     });
   });
 });
