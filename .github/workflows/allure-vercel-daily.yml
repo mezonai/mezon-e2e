@@ -2,11 +2,11 @@ name: 'Allure Daily Report - Deploy to Vercel'
 
 on:
   # GitHub cron uses UTC:
-  # - 13:00 UTC = 20:00 Vietnam: run Web and stage its raw results.
-  # - 19:00 UTC = 02:00 Vietnam: run Multi, merge Web results, then deploy.
+  # - 13:07 UTC = 20:07 Vietnam: run Web and stage its raw results.
+  # - 19:07 UTC = 02:07 Vietnam: run Multi, merge Web results, then deploy.
   schedule:
-    - cron: '0 13 * * *'
-    - cron: '0 19 * * *'
+    - cron: '7 13 * * *'
+    - cron: '7 19 * * *'
   workflow_dispatch:
     inputs:
       channel_management:
@@ -152,13 +152,13 @@ jobs:
           # A scheduled job can sit in GitHub's queue or wait for this self-hosted runner.
           # Calculate the elapsed time from the most recent scheduled occurrence.
           case "$EVENT_SCHEDULE" in
-            '0 13 * * *')
+            '7 13 * * *')
               EXPECTED_UTC_HOUR=13
-              EXPECTED_VIETNAM='20:00'
+              EXPECTED_VIETNAM='20:07'
               ;;
-            '0 19 * * *')
+            '7 19 * * *')
               EXPECTED_UTC_HOUR=19
-              EXPECTED_VIETNAM='02:00'
+              EXPECTED_VIETNAM='02:07'
               ;;
             *)
               echo 'Delay calculation skipped because this was not a configured scheduled run.'
@@ -167,7 +167,7 @@ jobs:
           esac
 
           NOW_EPOCH="$(date -u +%s)"
-          EXPECTED_EPOCH="$(date -u -d "today ${EXPECTED_UTC_HOUR}:00:00" +%s)"
+          EXPECTED_EPOCH="$(date -u -d "today ${EXPECTED_UTC_HOUR}:07:00" +%s)"
           if [ "$EXPECTED_EPOCH" -gt "$NOW_EPOCH" ]; then
             EXPECTED_EPOCH="$((EXPECTED_EPOCH - 86400))"
           fi
@@ -227,11 +227,11 @@ jobs:
           SELECTED_REF: ${{ github.ref_name }}
           RUN_UI_STRESS: ${{ inputs.ui_stress }}
         run: |
-          if [ "$EVENT_SCHEDULE" = "0 13 * * *" ]; then
+          if [ "$EVENT_SCHEDULE" = "7 13 * * *" ]; then
             RUN_PHASE="web"
             REPORT_MODE="daily"
             REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
-          elif [ "$EVENT_SCHEDULE" = "0 19 * * *" ]; then
+          elif [ "$EVENT_SCHEDULE" = "7 19 * * *" ]; then
             RUN_PHASE="multi"
             REPORT_MODE="daily"
             REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
@@ -741,7 +741,7 @@ jobs:
           fi
 
       # -----------------------------------------------------------------------
-      # 10. Run data cleanup after the nightly Multi run (02:00 Vietnam)
+      # 10. Run data cleanup after the nightly Multi run (02:07 Vietnam)
       #     Deletes leftover clans/groups created by tests on the dev env.
       #     Runs before the VPN is disconnected and never blocks the pipeline.
       #     --reporter=list keeps cleanup entries out of the Allure report.
