@@ -197,6 +197,14 @@ export class MessagePage extends BasePage {
     const closeBtn = user.locator(CLOSE_DM_BUTTON_SELECTOR);
     await expect(closeBtn).toBeVisible({ timeout: 3000 });
     await closeBtn.click({ force: true });
+
+    const confirmButton = this.page.locator(
+      generateE2eSelector('modal.confirm_modal.button.confirm')
+    );
+    await expect(confirmButton).toBeVisible();
+    await confirmButton.click();
+    await expect(confirmButton).toBeHidden();
+    await expect(user).toBeHidden();
   }
 
   async isDMClosed(username: string): Promise<boolean> {
