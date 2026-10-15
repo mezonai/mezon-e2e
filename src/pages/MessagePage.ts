@@ -82,14 +82,28 @@ export class MessagePage extends BasePage {
     await this.openSelectFriendsModal();
     await this.pickFriends(2);
     await this.submitCreate();
+    await expect(this.selector.createGroupButton).toBeHidden();
+    await expect(this.selector.sumMember).toBeVisible();
+    await expect(this.selector.messageInput).toBeVisible();
   }
 
   async clickEditButton(): Promise<void> {
-    await this.selector.editGroupButton.click();
+    await expect(this.selector.sumMember).toBeVisible();
+    await this.selector.groupName.click();
+    await expect(this.selector.editGroupModal).toBeVisible();
   }
 
   async openSelectFriendsModal(): Promise<void> {
     await this.selector.buttonCreateGroupSidebar.click();
+  }
+
+  private async getFriendName(friend: Locator): Promise<string> {
+    const displayName = (
+      await friend
+        .locator(generateE2eSelector('chat.direct_message.friend_list.username_friend_item'))
+        .innerText()
+    ).trim();
+    return displayName || (await friend.locator('span:not([data-e2e])').last().innerText()).trim();
   }
 
   async pickFriends(count: number): Promise<void> {
@@ -134,12 +148,31 @@ export class MessagePage extends BasePage {
   }
 
   async addMoreMemberToGroup(): Promise<void> {
-    await this.selector.group.click();
+    await expect(this.selector.sumMember).toBeVisible();
+    const groupUrl = this.page.url();
+    if (!(await this.selector.memberCount.isVisible())) {
+      await this.selector.sumMember.click();
+    }
+    await expect
+      .poll(async () => Number((await this.selector.memberCount.innerText()).match(/\d+/)?.[0]))
+      .toBeGreaterThanOrEqual(3);
+    const memberCountText = await this.selector.memberCount.innerText();
+    const previousCount = Number(memberCountText.match(/\d+/)?.[0]);
     await this.selector.addUserButton.click();
-    await expect(this.selector.userItem.first()).toBeVisible({ timeout: 5000 });
-    await this.selector.userItem.click();
-    await this.selector.addToGroupButton.click();
-    await expect(this.selector.userItem.first()).toBeHidden({ timeout: 5000 });
+    const candidate = this.selector.friendItems.first();
+    await expect(candidate).toBeVisible();
+    const memberName = await this.getFriendName(candidate);
+    expect(memberName, 'The selected friend must have a display name or username').not.toBe('');
+    await candidate.locator('input[type="checkbox"]').check();
+    await this.selector.createGroupButton.click();
+    await expect(this.selector.createGroupButton).toBeHidden();
+    await expect(this.page).toHaveURL(groupUrl);
+    await expect(this.selector.memberCount).toHaveText(new RegExp(`-\\s*${previousCount + 1}$`));
+    await expect(
+      this.page
+        .locator(generateE2eSelector('clan_page.secondary_side_bar.member'))
+        .filter({ has: this.page.getByText(memberName, { exact: true }) })
+    ).toHaveCount(1);
   }
 
   async addMemberToCurrentConversation(): Promise<void> {

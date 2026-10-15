@@ -6,8 +6,9 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { splitDomainAndPath } from '@/utils/domain';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import joinUrlPaths from '@/utils/joinUrlPaths';
-import { FileSizeTestHelpers, UploadType } from '@/utils/uploadFileHelpers';
+import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { BrowserContext, expect, Page, test, TestInfo } from '@playwright/test';
 
 test.describe('File Uploads - Group Avatars and Timeline Attachments', () => {
@@ -19,7 +20,7 @@ test.describe('File Uploads - Group Avatars and Timeline Attachments', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     //This test need account have friends to create group chat
-    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account2);
+    await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account4);
     await clanFactory.setupClan(ClanSetupHelper.configs.uploadFile4, page);
 
     clanFactory.setClanUrl(
@@ -78,11 +79,11 @@ test.describe('File Uploads - Group Avatars and Timeline Attachments', () => {
       **Test Objective:** Verify Group Avatar upload enforces 8MB limit
 
       **Test Steps:**
-      1. Open User Settings -> Profiles
-      2. Upload image under 8MB (should succeed)
-      3. Upload image over 8MB (should show error modal)
+      1. Create a group chat and open its edit modal from the header
+      2. Upload a 7MB image (should succeed)
+      3. Upload a 10MB image (should show the 8MB limit error)
 
-      **Expected Result:** Under 8MB uploads successfully; over 8MB shows "Your files are too powerful" with "Max file size is 8 MB"
+      **Expected Result:** The 7MB image is accepted into the avatar preview; the 10MB image is rejected with "Max file size is 8 MB".
     `);
 
     await AllureReporter.step('Create a group chat and open edit group modal', async () => {
@@ -90,34 +91,35 @@ test.describe('File Uploads - Group Avatars and Timeline Attachments', () => {
       await messagePage.createGroup();
       await messagePage.clickEditButton();
     });
+    const avatarInput = page.locator(
+      generateE2eSelector('chat.direct_message.edit_group.upload.avatar_group_input')
+    );
 
     const under8MbGroupAvt = await fileSizeHelpers.createFileWithSize(
       'direct_message_icon_under_8mb',
       7 * 1024 * 1024,
-      'jpg'
+      'png'
     );
     await AllureReporter.step('Upload direct message icon under limit (7MB)', async () => {
-      const result = await fileSizeHelpers.uploadByTypeAndVerify(
-        under8MbGroupAvt,
-        UploadType.GROUP_AVATAR,
-        true
-      );
-      expect(result.success).toBe(true);
+      await avatarInput.setInputFiles(under8MbGroupAvt);
+      const avatarPreview = page
+        .locator(generateE2eSelector('chat.direct_message.edit_group'))
+        .getByRole('img', { name: 'Group', exact: true });
+      await expect(avatarPreview).toHaveAttribute('src', /^data:image\/png;base64,/);
+      await expect(page.locator(generateE2eSelector('modal.validate_file'))).toHaveCount(0);
     });
 
     const over8MbDirectMessage = await fileSizeHelpers.createFileWithSize(
       'direct_message_icon_over_8mb',
       10 * 1024 * 1024,
-      'jpg'
+      'png'
     );
-    await AllureReporter.step('Upload direct message icon over limit (8MB)', async () => {
-      const result = await fileSizeHelpers.uploadByTypeAndVerify(
-        over8MbDirectMessage,
-        UploadType.GROUP_AVATAR,
-        false
+    await AllureReporter.step('Upload group avatar over limit (10MB)', async () => {
+      await avatarInput.setInputFiles(over8MbDirectMessage);
+      await expect(page.locator(generateE2eSelector('modal.validate_file'))).toBeVisible();
+      await expect(page.locator(generateE2eSelector('modal.validate_file.content'))).toHaveText(
+        /max file size is 8 mb, please!/i
       );
-      expect(result.success).toBe(false);
-      expect(result.errorMessage?.toLowerCase()).toMatch('max file size is 8 mb, please!');
       await page.reload({ waitUntil: 'domcontentloaded' });
     });
   });
