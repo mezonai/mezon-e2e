@@ -179,6 +179,9 @@ test.describe('Channel Messages - Latest Topic and Latest Pinned Message', () =>
     await messagePage.sendMessageWithAnonymous(message);
     const anonymousItem = messageHelper.getMessageItemLocator(message).last();
     await expect(anonymousItem).toBeVisible({ timeout: 10000 });
+    expect(await messagePage.isAnonymousMessageSent()).toBe(true);
+    // The source stays anonymous; creating a topic requires normal composer mode.
+    await messagePage.closeAnonymous();
     await messageHelper.createTopicFromMessageItem(
       anonymousItem,
       `Anonymous topic reply ${Date.now().toString(36)}`

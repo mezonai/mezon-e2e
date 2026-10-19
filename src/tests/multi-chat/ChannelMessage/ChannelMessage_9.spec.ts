@@ -55,9 +55,9 @@ test.describe('Channel Messages - Search Filters', () => {
       2. User A invites User B and User B joins the clan
       3. User A sends a message in the created channel
       4. User A opens channel search and enters >
-      5. Verify the From user popover contains User A, User B, Everyone, and @here
+      5. Verify the From user popover contains User A, User B, and @here; Everyone is intentionally excluded
 
-      **Expected Result:** The From user suggestions display the clan owner, invited member, Everyone, and @here.
+      **Expected Result:** The From user suggestions display the clan owner, invited member, and @here, while Everyone is hidden.
     `);
     await AllureReporter.addLabels({
       tag: [CHANNEL_MESSAGE_TAG, SEARCH_TAG, 'from-user', MULTI_USER_TAG],
@@ -88,7 +88,7 @@ test.describe('Channel Messages - Search Filters', () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
       await friendPageA.verifySentRequestToast();
       await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
-      await friendPageB.acceptFirstFriendRequest();
+      await friendPageB.acceptFriendRequestFromUser(userNameA);
       await pageA.waitForTimeout(2000);
       await Promise.all([pageA.reload(), pageB.reload()]);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
@@ -139,9 +139,9 @@ test.describe('Channel Messages - Search Filters', () => {
       2. User A invites User B and User B joins the clan
       3. User A sends a message in the created channel
       4. User A opens channel search and enters ~
-      5. Verify the Mentions popover contains User A, User B, Everyone, and @here
+      5. Verify the Mentions popover contains User A, User B, and @here; Everyone is intentionally excluded
 
-      **Expected Result:** The Mentions suggestions display the clan owner, invited member, Everyone, and @here.
+      **Expected Result:** The Mentions suggestions display the clan owner, invited member, and @here, while Everyone is hidden.
     `);
     await AllureReporter.addLabels({
       tag: [CHANNEL_MESSAGE_TAG, SEARCH_TAG, 'mentions', MULTI_USER_TAG],
@@ -172,7 +172,7 @@ test.describe('Channel Messages - Search Filters', () => {
       await friendPageA.sendFriendRequestToUser(userNameB);
       await friendPageA.verifySentRequestToast();
       await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
-      await friendPageB.acceptFirstFriendRequest();
+      await friendPageB.acceptFriendRequestFromUser(userNameA);
       await pageA.waitForTimeout(2000);
       await Promise.all([pageA.reload(), pageB.reload()]);
       await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);

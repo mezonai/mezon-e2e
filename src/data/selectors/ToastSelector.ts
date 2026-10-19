@@ -21,14 +21,10 @@ export class ToastSelector {
   }
 
   async verifySuccessToast(expectedMessage?: string): Promise<void> {
-    await this.success.first().waitFor({ state: 'visible', timeout: 10000 });
-    if (expectedMessage) {
-      const toastMessage = await this.success
-        .first()
-        .locator(ToastSelector.TOAST_BODY_SELECTOR)
-        .textContent();
-      expect(toastMessage).toContain(expectedMessage);
-    }
+    const matchingToast = expectedMessage
+      ? this.success.filter({ hasText: expectedMessage })
+      : this.success;
+    await expect(matchingToast.first()).toBeVisible({ timeout: 10000 });
   }
 
   async verifyErrorToast(expectedMessage?: string): Promise<void> {

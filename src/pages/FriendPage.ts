@@ -7,11 +7,14 @@ import joinUrlPaths from '@/utils/joinUrlPaths';
 import { Locator, Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 const SUCCESS_MESSAGE = 'Friend request sent successfully!';
+const ACCEPTED_MESSAGE = 'Accept friend request!';
 const ALREADY_SENT_MESSAGE = 'You have already sent a friend request to this user!';
 const ALREADY_FRIEND_MESSAGE = "You're already friends with that user!";
+const CANCEL_REQUEST_SELECTOR = generateE2eSelector('friend_page.button.cancel_friend_request');
 type Tabs = 'all' | 'online' | 'pending' | 'block';
 const dmActivClass = 'text-theme-primary-active';
 export class FriendPage extends BasePage {
+  private requestedUsername?: string;
   private readonly toasts: ToastSelector;
   private readonly selector: FriendSelector;
   constructor(page: Page) {
@@ -108,6 +111,7 @@ export class FriendPage extends BasePage {
   }
 
   async clickSendFriendRequest(): Promise<void> {
+    this.requestedUsername = (await this.selector.inputs.addFriend.inputValue()).trim();
     await this.selector.buttons.sendFriendRequest.click();
   }
 
@@ -119,11 +123,31 @@ export class FriendPage extends BasePage {
   }
 
   async verifySentRequestToast(): Promise<void> {
-    try {
-      await this.toasts.verifySuccessToast(SUCCESS_MESSAGE);
-    } catch (error) {
-      console.error('Toast Not show:', error);
-    }
+    const sentToast = this.toasts.success.filter({ hasText: SUCCESS_MESSAGE });
+    const acceptedToast = this.toasts.success.filter({ hasText: ACCEPTED_MESSAGE });
+    await expect(sentToast.or(acceptedToast).first()).toBeVisible({ timeout: 10000 });
+    if (await sentToast.first().isVisible()) return;
+
+    // A reciprocal request or fast acceptance can replace the sent notification.
+    // Confirm the requested user is a friend rather than trusting an unrelated toast.
+    if (!this.requestedUsername)
+      throw new Error('No requested username available to verify acceptance');
+    const username = this.requestedUsername;
+    await expect
+      .poll(
+        async () => {
+          if (await sentToast.first().isVisible()) return true;
+          const friend = await this.friendExistsInTab(username, 'all');
+          if ((await friend.count()) > 0) return true;
+          const pending = await this.friendExistsInTab(username, 'pending');
+          return (await pending.locator(CANCEL_REQUEST_SELECTOR).count()) > 0;
+        },
+        {
+          timeout: 10000,
+          message: `Friend request must be outgoing or accepted for ${username}`,
+        }
+      )
+      .toBe(true);
   }
 
   async verifyReceivedRequestToast(message: string): Promise<void> {
@@ -155,11 +179,14 @@ export class FriendPage extends BasePage {
   }
 
   async acceptFriendRequestFromUser(username: string): Promise<void> {
+    const existingFriend = await this.friendExistsInTab(username, 'all');
+    if ((await existingFriend.count()) > 0) return;
     const friendItem = await this.friendExistsInTab(username, 'pending');
     await friendItem.waitFor({ state: 'visible' });
     await friendItem
       .locator(generateE2eSelector('friend_page.button.accept_friend_request'))
       .click();
+    await this.assertAllFriend(username);
   }
 
   async rejectFriendRequest(username: string): Promise<void> {
@@ -177,9 +204,7 @@ export class FriendPage extends BasePage {
   async cancelFriendRequest(username: string): Promise<void> {
     const friendItem = await this.friendExistsInTab(username, 'pending');
     await friendItem.waitFor({ state: 'visible' });
-    await friendItem
-      .locator(generateE2eSelector('friend_page.button.cancel_friend_request'))
-      .click();
+    await friendItem.locator(CANCEL_REQUEST_SELECTOR).click();
     await this.page.waitForTimeout(500);
     await this.confirmRemoveFriend();
     await this.page.waitForTimeout(500);
@@ -259,9 +284,7 @@ export class FriendPage extends BasePage {
     const friendItemsCount = await friendItems.count();
     for (let i = 0; i < friendItemsCount; i++) {
       const friendItem = friendItems.nth(i);
-      const cancelButton = friendItem.locator(
-        generateE2eSelector('friend_page.button.cancel_friend_request')
-      );
+      const cancelButton = friendItem.locator(CANCEL_REQUEST_SELECTOR);
       const cancelButtonCount = await cancelButton.count();
       if (cancelButtonCount > 0) {
         await cancelButton.click();
