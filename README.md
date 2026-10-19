@@ -54,6 +54,23 @@ npm run test:debug
 npm run test:ui
 ```
 
+### DM voice call tests
+
+```bash
+npm run test:dm-call
+
+# Run locally without sending reporter notifications
+TEST_GAP_MS=0 npm run test:dm-call -- --reporter=list
+```
+
+The `Multi` project opens two isolated browser sessions with fake media devices. These four
+tests cover accepting a call and hanging up from either side, rejecting an incoming call,
+and cancelling a ringing call. Accepted calls must play remote audio on both sides; rejection
+and cancellation also verify that another call can be started.
+
+Set `BASE_URL` to the running frontend. When using the default local URL, start the frontend
+on port 4200 first. Authentication uses the dev environment and requires access to its services.
+
 ## 📊 Test Reporting
 
 This project uses multiple reporting mechanisms:
