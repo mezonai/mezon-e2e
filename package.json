@@ -16,6 +16,7 @@
     "test:channel-message-5": "npx playwright test src/tests/web/ChannelMessage/ChannelMessage_5.spec.ts --project Chrome",
     "test:clan-management": "npx playwright test src/tests/web/ClanManagement --project Chrome",
     "test:direct-message": "npx playwright test src/tests/web/DirectMessage --project Chrome",
+    "test:dm-call": "npx playwright test src/tests/multi-chat/DirectMessage/DirectMessageCall.spec.ts --project Multi",
     "test:dual-chat-in-clan": "npx playwright test src/tests/multi-chat/ChannelMessage --project Multi",
     "test:onboarding-guide": "npx playwright test src/tests/web/Onboarding --project Chrome",
     "test:thread-management": "npx playwright test src/tests/web/ThreadManagement --project Chrome",
