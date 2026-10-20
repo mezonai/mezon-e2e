@@ -622,19 +622,20 @@ export class MessagePage extends BasePage {
   }
 
   async verifyChannelSearchFromUserSuggestions(expectedUsers: string[]): Promise<void> {
-    await this.verifyChannelSearchSuggestions('>', 'From user', [
-      ...expectedUsers,
-      'Everyone',
-      '@here',
-    ]);
+    await this.verifyChannelSearchSuggestions('>', 'From user', [...expectedUsers, '@here']);
+    await this.verifyEveryoneSearchSuggestionHidden();
   }
 
   async verifyChannelSearchMentionSuggestions(expectedUsers: string[]): Promise<void> {
-    await this.verifyChannelSearchSuggestions('~', 'Mentions', [
-      ...expectedUsers,
-      'Everyone',
-      '@here',
-    ]);
+    await this.verifyChannelSearchSuggestions('~', 'Mentions', [...expectedUsers, '@here']);
+    await this.verifyEveryoneSearchSuggestionHidden();
+  }
+
+  private async verifyEveryoneSearchSuggestionHidden(): Promise<void> {
+    // UserMentionList deliberately excludes the everyone role from suggestions.
+    await expect(
+      this.selector.searchMessage.select.item.filter({ hasText: /^Everyone$/ })
+    ).toHaveCount(0);
   }
 
   async verifyChannelSearchHasSuggestions(): Promise<void> {
@@ -977,8 +978,14 @@ export class MessagePage extends BasePage {
   }
 
   async openAnonymous() {
-    await this.page.keyboard.press('Control+Shift+Enter');
+    await this.page.keyboard.press('ControlOrMeta+Shift+Enter');
     await expect(this.selector.anonymous.anonymousIcon).toBeVisible({ timeout: 5000 });
+  }
+
+  async closeAnonymous(): Promise<void> {
+    await expect(this.selector.anonymous.anonymousIcon).toBeVisible();
+    await this.page.keyboard.press('ControlOrMeta+Shift+Enter');
+    await expect(this.selector.anonymous.anonymousIcon).toBeHidden();
   }
 
   async verifyAnonymousIsVisible() {
@@ -1013,12 +1020,14 @@ export class MessagePage extends BasePage {
 
   async isAnonymousMessageSent(): Promise<boolean> {
     try {
-      const messageLocator = this.page.locator(`text="${this.message}"`);
-      await messageLocator.waitFor({ state: 'visible', timeout: 5000 });
-
-      await this.selector.anonymous.anonymousMessage.waitFor({ state: 'visible', timeout: 5000 });
-
-      await this.selector.anonymous.anonymousName.waitFor({ state: 'visible', timeout: 5000 });
+      const messageItem = this.selector.messages.filter({ hasText: this.message }).last();
+      await expect(messageItem).toBeVisible({ timeout: 5000 });
+      // Anonymous senders can have a generated name and avatar. The hat marks anonymity.
+      await expect(
+        messageItem
+          .locator(generateE2eSelector('base_profile.display_name'))
+          .locator('svg:has(.icon-HatIcon-fill-1)')
+      ).toBeVisible({ timeout: 5000 });
 
       return true;
     } catch (error) {
