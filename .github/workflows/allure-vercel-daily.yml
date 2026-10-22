@@ -127,16 +127,32 @@ jobs:
       PLAYWRIGHT_BROWSERS_PATH: /home/member/pw-browsers
 
     steps:
+      - name: Read workflow creation time
+        id: workflow_timing
+        if: github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: run } = await github.rest.actions.getWorkflowRun({
+              ...context.repo,
+              run_id: context.runId,
+            });
+            if (!run.created_at || !run.run_started_at) {
+              throw new Error('Workflow timing is required to resolve the scheduled report date.');
+            }
+            core.setOutput('created_at', run.created_at);
+            core.setOutput('run_started_at', run.run_started_at);
+
       - name: Log schedule and runner timing
+        id: schedule_timing
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           RUN_ID: ${{ github.run_id }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           WORKFLOW_REF: ${{ github.workflow_ref }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_API_URL: ${{ github.api_url }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+          CREATED_AT: ${{ steps.workflow_timing.outputs.created_at }}
+          RUN_STARTED_AT: ${{ steps.workflow_timing.outputs.run_started_at }}
         run: |
           NOW_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           NOW_VIETNAM="$(TZ=Asia/Ho_Chi_Minh date '+%Y-%m-%d %H:%M:%S %Z')"
@@ -149,8 +165,8 @@ jobs:
           echo "Run: $RUN_ID (attempt $RUN_ATTEMPT)"
           echo "Workflow ref: $WORKFLOW_REF"
 
-          # A scheduled job can sit in GitHub's queue or wait for this self-hosted runner.
-          # Calculate the elapsed time from the most recent scheduled occurrence.
+          # Anchor the schedule to the original run creation time. Runner queue
+          # delays and reruns must not move the report into a different day.
           case "$EVENT_SCHEDULE" in
             '7 13 * * *')
               EXPECTED_UTC_HOUR=13
@@ -167,52 +183,33 @@ jobs:
           esac
 
           NOW_EPOCH="$(date -u +%s)"
-          EXPECTED_EPOCH="$(date -u -d "today ${EXPECTED_UTC_HOUR}:07:00" +%s)"
-          if [ "$EXPECTED_EPOCH" -gt "$NOW_EPOCH" ]; then
+          CREATED_EPOCH="$(date -u -d "$CREATED_AT" +%s)"
+          CREATED_DATE="$(date -u -d "$CREATED_AT" +%F)"
+          EXPECTED_EPOCH="$(date -u -d "$CREATED_DATE ${EXPECTED_UTC_HOUR}:07:00" +%s)"
+          if [ "$EXPECTED_EPOCH" -gt "$CREATED_EPOCH" ]; then
             EXPECTED_EPOCH="$((EXPECTED_EPOCH - 86400))"
           fi
 
           EXPECTED_UTC="$(date -u -d "@$EXPECTED_EPOCH" '+%Y-%m-%dT%H:%M:%SZ')"
+          echo "scheduled_at=$EXPECTED_UTC" >> "$GITHUB_OUTPUT"
           DELAY_MINUTES="$(((NOW_EPOCH - EXPECTED_EPOCH) / 60))"
           echo "Expected schedule (UTC): $EXPECTED_UTC"
           echo "Expected schedule (Vietnam): $EXPECTED_VIETNAM"
           echo "Delay before this runner started: ${DELAY_MINUTES} minute(s)"
           echo 'Note: this delay includes GitHub scheduling, concurrency, and self-hosted runner queue time.'
 
-          # The workflow-run API exposes the timestamps that distinguish a delayed
-          # GitHub schedule from a run that was queued for concurrency or a runner.
-          if RUN_METADATA="$(curl --silent --show-error --fail --retry 2 \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H 'Accept: application/vnd.github+json' \
-            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID")"; then
-            json_timestamp() {
-              printf '%s' "$RUN_METADATA" | sed -n "s/.*\"$1\":\"\\([^\"]*\\)\".*/\\1/p"
-            }
+          format_duration() {
+            local seconds="$1"
+            printf '%dm %02ds' "$((seconds / 60))" "$((seconds % 60))"
+          }
 
-            format_duration() {
-              local seconds="$1"
-              printf '%dm %02ds' "$((seconds / 60))" "$((seconds % 60))"
-            }
+          echo "Workflow created by GitHub (UTC): $CREATED_AT"
+          echo "Workflow run started (UTC): $RUN_STARTED_AT"
+          echo "GitHub scheduler delay: $(format_duration "$((CREATED_EPOCH - EXPECTED_EPOCH))")"
 
-            CREATED_AT="$(json_timestamp created_at)"
-            RUN_STARTED_AT="$(json_timestamp run_started_at)"
-
-            echo "Workflow created by GitHub (UTC): ${CREATED_AT:-unavailable}"
-            echo "Workflow run started (UTC): ${RUN_STARTED_AT:-unavailable}"
-
-            if [ -n "$CREATED_AT" ]; then
-              CREATED_EPOCH="$(date -u -d "$CREATED_AT" +%s)"
-              echo "GitHub scheduler delay: $(format_duration "$((CREATED_EPOCH - EXPECTED_EPOCH))")"
-            fi
-
-            if [ -n "$CREATED_AT" ] && [ -n "$RUN_STARTED_AT" ]; then
-              RUN_STARTED_EPOCH="$(date -u -d "$RUN_STARTED_AT" +%s)"
-              echo "Queue delay (concurrency or self-hosted runner): $(format_duration "$((RUN_STARTED_EPOCH - CREATED_EPOCH))")"
-              echo "Runner bootstrap delay: $(format_duration "$((NOW_EPOCH - RUN_STARTED_EPOCH))")"
-            fi
-          else
-            echo '::warning::Could not read workflow timing from the GitHub Actions API.'
-          fi
+          RUN_STARTED_EPOCH="$(date -u -d "$RUN_STARTED_AT" +%s)"
+          echo "Queue delay (concurrency or self-hosted runner): $(format_duration "$((RUN_STARTED_EPOCH - CREATED_EPOCH))")"
+          echo "Runner bootstrap delay: $(format_duration "$((NOW_EPOCH - RUN_STARTED_EPOCH))")"
 
       # -----------------------------------------------------------------------
       # 1. Checkout source code
@@ -226,15 +223,16 @@ jobs:
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           SELECTED_REF: ${{ github.ref_name }}
           RUN_UI_STRESS: ${{ inputs.ui_stress }}
+          SCHEDULED_AT: ${{ steps.schedule_timing.outputs.scheduled_at }}
         run: |
           if [ "$EVENT_SCHEDULE" = "7 13 * * *" ]; then
             RUN_PHASE="web"
             REPORT_MODE="daily"
-            REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
+            REPORT_DATE="$(TZ=UTC date -d "$SCHEDULED_AT +1 day" +%F)"
           elif [ "$EVENT_SCHEDULE" = "7 19 * * *" ]; then
             RUN_PHASE="multi"
             REPORT_MODE="daily"
-            REPORT_DATE="$(TZ=UTC date -d tomorrow +%F)"
+            REPORT_DATE="$(TZ=UTC date -d "$SCHEDULED_AT +1 day" +%F)"
           else
             RUN_PHASE="manual"
             if [ "$SELECTED_REF" = "main" ] && [ "$RUN_UI_STRESS" != "true" ]; then
