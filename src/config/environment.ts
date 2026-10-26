@@ -416,11 +416,11 @@ export const getBrowserConfig = () => ({
   args: isCI()
     ? ['--disable-dev-shm-usage', '--no-sandbox']
     : [
-        '--disable-clipboard-read-write',
-        '--disable-permissions-api',
-        '--disable-features=ClipboardReadWrite',
-        '--disable-clipboard-sanitization',
-      ],
+      '--disable-clipboard-read-write',
+      '--disable-permissions-api',
+      '--disable-features=ClipboardReadWrite',
+      '--disable-clipboard-sanitization',
+    ],
 });
 
 // Function to get auth data for specific account
@@ -447,99 +447,99 @@ export const getSessionConfig = () => {
 
 export const AccountCredentials = {
   account1: {
-    email: 'thang.thieuquang+01@ncc.asia',
+    email: 'thang.thieuquang+01@ncc.plus',
     password: 'Ncc@1234',
   },
   account2: {
-    email: 'thang.thieuquang+02@ncc.asia',
+    email: 'thang.thieuquang+02@ncc.plus',
     password: 'Ncc@1234',
   },
   account3: {
-    email: 'thang.thieuquang+03@ncc.asia',
+    email: 'thang.thieuquang+03@ncc.plus',
     password: 'Ncc@1234',
   },
   account4: {
-    email: 'thang.thieuquang+04@ncc.asia',
+    email: 'thang.thieuquang+04@ncc.plus',
     password: 'Ncc@1234',
   },
   account5: {
-    email: 'thang.thieuquang+05@ncc.asia',
+    email: 'thang.thieuquang+05@ncc.plus',
     password: 'Ncc@1234',
   },
   account6: {
-    email: 'thang.thieuquang+06@ncc.asia',
+    email: 'thang.thieuquang+06@ncc.plus',
     password: 'Ncc@1234',
   },
   account7: {
-    email: 'thang.thieuquang+07@ncc.asia',
+    email: 'thang.thieuquang+07@ncc.plus',
     password: 'Ncc@1234',
   },
   account8: {
-    email: 'thang.thieuquang+08@ncc.asia',
+    email: 'thang.thieuquang+08@ncc.plus',
     password: 'Ncc@1234',
   },
   account9: {
-    email: 'thang.thieuquang+09@ncc.asia',
+    email: 'thang.thieuquang+09@ncc.plus',
     password: 'Ncc@1234',
   },
   'account2-1': {
-    email: 'thang.thieuquang+02-1@ncc.asia',
+    email: 'thang.thieuquang+02-1@ncc.plus',
     password: 'Ncc@1234',
   },
   'account2-2': {
-    email: 'thang.thieuquang+02-2@ncc.asia',
+    email: 'thang.thieuquang+02-2@ncc.plus',
     password: 'Ncc@1234',
   },
   'account2-3': {
-    email: 'thang.thieuquang+02-3@ncc.asia',
+    email: 'thang.thieuquang+02-3@ncc.plus',
     password: 'Ncc@1234',
   },
   'account2-4': {
-    email: 'thang.thieuquang+02-4@ncc.asia',
+    email: 'thang.thieuquang+02-4@ncc.plus',
     password: 'Ncc@1234',
   },
   'account2-5': {
-    email: 'thang.thieuquang+02-5@ncc.asia',
+    email: 'thang.thieuquang+02-5@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien1: {
-    email: 'kien.trinhduy+01@ncc.asia',
+    email: 'kien.trinhduy+01@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien2: {
-    email: 'kien.trinhduy+02@ncc.asia',
+    email: 'kien.trinhduy+02@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien3: {
-    email: 'kien.trinhduy+03@ncc.asia',
+    email: 'kien.trinhduy+03@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien4: {
-    email: 'kien.trinhduy+04@ncc.asia',
+    email: 'kien.trinhduy+04@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien5: {
-    email: 'kien.trinhduy+05@ncc.asia',
+    email: 'kien.trinhduy+05@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien6: {
-    email: 'kien.trinhduy+06@ncc.asia',
+    email: 'kien.trinhduy+06@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien7: {
-    email: 'kien.trinhduy+07@ncc.asia',
+    email: 'kien.trinhduy+07@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien8: {
-    email: 'kien.trinhduy+08@ncc.asia',
+    email: 'kien.trinhduy+08@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien9: {
-    email: 'kien.trinhduy+09@ncc.asia',
+    email: 'kien.trinhduy+09@ncc.plus',
     password: 'Ncc@1234',
   },
   accountKien10: {
-    email: 'kien.trinhduy+10@ncc.asia',
+    email: 'kien.trinhduy+10@ncc.plus',
     password: 'Ncc@1234',
   },
 };
