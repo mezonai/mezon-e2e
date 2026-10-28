@@ -143,8 +143,8 @@ test.describe('Direct Messages - Conversations, Groups, Pins, and Membership', (
 
     const messagePage = new MessagePage(page);
 
-    await test.step('Create a group for this test', async () => {
-      await messagePage.createGroup();
+    await test.step('Ensure a group chat exists for this test', async () => {
+      await messagePage.ensureGroupChat();
     });
 
     await test.step(`Add more member to group chat`, async () => {
@@ -160,7 +160,7 @@ test.describe('Direct Messages - Conversations, Groups, Pins, and Membership', (
     const messagePage = new MessagePage(page);
 
     await test.step(`Update name for group chat DM`, async () => {
-      await messagePage.createGroup();
+      await messagePage.ensureGroupChat();
       const groupName = await messagePage.getGroupName();
       await expect(groupName).toBeVisible({ timeout: 5000 });
       await messagePage.updateNameGroupChatDM(nameGroupChat);
