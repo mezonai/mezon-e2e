@@ -10,22 +10,8 @@ export class DirectMessageHelper {
   }
 
   async countGroups(): Promise<number> {
-    const messagePage = new MessagePage(this.page);
-    let groupCount = 0;
-    const listDMItems = await messagePage.getListDMItems();
-    const count = await listDMItems.count();
-
-    for (let i = 0; i < count; i++) {
-      const dm = listDMItems.nth(i);
-      const pCount = await dm.locator('p').count();
-      if (pCount > 0) {
-        const text = await dm.locator('p').first().textContent();
-        if (text?.includes('Members')) {
-          groupCount++;
-        }
-      }
-    }
-    return groupCount;
+    const groupNameSelector = generateE2eSelector('chat.direct_message.chat_item.group_name');
+    return await this.page.locator(groupNameSelector).count();
   }
 
   async scrollUntilVisible(
