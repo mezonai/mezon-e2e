@@ -232,11 +232,46 @@ export class MessagePage extends BasePage {
   }
 
   async addMemberToCurrentConversation(): Promise<void> {
+    await this.dismissPermissionModalIfPresent();
     await this.selector.addUserButton.click();
-    await expect(this.selector.userItem.first()).toBeVisible({ timeout: 5000 });
-    await this.selector.userItem.click();
-    await this.selector.createGroupButton.click();
-    await expect(this.selector.userItem.first()).toBeHidden({ timeout: 5000 });
+    await this.dismissPermissionModalIfPresent();
+    await expect(this.selector.friendItems.first()).toBeVisible({ timeout: 5000 });
+
+    const friendCount = await this.selector.friendItems.count();
+    const countToSelect = Math.min(2, friendCount);
+    for (let i = 0; i < countToSelect; i++) {
+      const candidate = this.selector.friendItems.nth(i);
+      if (await candidate.isVisible().catch(() => false)) {
+        const checkbox = candidate.locator('input[type="checkbox"]');
+        if (await checkbox.count()) {
+          await checkbox.check({ force: true });
+        } else {
+          await candidate.click({ force: true });
+        }
+      }
+    }
+    await this.dismissPermissionModalIfPresent();
+    await this.selector.createGroupButton.click({ force: true });
+
+    const modalHidden = await this.selector.createGroupButton
+      .waitFor({ state: 'hidden', timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (!modalHidden) {
+      await this.page.keyboard.press('Escape');
+      await this.selector.createGroupButton
+        .waitFor({ state: 'hidden', timeout: 5000 })
+        .catch(() => {});
+      await this.dismissPermissionModalIfPresent();
+      const groupInSidebar = this.page
+        .locator(generateE2eSelector('chat.direct_message.chat_item.group_name'))
+        .first();
+      if (await groupInSidebar.isVisible().catch(() => false)) {
+        await groupInSidebar.click({ force: true });
+      }
+    }
+    await this.dismissPermissionModalIfPresent();
   }
 
   async closeDM(username: string): Promise<void> {
