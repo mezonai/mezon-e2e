@@ -236,13 +236,13 @@ export class MessageTestHelpers extends MessageContentHelpers {
   async countMessages(): Promise<number> {
     // More specific selectors to avoid counting input fields, buttons, etc.
     const messageSelectors = [
+      '[data-e2e="message-item"]',
       'div[class*="message"]:not(:has(input)):not(:has(textarea)):not(:has(button))',
       '.message:not(:has(input)):not(:has(textarea)):not(:has(button))',
       '[data-testid="message"]:not(:has(input)):not(:has(textarea)):not(:has(button))',
       '.chat-message:not(:has(input)):not(:has(textarea)):not(:has(button))',
-      // Alternative: look for actual message content
-      'div[class*="message"]:has(text):not(:has(input)):not(:has(textarea))',
-      '.message:has(text):not(:has(input)):not(:has(textarea))',
+      'div[class*="message"]:not(:has(input)):not(:has(textarea))',
+      '.message:not(:has(input)):not(:has(textarea))',
     ];
 
     let totalMessages = 0;
@@ -326,13 +326,14 @@ export class MessageTestHelpers extends MessageContentHelpers {
     }
 
     const chatAreaSelectors = [
+      '[data-e2e="message-item"]',
       '.chat-area .message',
       '.messages-container .message',
       '.conversation .message',
       '[class*="chat"][class*="messages"] [class*="message"]',
       '[class*="conversation"] [class*="message"]',
-      'div[class*="message"]:has(text):not(:has(input)):not(:has(textarea))',
-      'div:contains("Test message"):not([placeholder])',
+      'div[class*="message"]:not(:has(input)):not(:has(textarea))',
+      'div:has-text("Test message"):not([placeholder])',
     ];
 
     for (const selector of chatAreaSelectors) {

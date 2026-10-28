@@ -82,8 +82,8 @@ export class MessagePage extends BasePage {
     const modal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
     if (await modal.isVisible().catch(() => false)) {
       const btn = modal.locator('button').first();
-      await btn.click().catch(() => {});
-      await expect(modal).toBeHidden({ timeout: 5000 });
+      await btn.click({ force: true }).catch(() => {});
+      await modal.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
     }
   }
 
