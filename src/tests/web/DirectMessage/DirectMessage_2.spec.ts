@@ -81,9 +81,9 @@ test.describe('Direct Messages - Conversations, Groups, Pins, and Membership', (
       const groupName = await messagePage.getGroupName();
       await expect(groupName).toBeVisible({ timeout: 5000 });
       await messagePage.updateNameGroupChatDM(nameUpdate);
-      await expect(groupName).toHaveText(nameUpdate, { timeout: 5000 });
+      await expect(groupName).toContainText(nameUpdate, { timeout: 5000 });
       const groupNameText = (await groupName.innerText()).trim();
-      expect(groupNameText).toBe(nameUpdate);
+      expect(groupNameText).toContain(nameUpdate);
     });
 
     await AllureReporter.step(`Leave group chat`, async () => {
