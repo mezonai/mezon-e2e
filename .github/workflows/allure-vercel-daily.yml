@@ -1,12 +1,11 @@
 name: 'Allure Daily Report - Deploy to Vercel'
 
 on:
-  # GitHub cron uses UTC:
-  # - 13:07 UTC = 20:07 Vietnam: run Web and stage its raw results.
-  # - 19:07 UTC = 02:07 Vietnam: run Multi, merge Web results, then deploy.
-  schedule:
-    - cron: '7 13 * * *'
-    - cron: '7 19 * * *'
+  # External VPS cron calls repository_dispatch at precise times (UTC):
+  # - run-web-phase   → 13:00 UTC = 20:00 Vietnam: run Web tests.
+  # - run-multi-phase → 19:00 UTC = 02:00 Vietnam: run Multi, merge, deploy.
+  repository_dispatch:
+    types: [run-web-phase, run-multi-phase]
   workflow_dispatch:
     inputs:
       channel_management:
@@ -129,7 +128,7 @@ jobs:
     steps:
       - name: Read workflow creation time
         id: workflow_timing
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || github.event_name == 'repository_dispatch'
         uses: actions/github-script@v7
         with:
           script: |
@@ -162,19 +161,35 @@ jobs:
           echo "Runner started this job (Vietnam): $NOW_VIETNAM"
           echo "Event: $EVENT_NAME"
           echo "Scheduled cron (UTC): ${EVENT_SCHEDULE:-manual dispatch}"
+          echo "Repository dispatch action: ${EVENT_ACTION:-n/a}"
           echo "Run: $RUN_ID (attempt $RUN_ATTEMPT)"
           echo "Workflow ref: $WORKFLOW_REF"
 
+          # Resolve phase from either on:schedule cron string or repository_dispatch action.
+          PHASE_KEY=''
+          case "$EVENT_SCHEDULE" in
+            '7 13 * * *') PHASE_KEY='web' ;;
+            '7 19 * * *') PHASE_KEY='multi' ;;
+          esac
+          if [ -z "$PHASE_KEY" ]; then
+            case "$EVENT_ACTION" in
+              'run-web-phase')   PHASE_KEY='web' ;;
+              'run-multi-phase') PHASE_KEY='multi' ;;
+            esac
+          fi
+
           # Anchor the schedule to the original run creation time. Runner queue
           # delays and reruns must not move the report into a different day.
-          case "$EVENT_SCHEDULE" in
-            '7 13 * * *')
+          case "$PHASE_KEY" in
+            web)
               EXPECTED_UTC_HOUR=13
-              EXPECTED_VIETNAM='20:07'
+              EXPECTED_UTC_MINUTE=0
+              EXPECTED_VIETNAM='20:00'
               ;;
-            '7 19 * * *')
+            multi)
               EXPECTED_UTC_HOUR=19
-              EXPECTED_VIETNAM='02:07'
+              EXPECTED_UTC_MINUTE=0
+              EXPECTED_VIETNAM='02:00'
               ;;
             *)
               echo 'Delay calculation skipped because this was not a configured scheduled run.'
@@ -185,7 +200,8 @@ jobs:
           NOW_EPOCH="$(date -u +%s)"
           CREATED_EPOCH="$(date -u -d "$CREATED_AT" +%s)"
           CREATED_DATE="$(date -u -d "$CREATED_AT" +%F)"
-          EXPECTED_EPOCH="$(date -u -d "$CREATED_DATE ${EXPECTED_UTC_HOUR}:07:00" +%s)"
+          EXPECTED_TIME="$(printf '%02d:%02d:00' "$EXPECTED_UTC_HOUR" "$EXPECTED_UTC_MINUTE")"
+          EXPECTED_EPOCH="$(date -u -d "$CREATED_DATE $EXPECTED_TIME" +%s)"
           if [ "$EXPECTED_EPOCH" -gt "$CREATED_EPOCH" ]; then
             EXPECTED_EPOCH="$((EXPECTED_EPOCH - 86400))"
           fi
@@ -221,15 +237,16 @@ jobs:
         id: phase
         env:
           EVENT_SCHEDULE: ${{ github.event.schedule }}
+          EVENT_ACTION: ${{ github.event.action }}
           SELECTED_REF: ${{ github.ref_name }}
           RUN_UI_STRESS: ${{ inputs.ui_stress }}
           SCHEDULED_AT: ${{ steps.schedule_timing.outputs.scheduled_at }}
         run: |
-          if [ "$EVENT_SCHEDULE" = "7 13 * * *" ]; then
+          if [ "$EVENT_SCHEDULE" = "7 13 * * *" ] || [ "$EVENT_ACTION" = "run-web-phase" ]; then
             RUN_PHASE="web"
             REPORT_MODE="daily"
             REPORT_DATE="$(TZ=UTC date -d "$SCHEDULED_AT +1 day" +%F)"
-          elif [ "$EVENT_SCHEDULE" = "7 19 * * *" ]; then
+          elif [ "$EVENT_SCHEDULE" = "7 19 * * *" ] || [ "$EVENT_ACTION" = "run-multi-phase" ]; then
             RUN_PHASE="multi"
             REPORT_MODE="daily"
             REPORT_DATE="$(TZ=UTC date -d "$SCHEDULED_AT +1 day" +%F)"
