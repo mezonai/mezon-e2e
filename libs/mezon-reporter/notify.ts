@@ -115,11 +115,13 @@ const readUiStressMetricSummary = (reportDirectory: string): string[] => {
 async function run(): Promise<void> {
   const notifier = new MezonNotifier();
 
+  const isDailyRun = eventName === 'schedule' || eventName === 'repository_dispatch';
+
   if (action === 'start') {
     let title = 'Playwright E2E Suite';
-    if (eventName === 'schedule' && runPhase === 'web') {
+    if (isDailyRun && runPhase === 'web') {
       title = 'Allure Daily Web Test Suite (20:00)';
-    } else if (eventName === 'schedule' && runPhase === 'multi') {
+    } else if (isDailyRun && runPhase === 'multi') {
       title = 'Allure Daily MultiChat Test Suite (02:00)';
     } else if (eventName === 'workflow_dispatch' && isUiStressRun) {
       title = `UI Stress Manual Suite (${stressMode}, ${stressHistoryMessageCount} history messages)`;
@@ -132,7 +134,7 @@ async function run(): Promise<void> {
       environment: envName,
     });
   } else if (action === 'end') {
-    if (eventName === 'schedule' && runPhase === 'web') {
+    if (isDailyRun && runPhase === 'web') {
       console.log(
         'ℹ️ [Mezon] Web phase of daily cronjob completed. End webhook will be sent after 02:00 AM multi phase + deployment.'
       );
@@ -174,12 +176,14 @@ async function run(): Promise<void> {
     const emoji = isSuccess ? '🎉' : '💥';
     const suiteName = isUiStressRun
       ? `UI Stress Manual Suite (${stressMode}, ${stressHistoryMessageCount} history messages)`
-      : 'Test Suite';
+      : isDailyRun
+        ? 'Allure Daily Report'
+        : 'Test Suite';
     const statusText = isSuccess
       ? `${suiteName} Completed Successfully`
       : `${suiteName} Completed with Issues`;
 
-    const isScheduled = eventName === 'schedule';
+    const isScheduled = isDailyRun;
     const targetReportUrl =
       vercelReportUrl ||
       process.env.REPORT_URL ||
