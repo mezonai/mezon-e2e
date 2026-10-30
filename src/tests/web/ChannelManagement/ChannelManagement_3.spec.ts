@@ -123,7 +123,7 @@ test.describe('Channel Management - Deletion, Permissions, and Archiving', () =>
 
     await AllureReporter.attachScreenshot(page, `Text Channel deleted - ${channelName}`);
   });
-  test('Verify that permission settings not visible on stream channel and voice channel', async ({
+  test('Verify that permission settings not visible on stream channel and visible on voice channel', async ({
     page,
   }) => {
     await AllureReporter.addWorkItemLinks({
@@ -135,13 +135,13 @@ test.describe('Channel Management - Deletion, Permissions, and Archiving', () =>
       severity: AllureConfig.Severity.NORMAL,
     });
     await AllureReporter.addDescription(`
-      **Test Objective:** Verify that permission settings are not visible on stream channel and voice channel.  
+      **Test Objective:** Verify that permission settings are not visible on stream channel and visible on voice channel.  
       Steps:
       1. Create a stream channel
       2. Verify that permission settings not visible on stream channel
       3. Create a voice channel
-      4. Verify that permission settings not visible on voice channel
-      **Expected Result:** Permission settings are not visible on stream channel and voice channel.
+      4. Verify that permission settings are visible on voice channel
+      **Expected Result:** Permission settings are not visible on stream channel and visible on voice channel.
     `);
     await AllureReporter.addLabels({
       tag: ['stream-channel', 'voice-channel', 'permission-settings'],
@@ -173,11 +173,11 @@ test.describe('Channel Management - Deletion, Permissions, and Archiving', () =>
       expect(isVoiceChannelPresent).toBe(true);
     });
     await AllureReporter.step(
-      'Verify that permission settings not visible on voice channel',
+      'Verify that permission settings are visible on voice channel',
       async () => {
         await clanPage.openChannelSettings(voiceChannelName);
         const isPermissionSettingsVisible = await channelSettings.isPermissionSettingsVisible();
-        expect(isPermissionSettingsVisible).toBe(false);
+        expect(isPermissionSettingsVisible).toBe(true);
         await clanPage.closeSettingsChannel();
       }
     );
