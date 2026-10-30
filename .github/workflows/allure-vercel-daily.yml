@@ -1,4 +1,5 @@
 name: 'Allure Daily Report - Deploy to Vercel'
+run-name: 'Allure Daily Report - Deploy to Vercel'
 
 on:
   # External VPS cron calls repository_dispatch at precise times (UTC):
