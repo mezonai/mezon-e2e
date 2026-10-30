@@ -779,6 +779,7 @@ jobs:
             sudo -n kill "$(cat /tmp/openvpn.pid)" 2>/dev/null || true
             sudo -n rm -f /tmp/openvpn.pid /tmp/openvpn.log /tmp/vpn-config.ovpn /tmp/vpn-creds.txt || true
             echo "VPN disconnected and config removed"
+            sleep 3
           else
             echo "No VPN PID file found, skipping disconnect"
           fi
@@ -788,6 +789,7 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Upload Playwright failure artifacts
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: playwright-artifacts-${{ steps.phase.outputs.phase }}-${{ steps.phase.outputs.report_date }}-${{ github.run_id }}
@@ -797,6 +799,7 @@ jobs:
 
       - name: Upload allure-results artifact (debug fallback)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: allure-results-${{ steps.phase.outputs.phase }}-${{ steps.phase.outputs.report_date }}-${{ github.run_id }}
