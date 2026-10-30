@@ -49,6 +49,7 @@ export default class ProfileSelector {
     language: this.page.locator(generateE2eSelector('user_setting.language.tab_language')),
     activity: this.page.locator(generateE2eSelector('user_setting.activity')),
     notification: this.page.locator(generateE2eSelector('user_setting.notification')),
+    chat: this.page.locator(generateE2eSelector('user_setting.chat.tab')),
     devices: this.page.getByText('Devices', { exact: true }).first(),
     logout: this.page.locator(generateE2eSelector('user_setting.logout')),
   };
@@ -79,6 +80,10 @@ export default class ProfileSelector {
   readonly settings = {
     activitySwitch: this.page.locator(generateE2eSelector('user_setting.activity.switch')),
     notificationSwitch: this.page.locator(generateE2eSelector('user_setting.notification.switch')),
+    spellingSwitch: this.page.locator(generateE2eSelector('user_setting.chat.spelling_switch')),
+    quickReplySwitch: this.page.locator(
+      generateE2eSelector('user_setting.chat.quick_reply_switch')
+    ),
   };
 
   readonly userProfile = {

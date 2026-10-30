@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 import { BasePage } from './BasePage';
 import { MessagePage } from './MessagePage';
 
+const CHECKBOX_INPUT_SELECTOR = 'input[type="checkbox"]';
+
 export class ProfilePage extends BasePage {
   private readonly selector;
 
@@ -35,6 +37,26 @@ export class ProfilePage extends BasePage {
   async openLanguageTab() {
     await expect(this.selector.tabs.language).toBeVisible({ timeout: 3000 });
     await this.selector.tabs.language.click();
+  }
+
+  async openChatTab() {
+    await expect(this.selector.tabs.chat).toBeVisible({ timeout: 3000 });
+    await this.selector.tabs.chat.click();
+  }
+
+  async toggleSpelling(enable?: boolean) {
+    const checkbox = this.selector.settings.spellingSwitch.locator(CHECKBOX_INPUT_SELECTOR);
+    const isChecked = await checkbox.isChecked();
+    const targetState = enable !== undefined ? enable : !isChecked;
+    if (isChecked !== targetState) {
+      await this.selector.settings.spellingSwitch.click();
+      await expect.poll(() => checkbox.isChecked()).toBe(targetState);
+    }
+  }
+
+  async isSpellingChecked(): Promise<boolean> {
+    const checkbox = this.selector.settings.spellingSwitch.locator(CHECKBOX_INPUT_SELECTOR);
+    return await checkbox.isChecked();
   }
 
   async openDevicesTab(): Promise<void> {
@@ -118,7 +140,7 @@ export class ProfilePage extends BasePage {
 
     if ((await container.getAttribute('type')) === 'checkbox') return container;
 
-    const nestedCheckbox = container.locator('input[type="checkbox"]');
+    const nestedCheckbox = container.locator(CHECKBOX_INPUT_SELECTOR);
     if ((await nestedCheckbox.count()) > 0) return nestedCheckbox.first();
 
     return container;
@@ -354,6 +376,7 @@ export class ProfilePage extends BasePage {
 
   async closeSettingsProfile() {
     await this.selector.buttons.closeSettingProfile.click();
+    await expect(this.selector.buttons.closeSettingProfile).toBeHidden({ timeout: 5000 });
   }
 
   async getProfileStatusInFooterProfile() {
