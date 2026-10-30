@@ -9,12 +9,13 @@ export class LoginPage extends BasePage {
 
   private selectors = {
     emailInput:
-      'input#inputEmail, input[placeholder="Email address"], input[type="email"], input[name="email"]',
+      '#inputIdentifier, input#inputEmail, input[placeholder="Email or phone number"], input[placeholder="Email address"], input[name="email"], input[type="email"]',
     loginButton:
       'button[id="sendOtpBtn"], button:has-text("Verify OTP"), button:has-text("Login"), button:has-text("Đăng nhập"), button[type="submit"], button:has-text("Verify"), button:has-text("Xác nhận"), button[aria-label*="Verify OTP"], button[aria-label*="Verify OTP code"], [data-testid="login-btn"]',
 
-    loginWithPasswordLink: 'a:has-text("Login with Email and Password")',
-    passwordInput: 'input[type="password"]',
+    loginWithPasswordLink:
+      '#btnSwitchPassword, button:has-text("Password"), a:has-text("Login with Email and Password")',
+    passwordInput: '#passwordId, input[name="login_password"], input[type="password"]',
 
     loadingSpinner: '.loading, .spinner, [data-testid="loading"]',
     authenticatedApp: `${generateE2eSelector('user_setting.profile.button_setting')}, ${generateE2eSelector('friend_page.tab')}`,
@@ -68,9 +69,10 @@ export class LoginPage extends BasePage {
   }
 
   private async switchToPasswordLogin(): Promise<void> {
-    await this.page.reload();
     await this.page.locator(this.selectors.loginWithPasswordLink).click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page
+      .locator(this.selectors.passwordInput)
+      .waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async waitForAuthenticatedAppReady(timeout = 30_000): Promise<void> {
