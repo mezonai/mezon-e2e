@@ -6,7 +6,7 @@ import { MessageContentHelpers } from './message/MessageContentHelpers';
 
 const MESSAGE_ITEM_SELECTOR = generateE2eSelector('message.item');
 const MENTION_INPUT_SELECTOR = generateE2eSelector('mention.input');
-const ROLE_OPTION_SELECTOR = '[role="option"]';
+const ROLE_OPTION_SELECTOR = `[role="option"], ${generateE2eSelector('suggest_item')}`;
 const THREAD_NAME_INPUT_SELECTOR = generateE2eSelector(
   'chat.channel_message.thread_box.input.thread_name'
 );

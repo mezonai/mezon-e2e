@@ -166,7 +166,7 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
           await memberFriendPage.verifyReceivedRequestToast(
             `${userNameA} wants to add you as a friend`
           );
-          await memberFriendPage.acceptFirstFriendRequest();
+          await memberFriendPage.acceptFriendRequestFromUser(userNameA);
           await ownerFriendPage.assertAllFriend(username);
           await memberFriendPage.assertAllFriend(userNameA);
           await Promise.all([

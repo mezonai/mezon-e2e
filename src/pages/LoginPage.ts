@@ -1,4 +1,4 @@
-import { type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { MEZON_DEV, WEBSITE_CONFIGS } from '../config/environment';
 import { generateE2eSelector } from '../utils/generateE2eSelector';
 import { BasePage } from './BasePage';
@@ -69,10 +69,18 @@ export class LoginPage extends BasePage {
   }
 
   private async switchToPasswordLogin(): Promise<void> {
-    await this.page.locator(this.selectors.loginWithPasswordLink).click();
-    await this.page
-      .locator(this.selectors.passwordInput)
-      .waitFor({ state: 'visible', timeout: 10000 });
+    const passwordLink = this.page.locator(this.selectors.loginWithPasswordLink).first();
+    const passwordInput = this.page.locator(this.selectors.passwordInput);
+
+    await expect(async () => {
+      if (await passwordInput.isVisible()) {
+        return;
+      }
+      if (await passwordLink.isVisible()) {
+        await passwordLink.click({ timeout: 5000 });
+      }
+      await expect(passwordInput).toBeVisible({ timeout: 3000 });
+    }).toPass({ timeout: 20000, intervals: [1000, 2000] });
   }
 
   async waitForAuthenticatedAppReady(timeout = 30_000): Promise<void> {
