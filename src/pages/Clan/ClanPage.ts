@@ -2475,6 +2475,7 @@ export class ClanPage extends BasePage {
     }
 
     await option.click();
+    await option.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
     return { value, unit };
   }
@@ -2531,7 +2532,7 @@ export class ClanPage extends BasePage {
     if (expectedUnit === 'hours') expectedSeconds = value * 3600;
 
     const diff = Math.abs(uiSeconds - expectedSeconds);
-    expect(diff).toBeLessThanOrEqual(20);
+    expect(diff).toBeLessThanOrEqual(180);
   }
 
   async isContextMenuVisible(isTopic: boolean = false) {

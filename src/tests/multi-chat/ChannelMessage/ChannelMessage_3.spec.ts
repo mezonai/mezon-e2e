@@ -114,6 +114,7 @@ test.describe('Channel Messages - Topic Restrictions and Shared Contacts', () =>
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
 
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.banUserInChannel, async () => {
@@ -128,8 +129,6 @@ test.describe('Channel Messages - Topic Restrictions and Shared Contacts', () =>
     });
 
     await AllureReporter.step('Verify user B can not send message on topic', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isMessageInputVisible = await clanPageB.isMessageInputVisible(true);
