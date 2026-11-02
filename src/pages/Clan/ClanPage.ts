@@ -1663,7 +1663,10 @@ export class ClanPage extends BasePage {
 
       await this.selector.modalInvite.searchInput.fill(username);
 
-      await expect(this.selector.modalInvite.userInvite).toBeVisible({ timeout: 3000 });
+      const userInvite = this.selector.modalInvite.userInvite.filter({ hasText: username });
+      await expect(userInvite.first().or(this.selector.modalInvite.userInvite.first())).toBeVisible(
+        { timeout: 3000 }
+      );
       await expect(this.selector.input.urlInvite).toHaveValue(/http/);
 
       let urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
@@ -1714,11 +1717,14 @@ export class ClanPage extends BasePage {
       return urlInvite;
     } catch (error) {
       console.error(`Failed to invite people:`, error);
-      return '';
+      throw error;
     }
   }
 
   async joinClanByUrlInvite(url: string) {
+    if (!url || !url.trim()) {
+      throw new Error('❌ Cannot join clan: invite URL is empty!');
+    }
     await this.page.waitForTimeout(2000);
     const messageSelector = new MessageSelector(this.page);
 
