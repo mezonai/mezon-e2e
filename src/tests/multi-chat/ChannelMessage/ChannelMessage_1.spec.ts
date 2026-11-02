@@ -214,6 +214,7 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.banUserInClan, async () => {
       await clanPageA.openMemberList();
@@ -221,8 +222,8 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     });
 
     await AllureReporter.step('Verify user can not send message on channel', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      const isBannedVisible = await clanPageB.isBannedItemVisible();
+      expect(isBannedVisible).toBe(true);
       const isMessageInputVisible = await clanPageB.isMessageInputVisible();
       expect(isMessageInputVisible).toBe(false);
     });
@@ -305,11 +306,9 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     });
 
     await AllureReporter.step('Banned item is visible on channel of user banned', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
       const isBannedInputVisible = await clanPageB.isBannedItemVisible();
       expect(isBannedInputVisible).toBe(true);
-      await pageB.reload();
       await clanPageB.verifyBannedTime(duration, unitTime);
     });
 
@@ -385,6 +384,7 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
 
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.banUserInClan, async () => {
@@ -399,8 +399,6 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     await AllureReporter.step(
       'Verify user can not open context menu and hover message modal on banned channel',
       async () => {
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         const isReactionVisible = await clanPageB.isHoverMessageModalVisible();
         expect(isReactionVisible).toBe(false);
         const isContextMenuVisible = await clanPageB.isContextMenuVisible();
@@ -479,6 +477,7 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
 
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.banUserInChannel, async () => {
@@ -488,9 +487,6 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     });
 
     await AllureReporter.step('Verify user B can not buzz on channel', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
-
       await messageHelperB.openBuzzMessageModal();
 
       const isBuzzModalVisuble = await messageHelperB.isBuzzModalOpen();
