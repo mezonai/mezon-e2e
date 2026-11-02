@@ -234,6 +234,51 @@ test.describe('Private Voice Channel - Access Control', () => {
     await settingsA.closeChannelSettings();
   });
 
+  test('Direct member access remains until every overlapping channel grant is removed', async ({
+    dual,
+  }) => {
+    await describeCase(
+      `
+      **Test Objective:** Verify direct member and role grants are evaluated independently for a private channel.
+
+      **Test Steps:**
+      1. Create a role, assign it to User B, and create a private voice channel.
+      2. Grant access through both the role and User B directly.
+      3. Remove the direct grant and verify User B still sees the channel through the role.
+      4. Remove the role grant and verify the channel is hidden from User B.
+
+      **Expected Result:** Removing one overlapping grant does not revoke access while another grant remains.
+    `,
+      ['role-access', 'member-access', 'overlapping-permissions']
+    );
+
+    const { pageA, pageB } = dual;
+    const { clanPageA, clanPageB } = await prepareFriendshipAndClan(pageA, pageB, clanFactory);
+    const settingsA = new ChannelSettingPage(pageA);
+    const unique = Date.now().toString(36);
+    const channelName = `pvc-overlap-${unique}`.slice(0, 20);
+    const roleName = `Overlap-${unique}`.slice(0, 20);
+
+    await clanPageA.openRoleSettingsPage();
+    await clanPageA.addNewRoleOnClan(roleName);
+    await clanPageA.addRoleForUserByUsername(userNameB, roleName);
+    await clanPageA.createNewChannel(ChannelType.VOICE, channelName, ChannelStatus.PRIVATE);
+    await clanPageB.verifyChannelVisibility(channelName, false);
+
+    await clanPageA.openChannelSettings(channelName);
+    await settingsA.openPermissionsTab();
+    await settingsA.openAddMembersRolesModal();
+    await settingsA.addMembersAndRolesForPrivateChannel(roleName, userNameB);
+    await clanPageB.verifyChannelVisibility(channelName, true);
+
+    await settingsA.removeMemberFromPrivateChannel(userNameB);
+    await clanPageB.verifyChannelVisibility(channelName, true);
+
+    await settingsA.removeRoleFromPrivateChannel(roleName);
+    await clanPageB.verifyChannelVisibility(channelName, false);
+    await settingsA.closeChannelSettings();
+  });
+
   test('Deleting a private voice channel removes it for every permitted member', async ({
     dual,
   }) => {
