@@ -208,6 +208,7 @@ export default class MessageSelector {
     },
   };
   messageInput = this.page.locator(generateE2eSelector('mention.input'));
+  spellingRecommendation = this.page.locator(generateE2eSelector('chat.spelling.recommendation'));
   emojiButton = this.page.locator(generateE2eSelector('mention.button.emoji'));
   stickerButton = this.page.locator(generateE2eSelector('mention.button.sticker'));
   inboxMessages = this.page.locator(
