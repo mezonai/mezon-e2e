@@ -367,6 +367,7 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
+    const messageHelperA = new MessageTestHelpers(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     const messagePageB = new MessagePage(pageB);
     const testMessage = `Test message - ${Date.now()}`;
@@ -428,7 +429,8 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
     });
 
     await AllureReporter.step('Verify user B can not forward message to channel', async () => {
-      await messageHelperB.sendTextMessage(testMessage);
+      await messageHelperA.sendTextMessage(testMessage);
+      await pageB.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
       await messagePageB.openForwardMessageModal();
 
       const isBannedChannelPresentOnForwardModal =

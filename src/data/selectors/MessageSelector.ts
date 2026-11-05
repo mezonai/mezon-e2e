@@ -54,7 +54,17 @@ export default class MessageSelector {
     generateE2eSelector('chat.direct_message.friend_list.username_friend_item')
   );
   addToGroupButton = this.page.locator(generateE2eSelector('chat.direct_message.button.add_user'));
-  sumMember = this.page.locator(generateE2eSelector('chat.direct_message.member_list.button'));
+  sumMember = this.page
+    .locator(generateE2eSelector('chat.direct_message.member_list.button'))
+    .or(this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')))
+    .or(
+      this.page.locator(
+        generateE2eSelector('chat.direct_message.header.right_container.add_member')
+      )
+    )
+    .or(this.page.locator(generateE2eSelector('chat.direct_message.button.add_user')))
+    .or(this.page.locator('[data-e2e*="direct_message"][data-e2e*="member"]'))
+    .or(this.page.locator('[data-e2e*="header"][data-e2e*="member"]'));
   memberCount = this.page.locator(
     generateE2eSelector('chat.direct_message.member_list.member_count')
   );

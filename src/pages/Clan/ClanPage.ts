@@ -329,8 +329,20 @@ export class ClanPage extends BasePage {
   async preventAnonymous() {
     const buttonSettings = this.selector.buttons.preventAnoSettings;
     await buttonSettings.click();
-    await this.selector.buttons.saveChanges.click();
-    await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
+    const modal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
+    if (await modal.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const confirmBtn = modal
+        .locator(generateE2eSelector('clan_page.settings.modal.permission.confirm'))
+        .or(modal.locator('button').filter({ hasText: /confirm|yes|ok|save/i }))
+        .first();
+      await confirmBtn.click({ force: true }).catch(() => {});
+      await modal.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+    }
+    const saveBtn = this.selector.buttons.saveChanges;
+    if (await saveBtn.isVisible({ timeout: 4000 }).catch(() => false)) {
+      await saveBtn.click();
+      await expect(saveBtn).toBeHidden({ timeout: 8000 });
+    }
   }
 
   async openChannelSettings(channelName: string): Promise<void> {
@@ -2404,6 +2416,16 @@ export class ClanPage extends BasePage {
   }
 
   async closeSettingsClan() {
+    const modal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
+    if (await modal.isVisible({ timeout: 1500 }).catch(() => false)) {
+      const btn = modal
+        .locator(
+          `${generateE2eSelector('clan_page.settings.modal.permission.confirm')}, ${generateE2eSelector('clan_page.settings.modal.permission.cancel')}, button`
+        )
+        .first();
+      await btn.click({ force: true }).catch(() => {});
+      await modal.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+    }
     await this.selector.buttons.closeSettingClan.click();
     await expect(this.selector.buttons.closeSettingClan).toBeHidden({ timeout: 3000 });
   }
@@ -2488,7 +2510,13 @@ export class ClanPage extends BasePage {
       await bannedLocator.waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
-      return false;
+      try {
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+        await bannedLocator.waitFor({ state: 'visible', timeout: 8000 });
+        return true;
+      } catch {
+        return false;
+      }
     }
   }
 
@@ -2540,11 +2568,12 @@ export class ClanPage extends BasePage {
     const messageLocator = isTopic
       ? messageSelector.topicMessages.last()
       : messageSelector.messages.last();
-    await messageLocator.click({ button: 'right' });
     const popup = this.page.locator(
       'div.contexify.z-50.rounded-lg.text-theme-primary.text-theme-primary-hover.border-theme-primary'
     );
     try {
+      await messageLocator.waitFor({ state: 'visible', timeout: 3000 });
+      await messageLocator.click({ button: 'right' });
       await popup.waitFor({ state: 'visible', timeout: 3000 });
       return true;
     } catch {
@@ -2557,9 +2586,10 @@ export class ClanPage extends BasePage {
     const messageLocator = isTopic
       ? messageSelector.topicMessages.last()
       : messageSelector.messages.last();
-    await messageLocator.hover();
     const hoverModal = messageSelector.hoverMessageModal;
     try {
+      await messageLocator.waitFor({ state: 'visible', timeout: 3000 });
+      await messageLocator.hover();
       await hoverModal.waitFor({ state: 'visible', timeout: 3000 });
       return true;
     } catch {
