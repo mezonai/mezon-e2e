@@ -195,6 +195,42 @@ export default class ClanSettingSelector {
     },
   };
 
+  readonly soundEffect = {
+    uploadButton: this.page.locator(
+      generateE2eSelector('clan_page.settings.voice_sticker.button_upload')
+    ),
+    emptyStateText: this.page.locator(
+      'text="No voice stickers yet. Click \\"Upload voice sticker\\" to add!"'
+    ),
+    modal: {
+      container: this.page.locator('.max-w-\\[550px\\]'),
+      title: this.page.locator('text="Upload voice sticker"').first(),
+      cancelButton: this.page.locator('.max-w-\\[550px\\] button', { hasText: 'Cancel' }),
+      uploadButton: this.page.locator('.max-w-\\[550px\\] button', { hasText: 'Upload' }),
+      soundNameInput: this.page.locator('.max-w-\\[550px\\] input[type="text"]').first(),
+      volumeSlider: this.page.locator('.max-w-\\[550px\\] input[type="range"]'),
+    },
+  };
+
+  readonly community = {
+    enableButton: this.page.locator(
+      generateE2eSelector('clan_page.settings.community.button.enable_community')
+    ),
+    saveButton: this.page
+      .locator(
+        `${generateE2eSelector('clan_page.settings.community.button.save')} button, button:has-text("Enable & Save")`
+      )
+      .first(),
+    vanityUrlInput: this.page.locator(
+      generateE2eSelector('clan_page.settings.community.vanity_url')
+    ),
+    bannerInput: this.page.locator(
+      generateE2eSelector('clan_page.settings.upload.community_banner_input')
+    ),
+    modal: this.page.locator('.fixed.inset-0.bg-black\\/60'),
+    closeModalButton: this.page.locator('.fixed.inset-0.bg-black\\/60 button').first(),
+  };
+
   readonly permissionModal = {
     isVisible: async (timeout = 1000): Promise<boolean> => {
       const modal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));

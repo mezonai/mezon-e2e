@@ -106,6 +106,8 @@ export default class ChannelSettingSelector {
             'channel_setting_page.permissions.section.member_role_management.member_list.member_item'
           )
         ),
+        member_search_input: this.page.locator('input[placeholder="Search Members"]'),
+        empty_state: this.page.locator('text="No members found"'),
         modal_container: this.page.locator(
           generateE2eSelector(
             'channel_setting_page.permissions.section.member_role_management.modal'

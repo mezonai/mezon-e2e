@@ -480,6 +480,36 @@ export class ChannelSettingPage extends BasePage {
     await overrideDeleteButton.click();
   }
 
+  async denyChannelPermission(permissionName = 'Send Messages'): Promise<void> {
+    const clanSelector = new ClanSelector(this.page);
+    const advancedPermissionsSection =
+      this.selector.permissions.section.advanced_permissions_section;
+    await expect(advancedPermissionsSection).toBeVisible({ timeout: 5000 });
+    const overrideRemoveButton = advancedPermissionsSection
+      .locator(clanSelector.clanSettings.roleList.override.item, {
+        hasText: permissionName,
+      })
+      .locator(clanSelector.clanSettings.roleList.override.button.remove)
+      .first();
+    await expect(overrideRemoveButton).toBeVisible({ timeout: 5000 });
+    await overrideRemoveButton.click();
+  }
+
+  async allowChannelPermission(permissionName = 'Send Messages'): Promise<void> {
+    const clanSelector = new ClanSelector(this.page);
+    const advancedPermissionsSection =
+      this.selector.permissions.section.advanced_permissions_section;
+    await expect(advancedPermissionsSection).toBeVisible({ timeout: 5000 });
+    const overrideTickButton = advancedPermissionsSection
+      .locator(clanSelector.clanSettings.roleList.override.item, {
+        hasText: permissionName,
+      })
+      .locator(clanSelector.clanSettings.roleList.override.button.tick)
+      .first();
+    await expect(overrideTickButton).toBeVisible({ timeout: 5000 });
+    await overrideTickButton.click();
+  }
+
   async verifyRoleAndMemberExistBeforeSave(roleName: string, memberName: string) {
     const { member_role_management } = this.selector.permissions.section;
 
@@ -494,6 +524,33 @@ export class ChannelSettingPage extends BasePage {
       timeout: 3000,
     });
     console.log(`✅ Member "${memberName}" is visible in the list`);
+  }
+
+  async searchChannelMembers(keyword: string): Promise<void> {
+    const input =
+      this.selector.permissions.section.member_role_management.member_search_input.first();
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.fill(keyword);
+  }
+
+  async clearChannelMembersSearch(): Promise<void> {
+    const input =
+      this.selector.permissions.section.member_role_management.member_search_input.first();
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.fill('');
+  }
+
+  async verifyNoMembersFoundVisible(visible = true): Promise<void> {
+    const emptyState = this.selector.permissions.section.member_role_management.empty_state;
+    if (visible) {
+      await expect(emptyState).toBeVisible({ timeout: 5000 });
+    } else {
+      await expect(emptyState).toBeHidden({ timeout: 5000 });
+    }
+  }
+
+  getMemberItemLocator(): Locator {
+    return this.selector.permissions.section.member_role_management.member_item;
   }
 
   async savePermissionChanges() {

@@ -18,6 +18,7 @@ export default class ClanMemberSelector {
   };
 
   readonly settings = {
+    searchInput: this.page.getByPlaceholder('Search by clannick, display name or username'),
     userContainer: this.page.locator(generateE2eSelector('clan_page.member_list')),
     memberSince: this.page.locator(generateE2eSelector('clan_page.member_list.member_since')),
     joinMezon: this.page.locator(generateE2eSelector('clan_page.member_list.join_mezon')),

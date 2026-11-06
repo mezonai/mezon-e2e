@@ -12,6 +12,81 @@ export class ClanSettingsPage extends BasePage {
     this.selector = new ClanSettingSelector(page);
   }
 
+  getSelector(): ClanSettingSelector {
+    return this.selector;
+  }
+
+  async openClanSettings(): Promise<void> {
+    const clanMenuPanel = new ClanMenuPanel(this.page);
+    await clanMenuPanel.text.clanName.waitFor({ state: 'visible', timeout: 15000 });
+    await clanMenuPanel.text.clanName.click();
+    await clanMenuPanel.buttons.clanSettings.waitFor({ state: 'visible', timeout: 10000 });
+    await clanMenuPanel.buttons.clanSettings.click();
+    await expect(this.selector.general.settings_page).toBeVisible({ timeout: 10000 });
+  }
+
+  async openSoundEffectTab(): Promise<void> {
+    const soundEffectItem = this.selector.buttons.sidebarItem.filter({ hasText: 'Sound Effect' });
+    await expect(soundEffectItem).toBeVisible({ timeout: 5000 });
+    await soundEffectItem.click();
+    await expect(this.selector.soundEffect.uploadButton).toBeVisible({ timeout: 10000 });
+  }
+
+  async verifySoundEffectEmptyState(): Promise<void> {
+    await expect(this.selector.soundEffect.emptyStateText).toBeVisible({ timeout: 5000 });
+  }
+
+  async openUploadSoundModal(): Promise<void> {
+    await expect(this.selector.soundEffect.uploadButton).toBeVisible({ timeout: 5000 });
+    await this.selector.soundEffect.uploadButton.click();
+    await expect(this.selector.soundEffect.modal.title).toBeVisible({ timeout: 5000 });
+  }
+
+  async closeUploadSoundModal(): Promise<void> {
+    await expect(this.selector.soundEffect.modal.cancelButton).toBeVisible({ timeout: 5000 });
+    await this.selector.soundEffect.modal.cancelButton.click();
+    await expect(this.selector.soundEffect.modal.container).toBeHidden({ timeout: 5000 });
+  }
+
+  async openCommunityTab(): Promise<void> {
+    const communityItem = this.selector.buttons.sidebarItem.filter({
+      hasText: 'Enable Community',
+    });
+    await expect(communityItem).toBeVisible({ timeout: 5000 });
+    await communityItem.click();
+    await expect(this.selector.community.enableButton).toBeVisible({ timeout: 10000 });
+  }
+
+  async openEnableCommunityModal(): Promise<void> {
+    await expect(this.selector.community.enableButton).toBeVisible({ timeout: 5000 });
+    await this.selector.community.enableButton.click();
+    await expect(this.selector.community.modal).toBeVisible({ timeout: 5000 });
+  }
+
+  async submitEnableCommunity(): Promise<void> {
+    const btn = this.selector.community.saveButton;
+    await btn.scrollIntoViewIfNeeded();
+    await expect(btn).toBeVisible({ timeout: 5000 });
+    await btn.click();
+  }
+
+  async verifyCommunityRequiredFieldsValidation(): Promise<void> {
+    const errorToast = this.page.locator('.Toastify__toast--error');
+    await expect(errorToast.first()).toBeVisible({ timeout: 8000 });
+    await expect(errorToast.first()).toContainText('Please fill all required fields');
+  }
+
+  async closeEnableCommunityModal(): Promise<void> {
+    await expect(this.selector.community.closeModalButton).toBeVisible({ timeout: 5000 });
+    await this.selector.community.closeModalButton.click();
+    await expect(this.selector.community.modal).toBeHidden({ timeout: 5000 });
+  }
+
+  async closeClanSettings(): Promise<void> {
+    await this.selector.buttons.closeSettingClan.click();
+    await expect(this.selector.buttons.closeSettingClan).toBeHidden({ timeout: 5000 });
+  }
+
   async clickSettingClanSection(section: string): Promise<void> {
     const sidebarItem = this.selector.buttons.sidebarItem.filter({ hasText: section });
     await sidebarItem.click();
@@ -201,14 +276,114 @@ export class ClanSettingsPage extends BasePage {
 
   async openIntegrationsTab() {
     const clanMenuPanel = new ClanMenuPanel(this.page);
+    await clanMenuPanel.text.clanName.waitFor({ state: 'visible', timeout: 15000 });
     await clanMenuPanel.text.clanName.click();
+    await clanMenuPanel.buttons.clanSettings.waitFor({ state: 'visible', timeout: 10000 });
     await clanMenuPanel.buttons.clanSettings.click();
-    await this.selector.buttons.sidebarItem.filter({ hasText: 'Integrations' }).click();
+    const integrationsItem = this.selector.buttons.sidebarItem.filter({ hasText: 'Integrations' });
+    await expect(integrationsItem).toBeVisible({ timeout: 10000 });
+    await integrationsItem.click();
   }
 
   async createWebhook(): Promise<void> {
-    await this.selector.integrations.createWebhook.click();
+    const isCreateButtonVisible = await this.selector.integrations.createWebhook
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
+    if (isCreateButtonVisible) {
+      await this.selector.integrations.createWebhook.click();
+    } else {
+      const clanWebhooksRow = this.page.locator('text=Clan Webhooks').first();
+      await clanWebhooksRow.click();
+    }
+    await expect(this.selector.integrations.newWebhook).toBeVisible({ timeout: 5000 });
     await this.selector.integrations.newWebhook.click();
+  }
+
+  async createClanWebhook(): Promise<void> {
+    await this.createWebhook();
+  }
+
+  async openClanWebhooks(): Promise<void> {
+    const isCreateButtonVisible = await this.selector.integrations.createWebhook
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
+    if (isCreateButtonVisible) {
+      await this.selector.integrations.createWebhook.click();
+    } else {
+      const clanWebhooksRow = this.page.locator('text=Clan Webhooks').first();
+      await clanWebhooksRow.click();
+    }
+    await expect(this.selector.integrations.newWebhook).toBeVisible({ timeout: 5000 });
+  }
+
+  async getLatestWebhookName(): Promise<string> {
+    const latestItem = this.selector.integrations.webhookItem.item.first();
+    await expect(latestItem).toBeVisible({ timeout: 5000 });
+    const titleLocator = latestItem.locator(this.selector.integrations.webhookItem.title);
+    return (await titleLocator.innerText()).trim();
+  }
+
+  async expandWebhook(webhookName?: string): Promise<void> {
+    const item = webhookName
+      ? this.selector.integrations.webhookItem.item.filter({ hasText: webhookName }).first()
+      : this.selector.integrations.webhookItem.item.first();
+    await expect(item).toBeVisible({ timeout: 5000 });
+    const expandBtn = item.locator(this.selector.integrations.navigateWebhook);
+    await expandBtn.click();
+  }
+
+  async editWebhookName(oldName: string, newName: string): Promise<void> {
+    const item = this.selector.integrations.webhookItem.item.filter({ hasText: oldName }).first();
+    const parentContainer = item.locator('xpath=..');
+    const nameInput = parentContainer.locator('input[type="text"]').first();
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    await nameInput.fill(newName);
+
+    const saveBtn = this.page.locator('button', { hasText: 'Save Changes' });
+    await expect(saveBtn).toBeVisible({ timeout: 5000 });
+    await saveBtn.click();
+    await expect(saveBtn).toBeHidden({ timeout: 5000 });
+  }
+
+  async cancelDeleteWebhook(webhookName: string): Promise<void> {
+    const item = this.selector.integrations.webhookItem.item
+      .filter({ hasText: webhookName })
+      .first();
+    const parentContainer = item.locator('xpath=..');
+    const deleteBtn = parentContainer.locator('text="Delete Webhook"').first();
+    await expect(deleteBtn).toBeVisible({ timeout: 5000 });
+    await deleteBtn.click();
+
+    const deleteModal = this.page.locator('div.fixed.inset-0.z-50');
+    await expect(deleteModal).toBeVisible({ timeout: 5000 });
+    const cancelBtn = deleteModal.locator('text="Cancel"').first();
+    await cancelBtn.click();
+    await expect(deleteModal).toBeHidden({ timeout: 5000 });
+  }
+
+  async confirmDeleteWebhook(webhookName: string): Promise<void> {
+    const item = this.selector.integrations.webhookItem.item
+      .filter({ hasText: webhookName })
+      .first();
+    const parentContainer = item.locator('xpath=..');
+    const deleteBtn = parentContainer.locator('text="Delete Webhook"').first();
+    await expect(deleteBtn).toBeVisible({ timeout: 5000 });
+    await deleteBtn.click();
+
+    const deleteModal = this.page.locator('div.fixed.inset-0.z-50');
+    await expect(deleteModal).toBeVisible({ timeout: 5000 });
+    const confirmDeleteBtn = deleteModal.locator('.bg-red-600').first();
+    await confirmDeleteBtn.click();
+    await expect(deleteModal).toBeHidden({ timeout: 5000 });
+  }
+
+  async verifyWebhookExists(webhookName: string, shouldExist = true): Promise<void> {
+    const item = this.selector.integrations.webhookItem.item.filter({ hasText: webhookName });
+    if (shouldExist) {
+      await expect(item.first()).toBeVisible({ timeout: 5000 });
+    } else {
+      await expect(item).toBeHidden({ timeout: 5000 });
+    }
   }
 
   async verifyWebhookCreated(): Promise<boolean> {
