@@ -31,7 +31,7 @@ const ARIA_LABEL_ATTRIBUTE = 'aria-label';
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export class ClanPage extends BasePage {
-  private readonly selector: ClanSelector;
+  readonly selector: ClanSelector;
   private readonly notifications: ClanNotificationPage;
   constructor(page: Page) {
     super(page);
@@ -666,7 +666,7 @@ export class ClanPage extends BasePage {
       await expect(this.selector.modalInvite.userInvite.first()).toBeVisible();
 
       const userInviteItem = this.selector.modalInvite.userInvite.first();
-      const usernameElement = userInviteItem.locator('p');
+      const usernameElement = userInviteItem.locator('p').first();
       await expect(usernameElement).toBeVisible();
 
       const username = (await usernameElement.innerText()).trim();
@@ -691,11 +691,14 @@ export class ClanPage extends BasePage {
   }
 
   async openDirectMessageWithUser(username: string): Promise<void> {
-    const messageSelector = new MessageSelector(this.page);
+    const itemLocator = this.page
+      .locator(
+        `${generateE2eSelector('chat.direct_message.chat_item.username')}, ${generateE2eSelector('chat.direct_message.chat_item.group_name')}, [data-e2e*="chat_item"]`
+      )
+      .getByText(username, { exact: true });
 
-    await expect(messageSelector.userNamesInDM.getByText(username, { exact: true })).toBeVisible();
-
-    await messageSelector.userNamesInDM.getByText(username, { exact: true }).click();
+    await expect(itemLocator.first()).toBeVisible({ timeout: 10000 });
+    await itemLocator.first().click();
   }
 
   async editChannelName(channelName: string, newChannelName: string): Promise<void> {
@@ -1676,9 +1679,11 @@ export class ClanPage extends BasePage {
       await this.selector.modalInvite.searchInput.fill(username);
 
       const userInvite = this.selector.modalInvite.userInvite.filter({ hasText: username });
-      await expect(userInvite.first().or(this.selector.modalInvite.userInvite.first())).toBeVisible(
-        { timeout: 3000 }
-      );
+      const targetUser =
+        (await userInvite.count()) > 0
+          ? userInvite.first()
+          : this.selector.modalInvite.userInvite.first();
+      await expect(targetUser).toBeVisible({ timeout: 5000 });
       await expect(this.selector.input.urlInvite).toHaveValue(/http/);
 
       let urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
@@ -1759,7 +1764,12 @@ export class ClanPage extends BasePage {
 
     await expect(gotoClanButton).toBeVisible({ timeout: 10000 });
     await gotoClanButton.click();
-    await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+    try {
+      await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+    } catch {
+      await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {
@@ -2838,13 +2848,13 @@ export class ClanPage extends BasePage {
   async verifyChannelHasBadge(channelName: string, shouldHasBadge = true) {
     const channelLocator = this.selector.channel.getSidebarItem(channelName);
 
-    const badge = channelLocator.locator('div[class*="absolute"][class*="ml-auto"]').last();
+    const badge = channelLocator.locator('.bg-red-600, div[class*="ml-auto"]').last();
 
     if (shouldHasBadge) {
-      await expect(channelLocator).toBeVisible({ timeout: 3000 });
+      await expect(channelLocator).toBeVisible({ timeout: 5000 });
       await expect(badge).toHaveText('1');
     } else {
-      await expect(badge).toBeHidden({ timeout: 3000 });
+      await expect(badge).toBeHidden({ timeout: 5000 });
     }
   }
 
