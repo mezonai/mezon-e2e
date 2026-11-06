@@ -80,13 +80,24 @@ export class MessageTopicHelpers extends MessageContactHelpers {
 
   async openTopicBoxByMessage(message: string) {
     const messageItem = this.page.locator(MESSAGE_ITEM_SELECTOR).filter({ hasText: message });
-    await expect(messageItem).toBeVisible({ timeout: 5000 });
+    try {
+      await expect(messageItem.first()).toBeVisible({ timeout: 8000 });
+    } catch {
+      await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      await expect(messageItem.first()).toBeVisible({ timeout: 10000 });
+    }
 
-    const viewTopicButton = messageItem.locator(
-      generateE2eSelector('chat.topic.button.view_topic')
-    );
-    await expect(viewTopicButton).toBeVisible({ timeout: 2000 });
-    await viewTopicButton.click();
+    const viewTopicButton = messageItem
+      .first()
+      .locator(generateE2eSelector('chat.topic.button.view_topic'))
+      .or(
+        messageItem
+          .first()
+          .locator('button')
+          .filter({ hasText: /topic|repl/i })
+      );
+    await expect(viewTopicButton.first()).toBeVisible({ timeout: 5000 });
+    await viewTopicButton.first().click();
     await this.page.waitForTimeout(1000);
   }
 

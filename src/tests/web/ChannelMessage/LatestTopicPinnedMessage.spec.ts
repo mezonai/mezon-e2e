@@ -191,7 +191,9 @@ test.describe('Channel Messages - Latest Topic and Latest Pinned Message', () =>
 
     await messagePage.verifyLatestTopicInHeader(message);
     await messagePage.verifyLatestPinnedMessageInHeader(message);
-    await expect(page.getByText('Anonymous', { exact: true }).last()).toBeVisible();
+    await expect(page.locator('svg:has(.icon-HatIcon-fill-1)').last()).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test('Emoji content is supported by both header sections', async ({ page }) => {

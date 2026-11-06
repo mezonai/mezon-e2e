@@ -183,6 +183,7 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
       async () => {
         const isMessageSent = await messagePage.isAnonymousMessageSent();
         expect(isMessageSent).toBe(true);
+        await messagePage.closeAnonymous();
       }
     );
   });
@@ -218,6 +219,7 @@ test.describe('Channel Messages - GIFs, Anonymous Messages, and Inbox', () => {
       await clanPage.openClanSettings();
       await clanPage.preventAnonymous();
       await clanPage.closeSettingsClan();
+      await page.reload({ waitUntil: 'domcontentloaded' });
     });
 
     await AllureReporter.step('Enable anonymous mode', async () => {

@@ -9,13 +9,14 @@ import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import {
   getUsernamesFromEmails,
+  setupDualUser,
   setupDualUsersInParallel,
   setupDualUsersSequentially,
 } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
-import { test } from '../../../fixtures/dual.fixture';
+import { expect, test } from '../../../fixtures/dual.fixture';
 import { MULTI_CHAT_STEPS } from '../MultiChatTestConstants';
 
 test.describe('Member Management - Role Assignment and Cache Refresh', () => {
@@ -37,14 +38,194 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
   });
 
   test.afterEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async page => {
-        await AuthHelper.logout(page);
-      },
-      B: async page => {
-        await AuthHelper.logout(page);
-      },
-    });
+    await Promise.all([AuthHelper.logout(dual.pageA), AuthHelper.logout(dual.pageB)]);
+  });
+
+  test('Member list search, name sorting, and page-size selection work together', async ({
+    dual,
+  }) => {
+    const { pageA, pageB } = dual;
+    const clanFactory = new ClanFactory();
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    let clanCreated = false;
+
+    try {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+
+      await clanFactory.setupClan(ClanSetupHelper.configs.memberManagement, pageA);
+      clanCreated = true;
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const inviteUrl = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(inviteUrl);
+
+      await clanPageA.openMemberListSetting();
+      const memberRows = clanPageA.selector.member.settings.userContainer;
+      const usernames = clanPageA.selector.member.settings.username;
+      const search = pageA.getByPlaceholder('Search by clannick, display name or username');
+
+      await expect(memberRows).toHaveCount(2, { timeout: 10000 });
+      await search.fill(userNameB);
+      await expect(memberRows).toHaveCount(1);
+      await expect(clanPageA.selector.member.getSettingsRow(userNameB)).toBeVisible();
+      await search.clear();
+      await expect(memberRows).toHaveCount(2);
+
+      const nameHeader = pageA.getByText('Name', { exact: true });
+      await nameHeader.click();
+      const ascendingUsernames = (await usernames.allTextContents()).map(value => value.trim());
+      expect(ascendingUsernames).toHaveLength(2);
+
+      await nameHeader.click();
+      const descendingUsernames = (await usernames.allTextContents()).map(value => value.trim());
+      expect(descendingUsernames).toEqual([...ascendingUsernames].reverse());
+
+      // The fixture has only two members, so exercise page-size changes without claiming a page transition.
+      await pageA.getByText('10', { exact: true }).last().click();
+      await pageA.getByText('50', { exact: true }).last().click();
+      await expect(pageA.getByText('50', { exact: true }).last()).toBeVisible();
+    } finally {
+      if (clanCreated) {
+        await clanFactory.cleanupClan(pageA);
+      }
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    }
+  });
+  test('Member list pagination displays members on the next page', async ({ dual }) => {
+    test.setTimeout(30 * 60 * 1000);
+
+    const { pageA } = dual;
+    let pageB = dual.pageB;
+    const clanFactory = new ClanFactory();
+    const clanPageA = new ClanPage(pageA);
+    let clanCreated = false;
+
+    // The owner and account2-2 are already authenticated by the dual fixture.
+    // Nine additional accounts make eleven clan members, enough to require page 2 at size 10.
+    const extraAccountKeys = [
+      'account1',
+      'account2-3',
+      'account2-4',
+      'account2-5',
+      'account3',
+      'account4',
+      'account5',
+      'account6',
+      'account7',
+    ] as const;
+
+    try {
+      await clanFactory.setupClan(ClanSetupHelper.configs.memberManagement, pageA);
+      clanCreated = true;
+      const clanUrl = pageA.url();
+      const clanId = clanUrl.match(/\/chat\/clans\/([^/]+)/)?.[1];
+      expect(clanId, 'Expected the created clan URL to contain its clan ID').toBeTruthy();
+
+      const addMemberByInvite = async (memberPage: typeof pageA, username: string) => {
+        const ownerFriendPage = new FriendPage(pageA);
+        const memberFriendPage = new FriendPage(memberPage);
+        const memberClanPage = new ClanPage(memberPage);
+
+        await Promise.allSettled([
+          ownerFriendPage.unblockFriend(username),
+          memberFriendPage.unblockFriend(userNameA),
+        ]);
+        await FriendHelper.cleanupMutualFriendRelationships(
+          ownerFriendPage,
+          memberFriendPage,
+          userNameA,
+          username
+        );
+
+        try {
+          await ownerFriendPage.sendFriendRequestToUser(username);
+          await ownerFriendPage.verifySentRequestToast();
+          await memberFriendPage.verifyReceivedRequestToast(
+            `${userNameA} wants to add you as a friend`
+          );
+          await memberFriendPage.acceptFriendRequestFromUser(userNameA);
+          await ownerFriendPage.assertAllFriend(username);
+          await memberFriendPage.assertAllFriend(userNameA);
+          await Promise.all([
+            ownerFriendPage.createDM(username),
+            memberFriendPage.createDM(userNameA),
+          ]);
+
+          await pageA.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+          await clanPageA.clickButtonInvitePeopleFromMenu();
+          const inviteUrl = await clanPageA.inviteUserToClanByUsername(username);
+          await memberClanPage.joinClanByUrlInvite(inviteUrl);
+        } finally {
+          await FriendHelper.cleanupMutualFriendRelationships(
+            ownerFriendPage,
+            memberFriendPage,
+            userNameA,
+            username
+          );
+        }
+      };
+
+      await addMemberByInvite(pageB, userNameB);
+
+      for (const accountKey of extraAccountKeys) {
+        await AuthHelper.logout(pageB, false);
+        await pageB.close();
+        pageB = await dual.contextB.newPage();
+        dual.pageB = pageB;
+        await setupDualUser(pageB, AccountCredentials[accountKey], directFriendsUrl);
+        const username = getUsernamesFromEmails([AccountCredentials[accountKey].email])[0];
+        await addMemberByInvite(pageB, username);
+      }
+
+      await pageA.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+      await expect(clanPageA.selector.buttons.clanName).toBeVisible({ timeout: 15000 });
+      await clanPageA.openMemberListSetting();
+
+      const memberRows = clanPageA.selector.member.settings.userContainer;
+      await expect(memberRows).toHaveCount(10, { timeout: 30000 });
+      await pageA.getByRole('button', { name: '2', exact: true }).click();
+      await expect(memberRows).toHaveCount(1);
+
+      const memberOnSecondPage = (
+        await clanPageA.selector.member.settings.username.innerText()
+      ).trim();
+      expect(memberOnSecondPage).toBeTruthy();
+
+      await pageA.getByRole('button', { name: '1', exact: true }).click();
+      await expect(memberRows).toHaveCount(10);
+      await pageA
+        .getByPlaceholder('Search by clannick, display name or username')
+        .fill(memberOnSecondPage);
+      await expect(memberRows).toHaveCount(1);
+      await expect(memberRows.first()).toContainText(memberOnSecondPage);
+    } finally {
+      if (clanCreated) {
+        await clanFactory.cleanupClan(pageA);
+      }
+    }
   });
 
   test('Verify that role not cache on member settings when user leave and join clan again', async ({

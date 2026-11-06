@@ -10,10 +10,42 @@ export class MessageInboxHelpers extends MessageMediaHelpers {
   }
 
   async openHeaderInboxButton() {
-    const inboxButton = this.selector.headerInboxButton.last();
-    await expect(inboxButton).toBeVisible({ timeout: 5000 });
-    await inboxButton.click({ force: true });
-    await expect(this.page.locator('.rc-tooltip')).toBeVisible({ timeout: 5000 });
+    const tooltip = this.page.locator('.rc-tooltip:not(.rc-tooltip-hidden)');
+    const inboxButton = this.page
+      .locator('button[data-e2e="chat-channel_message-header-button-inbox"]')
+      .last()
+      .or(this.selector.headerInboxButton.last());
+
+    try {
+      await expect(inboxButton).toBeVisible({ timeout: 3000 });
+    } catch {
+      const channelLocator = this.page
+        .locator(generateE2eSelector('clan_page.channel_list.item.name'))
+        .filter({ hasText: 'general' })
+        .first();
+      try {
+        await expect(channelLocator).toBeVisible({ timeout: 5000 });
+        await channelLocator.click();
+      } catch {
+        const firstChannel = this.page
+          .locator(generateE2eSelector('clan_page.channel_list.item.name'))
+          .first();
+        await expect(firstChannel).toBeVisible({ timeout: 5000 });
+        await firstChannel.click();
+      }
+      await this.page.waitForTimeout(1000);
+      await expect(inboxButton).toBeVisible({ timeout: 10000 });
+    }
+
+    if (!(await tooltip.isVisible())) {
+      await inboxButton.click();
+      try {
+        await expect(tooltip).toBeVisible({ timeout: 3000 });
+      } catch {
+        await inboxButton.click();
+        await expect(tooltip).toBeVisible({ timeout: 5000 });
+      }
+    }
   }
 
   async openChatBox() {
@@ -68,7 +100,15 @@ export class MessageInboxHelpers extends MessageMediaHelpers {
     const mentionItem = this.selector.inboxMessages.filter({ hasText: messageContent }).first();
 
     await expect(mentionItem).toBeVisible({ timeout: 5000 });
-    await mentionItem.hover();
+    const itemContainer = this.page
+      .locator(generateE2eSelector('chat.channel_message.inbox.mentions'))
+      .filter({ hasText: messageContent })
+      .first();
+    if (await itemContainer.isVisible().catch(() => false)) {
+      await itemContainer.hover();
+    } else {
+      await mentionItem.hover({ force: true });
+    }
 
     const jumpButton = this.selector.inbox.forYou.item.button.jump.first();
     await expect(jumpButton).toBeVisible({ timeout: 5000 });

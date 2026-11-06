@@ -115,6 +115,7 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
 
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.banUserInChannel, async () => {
@@ -129,8 +130,6 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
     });
 
     await AllureReporter.step('Verify user B can not send message on topic', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isMessageInputVisible = await clanPageB.isMessageInputVisible(true);
@@ -209,6 +208,7 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
 
     let duration: number | null;
@@ -227,8 +227,6 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
     });
 
     await AllureReporter.step('User B is banned can not send message on topic', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await messageHelperB.openTopicBoxByMessage(testMessage);
 
       const isBannedInputVisible = await clanPageB.isBannedItemVisible(true);
@@ -310,6 +308,7 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
 
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.banUserInChannel, async () => {
@@ -326,8 +325,6 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
     await AllureReporter.step(
       'Verify user B can not react or open context menu on topic message',
       async () => {
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await messageHelperB.openTopicBoxByMessage(testMessage);
         const isReactionVisible = await clanPageB.isHoverMessageModalVisible(true);
         expect(isReactionVisible).toBe(false);
@@ -370,6 +367,7 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
+    const messageHelperA = new MessageTestHelpers(pageA);
     const messageHelperB = new MessageTestHelpers(pageB);
     const messagePageB = new MessagePage(pageB);
     const testMessage = `Test message - ${Date.now()}`;
@@ -415,6 +413,7 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await pageB.waitForTimeout(1000);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
 
     await AllureReporter.step('User A create a channel', async () => {
@@ -430,10 +429,8 @@ test.describe('Topic Messages - Banned User Restrictions and Role Mentions', () 
     });
 
     await AllureReporter.step('Verify user B can not forward message to channel', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
-
-      await messageHelperB.sendTextMessage(testMessage);
+      await messageHelperA.sendTextMessage(testMessage);
+      await pageB.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
       await messagePageB.openForwardMessageModal();
 
       const isBannedChannelPresentOnForwardModal =
