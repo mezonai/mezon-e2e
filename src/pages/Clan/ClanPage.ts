@@ -1807,6 +1807,44 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async removeRoleForUserByUsername(username: string, roleName: string) {
+    if (await this.selector.buttons.closeSettingClan.isVisible()) {
+      await this.selector.buttons.closeSettingClan.click();
+    }
+    await this.selector.buttons.memberListButton.click();
+    const userRow = this.selector.member.getSettingsRow(username);
+    await expect(userRow).toBeVisible({ timeout: 5000 });
+
+    const addRoleButton = userRow.locator(
+      `${generateE2eSelector('clan_page.member_list.role_settings.add_role.button')}`
+    );
+
+    await expect(addRoleButton).toBeVisible({ timeout: 5000 });
+    await addRoleButton.click();
+
+    const tooltip = this.page.locator('.rc-tooltip');
+    await expect(tooltip).toBeVisible({ timeout: 5000 });
+
+    const roleRow = tooltip.locator(
+      `div.flex.gap-2.items-center:has(${generateE2eSelector(
+        'clan_page.member_list.role_settings.add_role.role_name'
+      )}:has-text("${roleName}"))`
+    );
+
+    await expect(roleRow.first()).toBeVisible({ timeout: 5000 });
+    await roleRow.first().click({ force: true });
+    await expect(
+      userRow.locator(
+        `${generateE2eSelector('clan_page.member_list.role_settings.exist_role.role_name')}:has-text("${roleName.slice(0, 6)}")`
+      )
+    ).toBeHidden({ timeout: 5000 });
+
+    const viewport = this.page.viewportSize();
+    if (viewport) {
+      await this.page.mouse.click(viewport.width - 5, 5);
+    }
+  }
+
   async verifyUserHasRoleOnMemberSettings(
     username: string,
     roleName: string,
