@@ -317,7 +317,11 @@ test.describe('Clan Management - Audit Log, Count Events, Interested Event', () 
 
     try {
       await AllureReporter.step('Open the clan on dev and capture its current banner', async () => {
-        await page.goto(joinUrlPaths(MEZON_DEV, clanPath), { waitUntil: 'domcontentloaded' });
+        await page.waitForLoadState('domcontentloaded');
+        const targetUrl = joinUrlPaths(MEZON_DEV, clanPath);
+        if (page.url() !== targetUrl) {
+          await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });
+        }
       });
       const previousBannerImage = await clanPage.getClanBannerImage();
       const bannerPath = await fileSizeHelpers.createFileWithSize(
