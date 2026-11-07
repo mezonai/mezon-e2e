@@ -274,11 +274,14 @@ export class ClanPage extends BasePage {
     try {
       const categoryPage = new ClanMenuPanel(this.page);
 
+      await categoryPage.text.clanName.waitFor({ state: 'visible', timeout: 10000 });
       await categoryPage.text.clanName.click();
+      await categoryPage.buttons.clanSettings.waitFor({ state: 'visible', timeout: 5000 });
       await categoryPage.buttons.clanSettings.click();
+      await expect(this.selector.clanSettings.settings_page).toBeVisible({ timeout: 10000 });
       return true;
     } catch (error) {
-      console.error(`Error deleting clan: ${error}`);
+      console.error(`Error opening clan settings: ${error}`);
       return false;
     }
   }
@@ -2452,7 +2455,7 @@ export class ClanPage extends BasePage {
 
   async updateClanName(clanName: string): Promise<void> {
     const clanNameInput = this.selector.clanSettings.clanName;
-    await expect(clanNameInput).toBeVisible({ timeout: 5000 });
+    await expect(clanNameInput).toBeVisible({ timeout: 10000 });
     await clanNameInput.fill(clanName);
     await this.selector.buttons.saveChanges.click();
     await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });

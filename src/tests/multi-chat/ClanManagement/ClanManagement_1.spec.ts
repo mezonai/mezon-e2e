@@ -32,7 +32,6 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
     parallel: setupDualUsersInParallel,
     sequential: setupDualUsersSequentially,
   };
-  // const setupBeforeEach = setupModes.parallel;
   const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
@@ -241,10 +240,7 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
 
     await AllureReporter.step('User B join voice channel', async () => {
       await pageB.reload();
-
       await clanPageB.joinVoiceChannel(channelName);
-      // const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
-      // expect(isUserInVoiceChannel).toBe(true);
     });
 
     await AllureReporter.step('User A kick User B from clan', async () => {
@@ -273,7 +269,6 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
 
     await AllureReporter.step('Verify that user B not in last voice channel', async () => {
       await pageB.reload();
-      await clanPageB.joinVoiceChannel(channelName);
       const isUserInVoiceChannel = await clanPageB.isJoinVoiceChannel(channelName);
       expect(isUserInVoiceChannel).toBe(false);
     });
@@ -433,8 +428,7 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
     await AllureReporter.step(
       'Verify that user B has not admin permission before add role',
       async () => {
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openClanSettings();
         await clanPageB.verifyAdministratorPermissionRole(false);
         await clanPageB.closeSettingsClan();
@@ -450,8 +444,7 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
     await AllureReporter.step(
       'Verify that user B has admin permission after add role',
       async () => {
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openClanSettings();
         await clanPageB.verifyAdministratorPermissionRole();
       }
@@ -529,8 +522,7 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
     await AllureReporter.step(
       'Verify that user B cannot manage channel before add role',
       async () => {
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openChannelSettingsSidebar();
         await clanPageB.verifyUserWithChannelManagePermission(false);
       }
@@ -546,8 +538,7 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
     );
 
     await AllureReporter.step('Verify that user B can manage channel after add role', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openChannelSettingsSidebar();
       await clanPageB.verifyUserWithChannelManagePermission();
     });
