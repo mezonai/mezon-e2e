@@ -411,10 +411,13 @@ test.describe('Clan Management - Manage Clan Permission', () => {
     });
 
     await AllureReporter.step('Delete the role', async () => {
+      await clanPageA.removeRoleForUserByUsername(userNameB, roleName);
       await clanPageA.deleteRole(roleName);
+      await clanPageA.closeSettingsClan();
     });
 
     await AllureReporter.step('Verify User B cannot manage clan after role removal', async () => {
+      await pageB.waitForTimeout(2000);
       await pageB.reload();
       await clanPageB.openChannelSettingsSidebar('general');
       await clanPageB.verifyUserWithChannelManagePermission(false);
