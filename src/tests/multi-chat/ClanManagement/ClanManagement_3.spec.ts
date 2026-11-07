@@ -30,7 +30,6 @@ test.describe('Clan Management - Private Channel Roles and Permission Overrides'
     parallel: setupDualUsersInParallel,
     sequential: setupDualUsersSequentially,
   };
-  // const setupBeforeEach = setupModes.parallel;
   const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {

@@ -325,7 +325,7 @@ test.describe('Clan Management - Manage Clan Permission', () => {
     });
 
     await AllureReporter.step('Verify User B can update clan settings', async () => {
-      await pageB.reload();
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       await clanPageB.openClanSettings();
       await clanPageB.updateClanName(newClanName);
     });
