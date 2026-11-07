@@ -327,8 +327,10 @@ test.describe('Direct Messages - Group Membership, Avatars, and Unread State', (
     });
 
     await AllureReporter.step('User A create a group and update name', async () => {
-      await messagePageA.createGroup();
-
+      await messagePageA.openSelectFriendsModal();
+      await messagePageA.pickFriendByName(userNameB);
+      await messagePageA.pickFriendByName(userNameC);
+      await messagePageA.submitCreate();
       await messagePageA.updateNameGroupChatDM(nameGroupChat);
     });
 

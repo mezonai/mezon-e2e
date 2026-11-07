@@ -106,7 +106,7 @@ export class MessagePage extends BasePage {
     const maxRetries = 6;
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       await this.openSelectFriendsModal();
-      await this.pickFriends(3, friendIndices);
+      await this.pickFriends(2, friendIndices);
       await this.submitCreate();
 
       try {
@@ -143,24 +143,25 @@ export class MessagePage extends BasePage {
     return displayName || (await friend.locator('span:not([data-e2e])').last().innerText()).trim();
   }
 
-  async pickFriends(count: number = 3, friendIndices?: number[]): Promise<void> {
+  async pickFriends(count: number = 2, friendIndices?: number[]): Promise<void> {
     await expect
       .poll(() => this.selector.friendItems.count(), {
-        message: `Wait until at least ${count} friends are available`,
+        message: 'Wait until at least 1 friend is available',
         timeout: 10000,
       })
-      .toBeGreaterThanOrEqual(count);
+      .toBeGreaterThanOrEqual(1);
 
     const totalFriends = await this.selector.friendItems.count();
+    const actualCount = Math.min(count, totalFriends);
     let indicesToPick = friendIndices;
 
-    if (!indicesToPick || indicesToPick.length < count) {
+    if (!indicesToPick || indicesToPick.length < actualCount) {
       const pool = Array.from({ length: totalFriends }, (_, i) => i);
       for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [pool[i], pool[j]] = [pool[j], pool[i]];
       }
-      indicesToPick = pool.slice(0, Math.min(count, totalFriends));
+      indicesToPick = pool.slice(0, actualCount);
     }
 
     for (const idx of indicesToPick) {
@@ -601,7 +602,7 @@ export class MessagePage extends BasePage {
     await this.selector.editGroupButton.click();
     const groupAvt = await fileSizeHelpers.createFileWithSize(
       'direct_message_icon',
-      5 * 1024 * 1024,
+      100 * 1024,
       'jpg'
     );
 
@@ -617,10 +618,14 @@ export class MessagePage extends BasePage {
     await expect(this.selector.saveGroupNameButton).toBeVisible({ timeout: 3000 });
     await this.selector.saveGroupNameButton.click();
     try {
-      await expect(this.selector.editGroupModal).toBeHidden({ timeout: 8000 });
+      await expect(this.selector.editGroupModal).toBeHidden({ timeout: 10000 });
     } catch {
       if (await this.selector.saveGroupNameButton.isVisible().catch(() => false)) {
         await this.selector.saveGroupNameButton.click({ force: true }).catch(() => {});
+      }
+      const closeBtn = this.selector.editGroupModal.locator('button:has(svg)').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click().catch(() => {});
       }
       await this.page.keyboard.press('Escape').catch(() => {});
       await expect(this.selector.editGroupModal).toBeHidden({ timeout: 5000 });

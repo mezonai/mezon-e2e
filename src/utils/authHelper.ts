@@ -173,10 +173,15 @@ export class AuthHelper {
     // leaving OAuth cookies or storage behind in reused pages/contexts.
     try {
       await page.context().clearCookies();
-      await page.evaluate(() => {
-        localStorage.clear();
-        sessionStorage.clear();
-      });
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+      await page
+        .evaluate(() => {
+          try {
+            localStorage.clear();
+            sessionStorage.clear();
+          } catch {}
+        })
+        .catch(() => {});
     } catch (error) {
       console.error('Failed to clear browser authentication state:', error);
     }

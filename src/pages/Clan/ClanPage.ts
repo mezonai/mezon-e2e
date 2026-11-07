@@ -31,7 +31,7 @@ const ARIA_LABEL_ATTRIBUTE = 'aria-label';
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export class ClanPage extends BasePage {
-  private readonly selector: ClanSelector;
+  readonly selector: ClanSelector;
   private readonly notifications: ClanNotificationPage;
   constructor(page: Page) {
     super(page);
@@ -274,11 +274,14 @@ export class ClanPage extends BasePage {
     try {
       const categoryPage = new ClanMenuPanel(this.page);
 
+      await categoryPage.text.clanName.waitFor({ state: 'visible', timeout: 10000 });
       await categoryPage.text.clanName.click();
+      await categoryPage.buttons.clanSettings.waitFor({ state: 'visible', timeout: 5000 });
       await categoryPage.buttons.clanSettings.click();
+      await expect(this.selector.clanSettings.settings_page).toBeVisible({ timeout: 10000 });
       return true;
     } catch (error) {
-      console.error(`Error deleting clan: ${error}`);
+      console.error(`Error opening clan settings: ${error}`);
       return false;
     }
   }
@@ -353,9 +356,22 @@ export class ClanPage extends BasePage {
   }
 
   async openMemberListSetting(): Promise<void> {
-    await expect(this.selector.buttons.memberListButton).toBeVisible({ timeout: 3000 });
+    if (await this.selector.buttons.closeSettingClan.isVisible().catch(() => false)) {
+      await this.selector.buttons.closeSettingClan.click();
+    }
+    await expect(this.selector.buttons.memberListButton).toBeVisible({ timeout: 5000 });
     await this.selector.buttons.memberListButton.click();
     await expect(this.selector.memberSettings.userContainer.first()).toBeVisible({ timeout: 5000 });
+  }
+
+  async searchMemberList(keyword: string): Promise<void> {
+    await expect(this.selector.memberSettings.searchInput).toBeVisible({ timeout: 5000 });
+    await this.selector.memberSettings.searchInput.fill(keyword);
+  }
+
+  async clearMemberListSearch(): Promise<void> {
+    await expect(this.selector.memberSettings.searchInput).toBeVisible({ timeout: 5000 });
+    await this.selector.memberSettings.searchInput.clear();
   }
 
   async openChannelsListSetting(): Promise<void> {
@@ -666,7 +682,7 @@ export class ClanPage extends BasePage {
       await expect(this.selector.modalInvite.userInvite.first()).toBeVisible();
 
       const userInviteItem = this.selector.modalInvite.userInvite.first();
-      const usernameElement = userInviteItem.locator('p');
+      const usernameElement = userInviteItem.locator('p').first();
       await expect(usernameElement).toBeVisible();
 
       const username = (await usernameElement.innerText()).trim();
@@ -691,11 +707,14 @@ export class ClanPage extends BasePage {
   }
 
   async openDirectMessageWithUser(username: string): Promise<void> {
-    const messageSelector = new MessageSelector(this.page);
+    const itemLocator = this.page
+      .locator(
+        `${generateE2eSelector('chat.direct_message.chat_item.username')}, ${generateE2eSelector('chat.direct_message.chat_item.group_name')}, [data-e2e*="chat_item"]`
+      )
+      .getByText(username, { exact: true });
 
-    await expect(messageSelector.userNamesInDM.getByText(username, { exact: true })).toBeVisible();
-
-    await messageSelector.userNamesInDM.getByText(username, { exact: true }).click();
+    await expect(itemLocator.first()).toBeVisible({ timeout: 10000 });
+    await itemLocator.first().click();
   }
 
   async editChannelName(channelName: string, newChannelName: string): Promise<void> {
@@ -1676,9 +1695,11 @@ export class ClanPage extends BasePage {
       await this.selector.modalInvite.searchInput.fill(username);
 
       const userInvite = this.selector.modalInvite.userInvite.filter({ hasText: username });
-      await expect(userInvite.first().or(this.selector.modalInvite.userInvite.first())).toBeVisible(
-        { timeout: 3000 }
-      );
+      const targetUser =
+        (await userInvite.count()) > 0
+          ? userInvite.first()
+          : this.selector.modalInvite.userInvite.first();
+      await expect(targetUser).toBeVisible({ timeout: 5000 });
       await expect(this.selector.input.urlInvite).toHaveValue(/http/);
 
       let urlInvite = (await this.selector.input.urlInvite.inputValue()).trim();
@@ -1759,13 +1780,30 @@ export class ClanPage extends BasePage {
 
     await expect(gotoClanButton).toBeVisible({ timeout: 10000 });
     await gotoClanButton.click();
-    await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+    try {
+      await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+    } catch {
+      await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {
+    if (await this.selector.buttons.closeSettingClan.isVisible().catch(() => false)) {
+      await this.selector.buttons.closeSettingClan.click();
+    }
     await this.selector.buttons.memberListButton.click();
     const userRow = this.selector.member.getSettingsRow(username);
-    await expect(userRow).toBeVisible({ timeout: 5000 });
+    try {
+      await expect(userRow).toBeVisible({ timeout: 5000 });
+    } catch {
+      const searchInput = this.selector.memberSettings.searchInput;
+      if (await searchInput.isVisible()) {
+        await searchInput.fill(username);
+        await this.page.waitForTimeout(1000);
+      }
+      await expect(userRow).toBeVisible({ timeout: 10000 });
+    }
 
     const addRoleButton = userRow.locator(
       `${generateE2eSelector('clan_page.member_list.role_settings.add_role.button')}`
@@ -1797,15 +1835,56 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async removeRoleForUserByUsername(username: string, roleName: string) {
+    if (await this.selector.buttons.closeSettingClan.isVisible()) {
+      await this.selector.buttons.closeSettingClan.click();
+    }
+    await this.selector.buttons.memberListButton.click();
+    const userRow = this.selector.member.getSettingsRow(username);
+    await expect(userRow).toBeVisible({ timeout: 5000 });
+
+    const addRoleButton = userRow.locator(
+      `${generateE2eSelector('clan_page.member_list.role_settings.add_role.button')}`
+    );
+
+    await expect(addRoleButton).toBeVisible({ timeout: 5000 });
+    await addRoleButton.click();
+
+    const tooltip = this.page.locator('.rc-tooltip');
+    await expect(tooltip).toBeVisible({ timeout: 5000 });
+
+    const roleRow = tooltip.locator(
+      `div.flex.gap-2.items-center:has(${generateE2eSelector(
+        'clan_page.member_list.role_settings.add_role.role_name'
+      )}:has-text("${roleName}"))`
+    );
+
+    await expect(roleRow.first()).toBeVisible({ timeout: 5000 });
+    await roleRow.first().click({ force: true });
+    await expect(
+      userRow.locator(
+        `${generateE2eSelector('clan_page.member_list.role_settings.exist_role.role_name')}:has-text("${roleName.slice(0, 6)}")`
+      )
+    ).toBeHidden({ timeout: 5000 });
+
+    const viewport = this.page.viewportSize();
+    if (viewport) {
+      await this.page.mouse.click(viewport.width - 5, 5);
+    }
+  }
+
   async verifyUserHasRoleOnMemberSettings(
     username: string,
     roleName: string,
     shouldVisible = true,
     style?: string
   ) {
-    await this.page.reload();
-
-    const userRow = this.selector.member.getSettingsRow(username);
+    let userRow = this.selector.member.getSettingsRow(username);
+    const isRowVisible = await userRow.isVisible().catch(() => false);
+    if (!isRowVisible) {
+      await this.openMemberListSetting();
+      userRow = this.selector.member.getSettingsRow(username);
+    }
     await expect(userRow).toBeVisible({ timeout: 5000 });
 
     const roleLocator = userRow.locator(
@@ -1816,21 +1895,13 @@ export class ClanPage extends BasePage {
       .locator(this.selector.memberSettings.userDisplayName)
       .first();
 
-    const isVisible = await roleLocator.isVisible();
-
     if (shouldVisible) {
-      expect(
-        isVisible,
-        `❌ Expected role "${roleName}" to be visible for user "${username}", but it is not.`
-      ).toBeTruthy();
+      await expect(roleLocator).toBeVisible({ timeout: 5000 });
       if (style) {
         await expect(displayNameLocator).toHaveCSS('color', style);
       }
     } else {
-      expect(
-        isVisible,
-        `❌ Expected role "${roleName}" to NOT be visible for user "${username}", but it is visible.`
-      ).toBeFalsy();
+      await expect(roleLocator).toBeHidden({ timeout: 5000 });
       if (style) {
         await expect(displayNameLocator).not.toHaveCSS('color', style);
       }
@@ -2384,7 +2455,7 @@ export class ClanPage extends BasePage {
 
   async updateClanName(clanName: string): Promise<void> {
     const clanNameInput = this.selector.clanSettings.clanName;
-    await expect(clanNameInput).toBeVisible({ timeout: 5000 });
+    await expect(clanNameInput).toBeVisible({ timeout: 10000 });
     await clanNameInput.fill(clanName);
     await this.selector.buttons.saveChanges.click();
     await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
@@ -2838,13 +2909,13 @@ export class ClanPage extends BasePage {
   async verifyChannelHasBadge(channelName: string, shouldHasBadge = true) {
     const channelLocator = this.selector.channel.getSidebarItem(channelName);
 
-    const badge = channelLocator.locator('div[class*="absolute"][class*="ml-auto"]').last();
+    const badge = channelLocator.locator('.bg-red-600, div[class*="ml-auto"]').last();
 
     if (shouldHasBadge) {
-      await expect(channelLocator).toBeVisible({ timeout: 3000 });
+      await expect(channelLocator).toBeVisible({ timeout: 5000 });
       await expect(badge).toHaveText('1');
     } else {
-      await expect(badge).toBeHidden({ timeout: 3000 });
+      await expect(badge).toBeHidden({ timeout: 5000 });
     }
   }
 

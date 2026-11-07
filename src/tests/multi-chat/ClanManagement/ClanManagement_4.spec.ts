@@ -31,7 +31,6 @@ test.describe('Clan Management - Role Permissions, Ownership, and Membership Dat
     parallel: setupDualUsersInParallel,
     sequential: setupDualUsersSequentially,
   };
-  // const setupBeforeEach = setupModes.parallel;
   const setupBeforeEach = setupModes.sequential;
 
   test.beforeEach(async ({ dual }) => {
@@ -109,8 +108,7 @@ test.describe('Clan Management - Role Permissions, Ownership, and Membership Dat
     await AllureReporter.step(
       'Verify that member since on short profile of user B display correct',
       async () => {
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openMemberList();
         const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
         await clanPageB.openContextModalOnMemberList(memberItem);
@@ -210,8 +208,7 @@ test.describe('Clan Management - Role Permissions, Ownership, and Membership Dat
     await AllureReporter.addParameter('secondaryAccount', memberAccount.email);
 
     await test.step('Non-manager context menu hides Create Category entry', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
       const memberMenuPanel = new ClanMenuPanel(pageB);
       await memberMenuPanel.openPanel();
       await expect(memberMenuPanel.buttons.invitePeople).toBeVisible();

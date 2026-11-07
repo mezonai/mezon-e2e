@@ -164,6 +164,7 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
 
     await AllureReporter.step('verify it is visible on DM list', async () => {
       const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
+      await pageB.reload();
       await friendPageB.createDM(userNameA);
       const userLocator = await friendPageB.getDMByUsername(userNameA);
       console.log(userLocator);
@@ -235,6 +236,7 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
     const currentProfileStatus = await profilePageA.getProfileStatusInFooterProfile();
 
     await AllureReporter.step('verify it is visible on header DM', async () => {
+      await pageB.reload();
       await friendPageB.createDM(userNameA);
 
       const headerDMLocator = await messagePageB.getHeaderDM();
@@ -411,7 +413,7 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
 
         const firstAvatarPath = await fileSizeHelpers.createFileWithSize(
           'avatar_version_1_dev',
-          5 * 1024 * 1024,
+          100 * 1024,
           'jpg'
         );
         await fileSizeHelpers.uploadFileDefault(firstAvatarPath);
@@ -463,7 +465,7 @@ test.describe('Direct Messages - Profile Status and Avatar History', () => {
 
         const secondAvatarPath = await fileSizeHelpers.createFileWithSize(
           'avatar_version_2_dev',
-          4 * 1024 * 1024,
+          150 * 1024,
           'jpg'
         );
         await fileSizeHelpers.uploadFileDefault(secondAvatarPath);

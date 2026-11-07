@@ -331,6 +331,7 @@ export class ProfilePage extends BasePage {
   }
 
   async saveChangesUserProfile() {
+    await expect(this.selector.buttons.saveChangesUserProfile).toBeVisible({ timeout: 10000 });
     return this.selector.buttons.saveChangesUserProfile.click();
   }
 
@@ -394,7 +395,9 @@ export class ProfilePage extends BasePage {
   }
 
   async getProfileStatus(locator: Locator): Promise<string> {
-    await expect.poll(() => this.readProfileStatus(locator), { timeout: 5000 }).not.toBe('Unknown');
+    await expect
+      .poll(() => this.readProfileStatus(locator), { timeout: 10000 })
+      .not.toBe('Unknown');
     return this.readProfileStatus(locator);
   }
 

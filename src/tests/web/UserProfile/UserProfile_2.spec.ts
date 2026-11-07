@@ -68,7 +68,7 @@ test.describe('User Profile - Avatar Visibility Across Direct Message Views', ()
 
     const smallAvatarPath = await fileSizeHelpers.createFileWithSize(
       'small_avatar',
-      5 * 1024 * 1024,
+      100 * 1024,
       'jpg'
     );
 

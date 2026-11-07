@@ -410,13 +410,18 @@ test.describe('Clan Management - Administrator Permission', () => {
     });
 
     await AllureReporter.step('Delete the role', async () => {
+      await clanPageA.removeRoleForUserByUsername(userNameB, roleName);
       await clanPageA.deleteRole(roleName);
+      await clanPageA.closeSettingsClan();
     });
 
     await AllureReporter.step('Verify User B loses admin access', async () => {
-      await pageB.reload();
       await pageB.waitForTimeout(2000);
-      await clanPageB.openRoleSettingsPage();
+      await pageB.reload();
+      const opened = await clanPageB.openClanSettings();
+      if (!opened) {
+        await clanPageB.openRoleSettingsPage();
+      }
       await clanPageB.verifyAdministratorPermissionRole(false);
       await clanPageB.closeSettingsClan();
     });

@@ -9,6 +9,9 @@ export default class CategorySettingSelector {
     confirmDelete: this.page.locator(
       generateE2eSelector('clan_page.settings.modal.delete_clan.confirm')
     ),
+    cancelDelete: this.page.locator(
+      generateE2eSelector('clan_page.settings.modal.delete_clan.cancel')
+    ),
   };
 
   readonly input = {
