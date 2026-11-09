@@ -2126,6 +2126,18 @@ export class ClanPage extends BasePage {
     }
   }
 
+  async verifyUserNotInVoiceChannel(
+    channelName: string,
+    username: string,
+    timeout = 15000
+  ): Promise<void> {
+    const userListLocator = this.getVoiceChannelSidebarItem(channelName).locator(
+      this.selector.sidebar.channelItem.userList.item
+    );
+    const userLocator = userListLocator.filter({ hasText: username }).first();
+    await expect(userLocator).toBeHidden({ timeout });
+  }
+
   async kickUserFromVoiceCall(username: string): Promise<boolean> {
     try {
       const participantTile = this.getVoiceParticipantTile(username);

@@ -273,6 +273,13 @@ export class FriendPage extends BasePage {
     await expect(this.selector.buttons.confirmRemoveFriend).toBeHidden({ timeout: 5000 });
   }
 
+  async cancelRemoveFriend(): Promise<void> {
+    await expect(this.selector.buttons.cancelRemoveFriend).toBeVisible({ timeout: 3000 });
+    await this.selector.buttons.cancelRemoveFriend.click();
+    await this.page.waitForTimeout(500);
+    await expect(this.selector.buttons.cancelRemoveFriend).toBeHidden({ timeout: 5000 });
+  }
+
   async removeFriendRequest(username: string): Promise<void> {
     const existFriend = await this.checkFriendRequestExists(username);
     if (!existFriend) {
@@ -421,6 +428,16 @@ export class FriendPage extends BasePage {
       .locator(profileSelector.profiles.userStatus)
       .filter({ hasText: status });
     await expect(statusLocator).toBeVisible({ timeout: 5000 });
+  }
+
+  async verifyUserCustomStatusNotInFriendList(username: string, status: string): Promise<void> {
+    const profileSelector = new ProfileSelector(this.page);
+    const friendItem = await this.friendExistsInTab(username, 'all');
+    await friendItem.waitFor({ state: 'visible', timeout: 20000 });
+    const statusLocator = friendItem
+      .locator(profileSelector.profiles.userStatus)
+      .filter({ hasText: status });
+    await expect(statusLocator).toBeHidden({ timeout: 5000 });
   }
 
   async getDMByUsername(username: string) {
