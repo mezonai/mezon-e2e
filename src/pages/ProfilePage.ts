@@ -306,6 +306,11 @@ export class ProfilePage extends BasePage {
     await this.selector.buttons.saveChangesClanProfile.click();
   }
 
+  async resetChangesClanProfile() {
+    await expect(this.selector.buttons.resetClanProfile).toBeVisible({ timeout: 10000 });
+    await this.selector.buttons.resetClanProfile.click();
+  }
+
   async getClanProfileAvatar() {
     return this.selector.clanProfile.avatar;
   }
@@ -333,6 +338,11 @@ export class ProfilePage extends BasePage {
   async saveChangesUserProfile() {
     await expect(this.selector.buttons.saveChangesUserProfile).toBeVisible({ timeout: 10000 });
     return this.selector.buttons.saveChangesUserProfile.click();
+  }
+
+  async resetChangesUserProfile() {
+    await expect(this.selector.buttons.resetUserProfile).toBeVisible({ timeout: 10000 });
+    return this.selector.buttons.resetUserProfile.click();
   }
 
   async getUserProfileAvatar() {
@@ -365,6 +375,40 @@ export class ProfilePage extends BasePage {
   async verifyCustomStatusSettedInFooterProfile(status: string) {
     const customStatusLocator = this.selector.footerProfile.userStatus;
     await expect(customStatusLocator).toHaveText(status, { timeout: 2000 });
+  }
+
+  async clearCustomStatus() {
+    const isPopoverOpen = await this.selector.shortProfile.buttons.editCustomStatus
+      .isVisible({ timeout: 1000 })
+      .catch(() => false);
+    if (!isPopoverOpen) {
+      await this.openFooterProfileModal();
+    }
+    await this.openCustomStatusModal();
+    const input = this.selector.shortProfile.modal.customStatus.input;
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.focus();
+    await input.press('Control+A');
+    await input.press('Backspace');
+    await this.selector.shortProfile.modal.customStatus.buttons.save.click();
+    await expect(this.selector.shortProfile.modal.customStatus.container).toBeHidden({
+      timeout: 5000,
+    });
+  }
+
+  async verifyCustomStatusClearedInFooterProfile() {
+    const customStatusLocator = this.selector.footerProfile.userStatus;
+    await expect(customStatusLocator).toHaveText(/Online|^$/i, { timeout: 5000 });
+  }
+
+  getAboutMeInput(): Locator {
+    return this.selector.inputs.aboutMe;
+  }
+
+  async openEditProfileFromShortProfile() {
+    const editBtn = this.selector.shortProfile.buttons.editProfile;
+    await expect(editBtn).toBeVisible({ timeout: 5000 });
+    await editBtn.click();
   }
 
   async openShortProfileFromUsernameOnChat(username: string) {

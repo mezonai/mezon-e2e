@@ -6,6 +6,8 @@ const ACCOUNT_INFO_SELECTOR = generateE2eSelector('user_setting.account.info');
 const USER_PROFILE_AVATAR_SELECTOR = generateE2eSelector(
   'user_setting.profile.user_profile.preview.avatar'
 );
+const SAVE_CHANGES_TEXT = 'Save Changes';
+const RESET_TEXT = 'Reset';
 
 export default class ProfileSelector {
   constructor(private readonly page: Page) {}
@@ -15,13 +17,24 @@ export default class ProfileSelector {
     editDisplayName: this.page.locator(
       generateE2eSelector('user_setting.account.edit_display_name')
     ),
-    saveChangesClanProfile: this.page.locator(
-      `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
-      { hasText: 'Save Changes' }
+    saveChangesClanProfile: this.page
+      .locator(
+        `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
+        { hasText: SAVE_CHANGES_TEXT }
+      )
+      .or(this.page.getByRole('button', { name: SAVE_CHANGES_TEXT })),
+    resetClanProfile: this.page
+      .locator(generateE2eSelector('user_setting.profile.clan_profile.button_reset'))
+      .or(this.page.getByRole('button', { name: RESET_TEXT })),
+    removeClanAvatar: this.page.locator(
+      generateE2eSelector('user_setting.profile.clan_profile.button_remove_avatar')
     ),
-    saveChangesUserProfile: this.page.locator(
-      generateE2eSelector('user_setting.profile.user_profile.button.save_changes')
-    ),
+    saveChangesUserProfile: this.page
+      .locator(generateE2eSelector('user_setting.profile.user_profile.button.save_changes'))
+      .or(this.page.getByRole('button', { name: SAVE_CHANGES_TEXT })),
+    resetUserProfile: this.page
+      .locator(generateE2eSelector('user_setting.profile.user_profile.button.reset'))
+      .or(this.page.getByRole('button', { name: RESET_TEXT })),
     changeAvatar: this.page.locator(
       generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')
     ),
@@ -129,6 +142,7 @@ export default class ProfileSelector {
 
   readonly shortProfile = {
     buttons: {
+      editProfile: this.page.locator(generateE2eSelector('short_profile.button.edit_profile')),
       editCustomStatus: this.page.locator(
         generateE2eSelector('short_profile.action.button.status'),
         {
