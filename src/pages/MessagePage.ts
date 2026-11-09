@@ -1434,6 +1434,20 @@ export class MessagePage extends BasePage {
     await expect(removeVoteBtn).toBeVisible();
   }
 
+  async retractVote() {
+    const removeVoteBtn = this.selector.polls.card.button.removeVote;
+    await expect(removeVoteBtn).toBeVisible();
+    await removeVoteBtn.click();
+    await expect(this.selector.polls.card.button.vote).toBeVisible({ timeout: 5000 });
+  }
+
+  async togglePollResults() {
+    const showResultBtn = this.selector.polls.card.button.showResult;
+    if (await showResultBtn.isVisible()) {
+      await showResultBtn.click();
+    }
+  }
+
   async endPoll() {
     await this.selector.polls.card.question.first().click({ button: 'right' });
     await this.selector.polls.button.endPoll.click();
