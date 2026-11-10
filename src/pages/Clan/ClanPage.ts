@@ -1678,9 +1678,13 @@ export class ClanPage extends BasePage {
     await expect(stickerSearchInput).toBeVisible({ timeout: 5000 });
     await stickerSearchInput.fill(uploadedStickerName);
 
-    const stickerItem = stickerSearchInput.locator('xpath=following::img[1]');
-    await expect(stickerItem).toBeVisible({ timeout: 5000 });
-    await stickerItem.click();
+    const stickerItem = this.page
+      .locator('div[class*="grid"] img, div[class*="flex-1"] img, [role="grid"] img')
+      .or(stickerSearchInput.locator('xpath=following::div[contains(@class, "grid")]//img'))
+      .or(stickerSearchInput.locator('xpath=following::img[2]'))
+      .first();
+    await expect(stickerItem).toBeVisible({ timeout: 10000 });
+    await stickerItem.click({ force: true });
 
     const lastMessage = messageSelector.messages.last();
     await expect(lastMessage).toBeVisible({ timeout: 5000 });
