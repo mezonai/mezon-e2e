@@ -540,8 +540,7 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
     });
 
     await AllureReporter.step('User B verify that it has new role and leave clan', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
       await clanPageB.openMemberList();
       const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
       await clanPageB.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(memberItem, roleStyle);
@@ -558,8 +557,8 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
         await messagePageB.openSearchModalbyPressCtrlK();
         await messageHelperB.openDMByNameOnsearchModal(userNameA);
         await clanPageB.joinClanByUrlInvite(url);
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.openChannelByName('general');
+        await clanPageB.openMemberList();
         const memberItem = await clanPageB.getMemberItemIn2ndSideBarbyUsername(userNameB);
         await clanPageB.verifyRoleColorIsVisibleOnUsernameIn2ndSideBar(
           memberItem,
@@ -672,8 +671,7 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
     await AllureReporter.step(
       'User B send a message, verify role color visible on username of chatbox and leave clan',
       async () => {
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.openChannelByName('general');
         await clanPageB.sendFirstMessage('This is message');
         await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameB);
         await clanPageB.leaveClan();
@@ -690,8 +688,7 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
         await messagePageB.openSearchModalbyPressCtrlK();
         await messageHelperB.openDMByNameOnsearchModal(userNameA);
         await clanPageB.joinClanByUrlInvite(url);
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.openChannelByName('general');
         await clanPageB.verifyRoleColorVisibleOnNameOfChatbox(roleStyle, userNameB, false);
       }
     );

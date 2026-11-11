@@ -18,7 +18,11 @@ export function getOriginalImageUrl(url: string): string {
 
 export async function getImageHash(url: string): Promise<string | null> {
   try {
-    const imageUrl = getOriginalImageUrl(url);
+    let imageUrl = getOriginalImageUrl(url);
+    if (imageUrl.startsWith('/')) {
+      const baseUrl = process.env.BASE_URL || 'https://dev-mezon.nccsoft.vn';
+      imageUrl = new URL(imageUrl, baseUrl).toString();
+    }
     console.log(imageUrl);
 
     const response = await fetch(imageUrl);

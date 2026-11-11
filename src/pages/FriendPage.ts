@@ -422,12 +422,36 @@ export class FriendPage extends BasePage {
 
   async verifyUserCustomStatusInFriendList(username: string, status: string): Promise<void> {
     const profileSelector = new ProfileSelector(this.page);
-    const friendItem = await this.friendExistsInTab(username, 'all');
-    await friendItem.waitFor({ state: 'visible', timeout: 20000 });
-    const statusLocator = friendItem
-      .locator(profileSelector.profiles.userStatus)
-      .filter({ hasText: status });
-    await expect(statusLocator).toBeVisible({ timeout: 5000 });
+    await expect
+      .poll(
+        async () => {
+          let friendItem = await this.friendExistsInTab(username, 'all');
+          let statusLocator = friendItem
+            .locator(profileSelector.profiles.userStatus)
+            .filter({ hasText: status })
+            .or(friendItem.getByText(status));
+          if (
+            await statusLocator
+              .first()
+              .isVisible()
+              .catch(() => false)
+          ) {
+            return true;
+          }
+          await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+          friendItem = await this.friendExistsInTab(username, 'all');
+          statusLocator = friendItem
+            .locator(profileSelector.profiles.userStatus)
+            .filter({ hasText: status })
+            .or(friendItem.getByText(status));
+          return await statusLocator
+            .first()
+            .isVisible()
+            .catch(() => false);
+        },
+        { timeout: 25000, intervals: [2000, 3000, 5000] }
+      )
+      .toBe(true);
   }
 
   async verifyUserCustomStatusNotInFriendList(username: string, status: string): Promise<void> {

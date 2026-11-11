@@ -22,7 +22,12 @@ export default class ProfileSelector {
         `${generateE2eSelector('user_setting.profile.clan_profile')} ${generateE2eSelector('button.base')}`,
         { hasText: SAVE_CHANGES_TEXT }
       )
-      .or(this.page.getByRole('button', { name: SAVE_CHANGES_TEXT })),
+      .or(
+        this.page.locator(
+          generateE2eSelector('user_setting.profile.clan_profile.button_save_changes')
+        )
+      )
+      .or(this.page.locator('button').filter({ hasText: /^Save( Changes)?$/i })),
     resetClanProfile: this.page
       .locator(generateE2eSelector('user_setting.profile.clan_profile.button_reset'))
       .or(this.page.getByRole('button', { name: RESET_TEXT })),
@@ -31,7 +36,7 @@ export default class ProfileSelector {
     ),
     saveChangesUserProfile: this.page
       .locator(generateE2eSelector('user_setting.profile.user_profile.button.save_changes'))
-      .or(this.page.getByRole('button', { name: SAVE_CHANGES_TEXT })),
+      .or(this.page.locator('button').filter({ hasText: /^Save( Changes)?$/i })),
     resetUserProfile: this.page
       .locator(generateE2eSelector('user_setting.profile.user_profile.button.reset'))
       .or(this.page.getByRole('button', { name: RESET_TEXT })),
@@ -41,9 +46,11 @@ export default class ProfileSelector {
     userSettingProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.button_setting')
     ),
-    applyImageAvatar: this.page.locator(
-      generateE2eSelector('user_setting.profile.user_profile.upload.avatar_input.apply_button')
-    ),
+    applyImageAvatar: this.page
+      .locator(
+        generateE2eSelector('user_setting.profile.user_profile.upload.avatar_input.apply_button')
+      )
+      .or(this.page.locator('button').filter({ hasText: /^Apply$/i })),
     closeSettingProfile: this.page.locator(
       generateE2eSelector('user_setting.account.exit_setting')
     ),

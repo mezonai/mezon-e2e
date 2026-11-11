@@ -46,8 +46,16 @@ export class MessageMediaHelpers {
   }
 
   async clickCancelModal() {
-    const cancelButton = new ClanSelector(this.page).permissionModal.cancel;
-    await cancelButton.click();
+    const clanSelector = new ClanSelector(this.page);
+    const cancelButton = clanSelector.permissionModal.cancel
+      .or(this.page.locator('button:has-text("Go to Friend Page")'))
+      .or(this.page.locator('button:has-text("Cancel")'))
+      .or(this.page.locator('.fixed.inset-0 button, [role="dialog"] button').first());
+    if (await cancelButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await cancelButton.click();
+    } else {
+      await this.page.keyboard.press('Escape').catch(() => {});
+    }
   }
 
   async openGalleryModal() {

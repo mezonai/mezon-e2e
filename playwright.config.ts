@@ -130,6 +130,7 @@ export default defineConfig({
             '--use-fake-ui-for-media-stream',
             '--auto-select-desktop-capture-source=Entire screen',
             '--use-fake-device-for-media-stream',
+            '--autoplay-policy=no-user-gesture-required',
             ...getInsecureLocalOriginArgs(),
             ...getHostResolverArgs(),
           ],
@@ -173,6 +174,7 @@ export default defineConfig({
 
             '--auto-select-desktop-capture-source=Entire screen',
             '--use-fake-device-for-media-stream',
+            '--autoplay-policy=no-user-gesture-required',
             ...getInsecureLocalOriginArgs(),
             ...getHostResolverArgs(),
           ],

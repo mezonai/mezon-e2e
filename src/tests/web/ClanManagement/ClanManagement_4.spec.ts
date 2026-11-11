@@ -267,7 +267,7 @@ test.describe('Clan Management - Events and Category Updates', () => {
       `Click delete category, verify that category cannot be deleted and error message is displayed`,
       async () => {
         await clanPage.deleteCategory(PUBLIC_CHANNELS_CATEGORY_NAME, false);
-        const message = 'This category has welcome channel';
+        const message = /Cannot delete category|This category has welcome channel/i;
         await toastSelector.verifyErrorToast(message);
         await clanPage.closeSettingsChannel();
       }

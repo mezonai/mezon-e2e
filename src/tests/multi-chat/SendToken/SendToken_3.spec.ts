@@ -166,6 +166,7 @@ test.describe('Send Token - Give A Coffee On Channel Message', () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageB.openChannelByName('general');
     });
 
     const timestamp = Date.now();

@@ -152,7 +152,7 @@ test.describe('Channel Messages - For You Inbox', () => {
     });
 
     await AllureReporter.step('User B verifies the mention in the Inbox popover', async () => {
-      await pageB.reload();
+      await clanPageB.openChannelByName('general');
       await messageHelperB.openHeaderInboxButton();
       await messageHelperB.assertMessageInInboxByContent(mentionMessage);
     });
@@ -200,7 +200,7 @@ test.describe('Channel Messages - For You Inbox', () => {
     });
 
     await AllureReporter.step('User B opens Inbox and verifies the mention', async () => {
-      await pageB.reload();
+      await clanPageB.openChannelByName('general');
       await messageHelperB.openHeaderInboxButton();
       await messageHelperB.assertMessageInInboxByContent(mentionMessage);
     });
@@ -267,7 +267,7 @@ test.describe('Channel Messages - For You Inbox', () => {
       });
 
       await AllureReporter.step('User B verifies the attachment in Gallery > Files', async () => {
-        await pageB.reload({ waitUntil: 'domcontentloaded' });
+        await clanPageB.openChannelByName('general');
         await messagePageB.openSharedFiles();
         await messagePageB.verifySharedFileExists(fileName, userNameA);
       });

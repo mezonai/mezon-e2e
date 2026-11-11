@@ -40,18 +40,18 @@ export class MessageContactHelpers extends MessageInboxHelpers {
   }
 
   async verifyContactSharedInDMOrChannel(username: string) {
-    const contactCard = this.selector.messages.last().locator(this.selector.contacts.card);
+    const contactCard = this.selector.contacts.card.last();
     await expect(contactCard).toBeVisible({ timeout: 10000 });
     await expect(contactCard.locator(this.selector.contacts.username)).toHaveText(username, {
-      timeout: 3000,
+      timeout: 5000,
     });
   }
 
   async verifyCallItemVisibleInShareContactCard(username: string, shouldVisible = true) {
-    const contactCard = this.selector.messages.last().locator(this.selector.contacts.card);
-    await expect(contactCard).toBeVisible({ timeout: 3000 });
+    const contactCard = this.selector.contacts.card.last();
+    await expect(contactCard).toBeVisible({ timeout: 5000 });
     await expect(contactCard.locator(this.selector.contacts.username)).toHaveText(username, {
-      timeout: 3000,
+      timeout: 5000,
     });
     await contactCard.locator(this.selector.contacts.buttonCall).click();
 
@@ -64,10 +64,10 @@ export class MessageContactHelpers extends MessageInboxHelpers {
   }
 
   async clickMessageOnShareContactCard() {
-    const contactCard = this.selector.messages.last().locator(this.selector.contacts.card);
-    await expect(contactCard).toBeVisible({ timeout: 3000 });
+    const contactCard = this.selector.contacts.card.last();
+    await expect(contactCard).toBeVisible({ timeout: 5000 });
     const messageButton = contactCard.locator(this.selector.contacts.buttonMessage);
-    await expect(messageButton).toBeVisible({ timeout: 3000 });
+    await expect(messageButton).toBeVisible({ timeout: 5000 });
     await messageButton.click();
     await expect.poll(() => this.page.url()).toContain('chat/direct/message');
   }

@@ -333,8 +333,7 @@ test.describe('Channel Messages - Shared Contacts, Voice Links, and Welcome Mess
     });
 
     await AllureReporter.step('Verify voice channel link is visible to User B', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
       const isVoiceChannelLinkSent = await messageHelperB.verifyLastMessageHasText(channelName);
       expect(isVoiceChannelLinkSent).toBe(true);
     });

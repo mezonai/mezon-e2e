@@ -452,8 +452,9 @@ test.describe('Send Token - Transfer Flow', () => {
       async () => {
         const info = await chooseSenderByBalance(pageA, pageB);
         const note = `e2e detail ${Date.now()}`;
-        await sendTokens(info.senderPage, info.receiverName, info.amount, note);
-        return { ...info, note };
+        const uniqueAmount = Math.max(1000, info.amount - 100);
+        await sendTokens(info.senderPage, info.receiverName, uniqueAmount, note);
+        return { ...info, amount: uniqueAmount, note };
       }
     );
 

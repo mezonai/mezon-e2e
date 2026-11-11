@@ -13,9 +13,11 @@ export default class ClanSettingSelector {
       .locator(generateE2eSelector('clan_page.settings.emoji.upload'))
       .or(this.page.getByRole('button', { name: /^upload sticker$/i }))
       .first(),
-    uploadVoiceSticker: this.page.locator(
-      generateE2eSelector('clan_page.settings.voice_sticker.button_upload')
-    ),
+    uploadVoiceSticker: this.page
+      .locator(generateE2eSelector('clan_page.settings.voice_sticker.button_upload'))
+      .or(this.page.getByRole('button', { name: /upload (sound|voice)/i }))
+      .or(this.page.locator('button').filter({ hasText: /^Upload (Sound|Voice)/i }))
+      .first(),
     enableOnboarding: this.page.locator(
       generateE2eSelector('clan_page.settings.onboarding.button.enable_onboarding')
     ),
@@ -169,23 +171,29 @@ export default class ClanSettingSelector {
   readonly voiceSticker = {
     upload: {
       input: {
-        name: this.page.locator('input:not([type="file"]):not([type="checkbox"]):visible').last(),
+        name: this.page
+          .locator(
+            'input[placeholder*="Sound"], input[placeholder*="name"], input[placeholder*="sound"], input:not([type="file"]):not([type="checkbox"]):visible'
+          )
+          .last(),
       },
       button: {
         save: this.page
           .locator(BASE_BUTTON_SELECTOR)
-          .filter({ hasText: /^Upload$/ })
-          .or(this.page.getByRole('button', { name: 'Upload', exact: true }))
+          .filter({ hasText: /^Upload$/i })
+          .or(this.page.getByRole('button', { name: /^Upload$/i }))
           .last(),
         update: this.page
           .locator(BASE_BUTTON_SELECTOR)
-          .filter({ hasText: /^Update$/ })
-          .or(this.page.getByRole('button', { name: 'Update', exact: true }))
+          .filter({ hasText: /^Update$/i })
+          .or(this.page.getByRole('button', { name: /^Update$/i }))
           .last(),
       },
     },
     item: {
-      name: this.page.locator(generateE2eSelector('clan_page.settings.voice_sticker.item.name')),
+      name: this.page
+        .locator(generateE2eSelector('clan_page.settings.voice_sticker.item.name'))
+        .or(this.page.locator('[data-e2e*="voice_sticker"][data-e2e*="name"]')),
       edit: this.page.locator(
         generateE2eSelector('clan_page.settings.voice_sticker.item.actions.edit')
       ),
