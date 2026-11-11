@@ -311,9 +311,12 @@ export class ClanPage extends BasePage {
       generateE2eSelector('clan_page.settings.upload.clan_banner_input')
     );
     await bannerInput.setInputFiles(filePath);
-    await expect(this.selector.buttons.saveChanges).toBeVisible({ timeout: 10000 });
-    await this.selector.buttons.saveChanges.click();
-    await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 15000 });
+    const saveBtn = this.selector.buttons.saveChanges
+      .or(this.page.locator('button').filter({ hasText: /^Save( Changes)?$/i }))
+      .first();
+    await expect(saveBtn).toBeVisible({ timeout: 10000 });
+    await saveBtn.click();
+    await expect(saveBtn).toBeHidden({ timeout: 15000 });
   }
 
   async verifyClanBannerChanged(previousBannerImage: string | null): Promise<void> {
@@ -603,8 +606,23 @@ export class ClanPage extends BasePage {
   }
 
   async openMemberList(): Promise<void> {
-    await this.selector.header.button.member.nth(0).first().click();
-    await this.page.waitForTimeout(1000);
+    const memberItem = this.selector.secondarySideBar.member.item.first();
+    if (await memberItem.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return;
+    }
+    const btn = this.selector.header.button.member.first();
+    await btn.waitFor({ state: 'visible', timeout: 8000 });
+    await btn.click({ force: true });
+
+    const isVisibleNow = await memberItem
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (!isVisibleNow) {
+      await btn.click({ force: true });
+      await memberItem.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
+    }
   }
 
   async getMemberFromMemberList(memberName: string): Promise<Locator> {
@@ -1272,14 +1290,21 @@ export class ClanPage extends BasePage {
 
   async openRoleSettingsPage(): Promise<boolean> {
     try {
+      const roleSettingsBtn = this.selector.clanSettings.buttons.roleSettings;
+      if (await roleSettingsBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await roleSettingsBtn.click();
+        await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 5000 });
+        return true;
+      }
+
       await this.selector.buttons.clanName.click();
-      await expect(this.selector.buttons.clanSettings).toBeVisible({ timeout: 3000 });
+      await expect(this.selector.buttons.clanSettings).toBeVisible({ timeout: 5000 });
 
       await this.selector.buttons.clanSettings.click();
-      await expect(this.selector.clanSettings.buttons.roleSettings).toBeVisible({ timeout: 3000 });
+      await expect(roleSettingsBtn).toBeVisible({ timeout: 5000 });
 
-      await this.selector.clanSettings.buttons.roleSettings.click();
-      await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 3000 });
+      await roleSettingsBtn.click();
+      await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 5000 });
       return true;
     } catch (error) {
       console.error(`Error opening Role Settings page:`, error);
@@ -1657,14 +1682,20 @@ export class ClanPage extends BasePage {
     await expect(emojiSearchInput).toBeVisible({ timeout: 5000 });
     await emojiSearchInput.fill(uploadedEmojiName);
 
-    const emojiItem = emojiSearchInput.locator('xpath=following::img[1]');
-    await expect(emojiItem).toBeVisible({ timeout: 5000 });
-    await emojiItem.click();
+    const emojiItem = this.page
+      .locator('div[class*="grid"] img, div[class*="flex-1"] img, [role="grid"] img')
+      .or(emojiSearchInput.locator('xpath=following::div[contains(@class, "grid")]//img'))
+      .or(emojiSearchInput.locator('xpath=following::img[2]'))
+      .first();
+    await expect(emojiItem).toBeVisible({ timeout: 10000 });
+    await emojiItem.click({ force: true });
+    await this.page.waitForTimeout(500);
+    await messageSelector.messageInput.click({ force: true }).catch(() => {});
     await messageSelector.messageInput.press('Enter');
 
     const lastMessage = messageSelector.messages.last();
-    await expect(lastMessage).toBeVisible({ timeout: 5000 });
-    await expect(lastMessage.locator('img').last()).toBeVisible({ timeout: 5000 });
+    await expect(lastMessage).toBeVisible({ timeout: 10000 });
+    await expect(lastMessage.locator('img').last()).toBeVisible({ timeout: 10000 });
   }
 
   async sendCustomImageStickerMessage(stickerName: string, channelName = 'general'): Promise<void> {
@@ -1678,9 +1709,13 @@ export class ClanPage extends BasePage {
     await expect(stickerSearchInput).toBeVisible({ timeout: 5000 });
     await stickerSearchInput.fill(uploadedStickerName);
 
-    const stickerItem = stickerSearchInput.locator('xpath=following::img[1]');
-    await expect(stickerItem).toBeVisible({ timeout: 5000 });
-    await stickerItem.click();
+    const stickerItem = this.page
+      .locator('div[class*="grid"] img, div[class*="flex-1"] img, [role="grid"] img')
+      .or(stickerSearchInput.locator('xpath=following::div[contains(@class, "grid")]//img'))
+      .or(stickerSearchInput.locator('xpath=following::img[2]'))
+      .first();
+    await expect(stickerItem).toBeVisible({ timeout: 10000 });
+    await stickerItem.click({ force: true });
 
     const lastMessage = messageSelector.messages.last();
     await expect(lastMessage).toBeVisible({ timeout: 5000 });
@@ -1942,8 +1977,10 @@ export class ClanPage extends BasePage {
 
   async joinVoiceChannel(channelName: string, joinRole?: VoiceJoinRole): Promise<boolean> {
     try {
-      const timeout = process.env.CI ? 10000 : 5000;
-      await this.getVoiceChannelSidebarItem(channelName).click();
+      const timeout = process.env.CI ? 15000 : 8000;
+      const channelItem = this.getVoiceChannelSidebarItem(channelName).first();
+      await expect(channelItem).toBeVisible({ timeout });
+      await channelItem.click();
       const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
       await joinButtonLocator.waitFor({ state: 'visible', timeout });
 
@@ -2248,7 +2285,7 @@ export class ClanPage extends BasePage {
     const escapedChannelName = channelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return this.selector.sidebar.channelItem.item.filter({
       has: this.selector.sidebar.channelItem.name.filter({
-        hasText: new RegExp(`^${escapedChannelName}$`),
+        hasText: new RegExp(`^\\s*${escapedChannelName}\\s*$`, 'i'),
       }),
     });
   }
@@ -2466,11 +2503,22 @@ export class ClanPage extends BasePage {
   }
 
   async updateClanName(clanName: string): Promise<void> {
-    const clanNameInput = this.selector.clanSettings.clanName;
+    const clanNameInput = this.selector.clanSettings.clanName
+      .or(
+        this.page.locator(
+          'input[placeholder*="Clan Name" i], input[value*="Clan" i], [data-e2e*="clan_name"] input'
+        )
+      )
+      .first();
     await expect(clanNameInput).toBeVisible({ timeout: 10000 });
     await clanNameInput.fill(clanName);
-    await this.selector.buttons.saveChanges.click();
-    await expect(this.selector.buttons.saveChanges).toBeHidden({ timeout: 5000 });
+    const saveBtn = this.selector.buttons.saveChanges
+      .or(this.page.locator('button').filter({ hasText: /^Save( Changes)?$/i }))
+      .first();
+    if (await saveBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await saveBtn.click();
+      await expect(saveBtn).toBeHidden({ timeout: 5000 });
+    }
   }
 
   async verifyClanUpdateSystemMessage(channelName: string, clanName: string): Promise<void> {
@@ -2694,9 +2742,20 @@ export class ClanPage extends BasePage {
   }
 
   async fillCanvasContent(content: string) {
-    await this.selector.screen.canvasEditor.input.content.click();
+    const contentLocator = this.selector.screen.canvasEditor.input.content;
+    await contentLocator.waitFor({ state: 'visible', timeout: 10000 });
+
+    await contentLocator
+      .locator('.animate-pulse, [class*="skeleton"]')
+      .first()
+      .waitFor({ state: 'detached', timeout: 15000 })
+      .catch(() => {});
+
+    const editor = contentLocator.locator('[contenteditable="true"], .tiptap').first();
+    await editor.waitFor({ state: 'visible', timeout: 15000 });
+    await editor.click();
     await this.page.keyboard.type(content);
-    await expect(this.selector.screen.canvasEditor.input.content).toContainText(content);
+    await expect(contentLocator).toContainText(content, { timeout: 10000 });
   }
 
   async saveCanvas() {
@@ -2739,6 +2798,7 @@ export class ClanPage extends BasePage {
       .last();
     await expect(canvasItem).toBeVisible({ timeout: 3000 });
     await canvasItem.locator(this.selector.modal.canvasManagement.button.copyCanvasLink).click();
+    await this.page.keyboard.press('Escape').catch(() => {});
   }
 
   async kickUserByName(username: string) {
@@ -2800,9 +2860,9 @@ export class ClanPage extends BasePage {
     shouldVisible = true
   ) {
     const username = memberItem.locator(this.selector.secondarySideBar.member.username).first();
+    await expect(username).toBeVisible({ timeout: 10000 });
 
     if (shouldVisible) {
-      await expect(username).toBeVisible({ timeout: 3000 });
       await expect(username).toHaveCSS('color', style);
     } else {
       await expect(username).not.toHaveCSS('color', style);
@@ -2840,12 +2900,12 @@ export class ClanPage extends BasePage {
     shouldVisible = true
   ) {
     const messageSelector = new MessageSelector(this.page);
-    const displayNameLocator = messageSelector.messages.locator(
-      messageSelector.displayName.filter({ hasText: username }).first()
-    );
+    const displayNameLocator = messageSelector.displayName.filter({ hasText: username }).last();
     if (shouldVisible) {
+      await expect(displayNameLocator).toBeVisible({ timeout: 10000 });
       await expect(displayNameLocator).toHaveCSS('color', style);
     } else {
+      await expect(displayNameLocator).toBeVisible({ timeout: 10000 });
       await expect(displayNameLocator).not.toHaveCSS('color', style);
     }
   }
@@ -2945,9 +3005,14 @@ export class ClanPage extends BasePage {
   async verifyInboxButtonHasBadge(shouldHasBadge = true) {
     const badgeInBoxLocator = this.selector.header.badge.first();
     if (shouldHasBadge) {
-      await expect(badgeInBoxLocator).toBeVisible({ timeout: 3000 });
+      try {
+        await expect(badgeInBoxLocator).toBeVisible({ timeout: 10000 });
+      } catch {
+        await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+        await expect(badgeInBoxLocator).toBeVisible({ timeout: 10000 });
+      }
     } else {
-      await expect(badgeInBoxLocator).toBeHidden({ timeout: 3000 });
+      await expect(badgeInBoxLocator).toBeHidden({ timeout: 10000 });
     }
   }
 

@@ -27,14 +27,18 @@ export class ToastSelector {
     await expect(matchingToast.first()).toBeVisible({ timeout: 10000 });
   }
 
-  async verifyErrorToast(expectedMessage?: string): Promise<void> {
+  async verifyErrorToast(expectedMessage?: string | RegExp): Promise<void> {
     await this.error.first().waitFor({ state: 'visible', timeout: 10000 });
     if (expectedMessage) {
       const toastMessage = await this.error
         .first()
         .locator(ToastSelector.TOAST_BODY_SELECTOR)
         .textContent();
-      expect(toastMessage).toContain(expectedMessage);
+      if (expectedMessage instanceof RegExp) {
+        expect(toastMessage).toMatch(expectedMessage);
+      } else {
+        expect(toastMessage).toContain(expectedMessage);
+      }
     }
   }
 

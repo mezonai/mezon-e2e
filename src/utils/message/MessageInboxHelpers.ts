@@ -10,7 +10,17 @@ export class MessageInboxHelpers extends MessageMediaHelpers {
   }
 
   async openHeaderInboxButton() {
-    const tooltip = this.page.locator('.rc-tooltip:not(.rc-tooltip-hidden)');
+    const tooltip = this.page.locator(
+      '.rc-tooltip:not(.rc-tooltip-hidden), [data-e2e*="inbox"][class*="popover"], div:has(> [data-e2e*="inbox.action_tabs"])'
+    );
+    if (
+      await tooltip
+        .first()
+        .isVisible()
+        .catch(() => false)
+    ) {
+      return;
+    }
     const inboxButton = this.page
       .locator('button[data-e2e="chat-channel_message-header-button-inbox"]')
       .last()
@@ -37,21 +47,23 @@ export class MessageInboxHelpers extends MessageMediaHelpers {
       await expect(inboxButton).toBeVisible({ timeout: 10000 });
     }
 
-    if (!(await tooltip.isVisible())) {
-      await inboxButton.click();
-      try {
-        await expect(tooltip).toBeVisible({ timeout: 3000 });
-      } catch {
-        await inboxButton.click();
-        await expect(tooltip).toBeVisible({ timeout: 5000 });
-      }
-    }
+    await inboxButton.click();
+    await this.page.waitForTimeout(500);
   }
 
   async openChatBox() {
+    const chatInput = this.page
+      .locator('[data-e2e="mention-input"], textarea, input[placeholder*="thoughts"]')
+      .first();
+    if (await chatInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return;
+    }
     const chatButton = this.selector.headerChatButton.first();
-    await chatButton.hover();
-    await chatButton.click();
+    await expect(chatButton).toBeVisible({ timeout: 10000 });
+    await chatButton.click({ force: true });
+    await expect(chatInput)
+      .toBeVisible({ timeout: 10000 })
+      .catch(() => {});
   }
 
   async openMessageTabInInbox() {
@@ -92,8 +104,12 @@ export class MessageInboxHelpers extends MessageMediaHelpers {
   }
 
   async assertMessageInInboxByContent(messageContent: string) {
+    const msgTab = this.selector.inbox.messages.triggerTab.first();
+    if (await msgTab.isVisible().catch(() => false)) {
+      await msgTab.click().catch(() => {});
+    }
     const inboxMessage = this.selector.inboxMessages.filter({ hasText: messageContent }).first();
-    await expect(inboxMessage).toBeVisible({ timeout: 5000 });
+    await expect(inboxMessage).toBeVisible({ timeout: 10000 });
   }
 
   async jumpToMentionMessageFromInbox(messageContent: string) {

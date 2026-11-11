@@ -261,6 +261,7 @@ test.describe('Channel Messages - Canvas Access and Voice Channel Join', () => {
     const messageHelperB = new MessageTestHelpers(pageB);
     const clanPageA = new ClanPage(pageA);
     const messagePageA = new MessagePage(pageA);
+    const messagePageB = new MessagePage(pageB);
     const canvasTitle = `canvas title - ${generateRandomString(10)}`;
     const canvasContent = `canvas content - ${generateRandomString(10)}`;
 
@@ -329,7 +330,8 @@ test.describe('Channel Messages - Canvas Access and Voice Channel Join', () => {
     await AllureReporter.step(
       'User B clicks on the shared canvas link in direct message and cannot view the canvas content',
       async () => {
-        await pageB.reload();
+        await messagePageB.openSearchModalbyPressCtrlK();
+        await messageHelperB.openDMByNameOnsearchModal(userNameA);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
         const errorModal = await messageHelperB.isErrorModalVisible();
         expect(errorModal).toBeTruthy();
@@ -440,8 +442,7 @@ test.describe('Channel Messages - Canvas Access and Voice Channel Join', () => {
     await AllureReporter.step(
       'User B clicks on the shared canvas link in channel and cannot view the canvas content',
       async () => {
-        await pageB.reload();
-        // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+        await clanPageB.openChannelByName('general');
         await messageHelperB.verifyMessageHasCanvasLink(canvasTitle);
         await messageHelperB.clickOnMessageWithCanvasLink(canvasTitle);
         await clanPageB.assertCanvasContent(canvasTitle, canvasContent, false);
@@ -530,8 +531,7 @@ test.describe('Channel Messages - Canvas Access and Voice Channel Join', () => {
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
     });
 
     await AllureReporter.step('Join voice channel', async () => {

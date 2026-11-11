@@ -302,8 +302,7 @@ test.describe('Channel Messages - Topic Restrictions and Shared Contacts', () =>
       await messageHelperA.shareContactInDMOrChannel('general', true, clanFactory.getClanName());
     });
     await AllureReporter.step('Verify contact card message is visible on destination', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
       await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameB}`);
     });
 
@@ -466,8 +465,7 @@ test.describe('Channel Messages - Topic Restrictions and Shared Contacts', () =>
     });
 
     await AllureReporter.step('Verify contact card message has not call item', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
       await messageHelperB.verifyContactSharedInDMOrChannel(`@${userNameB}`);
       await messageHelperB.verifyCallItemVisibleInShareContactCard(`@${userNameB}`, false);
     });
