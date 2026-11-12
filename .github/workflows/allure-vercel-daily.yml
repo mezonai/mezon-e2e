@@ -374,8 +374,8 @@ jobs:
           ROUTE=$(ip route get "$DEV_HOST_IP")
           echo "$ROUTE"
 
-          if ! grep -q 'dev tun0' <<< "$ROUTE"; then
-            echo "::error::$DEV_HOST_IP is not routed through tun0"
+          if ! grep -q 'dev tun1' <<< "$ROUTE"; then
+            echo "::error::$DEV_HOST_IP is not routed through tun1"
             exit 1
           fi
 
@@ -460,8 +460,8 @@ jobs:
           echo "=== Checking dev-mmn route ==="
           MMN_ROUTE=$(ip route get "$DEV_MMN_HOST_IP")
           echo "$MMN_ROUTE"
-          if ! grep -q 'dev tun0' <<< "$MMN_ROUTE"; then
-            echo "::error::$DEV_MMN_HOST_IP is not routed through tun0"
+          if ! grep -q 'dev tun1' <<< "$MMN_ROUTE"; then
+            echo "::error::$DEV_MMN_HOST_IP is not routed through tun1"
             exit 1
           fi
 
