@@ -73,6 +73,12 @@ test.describe('Channel Management - Role and Member Permissions in Private Chann
     const clanPage = new ClanPage(page);
     const channelSettingPage = new ChannelSettingPage(page);
     const channelName = `priv-perm-${generateRandomString(6)}`.toLowerCase();
+    const testRole = `role-${generateRandomString(4)}`.toLowerCase();
+
+    await AllureReporter.step(`Create role ${testRole} in clan`, async () => {
+      await clanPage.openRoleSettingsPage();
+      await clanPage.addNewRoleOnClan(testRole);
+    });
 
     await AllureReporter.step(`Create private text channel: ${channelName}`, async () => {
       await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
@@ -82,16 +88,16 @@ test.describe('Channel Management - Role and Member Permissions in Private Chann
 
     await AllureReporter.step('Open channel settings and Add Members/Roles modal', async () => {
       await clanPage.openChannelSettings(channelName);
+      await channelSettingPage.openPermissionsTab();
       await channelSettingPage.openAddMembersRolesModal();
     });
 
     await AllureReporter.step('Add role to private channel and verify in list', async () => {
-      // Add the default @everyone or first available role
-      await channelSettingPage.addMembersAndRolesForPrivateChannel('everyone');
+      await channelSettingPage.addMembersAndRolesForPrivateChannel(testRole);
     });
 
     await AllureReporter.step('Remove role from private channel permissions', async () => {
-      await channelSettingPage.removeRoleFromPrivateChannel('everyone');
+      await channelSettingPage.removeRoleFromPrivateChannel(testRole);
     });
 
     await AllureReporter.step('Delete test channel to clean up', async () => {

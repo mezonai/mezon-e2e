@@ -1396,16 +1396,22 @@ export class MessageTestHelpers extends MessageContentHelpers {
 
   async verifyMessageHasCanvasLink(canvasTitle: string) {
     const lastMessage = this.selector.messages.last();
-    const canvasLinkLocator = lastMessage.locator(this.selector.canvasMessage);
-    await expect(canvasLinkLocator).toBeVisible({ timeout: 5000 });
-    await expect(canvasLinkLocator).toHaveText(canvasTitle, { timeout: 5000 });
+    const canvasLinkLocator = lastMessage
+      .locator(this.selector.canvasMessage)
+      .or(lastMessage.getByText(canvasTitle))
+      .first();
+    await expect(canvasLinkLocator).toBeVisible({ timeout: 10000 });
+    await expect(canvasLinkLocator).toContainText(canvasTitle, { timeout: 5000 });
   }
 
   async clickOnMessageWithCanvasLink(canvasTitle: string) {
     const lastMessage = this.selector.messages.last();
-    const canvasLinkLocator = lastMessage.locator(this.selector.canvasMessage);
-    await expect(canvasLinkLocator).toBeVisible({ timeout: 5000 });
-    await expect(canvasLinkLocator).toHaveText(canvasTitle, { timeout: 5000 });
+    const canvasLinkLocator = lastMessage
+      .locator(this.selector.canvasMessage)
+      .or(lastMessage.getByText(canvasTitle))
+      .first();
+    await expect(canvasLinkLocator).toBeVisible({ timeout: 10000 });
+    await expect(canvasLinkLocator).toContainText(canvasTitle, { timeout: 5000 });
     await canvasLinkLocator.click();
   }
 

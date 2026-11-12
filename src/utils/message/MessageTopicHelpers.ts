@@ -83,7 +83,15 @@ export class MessageTopicHelpers extends MessageContactHelpers {
     try {
       await expect(messageItem.first()).toBeVisible({ timeout: 8000 });
     } catch {
-      await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      const channelLocator = this.page
+        .locator(generateE2eSelector('clan_page.channel_list.item.name'))
+        .filter({ hasText: 'general' })
+        .first();
+      if (await channelLocator.isVisible().catch(() => false)) {
+        await channelLocator.click().catch(() => {});
+      } else {
+        await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      }
       await expect(messageItem.first()).toBeVisible({ timeout: 10000 });
     }
 

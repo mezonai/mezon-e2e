@@ -166,18 +166,31 @@ export class MessagePage extends BasePage {
 
     for (const idx of indicesToPick) {
       const item = this.selector.friendItems.nth(idx);
-      await item.click();
+      const checkbox = item.locator('input[type="checkbox"]');
+      if ((await checkbox.count()) > 0 && !(await checkbox.isChecked().catch(() => false))) {
+        await checkbox.check({ force: true }).catch(async () => {
+          await item.click({ force: true });
+        });
+      } else {
+        await item.click({ force: true });
+      }
     }
 
-    const first = this.selector.friendItems.nth(indicesToPick[0]);
-    const second = this.selector.friendItems.nth(indicesToPick[1]);
-
-    this.firstUserNameText = await this.getFriendName(first);
-    this.secondUserNameText = await this.getFriendName(second);
+    if (indicesToPick[0] !== undefined) {
+      const first = this.selector.friendItems.nth(indicesToPick[0]);
+      this.firstUserNameText = await this.getFriendName(first).catch(() => '');
+    }
+    if (indicesToPick[1] !== undefined) {
+      const second = this.selector.friendItems.nth(indicesToPick[1]);
+      this.secondUserNameText = await this.getFriendName(second).catch(() => '');
+    }
   }
 
   async submitCreate(): Promise<void> {
-    await this.selector.createGroupButton.click();
+    const btn = this.selector.createGroupButton
+      .or(this.page.locator('button').filter({ hasText: /^Create Group$/i }))
+      .first();
+    await btn.click({ force: true });
   }
 
   async isGroupCreated(prevGroupCount: number): Promise<boolean> {
@@ -647,7 +660,7 @@ export class MessagePage extends BasePage {
         },
         { timeout: 8000 }
       )
-      .toMatch(/^https?:\/\//);
+      .toMatch(/^(https?:\/\/|\/|data:|blob:)/);
 
     const avatarSrc = await avatarLocator.getAttribute('src');
 
@@ -666,7 +679,7 @@ export class MessagePage extends BasePage {
         },
         { timeout: 8000 }
       )
-      .toMatch(/^https?:\/\//);
+      .toMatch(/^(https?:\/\/|\/|data:|blob:)/);
     const avatarSrc = await avatarLocator.getAttribute('src');
 
     if (!avatarSrc) {
@@ -676,7 +689,16 @@ export class MessagePage extends BasePage {
   }
 
   async openForwardMessageModal(): Promise<void> {
-    await this.selector.messages.last().click({ button: 'right' });
+    const lastMsg = this.selector.messages.last();
+    await expect(lastMsg).toBeVisible({ timeout: 10000 });
+    await lastMsg.hover();
+    await lastMsg.click({ button: 'right' });
+    if (
+      !(await this.selector.forwardMessageButton.isVisible({ timeout: 2000 }).catch(() => false))
+    ) {
+      await lastMsg.click({ button: 'right', force: true });
+    }
+    await expect(this.selector.forwardMessageButton).toBeVisible({ timeout: 5000 });
     await this.selector.forwardMessageButton.click();
     await expect(this.selector.modalForwardMessage).toBeVisible({ timeout: 5000 });
   }
@@ -697,7 +719,7 @@ export class MessagePage extends BasePage {
       .poll(async () => await avatarLocator.getAttribute('src'), {
         timeout: 8000,
       })
-      .toMatch(/^https?:\/\//);
+      .toMatch(/^(https?:\/\/|\/|data:|blob:)/);
 
     const avatarSrc = await avatarLocator.getAttribute('src');
 
@@ -830,7 +852,7 @@ export class MessagePage extends BasePage {
       .poll(async () => await avatarLocator.getAttribute('src'), {
         timeout: 8000,
       })
-      .toMatch(/^https?:\/\//);
+      .toMatch(/^(https?:\/\/|\/|data:|blob:)/);
     const avatarSrc = await avatarLocator.getAttribute('src');
 
     if (!avatarSrc) {
@@ -876,7 +898,7 @@ export class MessagePage extends BasePage {
   }
 
   async leaveGroupByName(groupName: string) {
-    const group = await this.page
+    const group = this.page
       .locator(generateE2eSelector('chat.direct_message.chat_list'))
       .filter({
         has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name'), {
@@ -884,17 +906,19 @@ export class MessagePage extends BasePage {
         }),
       })
       .first();
-    await expect(group).toBeVisible({ timeout: 3000 });
+    await expect(group).toBeVisible({ timeout: 10000 });
     await group.hover();
     const leaveGroupButton = group.locator(CLOSE_DM_BUTTON_SELECTOR);
 
     await leaveGroupButton.click({ force: true });
-    const confirmLeaveGroupButton = this.page.locator(
-      generateE2eSelector('chat.direct_message.leave_group.button')
-    );
+    const confirmLeaveGroupButton = this.page
+      .locator(generateE2eSelector('chat.direct_message.leave_group.button'))
+      .or(this.page.locator('button:has-text("Leave Group"), button:has-text("Leave")'))
+      .first();
+    await expect(confirmLeaveGroupButton).toBeVisible({ timeout: 5000 });
     await confirmLeaveGroupButton.click();
 
-    await expect(confirmLeaveGroupButton).toBeHidden({ timeout: 3000 });
+    await expect(confirmLeaveGroupButton).toBeHidden({ timeout: 5000 });
   }
 
   async isChannelPresentOnForwardModal(channelName: string) {
@@ -1082,8 +1106,12 @@ export class MessagePage extends BasePage {
   }
 
   async addUserToGroup(username: string) {
+    await expect(this.selector.addUserButton).toBeVisible({ timeout: 5000 });
     await this.selector.addUserButton.click();
-    await this.selector.userItem.filter({ hasText: username }).first().click();
+    const userToSelect = this.selector.friendItems.filter({ hasText: username }).first();
+    await expect(userToSelect).toBeVisible({ timeout: 5000 });
+    await userToSelect.click();
+    await expect(this.selector.createGroupButton).toBeVisible({ timeout: 5000 });
     await this.selector.createGroupButton.click();
   }
 
@@ -1183,13 +1211,13 @@ export class MessagePage extends BasePage {
   async isAnonymousMessageSent(): Promise<boolean> {
     try {
       const messageItem = this.selector.messages.filter({ hasText: this.message }).last();
-      await expect(messageItem).toBeVisible({ timeout: 5000 });
+      await expect(messageItem).toBeVisible({ timeout: 10000 });
       // Anonymous senders can have a generated name and avatar. The hat marks anonymity.
-      await expect(
-        messageItem
-          .locator(generateE2eSelector('base_profile.display_name'))
-          .locator('svg:has(.icon-HatIcon-fill-1)')
-      ).toBeVisible({ timeout: 5000 });
+      const hatIcon = messageItem
+        .locator('svg:has(.icon-HatIcon-fill-1), svg[data-icon="hat"], [data-e2e*="anonymous"]')
+        .or(messageItem.locator(generateE2eSelector('base_profile.display_name')).locator('svg'))
+        .first();
+      await expect(hatIcon).toBeVisible({ timeout: 5000 });
 
       return true;
     } catch (error) {

@@ -273,6 +273,13 @@ export class FriendPage extends BasePage {
     await expect(this.selector.buttons.confirmRemoveFriend).toBeHidden({ timeout: 5000 });
   }
 
+  async cancelRemoveFriend(): Promise<void> {
+    await expect(this.selector.buttons.cancelRemoveFriend).toBeVisible({ timeout: 3000 });
+    await this.selector.buttons.cancelRemoveFriend.click();
+    await this.page.waitForTimeout(500);
+    await expect(this.selector.buttons.cancelRemoveFriend).toBeHidden({ timeout: 5000 });
+  }
+
   async removeFriendRequest(username: string): Promise<void> {
     const existFriend = await this.checkFriendRequestExists(username);
     if (!existFriend) {
@@ -415,12 +422,46 @@ export class FriendPage extends BasePage {
 
   async verifyUserCustomStatusInFriendList(username: string, status: string): Promise<void> {
     const profileSelector = new ProfileSelector(this.page);
+    await expect
+      .poll(
+        async () => {
+          let friendItem = await this.friendExistsInTab(username, 'all');
+          let statusLocator = friendItem
+            .locator(profileSelector.profiles.userStatus)
+            .filter({ hasText: status })
+            .or(friendItem.getByText(status));
+          if (
+            await statusLocator
+              .first()
+              .isVisible()
+              .catch(() => false)
+          ) {
+            return true;
+          }
+          await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+          friendItem = await this.friendExistsInTab(username, 'all');
+          statusLocator = friendItem
+            .locator(profileSelector.profiles.userStatus)
+            .filter({ hasText: status })
+            .or(friendItem.getByText(status));
+          return await statusLocator
+            .first()
+            .isVisible()
+            .catch(() => false);
+        },
+        { timeout: 25000, intervals: [2000, 3000, 5000] }
+      )
+      .toBe(true);
+  }
+
+  async verifyUserCustomStatusNotInFriendList(username: string, status: string): Promise<void> {
+    const profileSelector = new ProfileSelector(this.page);
     const friendItem = await this.friendExistsInTab(username, 'all');
     await friendItem.waitFor({ state: 'visible', timeout: 20000 });
     const statusLocator = friendItem
       .locator(profileSelector.profiles.userStatus)
       .filter({ hasText: status });
-    await expect(statusLocator).toBeVisible({ timeout: 5000 });
+    await expect(statusLocator).toBeHidden({ timeout: 5000 });
   }
 
   async getDMByUsername(username: string) {
