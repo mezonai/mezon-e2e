@@ -145,8 +145,20 @@ export class AllureReporter {
     await allure.description(description);
   }
 
+  static currentStep = '';
+
   static async step<T>(name: string, body: () => Promise<T>): Promise<T> {
-    return await allure.step(name, body);
+    AllureReporter.currentStep = name;
+    (globalThis as { __CURRENT_STEP?: string }).__CURRENT_STEP = name;
+    console.log(`[STEP START] ${name}`);
+    try {
+      const result = await allure.step(name, body);
+      console.log(`[STEP OK] ${name}`);
+      return result;
+    } catch (error) {
+      console.log(`[STEP FAIL] ${name}`);
+      throw error;
+    }
   }
 
   static async attachScreenshot(page: Page, name?: string) {
