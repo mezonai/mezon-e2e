@@ -497,4 +497,103 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanFactory.cleanupClan(pageA);
     });
   });
+
+  test('Verify that Role mention noti is displayed in Inbox', async ({ dual }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64609',
+      github_issue: '10347',
+    });
+    const { pageA, pageB } = dual;
+    const friendPageA = new FriendPage(pageA);
+    const friendPageB = new FriendPage(pageB);
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that Role mention noti is displayed in Inbox
+      
+      **Test Steps:**
+      1. User A invite user B to clan
+      2. User B accept invite
+      3. User A create a new role "Sushi"
+      4. User A add role "Sushi" to user B
+      5. User A send message mention role "Sushi"
+      6. User B check inbox for role mention notification
+
+      **Expected Result:** Role mention notification is displayed in user B's Inbox
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan', 'role-mention', 'inbox'],
+    });
+
+    const clanPageA = new ClanPage(pageA);
+    const clanPageB = new ClanPage(pageB);
+    const userNameA = accountA.email.split('@')[0];
+    const userNameB = accountB.email.split('@')[0];
+    const messageHelperB = new MessageTestHelpers(pageB);
+    const unique = Date.now().toString(36).slice(-6);
+    const roleName = `Sushi ${unique}`;
+
+    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
+      await Promise.allSettled([
+        friendPageA.unblockFriend(userNameB),
+        friendPageB.unblockFriend(userNameA),
+      ]);
+      await FriendHelper.cleanupMutualFriendRelationships(
+        friendPageA,
+        friendPageB,
+        userNameA,
+        userNameB
+      );
+    });
+
+    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
+      await friendPageA.sendFriendRequestToUser(userNameB);
+      await friendPageA.verifySentRequestToast();
+    });
+
+    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.acceptFriendRequest, async () => {
+      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
+      await friendPageB.acceptFirstFriendRequest();
+    });
+
+    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.verifyMutualFriends, async () => {
+      await friendPageA.assertAllFriend(userNameB);
+      await friendPageB.assertAllFriend(userNameA);
+      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    });
+
+    const clanFactoryRole = new ClanFactory();
+    await AllureReporter.step('User A create clan, invite User B and User B joins', async () => {
+      await clanFactoryRole.setupClan(ClanSetupHelper.configs.channelMessage1, pageA);
+      await pageA.goto(clanFactoryRole.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await clanPageA.clickButtonInvitePeopleFromMenu();
+      const url = await clanPageA.inviteUserToClanByUsername(userNameB);
+      await clanPageB.joinClanByUrlInvite(url);
+    });
+
+    await AllureReporter.step(`User A create a new role "${roleName}"`, async () => {
+      await clanPageA.openRoleSettingsPage();
+      await clanPageA.addNewRoleOnClan(roleName);
+    });
+
+    await AllureReporter.step(`User A add role "${roleName}" to user B`, async () => {
+      await clanPageA.addRoleForUserByUsername(userNameB, roleName);
+    });
+
+    await AllureReporter.step(`User A send message mention role "${roleName}"`, async () => {
+      await clanPageA.openChannelByName('general');
+      await clanPageA.mentionByText(`@${roleName}`);
+    });
+
+    await AllureReporter.step('User B check inbox for role mention notification', async () => {
+      await pageB.reload({ waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
+      await pageB.waitForTimeout(2000);
+      await messageHelperB.openHeaderInboxButton();
+      await messageHelperB.assertMessageInInboxByContent(`@${roleName}`);
+    });
+
+    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.cleanupClan, async () => {
+      await clanFactoryRole.cleanupClan(pageA);
+    });
+  });
 });

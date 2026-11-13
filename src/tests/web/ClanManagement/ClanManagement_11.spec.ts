@@ -98,4 +98,51 @@ test.describe('Clan Management - Sidebar Navigation and Settings Exit', () => {
       await expect(clanPage.selector.clanSettings.settings_page).toBeHidden({ timeout: 5000 });
     });
   });
+
+  test('TC02: Open Channels management overview from sidebar and return to channel list', async ({
+    page,
+  }) => {
+    await AllureReporter.addWorkItemLinks({
+      tms: '64692',
+    });
+
+    await AllureReporter.addTestParameters({
+      testType: AllureConfig.TestTypes.E2E,
+      userType: AllureConfig.UserTypes.AUTHENTICATED,
+      severity: AllureConfig.Severity.NORMAL,
+    });
+
+    await AllureReporter.addDescription(`
+      **Test Objective:** Verify that a user can open Channels overview from the clan sidebar and return to channel chat view.
+
+      **Test Steps:**
+      1. Click Channels button on the clan sidebar
+      2. Verify Channel Management overview and total channels header are displayed
+      3. Click general channel in sidebar to return
+      4. Verify message composer is visible and channel chat is restored
+
+      **Expected Result:** Navigation to Channel Management and back operates smoothly.
+    `);
+
+    await AllureReporter.addLabels({
+      tag: ['clan-management', 'channels-overview', 'sidebar-navigation'],
+    });
+
+    const clanPage = new ClanPage(page);
+
+    await AllureReporter.step('Open Channels management overview from sidebar', async () => {
+      await clanPage.openChannelsListSetting();
+      await expect(clanPage.selector.channelManagement.totalChannels).toBeVisible({
+        timeout: 5000,
+      });
+    });
+
+    await AllureReporter.step(
+      'Return to channel by clicking general channel in sidebar',
+      async () => {
+        await clanPage.openChannelByName('general');
+        await expect(page.locator('[data-e2e="mention-input"]')).toBeVisible({ timeout: 10000 });
+      }
+    );
+  });
 });

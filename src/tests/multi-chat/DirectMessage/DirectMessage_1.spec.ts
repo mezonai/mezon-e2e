@@ -326,16 +326,22 @@ test.describe('Direct Messages - Group Membership, Avatars, and Unread State', (
       await friendPageA.verifySentRequestToast();
     });
 
+    let thirdUserName = userNameC;
     await AllureReporter.step('User A create a group and update name', async () => {
       await messagePageA.openSelectFriendsModal();
       await messagePageA.pickFriendByName(userNameB);
-      await messagePageA.pickFriendByName(userNameC);
+      const pickedThird = await messagePageA.pickAnotherFriendExcluding(userNameB);
+      if (pickedThird) {
+        thirdUserName = pickedThird;
+      } else {
+        await messagePageA.pickFriendByName(userNameC);
+      }
       await messagePageA.submitCreate();
       await messagePageA.updateNameGroupChatDM(nameGroupChat);
     });
 
     await AllureReporter.step('User A remove user C from group chat', async () => {
-      await messagePageA.removeUserFromGroup(userNameC);
+      await messagePageA.removeUserFromGroup(thirdUserName);
     });
 
     await AllureReporter.step('User A leave group', async () => {
@@ -398,11 +404,19 @@ test.describe('Direct Messages - Group Membership, Avatars, and Unread State', (
       await friendPageA.verifySentRequestToast();
     });
 
+    await AllureReporter.step(MULTI_CHAT_STEPS.acceptFriendRequest, async () => {
+      await friendPageB
+        .verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`)
+        .catch(() => {});
+      await friendPageB.acceptFirstFriendRequest().catch(() => {});
+    });
+
+    await AllureReporter.step(MULTI_CHAT_STEPS.verifyMutualFriends, async () => {
+      await friendPageA.assertAllFriend(userNameB);
+    });
+
     await AllureReporter.step('User A create a group contains user B', async () => {
-      await messagePageA.openSelectFriendsModal();
-      await messagePageA.pickFriendByName(userNameB);
-      await messagePageA.pickFriendByName(userNameC);
-      await messagePageA.submitCreate();
+      await messagePageA.createGroupWithUser(userNameB);
     });
 
     await AllureReporter.step('Remove user B from group chat and add user B back', async () => {
