@@ -483,6 +483,10 @@ export const DATA_E2E_IDENTIFIER = {
         input: {
           clan_name: '',
         },
+        button: {
+          save_changes: '',
+          reset: '',
+        },
         system_messages_channel: {
           selection: {
             item: {
