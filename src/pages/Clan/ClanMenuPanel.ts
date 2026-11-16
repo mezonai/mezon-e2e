@@ -22,6 +22,9 @@ export class ClanMenuPanel extends BasePage {
     confirmCreateCategory: this.page.locator(
       generateE2eSelector('clan_page.modal.create_category.button.confirm')
     ),
+    showEmpty: this.page.locator(CLAN_PANEL_ITEM, {
+      hasText: 'Show Empty Categories',
+    }),
     clanSettings: this.page.locator(CLAN_PANEL_ITEM, {
       hasText: 'Clan Settings',
     }),
@@ -75,6 +78,13 @@ export class ClanMenuPanel extends BasePage {
   async openInvitePeopleModal(): Promise<void> {
     await this.openPanel();
     await this.buttons.invitePeople.click();
+  }
+
+  async toggleShowEmptyCategory(): Promise<void> {
+    await this.openPanel();
+    await this.buttons.showEmpty.click();
+    await this.page.waitForTimeout(500);
+    await this.openPanel();
   }
 
   async closeCreateCategoryModal(): Promise<void> {

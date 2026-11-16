@@ -28,6 +28,10 @@ export default class MessageInboxSelector {
     triggerTab: this.actionTabs.filter({ hasText: 'Messages' }),
   };
 
+  readonly mentions = {
+    triggerTab: this.actionTabs.filter({ hasText: 'Mentions' }),
+  };
+
   readonly forYou = {
     triggerTab: this.actionTabs.filter({ hasText: 'For You' }),
     item: {

@@ -19,6 +19,10 @@ export default class MessageTimelineSelector {
     addMedia: this.page.locator(generateE2eSelector('timeline.buttons.add_media')),
     openCalendar: this.page.locator(generateE2eSelector('timeline.buttons.calendar')),
     selectedYear: this.page.locator(generateE2eSelector('timeline.buttons.selected_year')),
+    attachmentRemoveButton: this.page
+      .locator(generateE2eSelector('timeline.modal.attachments_list.item.button.remove'))
+      .or(this.page.locator('[data-e2e*="timeline"][data-e2e*="remove"]'))
+      .or(this.page.locator('button[title*="Remove"], button[class*="remove"], .mz-i-trash')),
   };
 
   readonly input = {

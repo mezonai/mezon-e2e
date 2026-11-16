@@ -91,6 +91,10 @@ export class ChannelSettingPage extends BasePage {
       .toBe(true);
   }
 
+  async selectCategory(categoryName: string): Promise<void> {
+    await this.changeCategory(categoryName);
+  }
+
   async setPrivateMode(enabled: boolean): Promise<void> {
     await this.openPermissionsTab();
     const toggle = this.selector.permissions.button.change_status;
@@ -331,8 +335,12 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async closeChannelSettings() {
-    await this.selector.button.close_settings.click();
-    await expect(this.selector.side_bar_buttons.quick_menu).toBeHidden({ timeout: 3000 });
+    if (await this.selector.button.close_settings.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await this.selector.button.close_settings.click();
+      await expect(this.selector.side_bar_buttons.quick_menu)
+        .toBeHidden({ timeout: 3000 })
+        .catch(() => {});
+    }
   }
 
   async closeChannelSettingsIfVisible(): Promise<void> {

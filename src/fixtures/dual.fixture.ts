@@ -43,6 +43,37 @@ async function buildMultiProvider<K extends string>(
     const pg = await ctx.newPage();
     contexts[k] = ctx;
     pages[k] = pg;
+
+    // TEMP diagnostics: detect "Internal error" modal and log active step
+    void (async () => {
+      let reported = false;
+      while (!pg.isClosed() && !reported) {
+        try {
+          const visible = await pg
+            .getByText('Internal error', { exact: false })
+            .first()
+            .isVisible({ timeout: 200 })
+            .catch(() => false);
+          if (visible) {
+            reported = true;
+            const step =
+              (globalThis as { __CURRENT_STEP?: string }).__CURRENT_STEP || '(unknown step)';
+            console.log(
+              `[INTERNAL ERROR DETECTED] user=${String(k)} step="${step}" url=${pg.url()}`
+            );
+            await pg
+              .screenshot({
+                path: `/tmp/mezon-e2e-local-run/internal-error-user-${String(k)}.png`,
+                fullPage: false,
+              })
+              .catch(() => {});
+          }
+        } catch {
+          // page may be mid-navigation/closed
+        }
+        await new Promise(r => setTimeout(r, 400));
+      }
+    })();
   }
 
   const auth = opts.auth;

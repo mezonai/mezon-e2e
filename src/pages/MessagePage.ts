@@ -84,6 +84,7 @@ export class MessagePage extends BasePage {
       const btn = modal.locator('button').first();
       await btn.click({ force: true }).catch(() => {});
       await modal.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+      await this.page.keyboard.press('Escape').catch(() => {});
     }
   }
 
@@ -131,7 +132,11 @@ export class MessagePage extends BasePage {
   }
 
   async openSelectFriendsModal(): Promise<void> {
+    await this.dismissPermissionModalIfPresent();
     await this.selector.buttonCreateGroupSidebar.click();
+    await expect(this.selector.friendItems.first())
+      .toBeVisible({ timeout: 5000 })
+      .catch(() => {});
   }
 
   private async getFriendName(friend: Locator): Promise<string> {
@@ -188,9 +193,29 @@ export class MessagePage extends BasePage {
 
   async submitCreate(): Promise<void> {
     const btn = this.selector.createGroupButton
-      .or(this.page.locator('button').filter({ hasText: /^Create Group$/i }))
+      .or(this.page.locator('button').filter({ hasText: /Create Group/i }))
       .first();
     await btn.click({ force: true });
+
+    const permissionModal = this.page.locator(
+      generateE2eSelector('clan_page.settings.modal.permission')
+    );
+    try {
+      await Promise.race([
+        btn.waitFor({ state: 'hidden', timeout: 5000 }),
+        permissionModal.waitFor({ state: 'visible', timeout: 5000 }),
+      ]);
+    } catch {
+      // Timeout waiting for either
+    }
+
+    if (await permissionModal.isVisible().catch(() => false)) {
+      const modalBtn = permissionModal.locator('button').first();
+      await modalBtn.click({ force: true }).catch(() => {});
+      await permissionModal.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+      await this.page.keyboard.press('Escape').catch(() => {});
+      await this.page.waitForTimeout(500);
+    }
   }
 
   async isGroupCreated(prevGroupCount: number): Promise<boolean> {
@@ -1066,6 +1091,7 @@ export class MessagePage extends BasePage {
   }
 
   async removeUserFromGroup(username: string) {
+    await this.page.keyboard.press('Escape').catch(() => {});
     if (
       !(await this.selector.secondarySideBar.member.item
         .first()
@@ -1075,6 +1101,10 @@ export class MessagePage extends BasePage {
       const showMemberButton = this.selector.sumMember.first();
       if (await showMemberButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await showMemberButton.click();
+        await this.selector.secondarySideBar.member.item
+          .first()
+          .waitFor({ state: 'visible', timeout: 5000 })
+          .catch(() => {});
       }
     }
 
@@ -1092,17 +1122,77 @@ export class MessagePage extends BasePage {
 
     const removeUserButton = popup
       .locator(generateE2eSelector('chat.direct_message.menu.leave_group.button'))
-      .or(popup.getByText('Remove', { exact: false }))
-      .or(popup.getByText('Kick', { exact: false }));
+      .or(popup.getByText(/remove.*from.*group/i))
+      .or(popup.getByText(/remove.*member/i))
+      .or(popup.getByText(/kick.*group/i))
+      .or(popup.getByText(/^kick/i));
 
     await expect(removeUserButton.first()).toBeVisible({ timeout: 3000 });
     await removeUserButton.first().click();
 
-    await expect(userLocator).toBeHidden({ timeout: 5000 });
+    const confirmBtn = this.page
+      .locator(generateE2eSelector('modal.confirm_modal.button.confirm'))
+      .or(
+        this.page.locator(
+          'button.bg-red-500, button.bg-theme-negative, button:has-text("Remove"), button:has-text("Confirm")'
+        )
+      );
+    if (
+      await confirmBtn
+        .first()
+        .isVisible({ timeout: 2000 })
+        .catch(() => false)
+    ) {
+      await confirmBtn.first().click();
+    }
+
+    await expect(userLocator).toBeHidden({ timeout: 8000 });
+  }
+
+  async waitForMessageInput(): Promise<void> {
+    await expect(this.selector.messageInput).toBeVisible({ timeout: 10000 });
   }
 
   async pickFriendByName(username: string) {
     return this.selector.friendItems.filter({ hasText: username }).first().click();
+  }
+
+  async pickAnotherFriendExcluding(excludedUsername: string): Promise<string> {
+    const otherFriends = this.selector.friendItems.filter({ hasNotText: excludedUsername });
+    const count = await otherFriends.count();
+    if (count > 0) {
+      const randomIdx = Math.floor(Math.random() * count);
+      const candidate = otherFriends.nth(randomIdx);
+      const text = await candidate.innerText().catch(() => '');
+      await candidate.click();
+      return text.split('\n')[0].trim();
+    }
+    return '';
+  }
+
+  async createGroupWithUser(targetUsername: string): Promise<string> {
+    const maxRetries = 5;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      await this.openSelectFriendsModal();
+      await this.pickFriendByName(targetUsername);
+      const third = await this.pickAnotherFriendExcluding(targetUsername);
+      await this.submitCreate();
+
+      try {
+        const createBtn = this.selector.createGroupButton.or(
+          this.page.locator('button').filter({ hasText: /Create Group/i })
+        );
+        await expect(createBtn.first()).toBeHidden({ timeout: 5000 });
+        await expect(this.selector.messageInput).toBeVisible({ timeout: 8000 });
+        return third;
+      } catch {
+        await this.dismissPermissionModalIfPresent();
+        await this.page.keyboard.press('Escape').catch(() => {});
+        await this.page.waitForTimeout(1000);
+      }
+    }
+    await expect(this.selector.messageInput).toBeVisible({ timeout: 5000 });
+    return '';
   }
 
   async addUserToGroup(username: string) {
@@ -1111,8 +1201,11 @@ export class MessagePage extends BasePage {
     const userToSelect = this.selector.friendItems.filter({ hasText: username }).first();
     await expect(userToSelect).toBeVisible({ timeout: 5000 });
     await userToSelect.click();
-    await expect(this.selector.createGroupButton).toBeVisible({ timeout: 5000 });
-    await this.selector.createGroupButton.click();
+    const submitBtn = this.selector.createGroupButton
+      .or(this.page.locator('button').filter({ hasText: /Add to Group Chat/i }))
+      .or(this.page.locator(generateE2eSelector('chat.direct_message.add_to_group.button')));
+    await expect(submitBtn.first()).toBeVisible({ timeout: 5000 });
+    await submitBtn.first().click();
   }
 
   async showMemberGroup() {

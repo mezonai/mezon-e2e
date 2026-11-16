@@ -11,6 +11,7 @@ import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
 import { expect, test } from '@playwright/test';
 
 const SELECTED_FILE_SELECTOR = '[data-e2e="mention-selected_file"]';
+const REMOVE_ATTACHMENT_BTN_SELECTOR = 'button[title="Remove Attachment"]';
 
 test.describe('Upload File - Composer Attachment Lifecycle & Shared Files', () => {
   const clanFactory = new ClanFactory();
@@ -78,13 +79,13 @@ test.describe('Upload File - Composer Attachment Lifecycle & Shared Files', () =
     await AllureReporter.step('Attach file into message composer', async () => {
       await fileSizeHelpers.uploadFileDefault(filePath);
       await expect(page.locator(SELECTED_FILE_SELECTOR)).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('button[title="Remove Attachment"]')).toBeVisible({
+      await expect(page.locator(REMOVE_ATTACHMENT_BTN_SELECTOR)).toBeVisible({
         timeout: 5000,
       });
     });
 
     await AllureReporter.step('Cancel attachment via remove button', async () => {
-      const removeBtn = page.locator('button[title="Remove Attachment"]');
+      const removeBtn = page.locator(REMOVE_ATTACHMENT_BTN_SELECTOR);
       await removeBtn.click();
       await expect(removeBtn).toBeHidden({ timeout: 5000 });
     });

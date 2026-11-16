@@ -1824,9 +1824,14 @@ export class ClanPage extends BasePage {
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {
-    if (await this.selector.buttons.closeSettingClan.isVisible().catch(() => false)) {
-      await this.selector.buttons.closeSettingClan.click();
-    }
+    try {
+      if (
+        await this.selector.buttons.closeSettingClan.isVisible({ timeout: 1000 }).catch(() => false)
+      ) {
+        await this.selector.buttons.closeSettingClan.click({ timeout: 3000 }).catch(() => {});
+        await this.page.waitForTimeout(500);
+      }
+    } catch {}
     await this.selector.buttons.memberListButton.click();
     const userRow = this.selector.member.getSettingsRow(username);
     try {
@@ -3479,5 +3484,14 @@ export class ClanPage extends BasePage {
   async closeMicrophonePermissionWarning(): Promise<void> {
     await this.selector.screen.voiceRoom.microphonePermission.closeButton.click();
     await expect(this.page.getByRole('dialog')).toBeHidden();
+  }
+
+  async mentionByText(text: string): Promise<void> {
+    await this.selector.input.mention.fill(text);
+    await this.page.waitForTimeout(1000);
+    await this.selector.input.mention.press('Enter');
+    await this.page.waitForTimeout(1000);
+    await this.selector.input.mention.press('Enter');
+    await this.page.waitForLoadState('networkidle').catch(() => {});
   }
 }

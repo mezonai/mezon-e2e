@@ -104,8 +104,11 @@ export class MessageInboxHelpers extends MessageMediaHelpers {
   }
 
   async assertMessageInInboxByContent(messageContent: string) {
+    const mentionsTab = this.selector.inbox.mentions.triggerTab.first();
     const msgTab = this.selector.inbox.messages.triggerTab.first();
-    if (await msgTab.isVisible().catch(() => false)) {
+    if (messageContent.startsWith('@') && (await mentionsTab.isVisible().catch(() => false))) {
+      await mentionsTab.click().catch(() => {});
+    } else if (await msgTab.isVisible().catch(() => false)) {
       await msgTab.click().catch(() => {});
     }
     const inboxMessage = this.selector.inboxMessages.filter({ hasText: messageContent }).first();
