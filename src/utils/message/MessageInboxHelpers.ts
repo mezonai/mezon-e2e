@@ -58,7 +58,15 @@ export class MessageInboxHelpers extends MessageMediaHelpers {
     if (await chatInput.isVisible({ timeout: 2000 }).catch(() => false)) {
       return;
     }
-    const chatButton = this.selector.headerChatButton.first();
+
+    const chatButton = this.page
+      .locator(
+        'button[data-e2e="chat-channel_message-header-button-chat"]:visible, #mezonSfuRoom button[title="Chat"], button[title="Chat"]:visible, button[title="Show Chat"]:visible'
+      )
+      .or(this.selector.headerChatButton.filter({ visible: true }))
+      .or(this.selector.headerChatButton.last())
+      .first();
+
     await expect(chatButton).toBeVisible({ timeout: 10000 });
     await chatButton.click({ force: true });
     await expect(chatInput)

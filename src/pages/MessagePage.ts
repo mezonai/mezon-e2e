@@ -75,7 +75,7 @@ export class MessagePage extends BasePage {
   }
 
   async gotoDMPage(): Promise<void> {
-    await this.page.goto(ROUTES.DIRECT_FRIENDS);
+    await this.navigate(ROUTES.DIRECT_FRIENDS);
   }
 
   async dismissPermissionModalIfPresent(): Promise<void> {
