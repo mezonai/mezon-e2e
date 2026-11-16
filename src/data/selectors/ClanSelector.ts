@@ -48,7 +48,10 @@ export default class ClanSelector {
     ),
     closeInviteModal: this.page.locator(BASE_BUTTON_SELECTOR, { hasText: '×' }),
     eventButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.events')),
-    saveChanges: this.page.locator(BASE_BUTTON_SELECTOR, { hasText: 'Save Changes' }),
+    saveChanges: this.page
+      .locator(generateE2eSelector('clan_page.settings.overview.button.save_changes'))
+      .or(this.page.locator(BASE_BUTTON_SELECTOR, { hasText: /Save( Changes)?/i }))
+      .or(this.page.locator('button').filter({ hasText: /^Save( Changes)?$/i })),
     exitSettings: this.page.locator(generateE2eSelector('clan_page.settings.button.exit')),
     memberListButton: this.page.locator(generateE2eSelector('clan_page.side_bar.button.members')),
     invitePeopleFromChannel: this.page.locator(
@@ -323,9 +326,18 @@ export default class ClanSelector {
    * @returns Locator for the clan item with matching title
    */
   async findClanByTitle(clanName: string): Promise<Locator> {
-    return this.page.locator(
-      `${generateE2eSelector('clan_page.side_bar.clan_item')}[title="${clanName}"]`
-    );
+    return this.page
+      .locator(`${generateE2eSelector('clan_page.side_bar.clan_item')}[title="${clanName}"]`)
+      .or(
+        this.page
+          .locator(generateE2eSelector('clan_page.side_bar.clan_item'))
+          .filter({ has: this.page.locator(`[title="${clanName}"], [aria-label="${clanName}"]`) })
+      )
+      .or(
+        this.page
+          .locator(generateE2eSelector('clan_page.side_bar.clan_item'))
+          .filter({ hasText: clanName })
+      );
   }
 
   getChannelItemByNameOnCMTab(channelName: string): Locator {

@@ -159,7 +159,7 @@ test.describe('Unread State - Mark Clans, Channels, and Direct Messages as Read'
       await clanPageB.verifyClanHasBadge(channelNames.length, clanItem);
     });
 
-    await AllureReporter.step('Verify that inbox button has badge', async () => {
+    await AllureReporter.step('Verify that inbox has mentions in mentions tab', async () => {
       await clanPageB.verifyInboxButtonHasBadge();
     });
 
@@ -483,7 +483,7 @@ test.describe('Unread State - Mark Clans, Channels, and Direct Messages as Read'
       await clanPageB.verifyClanHasBadge(1, clanItem);
     });
 
-    await AllureReporter.step('Verify that inbox button has badge', async () => {
+    await AllureReporter.step('Verify that inbox has mentions in mentions tab', async () => {
       await clanPageB.verifyInboxButtonHasBadge();
     });
 

@@ -907,10 +907,14 @@ export class MessageTestHelpers extends MessageContentHelpers {
     // First try exact candidates
     const tryCandidates = async (names: string[]): Promise<Locator | null> => {
       for (const name of names) {
-        const sel = this.page.locator(ROLE_OPTION_SELECTOR).filter({ hasText: name });
-        if (await sel.count()) {
-          const first = sel.first();
-          if (await first.isVisible({ timeout: 1000 })) return first;
+        const sel = this.page.locator(ROLE_OPTION_SELECTOR).filter({ hasText: name }).first();
+        if (
+          await sel
+            .waitFor({ state: 'visible', timeout: 3000 })
+            .then(() => true)
+            .catch(() => false)
+        ) {
+          return sel;
         }
       }
       return null;
