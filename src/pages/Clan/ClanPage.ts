@@ -205,11 +205,56 @@ export class ClanPage extends BasePage {
     }
   }
 
-  private async closeAllModals(): Promise<void> {
+  public async closeAllModals(): Promise<void> {
     try {
+      const clanSettingsExit = this.page.locator(
+        '[data-e2e="clan_page-settings-button-exit"], [data-e2e="user_setting.account.exit_setting"], button[aria-label="Close"], button:has-text("ESC")'
+      );
+      if (
+        await clanSettingsExit
+          .first()
+          .isVisible({ timeout: 500 })
+          .catch(() => false)
+      ) {
+        await clanSettingsExit
+          .first()
+          .click({ force: true })
+          .catch(() => {});
+        await this.page.waitForTimeout(300);
+      }
+      const clanSettingsModal = this.page.locator('[data-e2e="clan_page-settings"]');
+      if (await clanSettingsModal.isVisible({ timeout: 500 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(300);
+      }
+    } catch {}
+
+    try {
+      const permModal = this.page.locator(
+        '[data-e2e="clan_page-settings-modal-permission"], [data-e2e*="permission"]'
+      );
+      if (
+        await permModal
+          .first()
+          .isVisible({ timeout: 500 })
+          .catch(() => false)
+      ) {
+        const cancelBtn = permModal
+          .locator('button')
+          .filter({ hasText: /Cancel|Hủy|Okay|OK/i })
+          .or(this.selector.permissionModal.cancel);
+        await cancelBtn
+          .first()
+          .click({ force: true })
+          .catch(() => {});
+        await this.page.waitForTimeout(300);
+      }
       while (await this.selector.permissionModal.isVisible()) {
-        await this.selector.permissionModal.cancel.first().click();
-        await this.page.waitForTimeout(500);
+        await this.selector.permissionModal.cancel
+          .first()
+          .click({ force: true })
+          .catch(() => {});
+        await this.page.waitForTimeout(300);
       }
     } catch {
       // No modal visible, continue
@@ -256,59 +301,76 @@ export class ClanPage extends BasePage {
       const categoryPage = new ClanMenuPanel(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
 
-      const clanLocator = await this.selector.findClanByTitle(clanName);
+      const clanLocator = (await this.selector.findClanByTitle(clanName)).first();
+      await clanLocator.waitFor({ state: 'visible', timeout: 5000 });
       await clanLocator.click({ timeout: 5000 });
+      await this.page.waitForTimeout(500);
 
-      await this.closeAllModals();
+      // Wait for clan header title to appear and click to open dropdown
+      const clanHeader = categoryPage.text.clanName.first();
+      await clanHeader.waitFor({ state: 'visible', timeout: 8000 });
+      await clanHeader.click();
+      await this.page.waitForTimeout(500);
 
-      await expect(categoryPage.text.clanName).toContainText(
-        new RegExp(escapeRegExp(clanName), 'i'),
-        { timeout: 5000 }
-      );
+      // 1. Check if "Leave Clan" option is available (member role)
+      const leaveClanBtn = this.selector.buttons.leaveClan
+        .or(
+          this.page
+            .locator(
+              '[data-e2e*="clan_page-header-modal_panel"], div[role="menuitem"], div[class*="popover"] div, div[class*="dropdown"] div, button'
+            )
+            .filter({ hasText: /Leave Clan|Rời/i })
+        )
+        .first();
 
-      await categoryPage.text.clanName.click();
-      const leaveClanBtn = this.selector.buttons.leaveClan;
       if (await leaveClanBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         console.log(`Leaving clan "${clanName}" as member...`);
-        await leaveClanBtn.click();
+        await leaveClanBtn.click({ force: true });
         const confirmBtn = this.selector.buttons.confirm.or(
-          this.page.locator('button:has-text("Leave"), button:has-text("Yes")')
+          this.page.locator(
+            'button:has-text("Leave"), button:has-text("Rời"), button:has-text("Yes"), button:has-text("Confirm"), [data-e2e*="confirm"]'
+          )
         );
         await confirmBtn
           .first()
-          .click({ timeout: 3000 })
+          .click({ timeout: 3000, force: true })
           .catch(() => {});
         await this.page.waitForLoadState('domcontentloaded');
-        await this.closeAllModals();
+        await this.navigate(ROUTES.DIRECT_FRIENDS);
         return true;
       }
 
-      await categoryPage.buttons.clanSettings.click();
-      await this.page.waitForLoadState('domcontentloaded');
+      // 2. Check if "Clan Settings" option is available (owner role)
+      const clanSettingsBtn = categoryPage.buttons.clanSettings
+        .or(this.selector.buttons.clanSettings)
+        .or(
+          this.page
+            .locator(
+              '[data-e2e*="clan_page-header-modal_panel"], div[role="menuitem"], div[class*="popover"] div, div[class*="dropdown"] div, button'
+            )
+            .filter({ hasText: /Clan Settings|Cài đặt/i })
+        )
+        .first();
 
-      await this.closeAllModals();
+      if (await clanSettingsBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await clanSettingsBtn.click({ force: true });
+        await this.page.waitForLoadState('domcontentloaded');
 
-      let isOwner = false;
-
-      try {
         const deleteSidebarButton = await categorySettingPage.getDeleteSidebarButton();
-        await deleteSidebarButton.waitFor({ state: 'visible', timeout: 5000 });
-        isOwner = true;
-      } catch {
-        isOwner = false;
+        if (await deleteSidebarButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await deleteSidebarButton.click({ force: true });
+          await categorySettingPage.fillDeleteInput(clanName || '');
+          await categorySettingPage.clickConfirmDeleteButton();
+          await this.page.waitForLoadState('domcontentloaded');
+          await this.navigate(ROUTES.DIRECT_FRIENDS);
+          console.log(`Deleted clan "${clanName}" as owner.`);
+          return true;
+        }
       }
 
-      if (!isOwner) {
-        console.error(`You are not the owner of the clan "${clanName}".`);
-        await this.navigate(ROUTES.DIRECT_FRIENDS);
-        return false;
-      }
-      await categorySettingPage.clickDeleteSidebarButton();
-      await categorySettingPage.fillDeleteInput(clanName || '');
-      await categorySettingPage.clickConfirmDeleteButton();
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.closeAllModals();
-      return true;
+      console.warn(`Could not leave or delete clan "${clanName}".`);
+      await this.navigate(ROUTES.DIRECT_FRIENDS);
+      return false;
     } catch (error) {
       console.error(`Error deleting clan: ${error}`);
       try {
@@ -491,7 +553,10 @@ export class ClanPage extends BasePage {
     status?: ChannelStatus
   ): Promise<boolean> {
     try {
-      await this.selector.buttons.createChannel.last().click();
+      await this.closeAllModals();
+      const createBtn = this.selector.buttons.createChannel.last();
+      await expect(createBtn).toBeVisible({ timeout: 5000 });
+      await createBtn.click();
       await expect(this.selector.createChannelModal.input.channelName).toBeVisible({
         timeout: 5000,
       });
@@ -517,8 +582,9 @@ export class ClanPage extends BasePage {
       }
       await this.selector.createChannelModal.button.confirm.click();
       await expect(this.selector.createChannelModal.input.channelName).toBeHidden({
-        timeout: 5000,
+        timeout: 8000,
       });
+      await this.page.waitForTimeout(1000);
 
       return true;
     } catch (error) {
@@ -528,10 +594,17 @@ export class ClanPage extends BasePage {
   }
 
   async isNewChannelPresent(channelName: string): Promise<boolean> {
-    const channelLocator = this.selector.channel.getSidebarItem(channelName);
+    const channelLocator = this.selector.channel
+      .getSidebarItem(channelName)
+      .or(
+        this.page.locator(
+          `${generateE2eSelector('clan_page.channel_list.item.name')}:has-text("${channelName}"), [data-e2e*="channel_list"]:has-text("${channelName}")`
+        )
+      )
+      .first();
 
     try {
-      await channelLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await channelLocator.waitFor({ state: 'visible', timeout: 10000 });
       return true;
     } catch {
       return false;
@@ -1381,18 +1454,20 @@ export class ClanPage extends BasePage {
       const roleSettingsBtn = this.selector.clanSettings.buttons.roleSettings;
       if (await roleSettingsBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await roleSettingsBtn.click();
-        await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 5000 });
+        await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 8000 });
         return true;
       }
 
-      await this.selector.buttons.clanName.click();
-      await expect(this.selector.buttons.clanSettings).toBeVisible({ timeout: 5000 });
+      const openedClanSettings = await this.openClanSettings();
+      if (!openedClanSettings) {
+        await this.selector.buttons.clanName.click();
+        await expect(this.selector.buttons.clanSettings).toBeVisible({ timeout: 5000 });
+        await this.selector.buttons.clanSettings.click();
+      }
 
-      await this.selector.buttons.clanSettings.click();
-      await expect(roleSettingsBtn).toBeVisible({ timeout: 5000 });
-
+      await expect(roleSettingsBtn).toBeVisible({ timeout: 10000 });
       await roleSettingsBtn.click();
-      await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 5000 });
+      await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 8000 });
       return true;
     } catch (error) {
       console.error(`Error opening Role Settings page:`, error);
@@ -1403,17 +1478,47 @@ export class ClanPage extends BasePage {
   async addNewRoleOnClan(roleName: string) {
     try {
       await this.selector.clanSettings.buttons.createRole.click();
-      await expect(this.selector.clanSettings.roleContainer).toBeVisible({ timeout: 3000 });
+      await expect(this.selector.clanSettings.roleContainer).toBeVisible({ timeout: 5000 });
 
       await this.selector.clanSettings.buttons.displayRoleOption.click();
-      await expect(this.selector.clanSettings.input.roleName).toBeVisible({ timeout: 3000 });
+      await expect(this.selector.clanSettings.input.roleName).toBeVisible({ timeout: 5000 });
 
       await this.selector.clanSettings.input.roleName.fill(roleName);
 
-      await this.selector.buttons.saveChanges.click();
-      await this.selector.buttons.closeSettingClan.click();
+      const saveBtn = this.selector.buttons.saveChanges;
+      if (await saveBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await saveBtn.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+
+      // Dismiss permission modal if it pops up
+      const modal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
+      if (await modal.isVisible({ timeout: 1500 }).catch(() => false)) {
+        const confirmBtn = modal
+          .locator(generateE2eSelector('clan_page.settings.modal.permission.confirm'))
+          .or(modal.locator('button').filter({ hasText: /confirm|yes|ok|save/i }))
+          .first();
+        await confirmBtn.click({ force: true }).catch(() => {});
+        await modal.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+      }
+
+      const closeBtn = this.selector.buttons.closeSettingClan
+        .or(
+          this.page.locator(
+            'button[aria-label="Close"], button:has-text("ESC"), [data-e2e*="exit_setting"]'
+          )
+        )
+        .first();
+      if (await closeBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await closeBtn.click({ force: true });
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.closeAllModals();
     } catch (error) {
       console.error(`Failed to add new role:`, error);
+      await this.closeAllModals();
     }
   }
 

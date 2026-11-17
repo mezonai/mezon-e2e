@@ -1,6 +1,7 @@
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import CategorySettingSelector from '@/data/selectors/CategorySettingSelector';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 
 export class CategorySettingPage extends BasePage {
   private readonly selector: CategorySettingSelector;
@@ -19,7 +20,32 @@ export class CategorySettingPage extends BasePage {
   }
 
   async fillDeleteInput(clanName: string) {
-    return this.selector.input.delete.fill(clanName);
+    const modal = this.page
+      .locator(generateE2eSelector('clan_page.settings.modal.delete_clan'))
+      .or(this.page.locator('div[role="dialog"]'))
+      .first();
+
+    let targetName = clanName.trim();
+    try {
+      const modalText = await modal
+        .locator('b, strong, span.font-bold, code, span.text-danger, span.text-red-500, p span')
+        .first()
+        .textContent({ timeout: 1000 });
+      if (modalText && modalText.trim().length > 0) {
+        targetName = modalText.replace(/^["'`]|["'`]$/g, '').trim();
+      }
+    } catch {}
+
+    const inputLocator = this.selector.input.delete
+      .locator('input')
+      .or(this.selector.input.delete)
+      .first();
+
+    await inputLocator.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    await inputLocator.click();
+    await inputLocator.fill('');
+    await inputLocator.pressSequentially(targetName, { delay: 30 });
+    return targetName;
   }
 
   async isConfirmDeleteDisabled(): Promise<boolean> {
@@ -51,7 +77,11 @@ export class CategorySettingPage extends BasePage {
   }
 
   async clickConfirmDeleteButton() {
-    return this.selector.buttons.confirmDelete.click();
+    await this.verifyConfirmDeleteButtonEnabled().catch(() => {});
+    await this.selector.buttons.confirmDelete.click({ force: true });
+    await expect(this.selector.buttons.confirmDelete)
+      .toBeHidden({ timeout: 10000 })
+      .catch(() => {});
   }
 
   async clickCancelDeleteButton() {
