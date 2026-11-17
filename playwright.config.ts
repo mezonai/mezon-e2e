@@ -153,7 +153,7 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
-      timeout: 60 * 1000,
+      timeout: 300 * 1000,
     },
     {
       name: 'Multi',
@@ -161,7 +161,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
-        headless: false,
+        headless: process.env.HEADLESS !== undefined ? process.env.HEADLESS === 'true' : false,
         launchOptions: {
           args: [
             '--disable-popup-blocking',

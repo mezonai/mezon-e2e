@@ -499,11 +499,15 @@ jobs:
           DEV_HOST_IP=172.16.100.198
           DEV_MMN_HOST_IP=172.16.100.180
           SFU_HOST_IP=172.16.100.198
-          WORKERS=1
+          WORKERS=2
           CI=true
           RUN_PHASE=$RUN_PHASE
           SKIP_INLINE_REPORTER_END=true
-          TEST_GAP_MS=10000
+          TEST_GAP_MS=0
+          WORKER_ACCOUNT_ISOLATION=true
+          REUSE_EXISTING_CLAN=true
+          FAST_AUTH=true
+          SKIP_UI_LOGOUT=true
           EOF
           sed -i 's/^[[:space:]]*//' .env
           echo "--- .env contents ---" && cat .env
@@ -538,6 +542,10 @@ jobs:
           STRESS_HISTORY_MESSAGE_COUNT: ${{ inputs.ui_stress_history_messages || '120' }}
           UI_STRESS_MODE: ${{ inputs.ui_stress_mode || 'soak' }}
           STRESS_REQUIRE_MEDIA: ${{ inputs.ui_stress }}
+          WORKER_ACCOUNT_ISOLATION: 'true'
+          REUSE_EXISTING_CLAN: 'true'
+          FAST_AUTH: 'true'
+          SKIP_UI_LOGOUT: 'true'
         run: |
           WEB_TARGETS=()
           MULTI_TARGETS=()

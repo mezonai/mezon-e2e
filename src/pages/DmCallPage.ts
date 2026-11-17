@@ -17,10 +17,10 @@ export class DmCallPage {
     // Green buttons are only present during an incoming call (video answer, audio answer).
     this.answerButton = page
       .locator(
-        'div.rounded-full[class*="bg-green"], button.rounded-full[class*="bg-green"], [class*="bg-green-500"]'
+        'div.rounded-full[class*="bg-green"], button.rounded-full[class*="bg-green"], [class*="bg-green-500"].rounded-full'
       )
       .filter({ has: page.locator('svg') })
-      .last();
+      .first();
 
     // The reject button is the red button with X icon in the incoming call panel.
     this.rejectButton = page

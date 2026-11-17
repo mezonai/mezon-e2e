@@ -26,7 +26,7 @@ export default class ClanSelector {
 
   readonly buttons = {
     createClan: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_clan')),
-    clanName: this.page.locator(`${generateE2eSelector('clan_page.header.title.clan_name')} p`),
+    clanName: this.page.locator(generateE2eSelector('clan_page.header.title.clan_name')),
     createChannel: this.page.locator(generateE2eSelector('clan_page.side_bar.button.add_channel')),
     createClanCancel: this.page.locator(`${CREATE_CLAN_MODAL_SELECTOR} ${BASE_BUTTON_SELECTOR}`, {
       hasText: 'Cancel',
