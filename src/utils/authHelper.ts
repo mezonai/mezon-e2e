@@ -2,7 +2,7 @@ import { AccountCredentials, persistentAuthConfigs, WEBSITE_CONFIGS } from '@/co
 import { LoginPage } from '@/pages/LoginPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { MezonCredentials } from '@/types';
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 import ClanSelector from '@/data/selectors/ClanSelector';
 import fs from 'fs';
 import path from 'path';
@@ -93,6 +93,118 @@ export class AuthHelper {
     });
   }
 
+  static getWorkerIndex(): number {
+    const envParallelIndex = process.env.TEST_PARALLEL_INDEX;
+    if (envParallelIndex !== undefined) {
+      const idx = parseInt(envParallelIndex, 10);
+      if (!isNaN(idx)) return idx;
+    }
+
+    const envWorkerIndex = process.env.TEST_WORKER_INDEX;
+    if (envWorkerIndex !== undefined) {
+      const idx = parseInt(envWorkerIndex, 10);
+      if (!isNaN(idx)) return idx;
+    }
+
+    try {
+      const testInfo = test.info();
+      if (testInfo) {
+        if (typeof testInfo.parallelIndex === 'number') return testInfo.parallelIndex;
+        if (typeof testInfo.workerIndex === 'number') return testInfo.workerIndex;
+      }
+    } catch {
+      // test.info() throws when called outside an active test step
+    }
+
+    return 0;
+  }
+
+  static resolveWorkerCredentials(credentials: MezonCredentials): MezonCredentials {
+    if (!credentials?.email) return credentials;
+
+    if (process.env.WORKER_ACCOUNT_ISOLATION === 'false') {
+      return credentials;
+    }
+
+    const workerIndex = this.getWorkerIndex();
+    if (workerIndex <= 0) {
+      return credentials;
+    }
+
+    const email = credentials.email.toLowerCase();
+
+    // Map each primary account to a dedicated worker pool with existing clans and friends
+    const pools: Record<string, MezonCredentials[]> = {
+      [AccountCredentials.account1.email.toLowerCase()]: [
+        AccountCredentials.account1,
+        AccountCredentials.account1,
+      ],
+      [AccountCredentials.account2.email.toLowerCase()]: [
+        AccountCredentials.account2,
+        AccountCredentials['account2-1'],
+        AccountCredentials['account2-2'],
+        AccountCredentials['account2-3'],
+        AccountCredentials['account2-4'],
+        AccountCredentials['account2-5'],
+      ],
+      [AccountCredentials.account3.email.toLowerCase()]: [
+        AccountCredentials.account3,
+        AccountCredentials.account5,
+        AccountCredentials.account6,
+        AccountCredentials.account4,
+        AccountCredentials.account9,
+      ],
+      [AccountCredentials.account4.email.toLowerCase()]: [
+        AccountCredentials.account4,
+        AccountCredentials.account6,
+        AccountCredentials.account3,
+        AccountCredentials.account5,
+        AccountCredentials.account9,
+      ],
+      [AccountCredentials.account5.email.toLowerCase()]: [
+        AccountCredentials.account5,
+        AccountCredentials.account3,
+        AccountCredentials.account6,
+        AccountCredentials.account9,
+        AccountCredentials.account4,
+      ],
+      [AccountCredentials.account6.email.toLowerCase()]: [
+        AccountCredentials.account6,
+        AccountCredentials.account4,
+        AccountCredentials.account5,
+        AccountCredentials.account3,
+        AccountCredentials.account9,
+      ],
+      [AccountCredentials.account7.email.toLowerCase()]: [
+        AccountCredentials.account7,
+        AccountCredentials.account9,
+        AccountCredentials.account5,
+        AccountCredentials.account6,
+        AccountCredentials.account3,
+      ],
+      [AccountCredentials.account8.email.toLowerCase()]: [
+        AccountCredentials.account8,
+        AccountCredentials.account1,
+        AccountCredentials.account5,
+        AccountCredentials.account6,
+      ],
+      [AccountCredentials.account9.email.toLowerCase()]: [
+        AccountCredentials.account9,
+        AccountCredentials.account3,
+        AccountCredentials.account5,
+        AccountCredentials.account6,
+        AccountCredentials.account4,
+      ],
+    };
+
+    const targetPool = pools[email];
+    if (targetPool && targetPool.length > 0) {
+      return targetPool[workerIndex % targetPool.length];
+    }
+
+    return credentials;
+  }
+
   static getStoragePathForCredentials(credentials: MezonCredentials): string | null {
     if (!credentials?.email) return null;
     const authDir = path.resolve('playwright/.auth');
@@ -148,7 +260,8 @@ export class AuthHelper {
     credentials: MezonCredentials,
     targetUrl?: string
   ) {
-    const authFilePath = this.getStoragePathForCredentials(credentials);
+    const resolvedCredentials = this.resolveWorkerCredentials(credentials);
+    const authFilePath = this.getStoragePathForCredentials(resolvedCredentials);
     const useFastAuth = process.env.FAST_AUTH !== 'false';
 
     if (useFastAuth && authFilePath && fs.existsSync(authFilePath)) {
@@ -164,7 +277,7 @@ export class AuthHelper {
     }
 
     const loginPage = new LoginPage(page);
-    await loginPage.loginWithPassword(credentials.email, credentials.password);
+    await loginPage.loginWithPassword(resolvedCredentials.email, resolvedCredentials.password);
 
     if (authFilePath) {
       try {
@@ -258,7 +371,7 @@ export class AuthHelper {
           } catch {}
         })
         .catch(() => {});
-    } catch (error) {
+    } catch {
       // Ignored if page/context is already closed
     }
 

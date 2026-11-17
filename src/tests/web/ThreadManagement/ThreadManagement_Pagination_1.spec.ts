@@ -46,6 +46,8 @@ test.describe('Thread Management - Pagination, Private Threads, Bounds & Resilie
   });
 
   test.afterEach(async ({ page }) => {
+    const clanPage = new ClanPage(page);
+    await clanPage.closeAllModals().catch(() => {});
     await AuthHelper.logout(page, false);
   });
 

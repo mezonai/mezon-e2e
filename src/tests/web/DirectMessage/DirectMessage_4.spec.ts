@@ -1,47 +1,29 @@
-import { AccountCredentials } from '@/config/environment';
-import { ClanFactory } from '@/data/factories/ClanFactory';
+import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import MessageSelector from '@/data/selectors/MessageSelector';
 import { MessagePage } from '@/pages/MessagePage';
+import { ROUTES } from '@/selectors';
 import { MezonCredentials } from '@/types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
-import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { getUsernamesFromEmails } from '@/utils/dualTestHelper';
+import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
-import TestSuiteHelper from '@/utils/testSuite.helper';
 import { expect, test } from '@playwright/test';
 
 test.describe('Direct Messages - Search Modal Focus', () => {
-  const clanFactory = new ClanFactory();
   const credentials: MezonCredentials = AccountCredentials.account3;
-
-  test.beforeAll(async ({ browser }) => {
-    await TestSuiteHelper.setupBeforeAll({
-      browser,
-      clanFactory,
-      configs: ClanSetupHelper.configs.directMessage1,
-      credentials,
-    });
-  });
 
   test.beforeEach(async ({ page }) => {
     await AllureReporter.addWorkItemLinks({
       parrent_issue: '63370',
     });
 
-    await TestSuiteHelper.setupBeforeEach({
+    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
+    await AuthHelper.prepareBeforeTest(
       page,
-      clanFactory,
-      credentials,
-    });
-  });
-
-  test.afterAll(async ({ browser }) => {
-    await TestSuiteHelper.onAfterAll({
-      browser,
-      clanFactory,
-      credentials,
-    });
+      joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS),
+      _credentials
+    );
   });
 
   test.afterEach(async ({ page }) => {

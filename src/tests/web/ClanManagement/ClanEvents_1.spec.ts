@@ -29,6 +29,8 @@ test.describe('Clan Management - Clan Events Lifecycle, RSVP, Share & Validation
   });
 
   test.afterEach(async ({ page }) => {
+    const clanPage = new ClanPage(page);
+    await clanPage.closeAllModals().catch(() => {});
     await AuthHelper.logout(page, false);
   });
 
