@@ -42,8 +42,9 @@ export default class TestSuiteHelper {
     clanFactory: ClanFactory;
     credentials: MezonCredentials;
   }) {
-    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
+    const clanUrl = clanFactory.getClanUrl();
+    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials, clanUrl);
+    await AuthHelper.prepareBeforeTest(page, clanUrl, _credentials);
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await AllureReporter.addParameter('clanName', clanFactory.getClanName());
   }
@@ -58,8 +59,9 @@ export default class TestSuiteHelper {
   }) {
     const context = await browser.newContext();
     const page = await context.newPage();
-    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
-    await AuthHelper.prepareBeforeTest(page, clanFactory.getClanUrl(), _credentials);
+    const clanUrl = clanFactory.getClanUrl();
+    const _credentials = await AuthHelper.setupAuthWithEmailPassword(page, credentials, clanUrl);
+    await AuthHelper.prepareBeforeTest(page, clanUrl, _credentials);
     await clanFactory.cleanupClan(page);
     await AuthHelper.logout(page, false);
     await context.close();

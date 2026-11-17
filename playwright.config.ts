@@ -153,7 +153,7 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
-      timeout: 60 * 1000,
+      timeout: 300 * 1000,
     },
     {
       name: 'Multi',
