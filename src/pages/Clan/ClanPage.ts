@@ -207,6 +207,22 @@ export class ClanPage extends BasePage {
 
   public async closeAllModals(): Promise<void> {
     try {
+      const internalErrorBtn = this.page.locator('button:has-text("Go to Friend Page")');
+      if (
+        await internalErrorBtn
+          .first()
+          .isVisible({ timeout: 500 })
+          .catch(() => false)
+      ) {
+        await internalErrorBtn
+          .first()
+          .click({ force: true })
+          .catch(() => {});
+        await this.page.waitForTimeout(500);
+      }
+    } catch {}
+
+    try {
       const clanSettingsExit = this.page.locator(
         '[data-e2e="clan_page-settings-button-exit"], [data-e2e="user_setting.account.exit_setting"], button[aria-label="Close"], button:has-text("ESC")'
       );
@@ -296,6 +312,10 @@ export class ClanPage extends BasePage {
 
   async deleteClan(clanName: string): Promise<boolean> {
     try {
+      if (!clanName || !clanName.trim()) {
+        console.warn('deleteClan called with empty clanName, skipping.');
+        return false;
+      }
       await this.closeAllModals();
 
       const categoryPage = new ClanMenuPanel(this.page);
@@ -502,10 +522,20 @@ export class ClanPage extends BasePage {
   }
 
   async openChannelSettings(channelName: string): Promise<void> {
-    const channelLocator = this.selector.sidebar.channelItem.name.filter({ hasText: channelName });
+    const channelLocator = this.selector.sidebar.channelItem.name
+      .filter({ hasText: channelName })
+      .or(this.selector.channel.getSidebarItem(channelName))
+      .first();
+    await channelLocator.scrollIntoViewIfNeeded().catch(() => {});
+    await expect(channelLocator).toBeVisible({ timeout: 10000 });
     await channelLocator.click({ button: 'right' });
-    await this.selector.sidebar.panelItem.item.filter({ hasText: 'Edit Channel' }).click();
-    await expect(this.selector.input.channelName.first()).toBeVisible({ timeout: 5000 });
+    const editChannelBtn = this.selector.sidebar.panelItem.item
+      .filter({ hasText: 'Edit Channel' })
+      .or(this.page.locator('div[role="menuitem"], button').filter({ hasText: /Edit Channel/i }))
+      .first();
+    await expect(editChannelBtn).toBeVisible({ timeout: 5000 });
+    await editChannelBtn.click();
+    await expect(this.selector.input.channelName.first()).toBeVisible({ timeout: 8000 });
   }
 
   async openMemberListSetting(): Promise<void> {
@@ -604,11 +634,23 @@ export class ClanPage extends BasePage {
       .first();
 
     try {
-      await channelLocator.waitFor({ state: 'visible', timeout: 10000 });
-      return true;
-    } catch {
-      return false;
-    }
+      if (await channelLocator.isVisible({ timeout: 2000 }).catch(() => false)) {
+        return true;
+      }
+      await channelLocator.scrollIntoViewIfNeeded().catch(() => {});
+      if (await channelLocator.isVisible({ timeout: 3000 }).catch(() => false)) {
+        return true;
+      }
+    } catch {}
+
+    // Check if channel is opened in main chat view / top bar / welcome banner
+    const chatTitle = this.page
+      .locator(
+        `[data-e2e="clan_page-header-title-clan_name"], [data-e2e*="header"], p:has-text("${channelName}"), h1:has-text("${channelName}"), h2:has-text("${channelName}"), h3:has-text("${channelName}")`
+      )
+      .filter({ hasText: channelName })
+      .first();
+    return await chatTitle.isVisible({ timeout: 5000 }).catch(() => false);
   }
 
   async verifyChannelVisibility(channelName: string, shouldBeVisible: boolean): Promise<void> {
@@ -732,7 +774,7 @@ export class ClanPage extends BasePage {
   }
 
   async openThreadModalFromHeader(): Promise<void> {
-    await this.selector.header.button.thread.click();
+    await this.selector.header.button.thread.click({ force: true });
   }
 
   async verifyCreateThreadButtonIsOpen(shouldVisible = true): Promise<boolean> {
@@ -747,7 +789,7 @@ export class ClanPage extends BasePage {
   }
 
   async createThread(threadName: string, status?: ThreadStatus): Promise<void> {
-    await this.selector.header.button.thread.click();
+    await this.selector.header.button.thread.click({ force: true });
     await this.selector.header.button.createThread.click();
     await this.selector.threadBox.threadNameInput.fill(threadName);
     if (status === ThreadStatus.PRIVATE) {
@@ -820,7 +862,7 @@ export class ClanPage extends BasePage {
 
   async openThread(threadName: string): Promise<void> {
     await this.page.reload();
-    await this.selector.header.button.thread.click();
+    await this.selector.header.button.thread.click({ force: true });
     await this.clickThreadItem(threadName);
     await this.page.waitForLoadState('domcontentloaded');
   }

@@ -20,7 +20,7 @@ test.describe('Direct Messages - Invoice Status, Conversation Pins, and Group Ca
   const DIRECT_MESSAGE_TAG = 'direct-message';
   const VERIFY_PINNED_CONVERSATION_STEP = 'Verify pinned conversation is visible on pin list';
   const clanFactory = new ClanFactory();
-  const credentials: MezonCredentials = AccountCredentials.account2;
+  const credentials: MezonCredentials = AccountCredentials.account3;
   const [userNameA] = getUsernamesFromEmails([credentials.email]);
 
   test.beforeAll(async ({ browser }) => {
