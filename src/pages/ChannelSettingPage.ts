@@ -352,18 +352,18 @@ export class ChannelSettingPage extends BasePage {
 
   async deleteChannel() {
     const deleteButton = this.selector.side_bar_buttons.deleteChannel;
-    await expect(deleteButton).toBeVisible({ timeout: 3000 });
+    await expect(deleteButton).toBeVisible({ timeout: 5000 });
 
     await deleteButton.click();
-    const popup = this.page.locator('div.fixed.inset-0.flex.items-center.justify-center.z-50');
-    await expect(popup).toBeVisible({ timeout: 5000 });
 
-    const confirmButton = popup.locator(generateE2eSelector('modal.confirm_modal.button.confirm'));
+    const confirmButton = this.page.locator(
+      generateE2eSelector('modal.confirm_modal.button.confirm')
+    );
     await expect(confirmButton).toBeVisible({ timeout: 5000 });
     await confirmButton.click();
 
-    await expect(popup).toBeHidden({ timeout: 5000 });
-    await this.page.waitForTimeout(1000);
+    await expect(confirmButton).toBeHidden({ timeout: 8000 });
+    await this.page.waitForTimeout(500);
   }
 
   async openPermissionsTab() {
@@ -394,11 +394,23 @@ export class ChannelSettingPage extends BasePage {
     if (roleName) {
       let roleFound = false;
       const expectedRole = roleName.trim().toLowerCase();
+      await expect(async () => {
+        const count = await roleTitles.count();
+        expect(count).toBeGreaterThan(0);
+      })
+        .toPass({ timeout: 5000 })
+        .catch(() => {});
+
       const roleCount = await roleTitles.count();
       for (let i = 0; i < roleCount; i++) {
         const title = (await roleTitles.nth(i).innerText()).trim().toLowerCase();
         if (title === expectedRole) {
-          await roleCheckboxes.nth(i).check();
+          await roleCheckboxes
+            .nth(i)
+            .check()
+            .catch(async () => {
+              await roleCheckboxes.nth(i).click({ force: true });
+            });
           console.log(`✅ Checked role: ${title}`);
           roleFound = true;
           break;

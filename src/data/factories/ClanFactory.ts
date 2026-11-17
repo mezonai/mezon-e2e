@@ -2,7 +2,7 @@ import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ClanSetupConfig } from '@/utils/clanSetupHelper';
 import generateRandomString from '@/utils/randomString';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 import ClanSelector from '../selectors/ClanSelector';
 
 export class ClanFactory {
@@ -18,6 +18,10 @@ export class ClanFactory {
 
   getClanUrl() {
     return this.clanUrl;
+  }
+
+  isClanReused(): boolean {
+    return this.isReused;
   }
 
   getClanExcludeDomain() {
@@ -40,18 +44,30 @@ export class ClanFactory {
     const { clanNamePrefix = 'TestClan' } = config;
 
     const shouldReuse = process.env.REUSE_EXISTING_CLAN !== 'false';
+    const envWorkerIndex =
+      process.env.TEST_PARALLEL_INDEX !== undefined
+        ? process.env.TEST_PARALLEL_INDEX
+        : process.env.TEST_WORKER_INDEX;
+    let workerIndex = envWorkerIndex !== undefined ? parseInt(envWorkerIndex, 10) : 0;
+    if (isNaN(workerIndex)) {
+      try {
+        workerIndex = test.info().parallelIndex;
+      } catch {
+        workerIndex = 0;
+      }
+    }
+
     if (shouldReuse) {
       const clanWithPrefix = page.locator(
         `[data-e2e="clan_page-side_bar-clan_item"][title*="${clanNamePrefix}"]`
       );
       const prefixCount = await clanWithPrefix.count().catch(() => 0);
-      const allClans = page.locator('[data-e2e="clan_page-side_bar-clan_item"]');
-      const totalCount = await allClans.count().catch(() => 0);
 
-      if (prefixCount > 0 || totalCount > 0) {
-        const targetClan = prefixCount > 0 ? clanWithPrefix.first() : allClans.first();
+      // Only reuse if there is a dedicated clan available for this worker index
+      if (prefixCount > workerIndex) {
+        const targetClan = clanWithPrefix.nth(workerIndex);
         const title = (await targetClan.getAttribute('title').catch(() => '')) || 'ReusedClan';
-        await targetClan.click().catch(() => {});
+        await targetClan.click({ force: true }).catch(() => {});
         await page.waitForTimeout(1500);
 
         // Click a text channel in the clan to ensure we land on a chat view
@@ -69,7 +85,9 @@ export class ClanFactory {
         this.clanName = title;
         this.clanUrl = page.url();
         this.isReused = true;
-        console.log(`[ClanFactory] Reusing existing clan: "${this.clanName}" (${this.clanUrl})`);
+        console.log(
+          `[ClanFactory] Reusing existing clan for worker ${workerIndex}: "${this.clanName}" (${this.clanUrl})`
+        );
         return;
       }
     }
@@ -77,7 +95,7 @@ export class ClanFactory {
     const now = new Date();
     now.setMinutes(now.getMinutes() + 30);
     const timestamp = now.getTime();
-    const clanName = `${clanNamePrefix}_${generateRandomString(10)}_${timestamp}`;
+    const clanName = `${clanNamePrefix}_w${workerIndex}_${generateRandomString(6)}_${timestamp}`;
 
     const clanPage = new ClanPage(page);
     const createClanClicked = await clanPage.clickCreateClanButton();
@@ -99,7 +117,7 @@ export class ClanFactory {
 
     this.clanUrl = page.url();
     this.clanName = clanName;
-    this.isReused = false;
+    this.isReused = shouldReuse;
   }
 
   async cleanupClan(page: Page) {
