@@ -284,13 +284,41 @@ export class FileSizeTestHelpers {
   }
 
   private async setFileOnBestInput(filePath: string): Promise<void> {
-    const composerInput = this.page.locator('#preview_img');
-    if (await this.visible(composerInput)) {
-      await composerInput.setInputFiles(filePath);
-      return;
+    // Wait for any Loading spinner/overlay to detach
+    await this.page
+      .locator('text="Loading ...", text="Loading...", .animate-spin')
+      .first()
+      .waitFor({ state: 'detached', timeout: 10000 })
+      .catch(() => {});
+
+    // Ensure composer is ready and focused
+    const composer = this.page
+      .locator(
+        '[data-e2e="channel-message-input"], div[contenteditable="true"], [role="textbox"], textarea'
+      )
+      .first();
+    if (await composer.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await composer.click().catch(() => {});
+    }
+
+    // Wait for file input to be attached in the DOM
+    const fileInputLocator = this.page.locator('#preview_img, input[type="file"]').first();
+    await fileInputLocator.waitFor({ state: 'attached', timeout: 8000 }).catch(() => {});
+
+    const composerInput = this.page
+      .locator('#preview_img, input#preview_img, input[type="file"]#preview_img')
+      .first();
+    if ((await composerInput.count().catch(() => 0)) > 0) {
+      try {
+        await composerInput.setInputFiles(filePath);
+        return;
+      } catch (e) {
+        console.error(`Failed to set file on composer input: ${(e as Error).message}`);
+      }
     }
 
     const knownSelectors = [
+      '#preview_img',
       'input#upload_logo',
       'input#upload_banner_background',
       `${generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')} input[type="file"]`,

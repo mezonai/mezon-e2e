@@ -26,6 +26,15 @@ test.describe('Clan Management - Clan Events Lifecycle, RSVP, Share & Validation
     await expect(firstClan).toBeVisible({ timeout: 10000 });
     await firstClan.click();
     await page.waitForLoadState('domcontentloaded');
+
+    const channelItem = page
+      .locator(
+        'button:has-text("general"), [data-e2e*="channel_list"]:has-text("general"), a[href*="/channels/"]'
+      )
+      .first();
+    if (await channelItem.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await channelItem.click().catch(() => {});
+    }
   });
 
   test.afterEach(async ({ page }) => {
@@ -182,7 +191,9 @@ test.describe('Clan Management - Clan Events Lifecycle, RSVP, Share & Validation
 
     if (count > 0) {
       await clanPage.openLastEventDetailModal();
-      const detailModal = page.locator('div[role="dialog"], [data-e2e*="event_detail"]').first();
+      const detailModal = clanPage.selector.eventDetailModal.modal
+        .or(page.locator('[data-e2e*="modal_detail_item"]'))
+        .first();
       await expect(detailModal).toBeVisible({ timeout: 5000 });
       await page.keyboard.press('Escape');
     }
@@ -213,7 +224,6 @@ test.describe('Clan Management - Clan Events Lifecycle, RSVP, Share & Validation
       expect(updatedCount).toBeGreaterThanOrEqual(initialCount);
 
       await clanPage.markUninterestedInEventDetail();
-      await page.keyboard.press('Escape');
     }
     await clanPage.closeEventManagementModal();
   });
@@ -237,6 +247,10 @@ test.describe('Clan Management - Clan Events Lifecycle, RSVP, Share & Validation
 
     if (count > 0) {
       await clanPage.openEditLastEventForm();
+      const nextBtn = page.locator('button:has-text("Next"), [data-e2e*="next"]').first();
+      if (await nextBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await nextBtn.click();
+      }
       const updatedData = await clanPage.updateDataOnEventInfoTab();
       await clanPage.clickUpdateEventButton();
       expect(updatedData.eventTopic).toBeDefined();
