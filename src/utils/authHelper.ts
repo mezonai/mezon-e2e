@@ -137,7 +137,9 @@ export class AuthHelper {
     const pools: Record<string, MezonCredentials[]> = {
       [AccountCredentials.account1.email.toLowerCase()]: [
         AccountCredentials.account1,
-        AccountCredentials.account1,
+        AccountCredentials.account8,
+        AccountCredentials.account4,
+        AccountCredentials.account6,
       ],
       [AccountCredentials.account2.email.toLowerCase()]: [
         AccountCredentials.account2,
