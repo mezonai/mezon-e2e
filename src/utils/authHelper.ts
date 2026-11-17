@@ -1,9 +1,11 @@
-import { persistentAuthConfigs, WEBSITE_CONFIGS } from '@/config/environment';
+import { AccountCredentials, persistentAuthConfigs, WEBSITE_CONFIGS } from '@/config/environment';
 import { LoginPage } from '@/pages/LoginPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { MezonCredentials } from '@/types';
 import { Page } from '@playwright/test';
 import ClanSelector from '@/data/selectors/ClanSelector';
+import fs from 'fs';
+import path from 'path';
 
 export type AccountKey = keyof typeof persistentAuthConfigs;
 type LocalStorageCredentials = Record<string, string> | null;
@@ -91,19 +93,93 @@ export class AuthHelper {
     });
   }
 
-  static async setupAuthWithEmailPassword(page: Page, credentials: MezonCredentials) {
+  static getStoragePathForCredentials(credentials: MezonCredentials): string | null {
+    if (!credentials?.email) return null;
+    const authDir = path.resolve('playwright/.auth');
+    for (const [key, creds] of Object.entries(AccountCredentials)) {
+      if (creds.email.toLowerCase() === credentials.email.toLowerCase()) {
+        return path.join(authDir, `${key}.json`);
+      }
+    }
+    const safeKey = credentials.email.replace(/[^a-zA-Z0-9]/g, '_');
+    return path.join(authDir, `${safeKey}.json`);
+  }
+
+  static async injectStorageState(page: Page, authFilePath: string): Promise<boolean> {
+    try {
+      if (!fs.existsSync(authFilePath)) return false;
+      const authData = JSON.parse(fs.readFileSync(authFilePath, 'utf-8'));
+      if (authData.cookies && Array.isArray(authData.cookies)) {
+        await page.context().addCookies(authData.cookies);
+      }
+      if (authData.origins && authData.origins.length > 0) {
+        const originData = authData.origins[0];
+        if (originData.localStorage && Array.isArray(originData.localStorage)) {
+          await page.addInitScript(storageItems => {
+            for (const item of storageItems) {
+              try {
+                window.localStorage.setItem(item.name, item.value);
+              } catch {}
+            }
+          }, originData.localStorage);
+
+          if (page.url() !== 'about:blank' && page.url().includes('mezon')) {
+            await page
+              .evaluate(storageItems => {
+                for (const item of storageItems) {
+                  try {
+                    window.localStorage.setItem(item.name, item.value);
+                  } catch {}
+                }
+              }, originData.localStorage)
+              .catch(() => {});
+          }
+        }
+      }
+      return true;
+    } catch (err) {
+      console.warn(`Failed to inject storage state from ${authFilePath}:`, err);
+      return false;
+    }
+  }
+
+  static async setupAuthWithEmailPassword(
+    page: Page,
+    credentials: MezonCredentials,
+    targetUrl?: string
+  ) {
+    const authFilePath = this.getStoragePathForCredentials(credentials);
+    const useFastAuth = process.env.FAST_AUTH !== 'false';
+
+    if (useFastAuth && authFilePath && fs.existsSync(authFilePath)) {
+      const injected = await this.injectStorageState(page, authFilePath);
+      if (injected) {
+        const destination = targetUrl || `${WEBSITE_CONFIGS.MEZON.baseURL}/chat/friends`;
+        if (page.url() === 'about:blank') {
+          await page.goto(destination, { waitUntil: 'domcontentloaded' });
+          await new LoginPage(page).waitForAuthenticatedAppReady();
+        }
+        return {};
+      }
+    }
+
     const loginPage = new LoginPage(page);
     await loginPage.loginWithPassword(credentials.email, credentials.password);
 
-    // Dev continues with the authenticated session on the same origin. Local
-    // environments still need this data copied from dev before continuing.
+    if (authFilePath) {
+      try {
+        const dir = path.dirname(authFilePath);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        await page.context().storageState({ path: authFilePath });
+      } catch (e) {
+        console.warn('Failed to save storageState:', e);
+      }
+    }
+
     if (isDevEnvironment()) {
       return {};
     }
 
-    // The authenticated shell can render just before redux-persist finishes
-    // writing the session. Wait for the transferable session itself rather than
-    // racing the first localStorage snapshot.
     await page.waitForFunction(() => {
       try {
         const persistedAuth = localStorage.getItem('persist:auth');
@@ -118,7 +194,6 @@ export class AuthHelper {
     });
 
     return await page.evaluate(() => {
-      // Get all localStorage data
       const allLocalStorageData: Record<string, string> = {};
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -146,7 +221,9 @@ export class AuthHelper {
     credentials: LocalStorageCredentials
   ) {
     await AuthHelper.setAuthForSuite(page, credentials);
-    await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+    if (page.url() !== clanUrl && !page.url().includes(clanUrl)) {
+      await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+    }
     await new LoginPage(page).waitForAuthenticatedAppReady();
 
     const clanSelector = new ClanSelector(page);
@@ -160,20 +237,19 @@ export class AuthHelper {
     }
   }
 
-  static async logout(page: Page, waitBeforeNextTest: boolean = true) {
-    const profilePage = new ProfilePage(page);
-    const logoutSuccess = await profilePage.clickLogout();
+  static async logout(page: Page, waitBeforeNextTest: boolean = false) {
+    const skipUiLogout = process.env.SKIP_UI_LOGOUT !== 'false';
+    if (!skipUiLogout) {
+      const profilePage = new ProfilePage(page);
+      const logoutSuccess = await profilePage.clickLogout();
 
-    if (!logoutSuccess) {
-      console.warn('Logout encountered issues - ensuring session cleanup');
+      if (!logoutSuccess) {
+        console.warn('Logout encountered issues - ensuring session cleanup');
+      }
     }
 
-    // Every test should finish with a clean browser session, even when the UI
-    // logout succeeded. This prevents a partially completed redirect from
-    // leaving OAuth cookies or storage behind in reused pages/contexts.
     try {
       await page.context().clearCookies();
-      await page.waitForLoadState('domcontentloaded').catch(() => {});
       await page
         .evaluate(() => {
           try {
@@ -183,11 +259,11 @@ export class AuthHelper {
         })
         .catch(() => {});
     } catch (error) {
-      console.error('Failed to clear browser authentication state:', error);
+      // Ignored if page/context is already closed
     }
 
-    if (waitBeforeNextTest) {
-      const testGapMs = Number.parseInt(process.env.TEST_GAP_MS || '40000', 10);
+    if (waitBeforeNextTest && !skipUiLogout) {
+      const testGapMs = Number.parseInt(process.env.TEST_GAP_MS || '0', 10);
       if (Number.isFinite(testGapMs) && testGapMs > 0) {
         console.log(`Waiting ${testGapMs}ms before the next test...`);
         await new Promise(resolve => setTimeout(resolve, testGapMs));
