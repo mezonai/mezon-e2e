@@ -161,7 +161,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
-        headless: false,
+        headless: process.env.HEADLESS !== undefined ? process.env.HEADLESS === 'true' : false,
         launchOptions: {
           args: [
             '--disable-popup-blocking',
