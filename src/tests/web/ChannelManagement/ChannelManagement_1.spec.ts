@@ -95,6 +95,12 @@ test.describe('Channel Management - Create and Rename Channels', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Private Text Channel Created - ${channelName}`);
+
+    await AllureReporter.step('Clean up channel', async () => {
+      await clanPage.openChannelSettings(channelName);
+      const channelSettingPage = new ChannelSettingPage(page);
+      await channelSettingPage.deleteChannel();
+    });
   });
 
   test('Verify that I can create a new public text channel', async ({ page }) => {
@@ -141,6 +147,12 @@ test.describe('Channel Management - Create and Rename Channels', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Public Text Channel Created - ${channelName}`);
+
+    await AllureReporter.step('Clean up channel', async () => {
+      await clanPage.openChannelSettings(channelName);
+      const channelSettingPage = new ChannelSettingPage(page);
+      await channelSettingPage.deleteChannel();
+    });
   });
 
   test('Verify that a channel can be muted from the channel header', async ({ page }) => {
@@ -192,6 +204,11 @@ test.describe('Channel Management - Create and Rename Channels', () => {
     await AllureReporter.step('Unmute the channel and verify the Mute Channel button', async () => {
       await channelSettingPage.unmuteChannel();
     });
+
+    await AllureReporter.step('Clean up channel', async () => {
+      await clanPage.openChannelSettings(channelName);
+      await channelSettingPage.deleteChannel();
+    });
   });
 
   test('Verify that I can create a new voice channel', async ({ page }) => {
@@ -237,6 +254,12 @@ test.describe('Channel Management - Create and Rename Channels', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Voice Channel Created - ${channelName}`);
+
+    await AllureReporter.step('Clean up channel', async () => {
+      await clanPage.openChannelSettings(channelName);
+      const channelSettingPage = new ChannelSettingPage(page);
+      await channelSettingPage.deleteChannel();
+    });
   });
 
   test('Verify that I can create a new stream channel', async ({ page }) => {
@@ -282,5 +305,11 @@ test.describe('Channel Management - Create and Rename Channels', () => {
     });
 
     await AllureReporter.attachScreenshot(page, `Stream Channel Created - ${channelName}`);
+
+    await AllureReporter.step('Clean up channel', async () => {
+      await clanPage.openChannelSettings(channelName);
+      const channelSettingPage = new ChannelSettingPage(page);
+      await channelSettingPage.deleteChannel();
+    });
   });
 });

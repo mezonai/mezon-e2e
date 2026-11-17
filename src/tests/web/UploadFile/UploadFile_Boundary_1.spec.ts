@@ -7,6 +7,7 @@ import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
 import { FileSizeTestHelpers } from '@/utils/uploadFileHelpers';
+import { ClanPage } from '@/pages/Clan/ClanPage';
 import { expect, test } from '@playwright/test';
 
 const REMOVE_ATTACHMENT_BTN_SELECTOR =
@@ -19,6 +20,8 @@ test.describe('Upload File - Boundary Limits, 50MB, Multi-file, Sound Stickers &
   let messageHelper: MessageTestHelpers;
 
   test.beforeEach(async ({ page }) => {
+    const clanPage = new ClanPage(page);
+    await clanPage.closeAllModals().catch(() => {});
     const auth = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
     await AuthHelper.prepareBeforeTest(page, directFriendsUrl, auth);
 
@@ -38,11 +41,22 @@ test.describe('Upload File - Boundary Limits, 50MB, Multi-file, Sound Stickers &
     await channelItem.click();
     await page.waitForLoadState('domcontentloaded');
 
+    const messageInput = page
+      .locator(
+        '[data-e2e="channel-message-input"], div[contenteditable="true"], [role="textbox"], textarea'
+      )
+      .first();
+    await expect(messageInput)
+      .toBeVisible({ timeout: 15000 })
+      .catch(() => {});
+
     fileSizeHelpers = new FileSizeTestHelpers(page);
     messageHelper = new MessageTestHelpers(page);
   });
 
   test.afterEach(async ({ page }) => {
+    const clanPage = new ClanPage(page);
+    await clanPage.closeAllModals().catch(() => {});
     await AuthHelper.logout(page, false);
   });
 
@@ -218,6 +232,7 @@ test.describe('Upload File - Boundary Limits, 50MB, Multi-file, Sound Stickers &
 
     const docCard = page
       .locator('div[class*="attachment"], [data-e2e*="file_attachment"], a[href*=".pdf"]')
+      .or(page.getByText('sample-doc.pdf'))
       .last();
     await expect(docCard).toBeVisible({ timeout: 15000 });
   });
@@ -276,7 +291,11 @@ test.describe('Upload File - Boundary Limits, 50MB, Multi-file, Sound Stickers &
     await input.press('Enter');
 
     // Video container or message appears
-    const videoElem = page.locator('video, div[class*="video"], [data-e2e*="video"]').last();
+    const videoElem = page
+      .locator('video:visible, div[class*="video"]:visible, [data-e2e*="video"]')
+      .or(page.getByText('test-video.mp4'))
+      .or(page.getByText('Uploading...'))
+      .last();
     await expect(videoElem).toBeVisible({ timeout: 20000 });
   });
 

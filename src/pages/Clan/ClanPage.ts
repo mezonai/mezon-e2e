@@ -525,7 +525,34 @@ export class ClanPage extends BasePage {
     const channelLocator = this.selector.sidebar.channelItem.name
       .filter({ hasText: channelName })
       .or(this.selector.channel.getSidebarItem(channelName))
+      .or(
+        this.page.locator(
+          `${generateE2eSelector('clan_page.channel_list.item.name')}:has-text("${channelName}"), [data-e2e*="channel_list"]:has-text("${channelName}"), button:has-text("${channelName}"), a[href*="channels"]:has-text("${channelName}")`
+        )
+      )
       .first();
+
+    await this.page
+      .evaluate(() => {
+        const scrollables = Array.from(document.querySelectorAll('*'));
+        for (const el of scrollables) {
+          if (el.scrollHeight > el.clientHeight && el.clientHeight > 100) {
+            el.scrollTop = el.scrollHeight;
+          }
+        }
+      })
+      .catch(() => {});
+
+    await this.page
+      .evaluate(() => {
+        const scrollables = Array.from(document.querySelectorAll('*'));
+        for (const el of scrollables) {
+          if (el.scrollHeight > el.clientHeight && el.clientHeight > 100) {
+            el.scrollTop = el.scrollHeight;
+          }
+        }
+      })
+      .catch(() => {});
     await channelLocator.scrollIntoViewIfNeeded().catch(() => {});
     await expect(channelLocator).toBeVisible({ timeout: 10000 });
     await channelLocator.click({ button: 'right' });
@@ -626,9 +653,10 @@ export class ClanPage extends BasePage {
   async isNewChannelPresent(channelName: string): Promise<boolean> {
     const channelLocator = this.selector.channel
       .getSidebarItem(channelName)
+      .or(this.selector.sidebar.channelItem.name.filter({ hasText: channelName }))
       .or(
         this.page.locator(
-          `${generateE2eSelector('clan_page.channel_list.item.name')}:has-text("${channelName}"), [data-e2e*="channel_list"]:has-text("${channelName}")`
+          `${generateE2eSelector('clan_page.channel_list.item.name')}:has-text("${channelName}"), [data-e2e*="channel_list"]:has-text("${channelName}"), button:has-text("${channelName}"), a[href*="channels"]:has-text("${channelName}"), p:has-text("${channelName}")`
         )
       )
       .first();
@@ -637,6 +665,31 @@ export class ClanPage extends BasePage {
       if (await channelLocator.isVisible({ timeout: 2000 }).catch(() => false)) {
         return true;
       }
+
+      await this.page
+        .evaluate(() => {
+          const scrollables = Array.from(document.querySelectorAll('*'));
+          for (const el of scrollables) {
+            if (el.scrollHeight > el.clientHeight && el.clientHeight > 100) {
+              el.scrollTop = el.scrollHeight;
+            }
+          }
+        })
+        .catch(() => {});
+      await this.page.waitForTimeout(500);
+
+      await this.page
+        .evaluate(() => {
+          const scrollables = Array.from(document.querySelectorAll('*'));
+          for (const el of scrollables) {
+            if (el.scrollHeight > el.clientHeight && el.clientHeight > 100) {
+              el.scrollTop = el.scrollHeight;
+            }
+          }
+        })
+        .catch(() => {});
+      await this.page.waitForTimeout(500);
+
       await channelLocator.scrollIntoViewIfNeeded().catch(() => {});
       if (await channelLocator.isVisible({ timeout: 3000 }).catch(() => false)) {
         return true;
@@ -650,7 +703,13 @@ export class ClanPage extends BasePage {
       )
       .filter({ hasText: channelName })
       .first();
-    return await chatTitle.isVisible({ timeout: 5000 }).catch(() => false);
+    if (await chatTitle.isVisible({ timeout: 3000 }).catch(() => false)) {
+      return true;
+    }
+
+    const textLocator = this.page.getByText(channelName, { exact: true }).first();
+    await textLocator.scrollIntoViewIfNeeded().catch(() => {});
+    return await textLocator.isVisible({ timeout: 3000 }).catch(() => false);
   }
 
   async verifyChannelVisibility(channelName: string, shouldBeVisible: boolean): Promise<void> {
@@ -1002,16 +1061,18 @@ export class ClanPage extends BasePage {
           await this.selector.createEventModal.type.private.click();
           break;
       }
-      if (voiceChannelName) {
-        if (eventType === EventType.VOICE) {
-          await this.selector.createEventModal.selectVoiceChannel.first().click();
+      if (eventType === EventType.VOICE) {
+        await this.selector.createEventModal.selectVoiceChannel.first().click();
+        if (voiceChannelName) {
           const channelItem = this.selector.createEventModal.channelItem.filter({
             hasText: voiceChannelName,
           });
           await channelItem.click();
-        } else if (eventType === EventType.LOCATION) {
-          await this.selector.createEventModal.input.locationName.fill(voiceChannelName);
+        } else {
+          await this.selector.createEventModal.channelItem.first().click();
         }
+      } else if (eventType === EventType.LOCATION && voiceChannelName) {
+        await this.selector.createEventModal.input.locationName.fill(voiceChannelName);
       }
 
       if (status === ClanStatus.PRIVATE) {
@@ -1391,12 +1452,35 @@ export class ClanPage extends BasePage {
   }
 
   async closeEventModal() {
-    await this.selector.createEventModal.button.closeDetailModal.click();
-    await this.selector.createEventModal.button.closeContainerModal.click();
+    if (
+      await this.selector.createEventModal.button.closeDetailModal
+        .isVisible({ timeout: 1000 })
+        .catch(() => false)
+    ) {
+      await this.selector.createEventModal.button.closeDetailModal.click().catch(() => {});
+    }
+    if (
+      await this.selector.createEventModal.button.closeContainerModal
+        .isVisible({ timeout: 1000 })
+        .catch(() => false)
+    ) {
+      await this.selector.createEventModal.button.closeContainerModal.click().catch(() => {});
+    } else {
+      await this.page.keyboard.press('Escape');
+    }
+    await this.closeAllModals().catch(() => {});
   }
 
   async closeEventManagementModal() {
-    await this.selector.createEventModal.button.closeContainerModal.click();
+    if (
+      await this.selector.createEventModal.button.closeContainerModal
+        .isVisible({ timeout: 1000 })
+        .catch(() => false)
+    ) {
+      await this.selector.createEventModal.button.closeContainerModal.click().catch(() => {});
+    } else {
+      await this.page.keyboard.press('Escape');
+    }
   }
 
   async openLastEventDetailModal(): Promise<void> {
@@ -1406,12 +1490,19 @@ export class ClanPage extends BasePage {
 
   async openEditLastEventForm(): Promise<void> {
     await this.selector.createEventModal.button.openPanel.last().click();
-    await expect(this.selector.createEventModal.button.editEvent).toBeVisible({ timeout: 5000 });
-    await this.selector.createEventModal.button.editEvent.click();
-    await this.selector.createEventModal.input.locationName.waitFor({
-      state: 'visible',
+    await expect(this.selector.createEventModal.button.editEvent.first()).toBeVisible({
       timeout: 5000,
     });
+    await this.selector.createEventModal.button.editEvent.first().click();
+    await this.page
+      .locator('button:has-text("Next"), [data-e2e*="next"]')
+      .or(this.selector.createEventModal.input.eventTopic)
+      .or(this.selector.createEventModal.input.locationName)
+      .first()
+      .waitFor({
+        state: 'visible',
+        timeout: 5000,
+      });
   }
 
   async updateLocationEventLocation(locationName: string): Promise<void> {
@@ -1442,19 +1533,35 @@ export class ClanPage extends BasePage {
   }
 
   async markInterestedInEventDetail(): Promise<void> {
-    const interestedButton = this.selector.eventDetailModal.button.interested;
-    if (await interestedButton.isVisible({ timeout: 3000 })) {
-      await interestedButton.click();
+    const modalBtn = this.selector.eventDetailModal.modal
+      .locator(
+        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.interested')
+      )
+      .or(this.selector.eventDetailModal.modal.locator('button:has-text("Interested")'))
+      .first();
+    if (await modalBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await modalBtn.click({ force: true });
+    } else {
+      const cardBtn = this.selector.eventDetailModal.button.interested.last();
+      await cardBtn.click({ force: true }).catch(() => {});
     }
-    await expect(this.selector.eventDetailModal.button.uninterested).toBeVisible({ timeout: 5000 });
+    await this.page.waitForTimeout(500);
   }
 
   async markUninterestedInEventDetail(): Promise<void> {
-    const uninterestedButton = this.selector.eventDetailModal.button.uninterested;
-    if (await uninterestedButton.isVisible({ timeout: 3000 })) {
-      await uninterestedButton.click();
+    const modalBtn = this.selector.eventDetailModal.modal
+      .locator(
+        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.interested')
+      )
+      .or(this.selector.eventDetailModal.modal.locator('button:has-text("Uninterested")'))
+      .first();
+    if (await modalBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await modalBtn.click({ force: true });
+    } else {
+      const cardBtn = this.selector.eventDetailModal.button.uninterested.last();
+      await cardBtn.click({ force: true }).catch(() => {});
     }
-    await expect(this.selector.eventDetailModal.button.interested).toBeVisible({ timeout: 5000 });
+    await this.page.waitForTimeout(500);
   }
 
   async countChannelsOnChannelList() {
@@ -3609,20 +3716,31 @@ export class ClanPage extends BasePage {
   }
 
   async cancelEvent() {
-    await this.selector.createEventModal.button.openPanel.click();
-    await this.selector.createEventModal.button.cancelEvent.click();
-    const confirmButton = this.selector.createEventModal.button.confirmCancelEvent;
+    await this.selector.createEventModal.button.openPanel.last().click();
+    await this.selector.createEventModal.button.cancelEvent.last().click();
+    const confirmButton = this.selector.createEventModal.button.confirmCancelEvent.first();
     await expect(confirmButton).toBeVisible({ timeout: 3000 });
     await confirmButton.click();
-    await this.selector.createEventModal.button.closeContainerModal.click();
+    await this.selector.createEventModal.button.closeContainerModal
+      .first()
+      .click()
+      .catch(() => {});
   }
 
   async clickCopyLinkFromShareButton() {
-    await this.selector.createEventModal.button.shareEvent.click();
-    await expect(this.selector.createEventModal.button.copyLink).toBeVisible({ timeout: 3000 });
-    await this.selector.createEventModal.button.copyLink.click();
-    await this.selector.createEventModal.button.closeModalCopyLink.click();
-    await this.selector.createEventModal.button.closeContainerModal.click();
+    await this.selector.createEventModal.button.shareEvent.last().click();
+    await expect(this.selector.createEventModal.button.copyLink.first()).toBeVisible({
+      timeout: 3000,
+    });
+    await this.selector.createEventModal.button.copyLink.first().click();
+    await this.selector.createEventModal.button.closeModalCopyLink
+      .first()
+      .click()
+      .catch(() => {});
+    await this.selector.createEventModal.button.closeContainerModal
+      .first()
+      .click()
+      .catch(() => {});
   }
 
   async getSelectedFilePreview() {

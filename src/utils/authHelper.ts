@@ -126,10 +126,7 @@ export class AuthHelper {
       return credentials;
     }
 
-    const workerIndex = this.getWorkerIndex();
-    if (workerIndex <= 0) {
-      return credentials;
-    }
+    const workerIndex = Math.max(0, this.getWorkerIndex());
 
     const email = credentials.email.toLowerCase();
 
@@ -137,15 +134,15 @@ export class AuthHelper {
     const pools: Record<string, MezonCredentials[]> = {
       [AccountCredentials.account1.email.toLowerCase()]: [
         AccountCredentials.account1,
-        AccountCredentials.account1,
+        AccountCredentials.account8,
+        AccountCredentials.account4,
+        AccountCredentials.account6,
       ],
       [AccountCredentials.account2.email.toLowerCase()]: [
-        AccountCredentials.account2,
-        AccountCredentials['account2-1'],
-        AccountCredentials['account2-2'],
-        AccountCredentials['account2-3'],
-        AccountCredentials['account2-4'],
-        AccountCredentials['account2-5'],
+        AccountCredentials.account4,
+        AccountCredentials.account6,
+        AccountCredentials.account8,
+        AccountCredentials.account5,
       ],
       [AccountCredentials.account3.email.toLowerCase()]: [
         AccountCredentials.account3,
@@ -176,11 +173,11 @@ export class AuthHelper {
         AccountCredentials.account9,
       ],
       [AccountCredentials.account7.email.toLowerCase()]: [
-        AccountCredentials.account7,
-        AccountCredentials.account9,
         AccountCredentials.account5,
-        AccountCredentials.account6,
+        AccountCredentials.account9,
         AccountCredentials.account3,
+        AccountCredentials.account6,
+        AccountCredentials.account4,
       ],
       [AccountCredentials.account8.email.toLowerCase()]: [
         AccountCredentials.account8,
