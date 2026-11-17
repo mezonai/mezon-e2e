@@ -616,7 +616,7 @@ jobs:
 
           if [ "${#MULTI_TARGETS[@]}" -gt 0 ]; then
             printf 'Selected multi-chat target: %s\n' "${MULTI_TARGETS[@]}"
-            xvfb-run npx playwright test "${MULTI_TARGETS[@]}" --project Multi
+            xvfb-run npx playwright test "${MULTI_TARGETS[@]}" --project Multi --workers=1
             [ "$?" -ne 0 ] && TEST_EXIT_CODE=1
           fi
 
