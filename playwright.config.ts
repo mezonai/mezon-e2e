@@ -158,6 +158,7 @@ export default defineConfig({
     {
       name: 'Multi',
       testDir: './src/tests/multi-chat',
+      workers: 1,
       use: {
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
