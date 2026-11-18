@@ -207,6 +207,35 @@ export class ClanPage extends BasePage {
 
   public async closeAllModals(): Promise<void> {
     try {
+      const cancelDeleteClanBtn = this.page
+        .locator(generateE2eSelector('clan_page.settings.modal.delete_clan.cancel'))
+        .or(this.page.locator('button').filter({ hasText: /^Cancel$/i }));
+      if (
+        await cancelDeleteClanBtn
+          .first()
+          .isVisible({ timeout: 500 })
+          .catch(() => false)
+      ) {
+        await cancelDeleteClanBtn
+          .first()
+          .click({ force: true })
+          .catch(() => {});
+        await this.page.waitForTimeout(300);
+      }
+    } catch {}
+
+    try {
+      const desktopCloseBtn = this.page
+        .locator('div, section')
+        .filter({ hasText: /Open this link in the Mezon desktop app/i })
+        .locator('button')
+        .first();
+      if (await desktopCloseBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+        await desktopCloseBtn.click({ force: true }).catch(() => {});
+      }
+    } catch {}
+
+    try {
       const internalErrorBtn = this.page.locator('button:has-text("Go to Friend Page")');
       if (
         await internalErrorBtn
@@ -287,7 +316,7 @@ export class ClanPage extends BasePage {
       ) {
         await this.page.keyboard.press('Escape');
         const closeButtons = modal.locator(
-          'button[aria-label="Close"], button:has-text("Close"), button:has-text("Cancel"), button:has-text("Okay"), button:has-text("OK"), button:has-text("Back"), button:last-child'
+          'button[aria-label="Close"], button:has-text("Close"), button:has-text("Cancel"), button:has-text("Okay"), button:has-text("OK"), button:has-text("Back")'
         );
         const count = await closeButtons.count();
         for (let i = 0; i < count; i++) {
@@ -1654,9 +1683,40 @@ export class ClanPage extends BasePage {
 
   async openRoleSettingsPage(): Promise<boolean> {
     try {
+      const backBtn = this.page
+        .getByText('BACK', { exact: true })
+        .or(this.page.locator('button').filter({ hasText: /back/i }))
+        .first();
+
+      // If already on role settings page and createRole is visible, return true
+      if (
+        await this.selector.clanSettings.buttons.createRole
+          .isVisible({ timeout: 1000 })
+          .catch(() => false)
+      ) {
+        return true;
+      }
+
+      // If on sub-role edit view, click BACK to return to role list
+      if (await backBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await backBtn.click();
+        await this.page.waitForTimeout(1000);
+        if (
+          await this.selector.clanSettings.buttons.createRole
+            .isVisible({ timeout: 3000 })
+            .catch(() => false)
+        ) {
+          return true;
+        }
+      }
+
       const roleSettingsBtn = this.selector.clanSettings.buttons.roleSettings;
       if (await roleSettingsBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await roleSettingsBtn.click();
+        if (await backBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await backBtn.click();
+          await this.page.waitForTimeout(1000);
+        }
         await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 8000 });
         return true;
       }
@@ -1670,6 +1730,10 @@ export class ClanPage extends BasePage {
 
       await expect(roleSettingsBtn).toBeVisible({ timeout: 10000 });
       await roleSettingsBtn.click();
+      if (await backBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await backBtn.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
       await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 8000 });
       return true;
     } catch (error) {
@@ -1705,25 +1769,15 @@ export class ClanPage extends BasePage {
         await modal.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
       }
 
-      const closeBtn = this.selector.buttons.exitSettings
-        .or(this.selector.buttons.closeSettingClan)
-        .or(
-          this.page.locator(
-            '[data-e2e*="button-exit"], button[aria-label="Close"], button:has-text("ESC"), [data-e2e*="exit_setting"]'
-          )
-        )
+      // Return to main role list
+      const backBtn = this.page
+        .getByText('BACK', { exact: true })
+        .or(this.page.locator('button').filter({ hasText: /back/i }))
         .first();
-      if (await closeBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await closeBtn.click({ force: true }).catch(() => {});
-      } else {
-        await this.page.keyboard.press('Escape');
+      if (await backBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await backBtn.click();
+        await this.page.waitForTimeout(1000);
       }
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.page
-        .locator('[data-e2e="clan_page-settings"]')
-        .waitFor({ state: 'hidden', timeout: 3000 })
-        .catch(() => {});
-      await this.closeAllModals();
     } catch (error) {
       console.error(`Failed to add new role:`, error);
       await this.closeAllModals();
@@ -2229,6 +2283,19 @@ export class ClanPage extends BasePage {
           .toBeVisible({ timeout: 10000 })
           .catch(() => {});
       }
+      if (!this.page.url().includes('/channels/')) {
+        const channelItem = this.selector.channel.sidebar.channelItem.item
+          .or(this.page.locator('a[href*="/channels/"]'))
+          .first();
+        if (await channelItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await channelItem.click().catch(() => {});
+        }
+      }
+      await this.closeAllModals();
+      const composer = this.page
+        .locator('[data-e2e*="mention_input"], div[contenteditable="true"], textarea')
+        .first();
+      await composer.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
       return;
     }
     await this.page.waitForTimeout(2000);
@@ -2244,6 +2311,19 @@ export class ClanPage extends BasePage {
       await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
       await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
     }
+    if (!this.page.url().includes('/channels/')) {
+      const channelItem = this.selector.channel.sidebar.channelItem.item
+        .or(this.page.locator('a[href*="/channels/"]'))
+        .first();
+      if (await channelItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await channelItem.click().catch(() => {});
+      }
+    }
+    await this.closeAllModals();
+    const composer = this.page
+      .locator('[data-e2e*="mention_input"], div[contenteditable="true"], textarea')
+      .first();
+    await composer.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {
