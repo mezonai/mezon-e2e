@@ -315,6 +315,8 @@ test.describe('Channel Message - Typing Indicators, Ephemeral Messages & Realtim
         const firstEmoji = pageA.locator('div[role="dialog"] button, [data-e2e*="emoji"]').first();
         if (await firstEmoji.isVisible({ timeout: 2000 }).catch(() => false)) {
           await firstEmoji.click();
+          await pageA.waitForTimeout(500);
+          await pageA.keyboard.press('Escape').catch(() => {});
         }
       }
       expect(pageB.url()).toContain('/chat/');

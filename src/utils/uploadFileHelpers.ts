@@ -43,10 +43,10 @@ const UPLOAD_CONFIGS: Record<UploadType, UploadConfig> = {
     selector: '#preview_img',
   },
   [UploadType.STICKER]: {
-    selector: `${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[accept*=".jpg"], input[accept*=".jpeg"], input[accept*=".png"], input[accept*=".gif"], input[accept*="image"]`,
+    selector: `${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[type="file"], ${generateE2eSelector('clan_page.settings.upload.emoji_input')}`,
   },
   [UploadType.VOICE_STICKER]: {
-    selector: `${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')} input[accept*="audio/mp3"], input[accept*="audio/mpeg"], input[accept*="audio/wav"]`,
+    selector: `${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')} input[type="file"], ${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')}`,
     errorSelector: generateE2eSelector('clan_page.settings.upload.voice_sticker_input.error'),
   },
   [UploadType.CLAN_WEBHOOK_AVATAR]: {
@@ -262,7 +262,7 @@ export class FileSizeTestHelpers {
   // Generic upload method that can handle any upload type
   private async uploadFile(filePath: string, uploadType: UploadType): Promise<void> {
     const config = UPLOAD_CONFIGS[uploadType];
-    const input = this.page.locator(config.selector);
+    const input = this.page.locator(config.selector).first();
     await input.setInputFiles(filePath);
   }
 
@@ -380,8 +380,13 @@ export class FileSizeTestHelpers {
       .locator(generateE2eSelector('modal.validate_file'))
       .or(
         this.page
-          .locator('div[role="alert"], div[class*="toast"], div[class*="modal"]')
-          .filter({ hasText: /size|10\s*mb|50\s*mb|max/i })
+          .locator('div[role="alert"], div[class*="toast"]')
+          .filter({ hasText: /size|too large|exceed|maximum|10\s*mb|50\s*mb/i })
+      )
+      .or(
+        this.page
+          .locator('div[class*="modal"]')
+          .filter({ hasText: /too large|exceed|greater than|cannot be larger/i })
       )
       .first();
     const modalValidateContent = this.page
@@ -391,10 +396,17 @@ export class FileSizeTestHelpers {
 
     try {
       await modalValidate.waitFor({ state: 'visible', timeout });
+      const text = await modalValidateContent.innerText().catch(() => '');
+      if (
+        /upload a file|upload emoji|upload sticker/i.test(text) &&
+        !/too large|exceed|error|failed/i.test(text)
+      ) {
+        return undefined;
+      }
+      return text;
     } catch {
       return undefined;
     }
-    return await modalValidateContent.innerText().catch(() => '');
   }
 
   private async waitForSuccessIndicator(): Promise<boolean> {

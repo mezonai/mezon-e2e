@@ -24,18 +24,7 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
   });
 
   test.afterEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async page => {
-        if (page.url().includes('mezon')) {
-          await AuthHelper.logout(page);
-        }
-      },
-      B: async page => {
-        if (page.url().includes('mezon')) {
-          await AuthHelper.logout(page);
-        }
-      },
-    });
+    // Session kept alive for test reuse
   });
 
   test('TC01: Verify sending Buzz message in 1-1 DM: User A sends Buzz, User B receives buzz notification (TC-MDM-03)', async ({
@@ -57,18 +46,12 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
     const friendPageB = new FriendPage(pageB);
     const messagePageA = new MessagePage(pageA);
 
-    await FriendHelper.cleanupMutualFriendRelationships(
-      friendPageA,
-      friendPageB,
-      userNameA,
-      userNameB
-    );
-    await friendPageA.sendFriendRequestToUser(userNameB);
-    await friendPageB.acceptFriendRequestFromUser(userNameA);
-
+    await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
 
     // Trigger buzz modal on User A
+    await messagePageA.focusMessageInput();
+    await pageA.waitForTimeout(300);
     await pageA.keyboard.press('Control+g');
     const buzzHeader = await messagePageA.getMessageBuzzHeader();
     await expect(buzzHeader).toBeVisible({ timeout: 5000 });
@@ -105,18 +88,12 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
     const friendPageB = new FriendPage(pageB);
     const messagePageA = new MessagePage(pageA);
 
-    await FriendHelper.cleanupMutualFriendRelationships(
-      friendPageA,
-      friendPageB,
-      userNameA,
-      userNameB
-    );
-    await friendPageA.sendFriendRequestToUser(userNameB);
-    await friendPageB.acceptFriendRequestFromUser(userNameA);
-
+    await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
 
     // Open buzz modal
+    await messagePageA.focusMessageInput();
+    await pageA.waitForTimeout(300);
     await pageA.keyboard.press('Control+g');
     const buzzHeader = await messagePageA.getMessageBuzzHeader();
     await expect(buzzHeader).toBeVisible({ timeout: 5000 });
@@ -148,17 +125,11 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
     const friendPageB = new FriendPage(pageB);
     const messagePageA = new MessagePage(pageA);
 
-    await FriendHelper.cleanupMutualFriendRelationships(
-      friendPageA,
-      friendPageB,
-      userNameA,
-      userNameB
-    );
-    await friendPageA.sendFriendRequestToUser(userNameB);
-    await friendPageB.acceptFriendRequestFromUser(userNameA);
-
+    await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
 
+    await messagePageA.focusMessageInput();
+    await pageA.waitForTimeout(300);
     await pageA.keyboard.press('Control+g');
     const buzzHeader = await messagePageA.getMessageBuzzHeader();
     await expect(buzzHeader).toBeVisible({ timeout: 5000 });
@@ -185,18 +156,12 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
     const friendPageB = new FriendPage(pageB);
     const messagePageA = new MessagePage(pageA);
 
-    await FriendHelper.cleanupMutualFriendRelationships(
-      friendPageA,
-      friendPageB,
-      userNameA,
-      userNameB
-    );
-    await friendPageA.sendFriendRequestToUser(userNameB);
-    await friendPageB.acceptFriendRequestFromUser(userNameA);
-
+    await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
 
     // Send first buzz
+    await messagePageA.focusMessageInput();
+    await pageA.waitForTimeout(300);
     await pageA.keyboard.press('Control+g');
     const buzzHeader = await messagePageA.getMessageBuzzHeader();
     if (await buzzHeader.isVisible({ timeout: 3000 })) {
@@ -240,15 +205,7 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
 
-    await FriendHelper.cleanupMutualFriendRelationships(
-      friendPageA,
-      friendPageB,
-      userNameA,
-      userNameB
-    );
-    await friendPageA.sendFriendRequestToUser(userNameB);
-    await friendPageB.acceptFriendRequestFromUser(userNameA);
-
+    await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
 
     // Verify online presence indicator in DM header or user item
@@ -277,15 +234,7 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
     const friendPageA = new FriendPage(pageA);
     const friendPageB = new FriendPage(pageB);
 
-    await FriendHelper.cleanupMutualFriendRelationships(
-      friendPageA,
-      friendPageB,
-      userNameA,
-      userNameB
-    );
-    await friendPageA.sendFriendRequestToUser(userNameB);
-    await friendPageB.acceptFriendRequestFromUser(userNameA);
-
+    await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
 
     // Open User A profile card from DM header on User B
@@ -368,7 +317,7 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
 
     // User B checks pending tab: request from User A should be gone
     await friendPageB.clickPendingTab();
-    const pendingItem = pageB.locator(`text=${userNameA}`);
+    const pendingItem = await friendPageB.getFriends(userNameA);
     await expect(pendingItem).toHaveCount(0);
   });
 

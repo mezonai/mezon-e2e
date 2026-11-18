@@ -110,20 +110,21 @@ export class ClanSettingsPage extends BasePage {
     const normalizedEmojiName = emojiName.replace(/\s+/g, '');
     const nameInput = this.selector.emoji.upload.input.name;
     await expect(nameInput).toBeVisible({ timeout: 5000 });
-    await nameInput.fill(emojiName);
+    await nameInput.fill(normalizedEmojiName);
+    await this.page.waitForTimeout(500);
 
-    const uploadModal = nameInput.locator('xpath=ancestor::div[contains(@class, "fixed")][1]');
-    const saveButton = uploadModal
-      .locator(this.selector.emoji.upload.button.save)
-      .or(uploadModal.locator('button', { hasText: /Upload Emoji|Upload/i }))
-      .first();
+    const saveButton = this.page
+      .locator('button')
+      .filter({ hasText: /^Upload Emoji$/i })
+      .last();
     await expect(saveButton).toBeVisible({ timeout: 5000 });
-    await saveButton.click({ force: true });
+    await expect(saveButton).toBeEnabled({ timeout: 5000 });
+    await saveButton.click();
     await expect(saveButton)
       .toBeHidden({ timeout: 15000 })
       .catch(async () => {
         await nameInput.press('Enter').catch(() => {});
-        const closeBtn = uploadModal
+        const closeBtn = this.page
           .locator(
             'button:has-text("Never Mind"), button:has-text("Cancel"), button[aria-label="Close"]'
           )
