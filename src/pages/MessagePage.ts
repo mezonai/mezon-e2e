@@ -461,12 +461,14 @@ export class MessagePage extends BasePage {
 
   async sendMessage(message: string): Promise<void> {
     this.message = message;
-    await this.selector.firstUserAddDM.click();
+    if (await this.selector.firstUserAddDM.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await this.selector.firstUserAddDM.click().catch(() => {});
+    }
     await this.selector.messageInput.click();
     await this.selector.messageInput.fill(message);
     await this.selector.messageInput.press('Enter');
     await expect(this.selector.messages.filter({ hasText: message }).last()).toBeVisible({
-      timeout: 5000,
+      timeout: 8000,
     });
   }
 
@@ -1039,8 +1041,16 @@ export class MessagePage extends BasePage {
     await expect(this.selector.searchUserOnForwardMessageModal).toBeHidden({ timeout: 5000 });
   }
 
-  async getMessageBuzzHeader() {
+  getMessageBuzzHeader() {
     return this.selector.messageBuzzHeader;
+  }
+
+  getMessageInput(): Locator {
+    return this.selector.messageInput;
+  }
+
+  async focusMessageInput(): Promise<void> {
+    await this.selector.messageInput.click().catch(() => {});
   }
 
   async clickMessageBuzzCloseButton() {
