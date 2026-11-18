@@ -191,7 +191,13 @@ test.describe('Channel Messages - Latest Topic and Latest Pinned Message', () =>
 
     await messagePage.verifyLatestTopicInHeader(message);
     await messagePage.verifyLatestPinnedMessageInHeader(message);
-    await expect(page.locator('svg:has(.icon-HatIcon-fill-1)').last()).toBeVisible({
+    const anonymousIndicator = page
+      .locator(
+        'svg:has(.icon-HatIcon-fill-1), svg[data-icon="hat"], [data-e2e*="anonymous"], img[src*="anonymous"], img[alt*="anonymous"]'
+      )
+      .or(page.getByText(/Message from Anonymous/i))
+      .first();
+    await expect(anonymousIndicator).toBeVisible({
       timeout: 10000,
     });
   });

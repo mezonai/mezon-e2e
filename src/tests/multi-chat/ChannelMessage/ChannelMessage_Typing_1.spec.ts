@@ -24,18 +24,7 @@ test.describe('Channel Message - Typing Indicators, Ephemeral Messages & Realtim
   });
 
   test.afterEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async page => {
-        if (page.url().includes('mezon')) {
-          await AuthHelper.logout(page);
-        }
-      },
-      B: async page => {
-        if (page.url().includes('mezon')) {
-          await AuthHelper.logout(page);
-        }
-      },
-    });
+    // Session kept alive for test reuse
   });
 
   test('TC01: Verify Realtime Typing Indicator: User A typing displays on User B (TC-MCM-01)', async ({
@@ -52,22 +41,8 @@ test.describe('Channel Message - Typing Indicators, Ephemeral Messages & Realtim
       **Test Objective:** Verify that when User A types into the composer, User B observes a realtime typing indicator with User A's name in the channel footer (TC-MCM-01).
     `);
 
-    await AllureReporter.step('Clean up and establish mutual friendship', async () => {
-      await Promise.allSettled([
-        friendPageA.unblockFriend(userNameB),
-        friendPageB.unblockFriend(userNameA),
-      ]);
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageB.acceptFirstFriendRequest();
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+    await AllureReporter.step('Ensure mutual friendship', async () => {
+      await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     });
 
     const clanFactory = new ClanFactory();

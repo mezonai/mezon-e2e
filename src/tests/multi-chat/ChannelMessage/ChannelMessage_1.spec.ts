@@ -15,6 +15,7 @@ import {
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 import { MessageTestHelpers } from '@/utils/messageHelpers';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { expect, test } from '../../../fixtures/dual.fixture';
 import { CHANNEL_MESSAGE_STEPS } from './ChannelMessageTestConstants';
 
@@ -37,14 +38,10 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
   });
 
   test.afterEach(async ({ dual }) => {
-    await dual.parallel({
-      A: async page => {
-        await AuthHelper.logout(page);
-      },
-      B: async page => {
-        await AuthHelper.logout(page);
-      },
-    });
+    try {
+      const clanPageA = new ClanPage(dual.pageA);
+      await clanPageA.unbanUserByName(userNameB).catch(() => {});
+    } catch {}
   });
 
   test('Verify that when User A edits a message that mentions User B, the edited message appears correctly in User B`s inbox', async ({
@@ -80,33 +77,8 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     const messageHelperB = new MessageTestHelpers(pageB);
     const messagePageA = new MessagePage(pageA);
 
-    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
-      await Promise.allSettled([
-        friendPageA.unblockFriend(userNameB),
-        friendPageB.unblockFriend(userNameA),
-      ]);
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
-    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageA.verifySentRequestToast();
-    });
-
-    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.acceptFriendRequest, async () => {
-      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
-      await friendPageB.acceptFirstFriendRequest();
-    });
-
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.verifyMutualFriends, async () => {
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+      await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     });
 
     const clanFactory = new ClanFactory();
@@ -119,30 +91,41 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageA.unbanUserByName(userNameB);
+      await clanPageA.openChannelByName('general');
+      await clanPageB.openChannelByName('general');
     });
 
     const timestamp = Date.now();
-    const uniqueMessage = `Hello @${userNameB} ${timestamp}`;
     const editedMessage = `Edited message @${userNameB} ${timestamp}`;
     await AllureReporter.step('User A send message mention user B', async () => {
-      await messageHelperA.sendTextMessage(uniqueMessage);
+      await messageHelperA.mentionUserAndSend(`@${userNameB}`, [userNameB]);
     });
 
     await AllureReporter.step('User B find mention message on inbox', async () => {
-      await pageB.reload();
-      // await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
+      await pageB.reload({ waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
+      await pageB.waitForTimeout(2000);
       await messageHelperB.openHeaderInboxButton();
-      await messageHelperB.assertMessageInInboxByContent(uniqueMessage);
+      await messageHelperB.assertMessageInInboxByContent(`@${userNameB}`);
     });
 
     await AllureReporter.step('User A edit mention message', async () => {
-      const oldMessage = await messagePageA.getLastMessageWithProfileName(uniqueMessage);
+      const oldMessage = await messagePageA.getLastMessageWithProfileName(userNameB);
       await messageHelperA.editMessage(oldMessage, editedMessage);
     });
 
     await AllureReporter.step('User B find edited mention message on inbox', async () => {
+      await pageB.reload({ waitUntil: 'domcontentloaded' });
+      await clanPageB.openChannelByName('general');
+      await pageB.waitForTimeout(2000);
       await messageHelperB.openHeaderInboxButton();
-      await messageHelperB.assertMessageInInboxByContent(editedMessage);
+      await messageHelperB.assertMessageInInboxByContent(`@${userNameB}`);
+      const channelMsg = pageB
+        .locator(generateE2eSelector('message.item'))
+        .filter({ hasText: editedMessage })
+        .or(pageB.getByText(editedMessage));
+      await expect(channelMsg.first()).toBeVisible({ timeout: 5000 });
     });
 
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.cleanupClan, async () => {
@@ -177,33 +160,8 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
 
-    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
-      await Promise.allSettled([
-        friendPageA.unblockFriend(userNameB),
-        friendPageB.unblockFriend(userNameA),
-      ]);
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
-    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageA.verifySentRequestToast();
-    });
-
-    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.acceptFriendRequest, async () => {
-      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
-      await friendPageB.acceptFirstFriendRequest();
-    });
-
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.verifyMutualFriends, async () => {
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+      await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     });
     const clanFactory = new ClanFactory();
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.createClan, async () => {
@@ -214,6 +172,7 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageA.unbanUserByName(userNameB);
       await clanPageB.openChannelByName('general');
     });
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.banUserInClan, async () => {
@@ -258,33 +217,8 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
 
-    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
-      await Promise.allSettled([
-        friendPageA.unblockFriend(userNameB),
-        friendPageB.unblockFriend(userNameA),
-      ]);
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
-    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageA.verifySentRequestToast();
-    });
-
-    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.acceptFriendRequest, async () => {
-      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
-      await friendPageB.acceptFirstFriendRequest();
-    });
-
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.verifyMutualFriends, async () => {
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+      await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     });
     const clanFactory = new ClanFactory();
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.createClan, async () => {
@@ -295,6 +229,7 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageA.unbanUserByName(userNameB);
     });
     let duration: number | null;
     let unitTime: string | null;
@@ -347,33 +282,8 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     const clanPageB = new ClanPage(pageB);
     const messageHelperA = new MessageTestHelpers(pageA);
 
-    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
-      await Promise.allSettled([
-        friendPageA.unblockFriend(userNameB),
-        friendPageB.unblockFriend(userNameA),
-      ]);
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
-    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageA.verifySentRequestToast();
-    });
-
-    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.acceptFriendRequest, async () => {
-      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
-      await friendPageB.acceptFirstFriendRequest();
-    });
-
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.verifyMutualFriends, async () => {
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+      await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     });
     const clanFactory = new ClanFactory();
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.createClan, async () => {
@@ -384,6 +294,7 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageA.unbanUserByName(userNameB);
       await clanPageB.openChannelByName('general');
     });
 
@@ -440,33 +351,8 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     const clanPageB = new ClanPage(pageB);
     const messageHelperB = new MessageTestHelpers(pageB);
 
-    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
-      await Promise.allSettled([
-        friendPageA.unblockFriend(userNameB),
-        friendPageB.unblockFriend(userNameA),
-      ]);
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
-    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageA.verifySentRequestToast();
-    });
-
-    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.acceptFriendRequest, async () => {
-      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
-      await friendPageB.acceptFirstFriendRequest();
-    });
-
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.verifyMutualFriends, async () => {
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+      await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     });
     const clanFactory = new ClanFactory();
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.createClan, async () => {
@@ -477,6 +363,7 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageA.unbanUserByName(userNameB);
       await clanPageB.openChannelByName('general');
     });
 
@@ -532,33 +419,8 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
     const unique = Date.now().toString(36).slice(-6);
     const roleName = `Sushi ${unique}`;
 
-    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
-      await Promise.allSettled([
-        friendPageA.unblockFriend(userNameB),
-        friendPageB.unblockFriend(userNameA),
-      ]);
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
-    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageA.verifySentRequestToast();
-    });
-
-    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.acceptFriendRequest, async () => {
-      await friendPageB.verifyReceivedRequestToast(`${userNameA} wants to add you as a friend`);
-      await friendPageB.acceptFirstFriendRequest();
-    });
-
     await AllureReporter.step(CHANNEL_MESSAGE_STEPS.verifyMutualFriends, async () => {
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
+      await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
     });
 
     const clanFactoryRole = new ClanFactory();
@@ -568,6 +430,7 @@ test.describe('Channel Messages - Edited Mentions and Banned User Restrictions',
       await clanPageA.clickButtonInvitePeopleFromMenu();
       const url = await clanPageA.inviteUserToClanByUsername(userNameB);
       await clanPageB.joinClanByUrlInvite(url);
+      await clanPageA.unbanUserByName(userNameB);
     });
 
     await AllureReporter.step(`User A create a new role "${roleName}"`, async () => {

@@ -671,16 +671,31 @@ export class ChannelSettingPage extends BasePage {
 
   async isChannelInArchivedList(channelName: string): Promise<boolean> {
     const clanSeletor = new ClanSelector(this.page);
-    await clanSeletor.buttons.clanName.click();
-    await clanSeletor.buttons.clanSettings.click();
+    if (
+      !(await clanSeletor.clanSettings.settings_page
+        .isVisible({ timeout: 1000 })
+        .catch(() => false))
+    ) {
+      await clanSeletor.buttons.clanName.click();
+      await expect(clanSeletor.buttons.clanSettings).toBeVisible({ timeout: 5000 });
+      await clanSeletor.buttons.clanSettings.click();
+    }
     await clanSeletor.clanSettings.buttons.sidebarItem
       .filter({ hasText: 'Archived Channels' })
+      .first()
       .click();
-    const archivedChannelItem = this.selector.archived_channels.item.channel_name.filter({
-      hasText: channelName,
-    });
+    const archivedChannelItem = this.selector.archived_channels.item.channel_name
+      .filter({
+        hasText: channelName,
+      })
+      .or(
+        this.page
+          .locator(generateE2eSelector('clan_page.settings.archived_channels.item'))
+          .filter({ hasText: channelName })
+      )
+      .first();
     try {
-      await expect(archivedChannelItem).toBeVisible({ timeout: 3000 });
+      await expect(archivedChannelItem).toBeVisible({ timeout: 10000 });
       return true;
     } catch {
       return false;

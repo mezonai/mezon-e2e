@@ -140,12 +140,19 @@ export default class ClanSelector {
 
   readonly header = {
     button: {
-      thread: this.page.locator(generateE2eSelector('chat.channel_message.header.button.thread')),
-      createThread: this.page.locator(
-        generateE2eSelector(
-          'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
+      thread: this.page
+        .locator(generateE2eSelector('chat.channel_message.header.button.thread'))
+        .locator('button')
+        .or(this.page.getByRole('button', { name: 'Threads', exact: true }))
+        .first(),
+      createThread: this.page
+        .locator(
+          generateE2eSelector(
+            'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
+          )
         )
-      ),
+        .or(this.page.getByRole('button', { name: /create thread/i }))
+        .or(this.page.locator('button').filter({ hasText: 'Create Thread' })),
       member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
       pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
       canvas: this.page.locator(generateE2eSelector('chat.channel_message.header.button.canvas')),

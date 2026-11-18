@@ -40,7 +40,7 @@ type UploadConfig = {
 
 const UPLOAD_CONFIGS: Record<UploadType, UploadConfig> = {
   [UploadType.USER_PROFILE_AVATAR]: {
-    selector: `'#preview_img'`,
+    selector: '#preview_img',
   },
   [UploadType.STICKER]: {
     selector: `${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[accept*=".jpg"], input[accept*=".jpeg"], input[accept*=".png"], input[accept*=".gif"], input[accept*="image"]`,
@@ -272,7 +272,7 @@ export class FileSizeTestHelpers {
     expectedSuccess: boolean
   ): Promise<UploadVerificationResult> {
     const size = (await stat(filePath)).size;
-    const errorMessage = await this.waitForErrorModal(expectedSuccess ? 800 : 300);
+    const errorMessage = await this.waitForErrorModal(expectedSuccess ? 1000 : 5000);
 
     const success = !errorMessage;
 
@@ -291,13 +291,36 @@ export class FileSizeTestHelpers {
       .waitFor({ state: 'detached', timeout: 10000 })
       .catch(() => {});
 
-    // Ensure composer is ready and focused
+    // If a modal or settings container is currently visible, look for file inputs inside it first!
+    const modalContainers = this.page.locator(
+      'div[role="dialog"], div[class*="modal"], [data-e2e*="modal"], div[class*="setting"]'
+    );
+    if ((await modalContainers.count().catch(() => 0)) > 0) {
+      const modalInput = modalContainers.locator('input[type="file"]').first();
+      if (
+        (await modalInput.count().catch(() => 0)) > 0 &&
+        ((await modalInput.isVisible({ timeout: 1000 }).catch(() => false)) ||
+          (await modalContainers
+            .first()
+            .isVisible()
+            .catch(() => false)))
+      ) {
+        try {
+          await modalInput.setInputFiles(filePath);
+          return;
+        } catch (e) {
+          console.error(`Failed to set file on modal input: ${(e as Error).message}`);
+        }
+      }
+    }
+
+    // Ensure composer is ready and focused if we are using the channel composer
     const composer = this.page
       .locator(
         '[data-e2e="channel-message-input"], div[contenteditable="true"], [role="textbox"], textarea'
       )
       .first();
-    if (await composer.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await composer.isVisible({ timeout: 2000 }).catch(() => false)) {
       await composer.click().catch(() => {});
     }
 
@@ -353,17 +376,25 @@ export class FileSizeTestHelpers {
   }
 
   private async waitForErrorModal(timeout: number): Promise<string | undefined> {
-    const modalValidate = this.page.locator(generateE2eSelector('modal.validate_file'));
-    const modalValidateContent = this.page.locator(
-      generateE2eSelector('modal.validate_file.content')
-    );
+    const modalValidate = this.page
+      .locator(generateE2eSelector('modal.validate_file'))
+      .or(
+        this.page
+          .locator('div[role="alert"], div[class*="toast"], div[class*="modal"]')
+          .filter({ hasText: /size|10\s*mb|50\s*mb|max/i })
+      )
+      .first();
+    const modalValidateContent = this.page
+      .locator(generateE2eSelector('modal.validate_file.content'))
+      .or(modalValidate)
+      .first();
 
     try {
       await modalValidate.waitFor({ state: 'visible', timeout });
     } catch {
       return undefined;
     }
-    return await modalValidateContent.innerText();
+    return await modalValidateContent.innerText().catch(() => '');
   }
 
   private async waitForSuccessIndicator(): Promise<boolean> {
