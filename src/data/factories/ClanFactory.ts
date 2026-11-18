@@ -80,37 +80,6 @@ export class ClanFactory {
         );
         return;
       }
-
-      // Fallback: If no clan matching this prefix exists, reuse ANY existing test clan sharded by worker
-      const allTestClans = page.locator(
-        '[data-e2e="clan_page-side_bar-clan_item"][title*="Test"], [data-e2e="clan_page-side_bar-clan_item"][title*="_"]'
-      );
-      const totalTestClans = await allTestClans.count().catch(() => 0);
-      if (totalTestClans > workerIndex) {
-        const targetClan = allTestClans.nth(workerIndex);
-        const title = (await targetClan.getAttribute('title').catch(() => '')) || 'ReusedClan';
-        await targetClan.click({ force: true }).catch(() => {});
-        await page.waitForTimeout(1500);
-
-        const channelItem = page
-          .locator(generateE2eSelector('clan_page.channel_list.item.name'))
-          .or(page.locator(generateE2eSelector('clan_page.channel_list.item')))
-          .or(page.locator('[data-e2e*="channel_list-item"]'))
-          .first();
-        try {
-          await channelItem.waitFor({ state: 'visible', timeout: 5000 });
-          await channelItem.click();
-          await page.waitForTimeout(1000);
-        } catch {}
-
-        this.clanName = title;
-        this.clanUrl = page.url();
-        this.isReused = true;
-        console.log(
-          `[ClanFactory] Fallback reusing existing test clan for worker ${workerIndex}: "${this.clanName}" (${this.clanUrl})`
-        );
-        return;
-      }
     }
 
     const now = new Date();

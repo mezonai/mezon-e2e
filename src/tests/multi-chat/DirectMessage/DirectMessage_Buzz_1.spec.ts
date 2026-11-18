@@ -290,7 +290,9 @@ test.describe('Direct Message - Buzz 2-Way Trigger, Cooldown, Presence & Friend 
 
     // Open User A profile card from DM header on User B
     const dmHeaderUser = pageB
-      .locator(`header text=${userNameA}, div[class*="header"] span:has-text("${userNameA}")`)
+      .locator('header')
+      .getByText(userNameA)
+      .or(pageB.locator(`div[class*="header"] span:has-text("${userNameA}")`))
       .first();
     if (await dmHeaderUser.isVisible({ timeout: 5000 })) {
       await dmHeaderUser.click();

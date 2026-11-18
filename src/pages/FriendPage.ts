@@ -46,6 +46,9 @@ export class FriendPage extends BasePage {
     // belongs to a page that is no longer open.
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
+        if (attempt > 0) {
+          await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+        }
         const friend = await this.friendExistsInTab(username, tab);
         await friend.waitFor({ state: 'visible', timeout: 5000 });
         await expect(friend).toHaveCount(1);
@@ -61,10 +64,13 @@ export class FriendPage extends BasePage {
   }
 
   private async baseCheckFriendExists(username: string, tab: Tabs): Promise<boolean> {
-    await this.page.waitForTimeout(300);
-    const friend = await this.friendExistsInTab(username, tab);
-    const count = await friend.count();
-    return count > 0;
+    try {
+      const friend = await this.friendExistsInTab(username, tab);
+      await friend.waitFor({ state: 'visible', timeout: 2500 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async friendExistsInTab(username: string, tab: Tabs) {

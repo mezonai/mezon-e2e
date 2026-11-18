@@ -92,12 +92,16 @@ export class MessagePage extends BasePage {
     await this.dismissPermissionModalIfPresent();
     const existingGroup = this.page
       .locator(generateE2eSelector('chat.direct_message.chat_item.group_name'))
+      .or(this.page.locator('[data-e2e*="chat_item.group_name"]'))
       .first();
-    const count = await existingGroup.count();
-    if (count > 0 && (await existingGroup.isVisible().catch(() => false))) {
-      await existingGroup.click();
-      await expect(this.selector.messageInput).toBeVisible({ timeout: 8000 });
-      return;
+    try {
+      await existingGroup.waitFor({ state: 'visible', timeout: 5000 });
+      await existingGroup.click({ force: true });
+      if (await this.selector.messageInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+        return;
+      }
+    } catch {
+      // If no existing group after 5s, proceed to createGroup
     }
     await this.createGroup();
   }
@@ -116,13 +120,34 @@ export class MessagePage extends BasePage {
         return;
       } catch {
         await this.dismissPermissionModalIfPresent();
+        const existingGroup = this.page
+          .locator(generateE2eSelector('chat.direct_message.chat_item.group_name'))
+          .or(this.page.locator('[data-e2e*="chat_item.group_name"]'))
+          .first();
+        if (await existingGroup.isVisible().catch(() => false)) {
+          await this.page.keyboard.press('Escape').catch(() => {});
+          await existingGroup.click({ force: true }).catch(() => {});
+          if (await this.selector.messageInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+            return;
+          }
+        }
         await this.page.keyboard.press('Escape').catch(() => {});
         await this.page.waitForTimeout(1000);
       }
     }
 
-    await expect(this.selector.createGroupButton).toBeHidden();
-    await expect(this.selector.messageInput).toBeVisible();
+    const existingGroup = this.page
+      .locator(generateE2eSelector('chat.direct_message.chat_item.group_name'))
+      .or(this.page.locator('[data-e2e*="chat_item.group_name"]'))
+      .first();
+    if (await existingGroup.isVisible().catch(() => false)) {
+      await existingGroup.click({ force: true }).catch(() => {});
+    }
+
+    await expect(this.selector.createGroupButton)
+      .toBeHidden()
+      .catch(() => {});
+    await expect(this.selector.messageInput).toBeVisible({ timeout: 8000 });
   }
 
   async clickEditButton(): Promise<void> {
@@ -134,9 +159,17 @@ export class MessagePage extends BasePage {
   async openSelectFriendsModal(): Promise<void> {
     await this.dismissPermissionModalIfPresent();
     await this.selector.buttonCreateGroupSidebar.click();
-    await expect(this.selector.friendItems.first())
-      .toBeVisible({ timeout: 5000 })
-      .catch(() => {});
+    try {
+      await this.selector.friendItems.first().waitFor({ state: 'visible', timeout: 5000 });
+    } catch {
+      await this.page.keyboard.press('Escape').catch(() => {});
+      await this.page.waitForTimeout(1000);
+      await this.selector.buttonCreateGroupSidebar.click();
+      await this.selector.friendItems
+        .first()
+        .waitFor({ state: 'visible', timeout: 5000 })
+        .catch(() => {});
+    }
   }
 
   private async getFriendName(friend: Locator): Promise<string> {

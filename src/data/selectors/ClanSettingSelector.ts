@@ -43,9 +43,12 @@ export default class ClanSettingSelector {
       categoryOrder: this.buttons.sidebarItem.filter({ hasText: 'Category Order' }),
       integrations: this.buttons.sidebarItem.filter({ hasText: 'Integrations' }),
       auditLog: this.buttons.sidebarItem.filter({ hasText: 'Audit Log' }),
-      createRole: this.page.locator(BASE_BUTTON_SELECTOR, {
-        hasText: 'Create Role',
-      }),
+      createRole: this.page
+        .locator(BASE_BUTTON_SELECTOR, {
+          hasText: 'Create Role',
+        })
+        .or(this.page.getByRole('button', { name: /create role/i }))
+        .or(this.page.locator('button').filter({ hasText: 'Create Role' })),
       displayRoleOption: this.page.locator(
         generateE2eSelector('clan_page.settings.role.container.role_option.display')
       ),
