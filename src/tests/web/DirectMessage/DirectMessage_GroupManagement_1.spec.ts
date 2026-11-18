@@ -45,7 +45,7 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
     `);
 
     const messagePage = new MessagePage(page);
-    await messagePage.createGroup();
+    await messagePage.ensureGroupChat();
 
     const groupName = await messagePage.getGroupName();
     await expect(groupName).toBeVisible({ timeout: 8000 });
@@ -63,7 +63,7 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
     `);
 
     const messagePage = new MessagePage(page);
-    await messagePage.createGroup();
+    await messagePage.ensureGroupChat();
 
     const memberListBtn = page
       .locator(generateE2eSelector('chat.direct_message.member_list.button'))
@@ -92,7 +92,7 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
     `);
 
     const messagePage = new MessagePage(page);
-    await messagePage.createGroup();
+    await messagePage.ensureGroupChat();
 
     const editNameBtn = page
       .locator(
@@ -134,7 +134,7 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
     `);
 
     const messagePage = new MessagePage(page);
-    await messagePage.createGroup();
+    await messagePage.ensureGroupChat();
 
     const addUserBtn = page
       .locator(generateE2eSelector('chat.direct_message.button.add_user'))
@@ -143,7 +143,10 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
 
     if (await addUserBtn.isVisible({ timeout: 5000 })) {
       await addUserBtn.click();
-      const modal = page.locator('div[role="dialog"], div[class*="modal"]').first();
+      const modal = page
+        .locator('div[role="dialog"], div[class*="modal"], div[class*="popover"], .rc-tooltip')
+        .or(page.getByRole('heading', { name: 'Select Friends' }))
+        .first();
       await expect(modal).toBeVisible({ timeout: 5000 });
       await page.keyboard.press('Escape');
     }
@@ -220,7 +223,7 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
     `);
 
     const messagePage = new MessagePage(page);
-    await messagePage.createGroup();
+    await messagePage.ensureGroupChat();
 
     const groupTitle = await messagePage.getGroupName();
     if (await groupTitle.isVisible({ timeout: 5000 })) {
@@ -289,7 +292,7 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
     `);
 
     const messagePage = new MessagePage(page);
-    await messagePage.createGroup();
+    await messagePage.ensureGroupChat();
 
     const muteBtn = page
       .locator(

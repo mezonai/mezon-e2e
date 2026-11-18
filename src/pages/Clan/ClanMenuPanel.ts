@@ -58,15 +58,24 @@ export class ClanMenuPanel extends BasePage {
   }
 
   async isCategoryPresent(categoryName: string): Promise<boolean> {
-    const categoryLocator = this.page.locator(
-      generateE2eSelector('clan_page.side_bar.channel_list.category'),
-      { hasText: categoryName }
-    );
+    const categoryLocator = this.page
+      .locator(generateE2eSelector('clan_page.side_bar.channel_list.category'), {
+        hasText: categoryName,
+      })
+      .or(
+        this.page.locator('[data-e2e*="channel_list.category"]').filter({ hasText: categoryName })
+      );
     try {
-      await categoryLocator.waitFor({ state: 'visible', timeout: 5000 });
+      await categoryLocator.first().waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
-      return false;
+      try {
+        await this.toggleShowEmptyCategory();
+        await categoryLocator.first().waitFor({ state: 'visible', timeout: 5000 });
+        return true;
+      } catch {
+        return false;
+      }
     }
   }
 
@@ -82,9 +91,12 @@ export class ClanMenuPanel extends BasePage {
 
   async toggleShowEmptyCategory(): Promise<void> {
     await this.openPanel();
-    await this.buttons.showEmpty.click();
-    await this.page.waitForTimeout(500);
-    await this.openPanel();
+    if (await this.buttons.showEmpty.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await this.buttons.showEmpty.click();
+      await this.page.waitForTimeout(500);
+    } else {
+      await this.page.keyboard.press('Escape').catch(() => {});
+    }
   }
 
   async closeCreateCategoryModal(): Promise<void> {

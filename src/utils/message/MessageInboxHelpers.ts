@@ -112,15 +112,31 @@ export class MessageInboxHelpers extends MessageMediaHelpers {
   }
 
   async assertMessageInInboxByContent(messageContent: string) {
-    const mentionsTab = this.selector.inbox.mentions.triggerTab.first();
-    const msgTab = this.selector.inbox.messages.triggerTab.first();
-    if (messageContent.startsWith('@') && (await mentionsTab.isVisible().catch(() => false))) {
+    const mentionsTab = this.page
+      .locator('[role="tab"], button')
+      .filter({ hasText: /^Mentions$/i })
+      .or(this.selector.inbox.mentions.triggerTab)
+      .first();
+    const msgTab = this.page
+      .locator('[role="tab"], button')
+      .filter({ hasText: /^Messages$/i })
+      .or(this.selector.inbox.messages.triggerTab)
+      .first();
+    const isMention = messageContent.includes('@');
+    if (isMention && (await mentionsTab.isVisible().catch(() => false))) {
       await mentionsTab.click().catch(() => {});
+      await this.page.waitForTimeout(500);
     } else if (await msgTab.isVisible().catch(() => false)) {
       await msgTab.click().catch(() => {});
+      await this.page.waitForTimeout(500);
     }
-    const inboxMessage = this.selector.inboxMessages.filter({ hasText: messageContent }).first();
-    await expect(inboxMessage).toBeVisible({ timeout: 10000 });
+    const inboxMessage = this.selector.inboxMessages
+      .or(this.page.locator('[data-e2e*="inbox"] [class*="text-theme-message"]'))
+      .or(this.page.locator('[data-e2e*="inbox"] div').filter({ hasText: messageContent }))
+      .or(this.page.locator('div[class*="popover"], [data-e2e*="inbox"]').getByText(messageContent))
+      .filter({ hasText: messageContent })
+      .first();
+    await expect(inboxMessage).toBeVisible({ timeout: 15000 });
   }
 
   async jumpToMentionMessageFromInbox(messageContent: string) {

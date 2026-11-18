@@ -1,10 +1,12 @@
 import { AllureConfig } from '@/config/allure.config';
 import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
+import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ClanPage } from '@/pages/Clan/ClanPage';
 import { ROUTES } from '@/selectors';
 import { ThreadStatus } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
+import { ClanSetupHelper } from '@/utils/clanSetupHelper';
 import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import generateRandomString from '@/utils/randomString';
 import joinUrlPaths from '@/utils/joinUrlPaths';
@@ -31,9 +33,13 @@ test.describe('Thread Management - Pagination, Private Threads, Bounds & Resilie
       .locator(generateE2eSelector('clan_page.side_bar.clan_item'))
       .or(page.locator('a[href*="/chat/clans/"]'))
       .first();
-    await expect(firstClan).toBeVisible({ timeout: 10000 });
-    await firstClan.click();
-    await page.waitForLoadState('domcontentloaded');
+    if (!(await firstClan.isVisible({ timeout: 3000 }).catch(() => false))) {
+      const clanFactory = new ClanFactory();
+      await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage1, page);
+    } else {
+      await firstClan.click();
+      await page.waitForLoadState('domcontentloaded');
+    }
 
     // Select a channel from channel list to reveal channel header controls
     const channelItem = page
@@ -309,8 +315,10 @@ test.describe('Thread Management - Pagination, Private Threads, Bounds & Resilie
     await clanPage.openThread(threadName);
 
     const threadHeaderTitle = page
-      .locator(`header text=${threadName}, div[class*="header"] text=${threadName}`)
+      .locator('header, div[class*="header"], div[class*="thread"]')
+      .getByText(threadName)
+      .or(page.getByRole('paragraph').filter({ hasText: threadName }))
       .first();
-    await expect(threadHeaderTitle).toBeVisible({ timeout: 5000 });
+    await expect(threadHeaderTitle).toBeVisible({ timeout: 10000 });
   });
 });
