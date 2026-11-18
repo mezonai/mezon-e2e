@@ -9,7 +9,7 @@ import { ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
-import { getUsernamesFromEmails, setupDualUsersSequentially } from '@/utils/dualTestHelper';
+import { getUsernamesFromEmails, setupDualUsersInParallel } from '@/utils/dualTestHelper';
 import { FriendHelper } from '@/utils/friend.helper';
 import joinUrlPaths from '@/utils/joinUrlPaths';
 
@@ -20,7 +20,7 @@ test.describe('Channel Message - Typing Indicators, Ephemeral Messages & Realtim
   const directFriendsUrl = joinUrlPaths(WEBSITE_CONFIGS.MEZON.baseURL, ROUTES.DIRECT_FRIENDS);
 
   test.beforeEach(async ({ dual }) => {
-    await setupDualUsersSequentially(dual, accountA, accountB, directFriendsUrl);
+    await setupDualUsersInParallel(dual, accountA, accountB, directFriendsUrl);
   });
 
   test.afterEach(async ({ dual }) => {
@@ -132,6 +132,7 @@ test.describe('Channel Message - Typing Indicators, Ephemeral Messages & Realtim
       const inputA = pageA
         .locator('[data-e2e*="mention_input"], div[contenteditable="true"], textarea')
         .first();
+      await inputA.click();
       await inputA.fill(msg);
       await inputA.press('Enter');
 

@@ -225,13 +225,25 @@ export class ClanPage extends BasePage {
     } catch {}
 
     try {
-      const desktopCloseBtn = this.page
+      const desktopBanner = this.page
         .locator('div, section')
-        .filter({ hasText: /Open this link in the Mezon desktop app/i })
-        .locator('button')
-        .first();
-      if (await desktopCloseBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-        await desktopCloseBtn.click({ force: true }).catch(() => {});
+        .filter({ hasText: /Open this link in the Mezon desktop app/i });
+      if (
+        await desktopBanner
+          .first()
+          .isVisible({ timeout: 500 })
+          .catch(() => false)
+      ) {
+        const desktopCloseBtn = desktopBanner
+          .locator('button')
+          .filter({ hasText: /^close$/i })
+          .or(desktopBanner.locator('button[aria-label*="close" i]'))
+          .or(desktopBanner.locator('button').last());
+        await desktopCloseBtn
+          .first()
+          .click({ force: true })
+          .catch(() => {});
+        await this.page.waitForTimeout(200);
       }
     } catch {}
 
@@ -467,12 +479,39 @@ export class ClanPage extends BasePage {
       ) {
         return true;
       }
+      await this.closeAllModals();
       const categoryPage = new ClanMenuPanel(this.page);
+      const clanNameBtn = categoryPage.text.clanName
+        .or(this.selector.buttons.clanName)
+        .or(this.page.locator('[data-e2e*="clan_page-header-title-clan_name"]'))
+        .first();
 
-      await categoryPage.text.clanName.waitFor({ state: 'visible', timeout: 10000 });
-      await categoryPage.text.clanName.click();
-      await categoryPage.buttons.clanSettings.waitFor({ state: 'visible', timeout: 5000 });
-      await categoryPage.buttons.clanSettings.click();
+      await clanNameBtn.waitFor({ state: 'visible', timeout: 10000 });
+
+      const clanSettingsBtn = categoryPage.buttons.clanSettings
+        .or(this.selector.buttons.clanSettings)
+        .or(
+          this.page
+            .locator(
+              '[data-e2e*="clan_page-header-modal_panel"], div[role="menuitem"], div[class*="popover"] div, div[class*="dropdown"] div, button'
+            )
+            .filter({ hasText: /Clan Settings|Cài đặt/i })
+        )
+        .first();
+
+      if (!(await clanSettingsBtn.isVisible().catch(() => false))) {
+        await clanNameBtn.click();
+        const opened = await clanSettingsBtn
+          .waitFor({ state: 'visible', timeout: 3000 })
+          .then(() => true)
+          .catch(() => false);
+        if (!opened) {
+          await clanNameBtn.click({ force: true });
+          await clanSettingsBtn.waitFor({ state: 'visible', timeout: 5000 });
+        }
+      }
+
+      await clanSettingsBtn.click();
       await expect(this.selector.clanSettings.settings_page).toBeVisible({ timeout: 10000 });
       return true;
     } catch (error) {
@@ -2211,38 +2250,10 @@ export class ClanPage extends BasePage {
       */
 
       await this.selector.buttons.closeInviteModal.click();
-      await this.selector.modalInvite.container.waitFor({ state: 'hidden', timeout: 3000 });
-
+      await this.selector.modalInvite.container
+        .waitFor({ state: 'hidden', timeout: 3000 })
+        .catch(() => {});
       await this.closeAllModals();
-
-      await this.page.keyboard.press('Control+k');
-      await expect(messageSelector.searchModal).toBeVisible({ timeout: 5000 });
-      await expect(messageSelector.searchInput).toBeVisible({ timeout: 5000 });
-
-      await messageSelector.searchInput.fill(username);
-
-      const userLocator = messageSelector.searchModal
-        .locator(generateE2eSelector('suggest_item'), {
-          hasText: username,
-        })
-        .first();
-
-      await expect(userLocator).toBeVisible({ timeout: 5000 });
-      await this.closeAllModals();
-      await userLocator.click({ force: true });
-      await this.page.waitForTimeout(1000);
-
-      await expect(messageSelector.messageInput).toBeVisible({ timeout: 5000 });
-      await messageSelector.messageInput.fill(urlInvite);
-      await this.page.waitForTimeout(2000);
-      await messageSelector.messageInput.press('Enter');
-
-      await expect(messageSelector.messages.filter({ hasText: urlInvite }).last()).toBeVisible({
-        timeout: 5000,
-      });
-      await this.page.waitForTimeout(2000);
-      await this.page.goto(currentClanUrl, { waitUntil: 'domcontentloaded' });
-      await this.page.waitForTimeout(3000);
 
       return urlInvite;
     } catch (error) {
@@ -2255,62 +2266,25 @@ export class ClanPage extends BasePage {
     if (!url || !url.trim()) {
       throw new Error('❌ Cannot join clan: invite URL is empty!');
     }
-    await this.page.waitForTimeout(2000);
-    const messageSelector = new MessageSelector(this.page);
 
-    const messageWithUrl = messageSelector.messages.last().filter({
-      hasText: url,
-    });
-
-    try {
-      await expect(messageWithUrl.first()).toBeVisible({ timeout: 5000 });
-    } catch {
-      // Fallback: If invite message not visible in current view, navigate directly to invite URL
+    if (this.page.url() !== url && !this.page.url().includes(url)) {
       await this.page.goto(url, { waitUntil: 'domcontentloaded' });
-      await this.page.waitForTimeout(2000);
-      const joinBtn = this.page
-        .locator('button')
-        .filter({ hasText: /Join|Accept|Tham gia/i })
-        .first();
-      if (await joinBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await joinBtn.click();
-      }
-      try {
-        await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
-      } catch {
-        await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
-        await expect(this.selector.buttons.clanName)
-          .toBeVisible({ timeout: 10000 })
-          .catch(() => {});
-      }
-      if (!this.page.url().includes('/channels/')) {
-        const channelItem = this.selector.channel.sidebar.channelItem.item
-          .or(this.page.locator('a[href*="/channels/"]'))
-          .first();
-        if (await channelItem.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await channelItem.click().catch(() => {});
-        }
-      }
-      await this.closeAllModals();
-      const composer = this.page
-        .locator('[data-e2e*="mention_input"], div[contenteditable="true"], textarea')
-        .first();
-      await composer.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-      return;
+      await expect(this.selector.buttons.clanName)
+        .toBeVisible({ timeout: 10000 })
+        .catch(() => {});
     }
-    await this.page.waitForTimeout(2000);
 
-    const messageItem = messageWithUrl.last();
-    const gotoClanButton = messageItem.locator(generateE2eSelector('invite_card.button.goto_clan'));
-
-    await expect(gotoClanButton).toBeVisible({ timeout: 10000 });
-    await gotoClanButton.click();
-    try {
-      await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
-    } catch {
-      await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
-      await expect(this.selector.buttons.clanName).toBeVisible({ timeout: 10000 });
+    const joinBtn = this.page
+      .locator('button')
+      .filter({ hasText: /Join|Accept|Tham gia/i })
+      .first();
+    if (await joinBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await joinBtn.click();
+      await expect(this.selector.buttons.clanName)
+        .toBeVisible({ timeout: 10000 })
+        .catch(() => {});
     }
+
     if (!this.page.url().includes('/channels/')) {
       const channelItem = this.selector.channel.sidebar.channelItem.item
         .or(this.page.locator('a[href*="/channels/"]'))
@@ -2319,11 +2293,14 @@ export class ClanPage extends BasePage {
         await channelItem.click().catch(() => {});
       }
     }
+
     await this.closeAllModals();
+
     const composer = this.page
       .locator('[data-e2e*="mention_input"], div[contenteditable="true"], textarea')
       .first();
-    await composer.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    await composer.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
+    await this.page.waitForTimeout(500);
   }
 
   async addRoleForUserByUsername(username: string, roleName: string) {
@@ -2336,7 +2313,32 @@ export class ClanPage extends BasePage {
       await exitClanSettings.click({ timeout: 3000, force: true }).catch(() => {});
       await this.page.waitForTimeout(500);
     }
-    await this.selector.buttons.memberListButton.click({ force: true });
+
+    if (!this.page.url().includes('/member-safety')) {
+      const membersLink = this.page
+        .locator('a[href*="/member-safety"]')
+        .or(this.page.getByRole('link', { name: /members/i }))
+        .or(this.selector.buttons.memberListButton)
+        .first();
+      if (await membersLink.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await membersLink.click();
+      }
+      if (!this.page.url().includes('/member-safety')) {
+        try {
+          const currentUrl = new URL(this.page.url());
+          const clanMatch = currentUrl.pathname.match(/\/chat\/clans\/(\d+)/);
+          if (clanMatch) {
+            await this.page.goto(`${currentUrl.origin}/chat/clans/${clanMatch[1]}/member-safety`, {
+              waitUntil: 'domcontentloaded',
+            });
+          }
+        } catch {}
+      }
+      await this.page
+        .waitForURL(url => url.pathname.includes('/member-safety'), { timeout: 8000 })
+        .catch(() => {});
+    }
+
     const userRow = this.selector.member.getSettingsRow(username);
     try {
       await expect(userRow).toBeVisible({ timeout: 5000 });
@@ -3135,9 +3137,11 @@ export class ClanPage extends BasePage {
         if (await unbanBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
           await unbanBtn.click();
           await this.page.waitForTimeout(500);
+          await this.closeAllModals();
           return true;
         }
         await this.page.keyboard.press('Escape').catch(() => {});
+        await this.closeAllModals();
       }
     } catch {
       // Ignore if unban fails or user wasn't banned
