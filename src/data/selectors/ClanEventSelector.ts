@@ -10,10 +10,16 @@ export default class ClanEventSelector {
   constructor(private readonly page: Page) {}
 
   readonly modal = {
-    createEventButton: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.button_create')
-    ),
-    nextButton: this.page.locator(generateE2eSelector('clan_page.modal.create_event.next')),
+    createEventButton: this.page
+      .locator(generateE2eSelector('clan_page.modal.create_event.button_create'))
+      .or(this.page.getByRole('button', { name: /^create event$/i }))
+      .or(this.page.locator('button').filter({ hasText: /^Create Event$/i }))
+      .first(),
+    nextButton: this.page
+      .locator(generateE2eSelector('clan_page.modal.create_event.next'))
+      .or(this.page.getByRole('button', { name: /^next$/i }))
+      .or(this.page.locator('button').filter({ hasText: /^Next$/i }))
+      .first(),
   };
 
   readonly createModal = {
@@ -55,15 +61,29 @@ export default class ClanEventSelector {
         generateE2eSelector('clan_page.modal.create_event.location.input')
       ),
     },
-    selectVoiceChannel: this.page.locator(
-      `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select Voice channel")`
-    ),
-    selectChannel: this.page.locator(
-      `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select channel")`
-    ),
-    channelItem: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.location.channel.item')
-    ),
+    selectVoiceChannel: this.page
+      .locator(
+        `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select Voice channel")`
+      )
+      .or(
+        this.page
+          .locator(generateE2eSelector('clan_page.modal.create_event.location'))
+          .locator('div[class*="select"], button, [role="combobox"]')
+      )
+      .or(this.page.locator('text=/select voice channel/i')),
+    selectChannel: this.page
+      .locator(
+        `${generateE2eSelector('clan_page.modal.create_event.location')} div:has-text("Select channel")`
+      )
+      .or(
+        this.page
+          .locator(generateE2eSelector('clan_page.modal.create_event.location'))
+          .locator('div[class*="select"], button, [role="combobox"]')
+      )
+      .or(this.page.locator('text=/select channel/i')),
+    channelItem: this.page
+      .locator(generateE2eSelector('clan_page.modal.create_event.location.channel.item'))
+      .or(this.page.locator('[role="option"], div[role="menuitem"], div[class*="option"]')),
     startTimeReview: this.page.locator(
       generateE2eSelector('clan_page.modal.create_event.review.start_time')
     ),
@@ -161,14 +181,20 @@ export default class ClanEventSelector {
         'clan_page.modal.create_event.event_management.item.modal_detail_item.description'
       )
     ),
-    numberOfInterestedInModal: this.page.locator(
-      generateE2eSelector(
-        'clan_page.modal.create_event.event_management.item.modal_detail_item.number_of_interested'
+    numberOfInterestedInModal: this.page
+      .locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.modal_detail_item.number_of_interested'
+        )
       )
-    ),
-    numberOfInterested: this.page.locator(
-      generateE2eSelector('clan_page.modal.create_event.event_management.item.number_of_interested')
-    ),
+      .first(),
+    numberOfInterested: this.page
+      .locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.number_of_interested'
+        )
+      )
+      .first(),
     tab: {
       eventInfo: this.page.locator(
         generateE2eSelector(

@@ -53,32 +53,40 @@ export class ClanFactory {
       );
       const prefixCount = await clanWithPrefix.count().catch(() => 0);
 
-      // Only reuse if there is a dedicated clan available for this worker index
-      if (prefixCount > workerIndex) {
-        const targetClan = clanWithPrefix.nth(workerIndex);
+      // Search candidates matching prefix to find one where current user has management rights
+      for (let i = 0; i < prefixCount; i++) {
+        const targetClan = clanWithPrefix.nth(i);
         const title = (await targetClan.getAttribute('title').catch(() => '')) || 'ReusedClan';
         await targetClan.click({ force: true }).catch(() => {});
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(1000);
 
-        // Click a text channel in the clan to ensure we land on a chat view
-        const channelItem = page
-          .locator(generateE2eSelector('clan_page.channel_list.item.name'))
-          .or(page.locator(generateE2eSelector('clan_page.channel_list.item')))
-          .or(page.locator('[data-e2e*="channel_list-item"]'))
-          .first();
-        try {
-          await channelItem.waitFor({ state: 'visible', timeout: 5000 });
-          await channelItem.click();
-          await page.waitForTimeout(1000);
-        } catch {}
+        const clanPage = new ClanPage(page);
+        const canManage = await clanPage.openClanSettings();
+        if (canManage) {
+          await clanPage.closeSettingsClanIfOpen();
 
-        this.clanName = title;
-        this.clanUrl = page.url();
-        this.isReused = true;
-        console.log(
-          `[ClanFactory] Reusing existing clan for worker ${workerIndex}: "${this.clanName}" (${this.clanUrl})`
-        );
-        return;
+          // Click a text channel in the clan to ensure we land on a chat view
+          const textChannel = page
+            .locator('button:has-text("general"), [data-e2e*="channel"]:has-text("general")')
+            .or(page.locator('a[href*="/channels/"]:has-text("general")'))
+            .or(page.locator(generateE2eSelector('clan_page.channel_list.item.name')))
+            .or(page.locator(generateE2eSelector('clan_page.channel_list.item')))
+            .or(page.locator('[data-e2e*="channel_list-item"]'))
+            .first();
+          try {
+            await textChannel.waitFor({ state: 'visible', timeout: 5000 });
+            await textChannel.click();
+            await page.waitForTimeout(1000);
+          } catch {}
+
+          this.clanName = title;
+          this.clanUrl = page.url();
+          this.isReused = true;
+          console.log(
+            `[ClanFactory] Reusing existing clan for worker ${workerIndex}: "${this.clanName}" (${this.clanUrl})`
+          );
+          return;
+        }
       }
     }
 

@@ -24,6 +24,8 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
     await AllureReporter.addWorkItemLinks({ parrent_issue: '63370' });
     await AuthHelper.setupAuthWithEmailPassword(page, AccountCredentials.account3);
     await page.goto(directFriendsUrl, { waitUntil: 'domcontentloaded' });
+    const messagePage = new MessagePage(page);
+    await messagePage.dismissPermissionModalIfPresent();
     await page.waitForTimeout(1000);
   });
 
@@ -135,6 +137,7 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
 
     const messagePage = new MessagePage(page);
     await messagePage.ensureGroupChat();
+    await messagePage.dismissPermissionModalIfPresent();
 
     const addUserBtn = page
       .locator(generateE2eSelector('chat.direct_message.button.add_user'))
@@ -142,7 +145,7 @@ test.describe('Direct Message - Group DM Lifecycle, Member Management, Search & 
       .first();
 
     if (await addUserBtn.isVisible({ timeout: 5000 })) {
-      await addUserBtn.click();
+      await addUserBtn.click({ force: true });
       const modal = page
         .locator('div[role="dialog"], div[class*="modal"], div[class*="popover"], .rc-tooltip')
         .or(page.getByRole('heading', { name: 'Select Friends' }))

@@ -5,6 +5,49 @@ import https from 'https';
 import path from 'path';
 import { promisify } from 'util';
 import { generateE2eSelector } from './generateE2eSelector';
+import zlib from 'zlib';
+
+function createValidPngBuffer(width = 320, height = 320, targetBytes = 0): Buffer {
+  const rows: Buffer[] = [];
+  for (let y = 0; y < height; y++) {
+    const r = Buffer.alloc(1 + width * 3);
+    r[0] = 0;
+    for (let x = 0; x < width; x++) {
+      r[1 + x * 3] = (x + y) % 256;
+      r[1 + x * 3 + 1] = (x * 2) % 256;
+      r[1 + x * 3 + 2] = (y * 2) % 256;
+    }
+    rows.push(r);
+  }
+  const rawData = Buffer.concat(rows);
+  const compressed = zlib.deflateSync(rawData);
+
+  const makeChunk = (tag: string, data: Buffer): Buffer => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length, 0);
+    const tagBuf = Buffer.from(tag, 'ascii');
+    const body = Buffer.concat([tagBuf, data]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(zlib.crc32(body) >>> 0, 0);
+    return Buffer.concat([len, body, crc]);
+  };
+
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 2; // RGB
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
+
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    makeChunk('IHDR', ihdr),
+    makeChunk('IDAT', compressed),
+    makeChunk('IEND', Buffer.alloc(0)),
+  ]);
+}
 
 const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
@@ -43,10 +86,10 @@ const UPLOAD_CONFIGS: Record<UploadType, UploadConfig> = {
     selector: '#preview_img',
   },
   [UploadType.STICKER]: {
-    selector: `${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[type="file"], ${generateE2eSelector('clan_page.settings.upload.emoji_input')}`,
+    selector: `div[class*="fixed"] input[type="file"], div[role="dialog"] input[type="file"], ${generateE2eSelector('clan_page.settings.upload.emoji_input')} input[type="file"], ${generateE2eSelector('clan_page.settings.upload.emoji_input')}`,
   },
   [UploadType.VOICE_STICKER]: {
-    selector: `${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')} input[type="file"], ${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')}`,
+    selector: `div[class*="fixed"] input[type="file"], div[role="dialog"] input[type="file"], ${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')} input[type="file"], ${generateE2eSelector('clan_page.settings.upload.voice_sticker_input')}`,
     errorSelector: generateE2eSelector('clan_page.settings.upload.voice_sticker_input.error'),
   },
   [UploadType.CLAN_WEBHOOK_AVATAR]: {
@@ -145,14 +188,7 @@ export class FileSizeTestHelpers {
     const filePath = path.join(this.tmpDir, `${fileName}.${ext}`);
 
     if (ext.toLowerCase() === 'png') {
-      const png = Buffer.from(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
-        'base64'
-      );
-      const out =
-        png.length >= targetBytes
-          ? png
-          : Buffer.concat([png, Buffer.alloc(targetBytes - png.length, 0)]);
+      const out = createValidPngBuffer(320, 320, targetBytes);
       await writeFile(filePath, out);
       return filePath;
     }
@@ -312,6 +348,29 @@ export class FileSizeTestHelpers {
           console.error(`Failed to set file on modal input: ${(e as Error).message}`);
         }
       }
+    }
+
+    // If on a voice channel without composer, try to open chat or switch to a text channel
+    const showChatBtn = this.page
+      .locator('button:has-text("Show Chat"), [aria-label="Show Chat"]')
+      .first();
+    if (await showChatBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await showChatBtn.click().catch(() => {});
+      await this.page.waitForTimeout(500);
+    }
+    const generalChannel = this.page
+      .locator(
+        'button:has-text("general"), [data-e2e*="channel_list"]:has-text("general"), a[href*="/channels/"]:has-text("general")'
+      )
+      .first();
+    const hasComposer = await this.page
+      .locator('#preview_img, input[type="file"], [data-e2e="channel-message-input"]')
+      .first()
+      .isVisible({ timeout: 1000 })
+      .catch(() => false);
+    if (!hasComposer && (await generalChannel.isVisible({ timeout: 1000 }).catch(() => false))) {
+      await generalChannel.click().catch(() => {});
+      await this.page.waitForTimeout(1000);
     }
 
     // Ensure composer is ready and focused if we are using the channel composer

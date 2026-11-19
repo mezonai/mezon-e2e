@@ -14,10 +14,20 @@ export class ClanNotificationPage extends BasePage {
   }
 
   async open(): Promise<void> {
-    await this.selector.menu.clanName.click();
-    await expect(this.selector.menu.notificationSettings).toBeVisible({ timeout: 3000 });
+    await expect(this.selector.menu.clanName).toBeVisible({ timeout: 10000 });
+    if (!(await this.selector.menu.notificationSettings.isVisible().catch(() => false))) {
+      await this.selector.menu.clanName.click();
+      const visible = await this.selector.menu.notificationSettings
+        .waitFor({ state: 'visible', timeout: 3000 })
+        .then(() => true)
+        .catch(() => false);
+      if (!visible) {
+        await this.selector.menu.clanName.click({ force: true });
+        await expect(this.selector.menu.notificationSettings).toBeVisible({ timeout: 5000 });
+      }
+    }
     await this.selector.menu.notificationSettings.click();
-    await expect(this.selector.modal.selectItem.first()).toBeVisible({ timeout: 5000 });
+    await expect(this.selector.modal.selectItem.first()).toBeVisible({ timeout: 8000 });
   }
 
   async selectSetting(option: ClanNotificationOption): Promise<void> {

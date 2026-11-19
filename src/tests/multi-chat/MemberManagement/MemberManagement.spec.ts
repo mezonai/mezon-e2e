@@ -423,7 +423,7 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
       const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
       await memberItem.click();
       await clanPageA.openPopoverRole();
-      await clanPageA.addRoleFromShortProfile();
+      await clanPageA.addRoleFromShortProfile(roleName);
     });
 
     await AllureReporter.step('Verify that user B has role on short profile', async () => {
@@ -529,7 +529,7 @@ test.describe('Member Management - Role Assignment and Cache Refresh', () => {
       const memberItem = await clanPageA.getMemberItemIn2ndSideBarbyUsername(userNameB);
       await memberItem.click();
       await clanPageA.openPopoverRole();
-      await clanPageA.addRoleFromShortProfile();
+      await clanPageA.addRoleFromShortProfile(roleName);
     });
 
     await AllureReporter.step('Verify that user B has role on short profile', async () => {

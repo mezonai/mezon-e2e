@@ -36,34 +36,7 @@ test.describe('Voice Channel - Send Flower', () => {
   }
 
   async function setupFriendship(friendPageA: FriendPage, friendPageB: FriendPage): Promise<void> {
-    await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
-      await Promise.allSettled([
-        friendPageA.unblockFriend(userNameB),
-        friendPageB.unblockFriend(userNameA),
-      ]);
-      await FriendHelper.cleanupMutualFriendRelationships(
-        friendPageA,
-        friendPageB,
-        userNameA,
-        userNameB
-      );
-    });
-
-    await AllureReporter.step(SEND_REQUEST_STEP_NAME, async () => {
-      await friendPageA.sendFriendRequestToUser(userNameB);
-      await friendPageA.verifySentRequestToast();
-    });
-
-    await AllureReporter.step(ACCEPT_REQUEST_STEP_NAME, async () => {
-      await friendPageB.verifyReceivedRequestToast(RECEIVED_REQUEST_TOAST);
-      await friendPageB.acceptFirstFriendRequest();
-    });
-
-    await AllureReporter.step(CHANNEL_MESSAGE_STEPS.verifyMutualFriends, async () => {
-      await friendPageA.assertAllFriend(userNameB);
-      await friendPageB.assertAllFriend(userNameA);
-      await Promise.all([friendPageA.createDM(userNameB), friendPageB.createDM(userNameA)]);
-    });
+    await FriendHelper.ensureMutualFriends(friendPageA, friendPageB, userNameA, userNameB);
   }
 
   async function setupClanWithVoiceChannelAndJoin(

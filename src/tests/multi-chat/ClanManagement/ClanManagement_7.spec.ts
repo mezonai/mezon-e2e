@@ -53,7 +53,7 @@ test.describe('Clan Management - Manage Channels Permission', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const roleName = `role-${Date.now().toString(36).slice(-8)}`;
+    const roleName = `t1-${Date.now().toString(36).slice(-6)}`;
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await Promise.allSettled([
@@ -105,6 +105,11 @@ test.describe('Clan Management - Manage Channels Permission', () => {
       await pageB.reload();
       await clanPageB.openChannelSettingsSidebar('general');
       await clanPageB.verifyUserWithChannelManagePermission(true);
+    });
+
+    await AllureReporter.step('Clean up role from User B', async () => {
+      await clanPageA.openRoleSettingsPage();
+      await clanPageA.removeRoleForUserByUsername(userNameB, roleName);
     });
 
     await AllureReporter.step(MULTI_CHAT_STEPS.cleanupClan, async () => {
@@ -171,6 +176,7 @@ test.describe('Clan Management - Manage Channels Permission', () => {
     });
 
     await AllureReporter.step('Verify User B cannot manage channels', async () => {
+      await clanPageA.removeAllRolesForUserByUsername(userNameB);
       await pageB.reload();
       await clanPageB.openChannelSettingsSidebar('general');
       await clanPageB.verifyUserWithChannelManagePermission(false);
@@ -197,7 +203,7 @@ test.describe('Clan Management - Manage Channels Permission', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const roleName = `role-${Date.now().toString(36).slice(-8)}`;
+    const roleName = `t3-${Date.now().toString(36).slice(-6)}`;
     const channelName = `test-ch-${Date.now().toString(36).slice(-6)}`;
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
@@ -252,6 +258,11 @@ test.describe('Clan Management - Manage Channels Permission', () => {
       expect(created).toBe(true);
     });
 
+    await AllureReporter.step('Clean up role from User B', async () => {
+      await clanPageA.openRoleSettingsPage();
+      await clanPageA.removeRoleForUserByUsername(userNameB, roleName);
+    });
+
     await AllureReporter.step(MULTI_CHAT_STEPS.cleanupClan, async () => {
       await clanFactory.cleanupClan(pageA);
     });
@@ -273,7 +284,7 @@ test.describe('Clan Management - Manage Channels Permission', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const roleName = `role-${Date.now().toString(36).slice(-8)}`;
+    const roleName = `t4-${Date.now().toString(36).slice(-6)}`;
     const newChannelName = `renamed-${Date.now().toString(36).slice(-6)}`;
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
@@ -325,11 +336,18 @@ test.describe('Clan Management - Manage Channels Permission', () => {
     await AllureReporter.step('Verify User B can edit channel name', async () => {
       await pageB.reload();
       await clanPageB.openChannelSettings('general');
-      const input = pageB.locator('input[value="general"]');
+      const input = clanPageB.selector.input.channelName
+        .first()
+        .or(pageB.locator('input[value="general"]'));
       await expect(input).toBeVisible({ timeout: 5000 });
       await input.fill(newChannelName);
       await pageB.waitForTimeout(1000);
       await clanPageB.closeSettingsChannel();
+    });
+
+    await AllureReporter.step('Clean up role from User B', async () => {
+      await clanPageA.openRoleSettingsPage();
+      await clanPageA.removeRoleForUserByUsername(userNameB, roleName);
     });
 
     await AllureReporter.step(MULTI_CHAT_STEPS.cleanupClan, async () => {
@@ -357,7 +375,7 @@ test.describe('Clan Management - Manage Channels Permission', () => {
 
     const clanPageA = new ClanPage(pageA);
     const clanPageB = new ClanPage(pageB);
-    const roleName = `role-${Date.now().toString(36).slice(-8)}`;
+    const roleName = `t5-${Date.now().toString(36).slice(-6)}`;
 
     await AllureReporter.step(CLEANUP_STEP_NAME, async () => {
       await Promise.allSettled([

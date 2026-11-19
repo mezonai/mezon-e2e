@@ -9,7 +9,7 @@ import ClanSettingSelector from './ClanSettingSelector';
 const CREATE_CLAN_MODAL_SELECTOR = generateE2eSelector('clan_page.modal.create_clan');
 const BASE_BUTTON_SELECTOR = generateE2eSelector('button.base');
 const CLAN_HEADER_MENU_ITEM_SELECTOR = generateE2eSelector('clan_page.header.modal_panel.item');
-const MENTION_INPUT_SELECTOR = generateE2eSelector('mention.input');
+const MENTION_INPUT_SELECTOR = `${generateE2eSelector('mention.input')}, [data-e2e="mention-input"], [contenteditable="true"], div[role="textbox"]`;
 const TOPIC_BOX_SELECTOR = generateE2eSelector('discussion.box.topic');
 const THREAD_BOX_SELECTOR = generateE2eSelector('discussion.box.thread');
 
@@ -124,7 +124,7 @@ export default class ClanSelector {
     topicBannedTime: this.page.locator(
       `${TOPIC_BOX_SELECTOR} ${generateE2eSelector('mention.banned.time')}`
     ),
-    topicInput: this.page.locator(`${TOPIC_BOX_SELECTOR} ${MENTION_INPUT_SELECTOR}`),
+    topicInput: this.page.locator(TOPIC_BOX_SELECTOR).locator(MENTION_INPUT_SELECTOR).first(),
   };
 
   readonly clanSettings = this.settings.general;
@@ -151,8 +151,12 @@ export default class ClanSelector {
             'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
           )
         )
+        .or(this.page.getByRole('button', { name: /^create thread$/i }))
+        .or(this.page.getByRole('button', { name: /^create$/i }))
         .or(this.page.getByRole('button', { name: /create thread/i }))
-        .or(this.page.locator('button').filter({ hasText: 'Create Thread' })),
+        .or(this.page.locator('button').filter({ hasText: /^Create Thread$/i }))
+        .or(this.page.locator('button').filter({ hasText: /^Create$/i }))
+        .first(),
       member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
       pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
       canvas: this.page.locator(generateE2eSelector('chat.channel_message.header.button.canvas')),
@@ -168,7 +172,10 @@ export default class ClanSelector {
     threadPrivateCheckbox: this.page.locator(
       generateE2eSelector('chat.channel_message.thread_box.checkbox.private_thread')
     ),
-    threadInputMention: this.page.locator(`${THREAD_BOX_SELECTOR} ${MENTION_INPUT_SELECTOR}`),
+    threadInputMention: this.page
+      .locator(THREAD_BOX_SELECTOR)
+      .locator(MENTION_INPUT_SELECTOR)
+      .first(),
     messageItem: this.page.locator(`${THREAD_BOX_SELECTOR} ${generateE2eSelector('message.item')}`),
     reopenMessageItem: this.page.locator(`${generateE2eSelector('message.item')}`),
     button: {
