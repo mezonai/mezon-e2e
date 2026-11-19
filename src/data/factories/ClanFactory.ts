@@ -66,14 +66,16 @@ export class ClanFactory {
           await clanPage.closeSettingsClanIfOpen();
 
           // Click a text channel in the clan to ensure we land on a chat view
-          const channelItem = page
-            .locator(generateE2eSelector('clan_page.channel_list.item.name'))
+          const textChannel = page
+            .locator('button:has-text("general"), [data-e2e*="channel"]:has-text("general")')
+            .or(page.locator('a[href*="/channels/"]:has-text("general")'))
+            .or(page.locator(generateE2eSelector('clan_page.channel_list.item.name')))
             .or(page.locator(generateE2eSelector('clan_page.channel_list.item')))
             .or(page.locator('[data-e2e*="channel_list-item"]'))
             .first();
           try {
-            await channelItem.waitFor({ state: 'visible', timeout: 5000 });
-            await channelItem.click();
+            await textChannel.waitFor({ state: 'visible', timeout: 5000 });
+            await textChannel.click();
             await page.waitForTimeout(1000);
           } catch {}
 

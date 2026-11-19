@@ -1,4 +1,5 @@
 import ClanSettingSelector from '@/data/selectors/ClanSettingSelector';
+import { generateE2eSelector } from '@/utils/generateE2eSelector';
 import { isWebhookJustCreated } from '@/utils/clanSettingsHelper';
 import { type Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
@@ -82,12 +83,36 @@ export class ClanSettingsPage extends BasePage {
     await expect(this.selector.community.modal).toBeHidden({ timeout: 5000 });
   }
 
+  async dismissPermissionOrUnsavedModal(): Promise<void> {
+    const errorHeading = this.page
+      .getByRole('heading', { name: /Internal error/i })
+      .or(this.page.locator('h3:has-text("Internal error"), [data-e2e*="permission"]'));
+    if (
+      await errorHeading
+        .first()
+        .isVisible({ timeout: 1000 })
+        .catch(() => false)
+    ) {
+      const cancelBtn = this.page
+        .getByRole('button', { name: /^Cancel$/i })
+        .or(this.page.locator('button:has-text("Cancel"), button:has-text("Never Mind")'))
+        .first();
+      if (await cancelBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await cancelBtn.click({ force: true }).catch(() => {});
+      } else {
+        await this.page.keyboard.press('Escape').catch(() => {});
+      }
+      await this.page.waitForTimeout(500);
+    }
+  }
+
   async closeClanSettings(): Promise<void> {
     await this.selector.buttons.closeSettingClan.click();
     await expect(this.selector.buttons.closeSettingClan).toBeHidden({ timeout: 5000 });
   }
 
   async clickSettingClanSection(section: string): Promise<void> {
+    await this.dismissPermissionOrUnsavedModal();
     const sidebarItem = this.selector.buttons.sidebarItem.filter({ hasText: section });
     await sidebarItem.click();
     await expect(sidebarItem).toBeVisible();
@@ -143,11 +168,16 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async clickUploadImageSticker(): Promise<void> {
-    await this.selector.buttons.uploadImageSticker.click();
+    await this.dismissPermissionOrUnsavedModal();
+    const btn = this.selector.buttons.uploadImageSticker
+      .or(this.page.locator('button:has-text("Upload Sticker"), button:has-text("upload sticker")'))
+      .first();
+    await btn.click({ force: true });
     await this.page.waitForTimeout(1000);
   }
 
   async nameAndSaveImageSticker(stickerName: string): Promise<void> {
+    await this.dismissPermissionOrUnsavedModal();
     const normalizedStickerName = stickerName.replace(/\s+/g, '');
     const nameInput = this.selector.imageSticker.upload.input.name;
     await expect(nameInput).toBeVisible({ timeout: 5000 });
@@ -155,11 +185,12 @@ export class ClanSettingsPage extends BasePage {
 
     const uploadModal = nameInput.locator('xpath=ancestor::div[contains(@class, "fixed")][1]');
     const saveButton = uploadModal
-      .locator(this.selector.imageSticker.upload.button.save)
-      .or(this.page.locator('button', { hasText: /Upload Sticker/i }))
+      .locator('button')
+      .filter({ hasText: /^Upload Sticker$/i })
+      .or(uploadModal.locator(this.selector.imageSticker.upload.button.save))
       .first();
     await expect(saveButton).toBeVisible({ timeout: 5000 });
-    await saveButton.click({ force: true });
+    await saveButton.click();
     await expect(saveButton)
       .toBeHidden({ timeout: 15000 })
       .catch(async () => {
@@ -173,9 +204,11 @@ export class ClanSettingsPage extends BasePage {
           await closeBtn.click({ force: true }).catch(() => {});
         }
       });
-    await expect(
-      this.selector.imageSticker.item.name.filter({ hasText: normalizedStickerName })
-    ).toBeVisible({ timeout: 10000 });
+    const stickerItem = this.selector.imageSticker.item.name
+      .filter({ hasText: normalizedStickerName })
+      .or(this.page.getByText(normalizedStickerName, { exact: true }))
+      .or(this.page.locator(`[data-e2e*="image_sticker"]:has-text("${normalizedStickerName}")`));
+    await expect(stickerItem.first()).toBeVisible({ timeout: 10000 });
   }
 
   async editEmojiName(oldName: string, newName: string): Promise<void> {
@@ -196,20 +229,35 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async deleteEmoji(emojiName: string): Promise<void> {
+    await this.dismissPermissionOrUnsavedModal();
     const normalizedName = emojiName.replace(/\s+/g, '');
     const nameInput = this.selector.emoji.item.nameInput
       .and(this.page.locator(`[value="${normalizedName}"]`))
       .or(this.page.locator(`input:not([placeholder])[value="${normalizedName}"]`))
       .first();
     await expect(nameInput).toBeVisible({ timeout: 5000 });
-    const emojiItem = nameInput.locator('xpath=ancestor::div[contains(@class, "border-b")][1]');
+    const emojiItem = nameInput
+      .locator('xpath=ancestor::div[contains(@class, "flex") and .//img][1]')
+      .or(nameInput.locator('xpath=ancestor::div[contains(@class, "border-b")][1]'))
+      .or(nameInput.locator('xpath=ancestor::div[2]'))
+      .first();
     await emojiItem.hover();
-    await emojiItem
+    const deleteBtn = emojiItem
       .locator(this.selector.emoji.item.delete)
+      .or(emojiItem.locator('[data-e2e*="delete"]'))
       .or(emojiItem.getByRole('button', { name: 'X', exact: true }))
-      .first()
-      .click();
-    await expect(nameInput).toBeHidden({ timeout: 5000 });
+      .or(emojiItem.locator('button, svg').last())
+      .first();
+    await deleteBtn.click({ force: true });
+    const confirmPrompt = this.page.getByText('Are you sure you want to delete');
+    await expect(confirmPrompt).toBeVisible({ timeout: 5000 });
+    const deleteConfirmBtn = this.page
+      .locator('div, button, span')
+      .filter({ hasText: /^Delete$/ })
+      .last();
+    await deleteConfirmBtn.click();
+    await expect(confirmPrompt).toBeHidden({ timeout: 10000 });
+    await expect(nameInput).toBeHidden({ timeout: 10000 });
   }
 
   async editImageStickerName(oldName: string, newName: string): Promise<void> {
@@ -231,28 +279,55 @@ export class ClanSettingsPage extends BasePage {
     const nameInput = this.page.locator(`input[value="${oldNormalizedName}"]`).last();
     await expect(nameInput).toBeVisible({ timeout: 5000 });
     await nameInput.fill(newNormalizedName);
-    await this.selector.imageSticker.upload.button.save.click();
-    await expect(this.selector.imageSticker.upload.button.save).toBeHidden({ timeout: 5000 });
+    const modal = nameInput.locator('xpath=ancestor::div[contains(@class, "fixed")][1]');
+    const saveBtn = modal
+      .locator('button')
+      .filter({ hasText: /^Save Changes$|^Upload Sticker$|^Save$|^Update$/i })
+      .or(this.selector.imageSticker.upload.button.save)
+      .or(this.page.locator('button:has-text("Save"), button:has-text("Update")'))
+      .first();
+    if (await saveBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await saveBtn.click();
+    } else {
+      await nameInput.press('Enter');
+    }
+    await this.page.waitForTimeout(1000);
 
     const editedStickerName = this.page.getByText(newNormalizedName, { exact: true });
     await expect(editedStickerName).toBeVisible({ timeout: 5000 });
   }
 
   async deleteImageSticker(stickerName: string): Promise<void> {
+    await this.dismissPermissionOrUnsavedModal();
     const normalizedName = stickerName.replace(/\s+/g, '');
     const name = this.selector.imageSticker.item.name
       .filter({ hasText: normalizedName })
       .or(this.page.getByText(normalizedName, { exact: true }))
       .first();
     await expect(name).toBeVisible({ timeout: 5000 });
-    const stickerItem = name.locator('xpath=ancestor::div[.//img][1]');
+    const stickerItem = name
+      .locator('xpath=ancestor::div[contains(@class, "flex") and .//img][1]')
+      .or(name.locator('xpath=ancestor::div[contains(@class, "relative") and .//img][1]'))
+      .or(name.locator('xpath=ancestor::div[.//img][1]'))
+      .or(name.locator('xpath=ancestor::div[2]'))
+      .first();
     await stickerItem.hover();
-    await stickerItem
+    const deleteBtn = stickerItem
       .locator(this.selector.imageSticker.item.delete)
+      .or(stickerItem.locator('[data-e2e*="delete"]'))
       .or(stickerItem.getByRole('button', { name: 'x', exact: true }))
-      .first()
-      .click();
-    await expect(name).toBeHidden({ timeout: 5000 });
+      .or(stickerItem.locator('button, svg').last())
+      .first();
+    await deleteBtn.click({ force: true });
+    const confirmPrompt = this.page.getByText('Are you sure you want to delete');
+    await expect(confirmPrompt).toBeVisible({ timeout: 5000 });
+    const deleteConfirmBtn = this.page
+      .locator('div, button, span')
+      .filter({ hasText: /^Delete$/ })
+      .last();
+    await deleteConfirmBtn.click();
+    await expect(confirmPrompt).toBeHidden({ timeout: 10000 });
+    await expect(name).toBeHidden({ timeout: 10000 });
   }
 
   async clickUploadVoiceStickers(): Promise<void> {

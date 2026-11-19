@@ -8,7 +8,10 @@ export default class ClanNotificationSelector {
   constructor(private readonly page: Page) {}
 
   readonly menu = {
-    clanName: this.page.locator(`${generateE2eSelector('clan_page.header.title.clan_name')} p`),
+    clanName: this.page
+      .locator(generateE2eSelector('clan_page.header.title.clan_name'))
+      .or(this.page.locator(`${generateE2eSelector('clan_page.header.title.clan_name')} p`))
+      .first(),
     notificationSettings: this.page.locator(
       generateE2eSelector('clan_page.header.modal_panel.item'),
       { hasText: 'Notification Settings' }

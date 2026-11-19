@@ -79,9 +79,17 @@ export class MessagePage extends BasePage {
   }
 
   async dismissPermissionModalIfPresent(): Promise<void> {
-    const modal = this.page.locator(generateE2eSelector('clan_page.settings.modal.permission'));
-    if (await modal.isVisible().catch(() => false)) {
-      const btn = modal.locator('button').first();
+    const modal = this.page
+      .locator(
+        `${generateE2eSelector('clan_page.settings.modal.permission')}, [data-e2e*="modal.permission"], [data-e2e*="modal-permission"]`
+      )
+      .first();
+    if (await modal.isVisible({ timeout: 1500 }).catch(() => false)) {
+      const btn = modal
+        .locator(
+          `${generateE2eSelector('clan_page.settings.modal.permission.cancel')}, ${generateE2eSelector('clan_page.settings.modal.permission.confirm')}, button:has-text("Cancel"), button`
+        )
+        .first();
       await btn.click({ force: true }).catch(() => {});
       await modal.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
       await this.page.keyboard.press('Escape').catch(() => {});
@@ -116,7 +124,7 @@ export class MessagePage extends BasePage {
 
       try {
         await expect(this.selector.createGroupButton).toBeHidden({ timeout: 4000 });
-        await expect(this.selector.messageInput).toBeVisible({ timeout: 6000 });
+        await expect(this.selector.messageInput.first()).toBeVisible({ timeout: 6000 });
         return;
       } catch {
         await this.dismissPermissionModalIfPresent();
@@ -147,7 +155,7 @@ export class MessagePage extends BasePage {
     await expect(this.selector.createGroupButton)
       .toBeHidden()
       .catch(() => {});
-    await expect(this.selector.messageInput).toBeVisible({ timeout: 8000 });
+    await expect(this.selector.messageInput.first()).toBeVisible({ timeout: 8000 });
   }
 
   async clickEditButton(): Promise<void> {

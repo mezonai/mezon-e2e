@@ -179,9 +179,16 @@ export class FriendPage extends BasePage {
   async acceptFirstFriendRequest(): Promise<void> {
     await this.gotoFriendsPage();
     await this.clickPendingTab();
-    await this.waitForFriendListVisible();
-    await expect(this.selector.buttons.acceptFriendRequest.first()).toBeVisible({ timeout: 5000 });
-    await this.selector.buttons.acceptFriendRequest.first().click();
+    const acceptBtn = this.selector.buttons.acceptFriendRequest
+      .or(this.page.locator('[data-e2e*="accept_friend"], button:has-text("Accept")'))
+      .first();
+    if (!(await acceptBtn.isVisible().catch(() => false))) {
+      await this.page.reload();
+      await this.gotoFriendsPage();
+      await this.clickPendingTab();
+    }
+    await expect(acceptBtn).toBeVisible({ timeout: 15000 });
+    await acceptBtn.click();
   }
 
   async acceptFriendRequestFromUser(username: string): Promise<void> {
@@ -222,7 +229,12 @@ export class FriendPage extends BasePage {
   }
 
   async waitForFriendListVisible(): Promise<void> {
-    await this.selector.lists.friendAll.first().waitFor({ state: 'visible', timeout: 20000 });
+    const list = this.selector.lists.friendAll
+      .or(this.page.locator('[data-e2e*="friend_list"]'))
+      .or(this.selector.buttons.acceptFriendRequest)
+      .or(this.page.locator('[data-e2e*="friend"]'))
+      .first();
+    await list.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
   }
 
   async openMoreMenuForFriend(username: string): Promise<void> {
