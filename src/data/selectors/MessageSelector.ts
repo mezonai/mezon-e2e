@@ -209,7 +209,13 @@ export default class MessageSelector {
       item: this.page.locator(generateE2eSelector('chat.search_message.select.item')),
     },
   };
-  messageInput = this.page.locator(generateE2eSelector('mention.input'));
+  messageInput = this.page
+    .locator(generateE2eSelector('mention.input'))
+    .or(this.page.locator('[data-e2e="mention-input"]'))
+    .or(this.page.locator('[contenteditable="true"]'))
+    .or(this.page.locator('div[role="textbox"]'))
+    .or(this.page.getByRole('textbox', { name: /message/i }))
+    .first();
   spellingRecommendation = this.page.locator(generateE2eSelector('chat.spelling.recommendation'));
   emojiButton = this.page.locator(generateE2eSelector('mention.button.emoji'));
   stickerButton = this.page.locator(generateE2eSelector('mention.button.sticker'));

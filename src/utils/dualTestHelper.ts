@@ -1,10 +1,18 @@
+import { AccountCredentials } from '@/config/environment';
 import { MezonCredentials } from '@/types';
 import { AuthHelper } from '@/utils/authHelper';
 import { Page } from '@playwright/test';
 import { DualProvider } from '../fixtures/dual.fixture';
 
 export function getUsernamesFromEmails(emails: string[]): string[] {
-  return emails.map(email => email.split('@')[0]);
+  return emails.map(email => {
+    const matched = Object.values(AccountCredentials).find(
+      c => c.email.toLowerCase() === email.toLowerCase()
+    );
+    const resolved = matched ? AuthHelper.resolveWorkerCredentials(matched) : null;
+    const finalEmail = resolved ? resolved.email : email;
+    return finalEmail.split('@')[0];
+  });
 }
 
 type DualUserSetupOptions = {

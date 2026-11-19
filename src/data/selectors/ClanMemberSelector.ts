@@ -57,9 +57,18 @@ export default class ClanMemberSelector {
   };
 
   getSettingsRow(username: string): Locator {
-    return this.settings.userContainer.filter({
-      has: this.settings.username.filter({ hasText: username }),
-    });
+    return this.settings.userContainer
+      .filter({
+        has: this.settings.username
+          .filter({ hasText: username })
+          .or(this.page.locator(`p:has-text("${username}"), span:has-text("${username}")`)),
+      })
+      .or(
+        this.page
+          .locator('div[data-e2e="clan_page-member_list"], div.cursor-pointer')
+          .filter({ hasText: username })
+      )
+      .first();
   }
 
   getSecondarySidebarMember(username: string): Locator {

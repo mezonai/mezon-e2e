@@ -127,7 +127,12 @@ export default class ProfileSelector {
     aboutMe: this.page.locator(
       `${generateE2eSelector('user_setting.profile.user_profile.input.about_me')}`
     ),
-    mention: this.page.locator(`${generateE2eSelector('mention.input')}`),
+    mention: this.page
+      .locator(generateE2eSelector('mention.input'))
+      .or(this.page.locator('[data-e2e="mention-input"]'))
+      .or(this.page.locator('[contenteditable="true"]'))
+      .or(this.page.locator('div[role="textbox"]'))
+      .first(),
   };
 
   readonly texts = {

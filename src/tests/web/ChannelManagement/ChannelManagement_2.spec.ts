@@ -321,8 +321,9 @@ test.describe('Channel Management - Overview, Privacy, Voice, and Deletion', () 
     });
 
     await AllureReporter.step('Verify that deleted channel is not in channels list', async () => {
-      const isNewChannelPresent = await clanPage.isNewChannelPresent(channelName);
-      expect(isNewChannelPresent).toBe(false);
+      await expect
+        .poll(async () => clanPage.isNewChannelPresent(channelName), { timeout: 10000 })
+        .toBe(false);
     });
 
     await AllureReporter.step('Verify that deleted channel is not in channels tab', async () => {

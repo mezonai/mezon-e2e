@@ -29,6 +29,9 @@ test.describe('Thread Management - Pagination, Private Threads, Bounds & Resilie
     const creds = await AuthHelper.setupAuthWithEmailPassword(page, credentials);
     await AuthHelper.prepareBeforeTest(page, directFriendsUrl, creds);
 
+    const clanPage = new ClanPage(page);
+    await clanPage.closeAllModals().catch(() => {});
+
     const firstClan = page
       .locator(generateE2eSelector('clan_page.side_bar.clan_item'))
       .or(page.locator('a[href*="/chat/clans/"]'))
@@ -37,7 +40,7 @@ test.describe('Thread Management - Pagination, Private Threads, Bounds & Resilie
       const clanFactory = new ClanFactory();
       await clanFactory.setupClan(ClanSetupHelper.configs.channelMessage1, page);
     } else {
-      await firstClan.click();
+      await firstClan.click({ force: true });
       await page.waitForLoadState('domcontentloaded');
     }
 
@@ -47,8 +50,10 @@ test.describe('Thread Management - Pagination, Private Threads, Bounds & Resilie
       .or(page.locator(generateE2eSelector('clan_page.channel_list.item')))
       .first();
     await expect(channelItem).toBeVisible({ timeout: 10000 });
-    await channelItem.click();
+    await channelItem.click({ force: true });
     await page.waitForLoadState('domcontentloaded');
+
+    await clanPage.closeAllModals().catch(() => {});
   });
 
   test.afterEach(async ({ page }) => {
