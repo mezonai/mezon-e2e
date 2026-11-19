@@ -105,12 +105,37 @@ export class ClanPage extends BasePage {
   }
 
   async isClanPresent(clanName: string): Promise<boolean> {
-    const clanLocator = this.page.locator(generateE2eSelector('clan_page.header.title.clan_name'), {
-      hasText: clanName,
-    });
+    const escaped = escapeRegExp(clanName);
+    const clanHeaderLocator = this.page
+      .locator(generateE2eSelector('clan_page.header.title.clan_name'), {
+        hasText: new RegExp(escaped, 'i'),
+      })
+      .or(
+        this.page.locator('[data-e2e*="clan_page-header-title-clan_name"]').filter({
+          hasText: new RegExp(escaped, 'i'),
+        })
+      );
+    const clanSidebarItem = this.page.locator(
+      `[data-e2e="clan_page-side_bar-clan_item"][title*="${clanName}"]`
+    );
 
     try {
-      await clanLocator.waitFor({ state: 'visible', timeout: 5000 });
+      if (
+        (await clanHeaderLocator
+          .first()
+          .isVisible({ timeout: 2000 })
+          .catch(() => false)) ||
+        (await clanSidebarItem
+          .first()
+          .isVisible({ timeout: 2000 })
+          .catch(() => false))
+      ) {
+        return true;
+      }
+      await clanHeaderLocator
+        .first()
+        .or(clanSidebarItem.first())
+        .waitFor({ state: 'visible', timeout: 5000 });
       return true;
     } catch {
       return false;
@@ -692,7 +717,7 @@ export class ClanPage extends BasePage {
   ): Promise<boolean> {
     try {
       await this.closeAllModals();
-      const createBtn = this.selector.buttons.createChannel.last();
+      const createBtn = this.selector.buttons.createChannel.first();
       await expect(createBtn).toBeVisible({ timeout: 5000 });
       await createBtn.click();
       await expect(this.selector.createChannelModal.input.channelName).toBeVisible({
@@ -935,8 +960,11 @@ export class ClanPage extends BasePage {
 
   async openThreadModalFromHeader(): Promise<void> {
     const createThreadBtn = this.selector.header.button.createThread
+      .or(this.page.getByRole('button', { name: /^create thread$/i }))
+      .or(this.page.getByRole('button', { name: /^create$/i }))
       .or(this.page.getByRole('button', { name: /create thread/i }))
-      .or(this.page.locator('button').filter({ hasText: 'Create Thread' }));
+      .or(this.page.locator('button').filter({ hasText: /^Create Thread$/i }))
+      .or(this.page.locator('button').filter({ hasText: /^Create$/i }));
     if (
       !(await createThreadBtn
         .first()
@@ -949,8 +977,11 @@ export class ClanPage extends BasePage {
 
   async verifyCreateThreadButtonIsOpen(shouldVisible = true): Promise<boolean> {
     const createThreadButtonLocator = this.selector.header.button.createThread
+      .or(this.page.getByRole('button', { name: /^create thread$/i }))
+      .or(this.page.getByRole('button', { name: /^create$/i }))
       .or(this.page.getByRole('button', { name: /create thread/i }))
-      .or(this.page.locator('button').filter({ hasText: 'Create Thread' }))
+      .or(this.page.locator('button').filter({ hasText: /^Create Thread$/i }))
+      .or(this.page.locator('button').filter({ hasText: /^Create$/i }))
       .first();
     if (shouldVisible) {
       await expect(createThreadButtonLocator).toBeVisible({ timeout: 5000 });
@@ -963,8 +994,11 @@ export class ClanPage extends BasePage {
 
   async createThread(threadName: string, status?: ThreadStatus): Promise<void> {
     const createThreadBtn = this.selector.header.button.createThread
+      .or(this.page.getByRole('button', { name: /^create thread$/i }))
+      .or(this.page.getByRole('button', { name: /^create$/i }))
       .or(this.page.getByRole('button', { name: /create thread/i }))
-      .or(this.page.locator('button').filter({ hasText: 'Create Thread' }))
+      .or(this.page.locator('button').filter({ hasText: /^Create Thread$/i }))
+      .or(this.page.locator('button').filter({ hasText: /^Create$/i }))
       .first();
 
     if (!(await createThreadBtn.isVisible({ timeout: 1500 }).catch(() => false))) {

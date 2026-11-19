@@ -151,8 +151,11 @@ export default class ClanSelector {
             'chat.channel_message.header.button.thread.modal.thread_management.button.create_thread'
           )
         )
+        .or(this.page.getByRole('button', { name: /^create thread$/i }))
+        .or(this.page.getByRole('button', { name: /^create$/i }))
         .or(this.page.getByRole('button', { name: /create thread/i }))
-        .or(this.page.locator('button').filter({ hasText: 'Create Thread' })),
+        .or(this.page.locator('button').filter({ hasText: /^Create Thread$/i }))
+        .or(this.page.locator('button').filter({ hasText: /^Create$/i })),
       member: this.page.locator(generateE2eSelector('chat.channel_message.header.button.member')),
       pin: this.page.locator(generateE2eSelector('chat.channel_message.header.button.pin')),
       canvas: this.page.locator(generateE2eSelector('chat.channel_message.header.button.canvas')),
