@@ -122,7 +122,9 @@ test.describe('Channel Message - Limits, Pinned Message Bounds, Markdown Formatt
     if (await seeAllBtn.isVisible({ timeout: 5000 })) {
       await seeAllBtn.click();
       const pinnedListModal = page
-        .locator('[data-e2e*="pinned_message"], div[class*="pinned"]')
+        .locator(
+          '[data-e2e*="pinned_message"], div[class*="pinned"], [data-e2e*="topic_pin_banner"], div[role="dialog"]'
+        )
         .first();
       await expect(pinnedListModal).toBeVisible({ timeout: 5000 });
       await page.keyboard.press('Escape');

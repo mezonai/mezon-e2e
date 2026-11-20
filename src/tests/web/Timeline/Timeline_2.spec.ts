@@ -96,14 +96,16 @@ test.describe('Timeline - Year Filter and Calendar Navigation', () => {
       await messagePage.openCalendar();
       const currentYear = await messagePage.getSelectedYear();
       expect(currentYear).toBeTruthy();
-      await expect(page.locator(`text=Events in ${currentYear}`)).toBeVisible({ timeout: 5000 });
+      await expect(page.locator(`text=Events in ${currentYear}`).first()).toBeVisible({
+        timeout: 5000,
+      });
     });
 
     await AllureReporter.step('Switch year filter to 2025', async () => {
       const year2025Btn = page.locator('button', { hasText: '2025' }).first();
       if (await year2025Btn.isVisible({ timeout: 3000 })) {
         await year2025Btn.click();
-        await expect(page.locator('text=Events in 2025')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('text=Events in 2025').first()).toBeVisible({ timeout: 5000 });
       }
     });
 
@@ -112,8 +114,12 @@ test.describe('Timeline - Year Filter and Calendar Navigation', () => {
       const currentYearBtn = page.locator('button', { hasText: currentYear }).first();
       if (await currentYearBtn.isVisible({ timeout: 3000 })) {
         await currentYearBtn.click();
-        await expect(page.locator(`text=Events in ${currentYear}`)).toBeVisible({ timeout: 5000 });
-        await expect(page.locator(`text=${eventData.title}`)).toBeVisible({ timeout: 5000 });
+        await expect(page.locator(`text=Events in ${currentYear}`).first()).toBeVisible({
+          timeout: 5000,
+        });
+        await expect(page.locator(`text=${eventData.title}`).first()).toBeVisible({
+          timeout: 5000,
+        });
       }
     });
   });

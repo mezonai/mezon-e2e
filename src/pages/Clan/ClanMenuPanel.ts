@@ -10,9 +10,15 @@ export class ClanMenuPanel extends BasePage {
   }
 
   readonly buttons = {
-    createCategory: this.page.locator(CLAN_PANEL_ITEM, {
-      hasText: 'Create Category',
-    }),
+    createCategory: this.page
+      .locator(CLAN_PANEL_ITEM, {
+        hasText: 'Create Category',
+      })
+      .or(
+        this.page
+          .locator('button, div[role="menuitem"], [data-e2e*="panel-item"]')
+          .filter({ hasText: /^Create Category$/i })
+      ),
     private: this.page.locator(
       generateE2eSelector('clan_page.modal.create_category.toggle.private')
     ),
@@ -105,25 +111,27 @@ export class ClanMenuPanel extends BasePage {
   }
 
   async openPanel(): Promise<void> {
-    if (await this.buttons.createCategory.isVisible().catch(() => false)) {
+    const anyMenuItem = this.page.locator(CLAN_PANEL_ITEM).or(this.buttons.invitePeople).first();
+    if (await anyMenuItem.isVisible().catch(() => false)) {
       return;
     }
-    await this.text.clanName
+    const clanHeaderBtn = this.text.clanName
       .first()
-      .click()
-      .catch(() => {});
-    const menuOpen = await this.buttons.createCategory
+      .or(
+        this.page
+          .locator(
+            '[data-e2e*="header-title"], [data-e2e*="clan_name"], button:has([data-e2e*="clan_name"])'
+          )
+          .first()
+      );
+    await clanHeaderBtn.click().catch(() => {});
+    const menuOpen = await anyMenuItem
       .waitFor({ state: 'visible', timeout: 3000 })
       .then(() => true)
       .catch(() => false);
     if (!menuOpen) {
-      await this.text.clanName
-        .first()
-        .click()
-        .catch(() => {});
-      await this.buttons.createCategory
-        .waitFor({ state: 'visible', timeout: 3000 })
-        .catch(() => {});
+      await clanHeaderBtn.click({ force: true }).catch(() => {});
+      await anyMenuItem.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     }
   }
 
