@@ -44,7 +44,7 @@ export class ClanFactory {
 
     const { clanNamePrefix = 'TestClan' } = config;
 
-    const shouldReuse = process.env.REUSE_EXISTING_CLAN !== 'false';
+    const shouldReuse = config.reuseClan !== false && process.env.REUSE_EXISTING_CLAN !== 'false';
     const workerIndex = AuthHelper.getWorkerIndex();
 
     if (shouldReuse) {
@@ -63,6 +63,25 @@ export class ClanFactory {
         const clanPage = new ClanPage(page);
         const canManage = await clanPage.openClanSettings();
         if (canManage) {
+          const hasRolesTab = await clanPage.selector.clanSettings.buttons.roleSettings
+            .isVisible({ timeout: 2000 })
+            .catch(() => false);
+          const hasOverviewTab = await clanPage.selector.clanSettings.buttons.sidebarItem
+            .filter({ hasText: 'Overview' })
+            .isVisible({ timeout: 2000 })
+            .catch(() => false);
+          const hasDeleteClan = await clanPage.selector.clanSettings.buttons.deleteClan
+            .isVisible({ timeout: 2000 })
+            .catch(() => false);
+
+          if (!hasRolesTab || !hasOverviewTab || !hasDeleteClan) {
+            console.log(
+              `[ClanFactory] Clan "${title}" is not owned by current user (missing Roles/Overview/Delete). Skipping reuse.`
+            );
+            await clanPage.closeSettingsClanIfOpen();
+            continue;
+          }
+
           await clanPage.closeSettingsClanIfOpen();
 
           // Click a text channel in the clan to ensure we land on a chat view

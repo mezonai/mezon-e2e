@@ -1156,7 +1156,7 @@ export class MessageTestHelpers extends MessageContentHelpers {
   }
 
   async clickJumpToPinMessageFromSystemMessage() {
-    await this.selector.jumpToPinnedMessageButtonFromSystemMessage.click();
+    await this.selector.jumpToPinnedMessageButtonFromSystemMessage.last().click();
   }
 
   async getMessageByIdentity(identity: string) {

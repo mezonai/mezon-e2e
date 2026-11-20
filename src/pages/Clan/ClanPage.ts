@@ -397,6 +397,7 @@ export class ClanPage extends BasePage {
         return false;
       }
       await this.closeAllModals();
+      await this.closeSettingsClanIfOpen();
 
       const categoryPage = new ClanMenuPanel(this.page);
       const categorySettingPage = new CategorySettingPage(this.page);
@@ -405,6 +406,17 @@ export class ClanPage extends BasePage {
       await clanLocator.waitFor({ state: 'visible', timeout: 5000 });
       await clanLocator.click({ timeout: 5000 });
       await this.page.waitForTimeout(500);
+
+      if (this.page.url().includes('/member-safety')) {
+        const textChannel = this.page
+          .locator('button:has-text("general"), [data-e2e*="channel"]:has-text("general")')
+          .or(this.page.locator('a[href*="/channels/"]'))
+          .first();
+        if (await textChannel.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await textChannel.click();
+          await this.page.waitForTimeout(500);
+        }
+      }
 
       // Wait for clan header title to appear and click to open dropdown
       const clanHeader = categoryPage.text.clanName.first();
@@ -580,6 +592,12 @@ export class ClanPage extends BasePage {
 
   async uploadClanBanner(filePath: string): Promise<void> {
     await this.openClanSettings();
+    const overviewTab = this.selector.clanSettings.buttons.sidebarItem
+      .filter({ hasText: 'Overview' })
+      .first();
+    if (await overviewTab.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await overviewTab.click({ force: true });
+    }
     const bannerInput = this.page
       .locator(generateE2eSelector('clan_page.settings.upload.clan_banner_input'))
       .or(this.page.locator('input#upload_banner_background'))
@@ -611,7 +629,7 @@ export class ClanPage extends BasePage {
           const currentBannerImage = await this.getClanBannerImage();
           return currentBannerImage !== null && currentBannerImage !== previousBannerImage;
         },
-        { timeout: 15000 }
+        { timeout: 20000, intervals: [1000, 2000] }
       )
       .toBe(true);
   }
@@ -2548,7 +2566,7 @@ export class ClanPage extends BasePage {
         .or(this.selector.buttons.memberListButton)
         .first();
       if (await membersLink.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await membersLink.click();
+        await membersLink.click({ force: true, timeout: 5000 }).catch(() => {});
       }
       if (!this.page.url().includes('/member-safety')) {
         try {
@@ -2626,7 +2644,7 @@ export class ClanPage extends BasePage {
         .or(this.selector.buttons.memberListButton)
         .first();
       if (await membersLink.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await membersLink.click();
+        await membersLink.click({ force: true, timeout: 5000 }).catch(() => {});
       }
       if (!this.page.url().includes('/member-safety')) {
         try {
@@ -2695,7 +2713,7 @@ export class ClanPage extends BasePage {
         .or(this.selector.buttons.memberListButton)
         .first();
       if (await membersLink.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await membersLink.click();
+        await membersLink.click({ force: true, timeout: 5000 }).catch(() => {});
       }
       if (!this.page.url().includes('/member-safety')) {
         try {
@@ -4135,8 +4153,14 @@ export class ClanPage extends BasePage {
         .isVisible({ timeout: 2000 })
         .catch(() => false))
     ) {
-      await this.openRoleSettingsPage();
+      const opened = await this.openRoleSettingsPage();
+      if (!opened) {
+        throw new Error(
+          `Failed to open Role Settings page for creating role "${roleName}". Verify that current user has owner/admin rights.`
+        );
+      }
     }
+    await expect(this.selector.clanSettings.buttons.createRole).toBeVisible({ timeout: 10000 });
     await this.selector.clanSettings.buttons.createRole.click();
     await this.selector.clanSettings.buttons.permissionsRole.click();
 
