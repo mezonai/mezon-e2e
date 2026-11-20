@@ -103,9 +103,17 @@ export default class ClanChannelSelector {
   };
 
   getSidebarItem(channelName: string): Locator {
-    return this.sidebar.channelItem.item.filter({
-      has: this.sidebar.channelItem.name.filter({ hasText: channelName }),
-    });
+    return this.sidebar.channelItem.item
+      .filter({
+        has: this.sidebar.channelItem.name.filter({ hasText: channelName }),
+      })
+      .or(this.sidebar.channelItem.name.filter({ hasText: channelName }))
+      .or(
+        this.page.locator(
+          `${generateE2eSelector('clan_page.channel_list.item.name')}:has-text("${channelName}"), [data-e2e*="channel_list"]:has-text("${channelName}"), button:has-text("${channelName}"), a[href*="channels"]:has-text("${channelName}")`
+        )
+      )
+      .first();
   }
 
   getManagementItem(channelName: string): Locator {

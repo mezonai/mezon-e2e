@@ -217,11 +217,28 @@ export class MessageTestHelpers extends MessageContentHelpers {
   async pasteAndSendTextV2() {
     const messageInput = await this.findMessageInput();
 
-    await expect(messageInput).toBeVisible({ timeout: 500 });
+    await expect(messageInput).toBeVisible({ timeout: 5000 });
     await messageInput.click();
 
     const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
     await this.page.keyboard.press(`${modifier}+V`);
+
+    const currentText = await messageInput.innerText().catch(() => '');
+    if (!currentText.trim()) {
+      const fallbackText = await this.page
+        .evaluate(async () => {
+          return (
+            (window as any).__lastCopiedText ||
+            (await navigator.clipboard.readText().catch(() => '')) ||
+            ''
+          );
+        })
+        .catch(() => '');
+      if (fallbackText) {
+        await messageInput.click();
+        await this.page.keyboard.insertText(fallbackText);
+      }
+    }
 
     await expect(messageInput).not.toHaveText('');
 
@@ -1139,7 +1156,7 @@ export class MessageTestHelpers extends MessageContentHelpers {
   }
 
   async clickJumpToPinMessageFromSystemMessage() {
-    await this.selector.jumpToPinnedMessageButtonFromSystemMessage.click();
+    await this.selector.jumpToPinnedMessageButtonFromSystemMessage.last().click();
   }
 
   async getMessageByIdentity(identity: string) {

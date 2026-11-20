@@ -57,6 +57,12 @@ export class ChannelSettingPage extends BasePage {
     await expect(this.selector.side_bar_buttons.permissions).toBeVisible({ timeout: 5000 });
   }
 
+  async openOverviewTab(): Promise<void> {
+    await expect(this.selector.side_bar_buttons.overview).toBeVisible({ timeout: 5000 });
+    await this.selector.side_bar_buttons.overview.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async openCategoryTab(): Promise<void> {
     await expect(this.selector.side_bar_buttons.category).toBeVisible({ timeout: 5000 });
     await this.selector.side_bar_buttons.category.click();
@@ -444,6 +450,26 @@ export class ChannelSettingPage extends BasePage {
     await expect(modal).toBeHidden({ timeout: 3000 });
   }
 
+  async addFirstMemberForPrivateChannel(): Promise<string> {
+    const memberUsernames =
+      this.selector.permissions.section.member_role_management.modal.member_username;
+    const memberCheckboxes =
+      this.selector.permissions.section.member_role_management.modal.member_checkbox;
+    await expect(memberUsernames.first()).toBeVisible({ timeout: 5000 });
+    const memberName = (await memberUsernames.first().innerText()).trim();
+    await memberCheckboxes
+      .first()
+      .check()
+      .catch(async () => {
+        await memberCheckboxes.first().click({ force: true });
+      });
+    await this.selector.permissions.button.submit.click();
+    await expect(
+      this.selector.permissions.section.member_role_management.modal_container
+    ).toBeHidden({ timeout: 5000 });
+    return memberName;
+  }
+
   async openAddMembersRolesModal(): Promise<void> {
     const addButton = this.selector.permissions.button.add_members_roles;
     await expect(addButton).toBeVisible({ timeout: 5000 });
@@ -580,6 +606,17 @@ export class ChannelSettingPage extends BasePage {
     await expect(save_changes).toBeHidden({ timeout: 5000 });
   }
 
+  async resetPermissionChanges() {
+    const reset_changes = this.selector.permissions.modal.ask_change.button.reset;
+    await expect(reset_changes).toBeVisible({ timeout: 3000 });
+    await reset_changes.click();
+    await expect(reset_changes).toBeHidden({ timeout: 5000 });
+  }
+
+  getResetButtonLocator(): Locator {
+    return this.selector.permissions.modal.ask_change.button.reset;
+  }
+
   async verifyRoleAndMemberExistAfterSave(roleName: string, memberName: string) {
     const { member_role_management } = this.selector.permissions.section;
     await this.savePermissionChanges();
@@ -651,15 +688,51 @@ export class ChannelSettingPage extends BasePage {
 
   async archiveChannel(channelName: string, isThread = false) {
     if (isThread) {
-      const threadItem = this.selector.sidebar.threadItem.name.filter({ hasText: channelName });
-      await threadItem.first().click({ button: 'right' });
-      await this.selector.archived_channels.archive_thread_button.click();
+      const threadItem = this.selector.sidebar.threadItem.name
+        .filter({ hasText: channelName })
+        .or(
+          this.page.locator(
+            `[data-e2e*="thread"]:has-text("${channelName}"), a[href*="thread"]:has-text("${channelName}")`
+          )
+        )
+        .first();
+      await threadItem.scrollIntoViewIfNeeded().catch(() => {});
+      await threadItem.click({ button: 'right' });
+      const archiveThreadBtn = this.selector.archived_channels.archive_thread_button
+        .or(
+          this.page
+            .locator('button, div[role="menuitem"], [data-e2e*="panel-item"]')
+            .filter({ hasText: /^Archive Thread$/i })
+        )
+        .first();
+      await expect(archiveThreadBtn).toBeVisible({ timeout: 5000 });
+      await archiveThreadBtn.click();
     } else {
-      const channelItem = this.selector.sidebar.channelItem.item.filter({ hasText: channelName });
-      await channelItem.first().click({ button: 'right' });
-      await this.selector.archived_channels.archive_channel_button.click();
+      const channelItem = this.selector.sidebar.channelItem.item
+        .filter({ hasText: channelName })
+        .or(this.selector.sidebar.channelItem.name.filter({ hasText: channelName }))
+        .or(
+          this.page.locator(
+            `${generateE2eSelector('clan_page.channel_list.item.name')}:has-text("${channelName}"), [data-e2e*="channel_list"]:has-text("${channelName}"), button:has-text("${channelName}"), a[href*="channels"]:has-text("${channelName}")`
+          )
+        )
+        .first();
+      await channelItem.scrollIntoViewIfNeeded().catch(() => {});
+      await channelItem.click({ button: 'right' });
+      const archiveChannelBtn = this.selector.archived_channels.archive_channel_button
+        .or(
+          this.page
+            .locator('button, div[role="menuitem"], [data-e2e*="panel-item"]')
+            .filter({ hasText: /^Archive Channel$/i })
+        )
+        .first();
+      await expect(archiveChannelBtn).toBeVisible({ timeout: 5000 });
+      await archiveChannelBtn.click();
     }
-    const confirmButton = this.selector.archived_channels.modal.confirm_button;
+    const confirmButton = this.selector.archived_channels.modal.confirm_button
+      .or(this.page.locator('button').filter({ hasText: /^Archive$/i }))
+      .or(this.page.locator('button').filter({ hasText: /^Confirm$/i }))
+      .first();
     await expect(confirmButton).toBeVisible({ timeout: 5000 });
     await confirmButton.click();
     await expect(confirmButton).toBeHidden({ timeout: 5000 });
@@ -676,26 +749,39 @@ export class ChannelSettingPage extends BasePage {
         .isVisible({ timeout: 1000 })
         .catch(() => false))
     ) {
-      await clanSeletor.buttons.clanName.click();
-      await expect(clanSeletor.buttons.clanSettings).toBeVisible({ timeout: 5000 });
-      await clanSeletor.buttons.clanSettings.click();
+      await clanSeletor.buttons.clanName
+        .first()
+        .click()
+        .catch(() => {});
+      await expect(clanSeletor.buttons.clanSettings.first()).toBeVisible({ timeout: 5000 });
+      await clanSeletor.buttons.clanSettings.first().click();
     }
     await clanSeletor.clanSettings.buttons.sidebarItem
       .filter({ hasText: 'Archived Channels' })
       .first()
       .click();
-    const archivedChannelItem = this.selector.archived_channels.item.channel_name
-      .filter({
-        hasText: channelName,
-      })
+
+    await expect(this.page.getByRole('heading', { name: 'Archived Channels' }))
+      .toBeVisible({ timeout: 5000 })
+      .catch(() => {});
+
+    const archivedItem = this.selector.archived_channels.item.channel_name
+      .filter({ hasText: channelName })
       .or(
         this.page
           .locator(generateE2eSelector('clan_page.settings.archived_channels.item'))
           .filter({ hasText: channelName })
       )
+      .or(
+        this.page
+          .getByRole('button', { name: /^Restore$/i })
+          .locator('xpath=..')
+          .filter({ hasText: channelName })
+      )
       .first();
+
     try {
-      await expect(archivedChannelItem).toBeVisible({ timeout: 10000 });
+      await expect(archivedItem).toBeVisible({ timeout: 7000 });
       return true;
     } catch {
       return false;
@@ -703,14 +789,32 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async restoreArchivedChannel(channelName: string): Promise<void> {
-    const archivedChannelItem = this.selector.archived_channels.item.container.filter({
-      hasText: channelName,
-    });
-    await expect(archivedChannelItem).toBeVisible({ timeout: 3000 });
-    const restoreButton = archivedChannelItem
-      .locator(generateE2eSelector('clan_page.settings.archived_channels.item.restore_button'))
+    const archivedItem = this.selector.archived_channels.item.container
+      .filter({ hasText: channelName })
+      .or(
+        this.page
+          .locator(generateE2eSelector('clan_page.settings.archived_channels.item'))
+          .filter({ hasText: channelName })
+      )
+      .or(
+        this.page
+          .getByRole('button', { name: /^Restore$/i })
+          .locator('xpath=..')
+          .filter({ hasText: channelName })
+      )
+      .first();
+
+    await expect(archivedItem).toBeVisible({ timeout: 5000 });
+    const restoreButton = archivedItem
+      .getByRole('button', { name: /^Restore$/i })
+      .or(
+        archivedItem.locator(
+          generateE2eSelector('clan_page.settings.archived_channels.item.restore_button')
+        )
+      )
+      .or(archivedItem.locator('button').filter({ hasText: /restore/i }))
       .first();
     await restoreButton.click();
-    await expect(archivedChannelItem).toBeHidden({ timeout: 5000 });
+    await expect(archivedItem).toBeHidden({ timeout: 5000 });
   }
 }

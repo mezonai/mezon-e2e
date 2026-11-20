@@ -1,6 +1,7 @@
 export interface ClanSetupConfig {
   clanNamePrefix?: string;
   suiteName?: string;
+  reuseClan?: boolean;
 }
 
 export class ClanSetupHelper {
@@ -69,24 +70,29 @@ export class ClanSetupHelper {
     clanManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ClanManagementTest',
       suiteName: 'Clan Management',
+      reuseClan: false,
     }),
 
     clanManagement2: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ClanManagementTest',
       suiteName: 'Clan Management - Module 2',
+      reuseClan: false,
     }),
     clanManagement3: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ClanManagementTest',
       suiteName: 'Clan Management - Module 3',
+      reuseClan: false,
     }),
     clanManagement4: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ClanManagementTest',
       suiteName: 'Clan Management - Module 4',
+      reuseClan: false,
     }),
 
     clanManagement5: ClanSetupHelper.createConfig({
       clanNamePrefix: 'ClanManagementTest',
       suiteName: 'Clan Management - Module 5',
+      reuseClan: false,
     }),
 
     channelManagement: ClanSetupHelper.createConfig({
@@ -151,6 +157,7 @@ export class ClanSetupHelper {
     standaloneClanManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'StandaloneClanManagementTest',
       suiteName: 'Standalone - Clan Management',
+      reuseClan: false,
     }),
 
     directMessage: ClanSetupHelper.createConfig({
@@ -176,6 +183,7 @@ export class ClanSetupHelper {
     memberManagement: ClanSetupHelper.createConfig({
       clanNamePrefix: 'MemberManagementTest',
       suiteName: 'Member Management',
+      reuseClan: false,
     }),
 
     createCategory: ClanSetupHelper.createConfig({
