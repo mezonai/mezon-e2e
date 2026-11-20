@@ -121,12 +121,13 @@ test.describe('Clan Management - Role Lifecycle, Category Channel Creation & Set
     await AllureReporter.step(`Delete channel ${channelName}`, async () => {
       await clanPage.openChannelSettings(channelName);
       await channelSettings.deleteChannel();
-      const isChPresent = await clanPage.isNewChannelPresent(channelName);
-      expect(isChPresent).toBe(false);
+      await clanPage.verifyChannelVisibility(channelName, false);
+      await clanPage.closeSettingsChannel().catch(() => {});
     });
 
     await AllureReporter.step(`Delete category ${categoryName}`, async () => {
       await clanPage.deleteCategory(categoryName);
+      await page.waitForTimeout(500);
       const isCatPresent = await menuPanel.isCategoryPresent(categoryName);
       expect(isCatPresent).toBe(false);
     });
