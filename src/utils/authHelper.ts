@@ -335,6 +335,9 @@ export class AuthHelper {
       await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
     }
     await new LoginPage(page).waitForAuthenticatedAppReady();
+    if (clanUrl && clanUrl.includes('/clans/') && !page.url().includes('/clans/')) {
+      await page.goto(clanUrl, { waitUntil: 'domcontentloaded' });
+    }
 
     const clanSelector = new ClanSelector(page);
     try {

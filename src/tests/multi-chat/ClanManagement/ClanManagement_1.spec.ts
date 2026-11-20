@@ -126,7 +126,7 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
     });
 
     await AllureReporter.step(`User A create new text channel: ${channelName}`, async () => {
-      await clanPageA.createNewChannel(ChannelType.TEXT, channelName);
+      await clanPageA.createNewChannel(ChannelType.TEXT, channelName, undefined, true);
       const isNewChannelPresent = await clanPageA.isNewChannelPresent(channelName);
       expect(isNewChannelPresent).toBe(true);
     });
@@ -349,7 +349,7 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
     await AllureReporter.step('Click mention User B in message', async () => {
       const systemMessage = await messageHelperA.getSystemMessageByType(5);
       await systemMessage.last().waitFor({ state: 'visible' });
-      await systemMessage.click();
+      await systemMessage.last().click();
       const mentionUser = await messageHelperA.getWelcomeMessageMentionUser(systemMessage.last());
       await mentionUser.click();
     });
@@ -522,6 +522,7 @@ test.describe('Clan Management - System Messages, Member Removal, and Role Permi
     await AllureReporter.step(
       'Verify that user B cannot manage channel before add role',
       async () => {
+        await clanPageA.removeAllRolesForUserByUsername(userNameB).catch(() => {});
         await pageB.goto(clanFactory.getClanUrl(), { waitUntil: 'domcontentloaded' });
         await clanPageB.openChannelSettingsSidebar();
         await clanPageB.verifyUserWithChannelManagePermission(false);
