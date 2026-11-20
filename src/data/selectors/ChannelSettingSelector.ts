@@ -179,14 +179,20 @@ export default class ChannelSettingSelector {
     modal: {
       ask_change: {
         button: {
-          reset: this.page.locator(
-            generateE2eSelector('channel_setting_page.permissions.modal.ask_change.button.reset')
-          ),
-          save_changes: this.page.locator(
-            generateE2eSelector(
-              'channel_setting_page.permissions.modal.ask_change.button.save_changes'
+          reset: this.page
+            .locator(
+              generateE2eSelector('channel_setting_page.permissions.modal.ask_change.button.reset')
             )
-          ),
+            .or(this.page.getByRole('button', { name: /^reset$/i }))
+            .or(this.page.locator('button').filter({ hasText: /^Reset$/i })),
+          save_changes: this.page
+            .locator(
+              generateE2eSelector(
+                'channel_setting_page.permissions.modal.ask_change.button.save_changes'
+              )
+            )
+            .or(this.page.getByRole('button', { name: /^save changes$/i }))
+            .or(this.page.locator('button').filter({ hasText: /^Save Changes$/i })),
         },
       },
     },
