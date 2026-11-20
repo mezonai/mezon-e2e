@@ -57,6 +57,12 @@ export class ChannelSettingPage extends BasePage {
     await expect(this.selector.side_bar_buttons.permissions).toBeVisible({ timeout: 5000 });
   }
 
+  async openOverviewTab(): Promise<void> {
+    await expect(this.selector.side_bar_buttons.overview).toBeVisible({ timeout: 5000 });
+    await this.selector.side_bar_buttons.overview.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async openCategoryTab(): Promise<void> {
     await expect(this.selector.side_bar_buttons.category).toBeVisible({ timeout: 5000 });
     await this.selector.side_bar_buttons.category.click();
@@ -444,6 +450,26 @@ export class ChannelSettingPage extends BasePage {
     await expect(modal).toBeHidden({ timeout: 3000 });
   }
 
+  async addFirstMemberForPrivateChannel(): Promise<string> {
+    const memberUsernames =
+      this.selector.permissions.section.member_role_management.modal.member_username;
+    const memberCheckboxes =
+      this.selector.permissions.section.member_role_management.modal.member_checkbox;
+    await expect(memberUsernames.first()).toBeVisible({ timeout: 5000 });
+    const memberName = (await memberUsernames.first().innerText()).trim();
+    await memberCheckboxes
+      .first()
+      .check()
+      .catch(async () => {
+        await memberCheckboxes.first().click({ force: true });
+      });
+    await this.selector.permissions.button.submit.click();
+    await expect(
+      this.selector.permissions.section.member_role_management.modal_container
+    ).toBeHidden({ timeout: 5000 });
+    return memberName;
+  }
+
   async openAddMembersRolesModal(): Promise<void> {
     const addButton = this.selector.permissions.button.add_members_roles;
     await expect(addButton).toBeVisible({ timeout: 5000 });
@@ -578,6 +604,17 @@ export class ChannelSettingPage extends BasePage {
     await expect(save_changes).toBeVisible({ timeout: 3000 });
     await save_changes.click();
     await expect(save_changes).toBeHidden({ timeout: 5000 });
+  }
+
+  async resetPermissionChanges() {
+    const reset_changes = this.selector.permissions.modal.ask_change.button.reset;
+    await expect(reset_changes).toBeVisible({ timeout: 3000 });
+    await reset_changes.click();
+    await expect(reset_changes).toBeHidden({ timeout: 5000 });
+  }
+
+  getResetButtonLocator(): Locator {
+    return this.selector.permissions.modal.ask_change.button.reset;
   }
 
   async verifyRoleAndMemberExistAfterSave(roleName: string, memberName: string) {

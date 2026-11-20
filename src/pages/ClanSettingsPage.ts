@@ -26,6 +26,27 @@ export class ClanSettingsPage extends BasePage {
     await expect(this.selector.general.settings_page).toBeVisible({ timeout: 10000 });
   }
 
+  async openOverviewTab(): Promise<void> {
+    const item = this.selector.buttons.sidebarItem.filter({ hasText: 'Overview' });
+    await expect(item).toBeVisible({ timeout: 5000 });
+    await item.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async openRolesTab(): Promise<void> {
+    const item = this.selector.buttons.sidebarItem.filter({ hasText: 'Roles' });
+    await expect(item).toBeVisible({ timeout: 5000 });
+    await item.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async openEmojiTab(): Promise<void> {
+    const item = this.selector.buttons.sidebarItem.filter({ hasText: 'Emoji' });
+    await expect(item).toBeVisible({ timeout: 5000 });
+    await item.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async openSoundEffectTab(): Promise<void> {
     const soundEffectItem = this.selector.buttons.sidebarItem.filter({ hasText: 'Sound Effect' });
     await expect(soundEffectItem).toBeVisible({ timeout: 5000 });
