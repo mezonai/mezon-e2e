@@ -331,7 +331,7 @@ export class ClanPage extends BasePage {
 
     try {
       const permModal = this.page.locator(
-        '[data-e2e="clan_page-settings-modal-permission"], [data-e2e*="permission"]'
+        '[data-e2e="clan_page-settings-modal-permission"], [data-e2e*="modal.permission"], [data-e2e*="modal-permission"]'
       );
       if (
         await permModal
@@ -339,22 +339,18 @@ export class ClanPage extends BasePage {
           .isVisible({ timeout: 500 })
           .catch(() => false)
       ) {
-        const cancelBtn = permModal
-          .locator('button')
-          .filter({ hasText: /Cancel|Hủy|Okay|OK/i })
-          .or(this.selector.permissionModal.cancel);
-        await cancelBtn
+        const dismissBtn = permModal
+          .locator('[data-e2e*="cancel"], [data-e2e*="confirm"], button')
+          .first();
+        if (await dismissBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await dismissBtn.click({ force: true }).catch(() => {});
+        } else {
+          await this.page.keyboard.press('Escape').catch(() => {});
+        }
+        await permModal
           .first()
-          .click({ force: true })
+          .waitFor({ state: 'hidden', timeout: 2000 })
           .catch(() => {});
-        await this.page.waitForTimeout(300);
-      }
-      while (await this.selector.permissionModal.isVisible()) {
-        await this.selector.permissionModal.cancel
-          .first()
-          .click({ force: true })
-          .catch(() => {});
-        await this.page.waitForTimeout(300);
       }
     } catch {
       // No modal visible, continue
@@ -665,7 +661,7 @@ export class ClanPage extends BasePage {
       await channelLocator.scrollIntoViewIfNeeded().catch(() => {});
     }
     await expect(channelLocator).toBeVisible({ timeout: 10000 });
-    await channelLocator.click({ button: 'right' });
+    await channelLocator.click({ button: 'right', force: true });
     const editChannelBtn = this.selector.sidebar.panelItem.item
       .filter({ hasText: 'Edit Channel' })
       .or(
@@ -983,15 +979,20 @@ export class ClanPage extends BasePage {
     await expect(this.selector.clanSettings.category.input.categoryName).toBeVisible({
       timeout: 5000,
     });
-    await expect(this.selector.buttons.deleteCategory).toBeVisible({ timeout: 5000 });
-    await this.selector.buttons.deleteCategory.click();
+    const deleteBtn = this.selector.buttons.deleteCategory
+      .or(this.page.locator('button:has-text("Delete Category")'))
+      .first();
+    await expect(deleteBtn).toBeVisible({ timeout: 5000 });
+    await deleteBtn.click();
 
     if (couldBeDeleted) {
-      await expect(this.selector.buttons.confirm).toBeVisible({ timeout: 5000 });
-      await this.selector.buttons.confirm.click();
-      await expect(this.selector.buttons.confirm).toBeHidden({ timeout: 5000 });
+      const confirmBtn = this.selector.buttons.confirm.first();
+      await expect(confirmBtn).toBeVisible({ timeout: 5000 });
+      await confirmBtn.click();
+      await expect(confirmBtn).toBeHidden({ timeout: 5000 });
+      await this.closeSettingsChannel();
     }
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(500);
   }
 
   async closeCreateThreadModal(): Promise<void> {
