@@ -5,7 +5,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class ChannelSettingPage extends BasePage {
-  private readonly selector: ChannelSettingSelector;
+  public readonly selector: ChannelSettingSelector;
 
   constructor(page: Page) {
     super(page);
