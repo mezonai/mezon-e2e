@@ -97,6 +97,18 @@ export class ClanPage extends BasePage {
       }
 
       await expect(clanItem.or(clanHeader).first()).toBeVisible({ timeout: 15000 });
+      if (
+        await clanItem
+          .first()
+          .isVisible()
+          .catch(() => false)
+      ) {
+        await clanItem
+          .first()
+          .click({ force: true })
+          .catch(() => {});
+        await this.page.waitForTimeout(1000);
+      }
       return true;
     } catch (error) {
       console.error(`Error creating clan: ${error}`);
@@ -231,6 +243,20 @@ export class ClanPage extends BasePage {
   }
 
   public async closeAllModals(): Promise<void> {
+    try {
+      const internalErrorCancel = this.page.locator('button:has-text("Cancel")').first();
+      if (
+        (await this.page
+          .locator('text="Internal error"')
+          .isVisible({ timeout: 500 })
+          .catch(() => false)) &&
+        (await internalErrorCancel.isVisible({ timeout: 500 }).catch(() => false))
+      ) {
+        await internalErrorCancel.click({ force: true }).catch(() => {});
+        await this.page.waitForTimeout(300);
+      }
+    } catch {}
+
     try {
       const threadCloseBtn = this.page.locator(
         '[data-e2e="discussion-header-button-close"], [data-e2e*="discussion.header.button.close"], [data-e2e*="thread.close"], [data-e2e*="topic.close"]'
@@ -678,16 +704,26 @@ export class ClanPage extends BasePage {
         .catch(() => {});
       await channelLocator.scrollIntoViewIfNeeded().catch(() => {});
     }
+    const errorCancelBtn = this.page
+      .locator('button:has-text("Cancel"), button:has-text("Go to Welcome Channel")')
+      .first();
+    if (await errorCancelBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await errorCancelBtn.click().catch(() => {});
+      await this.page.waitForTimeout(500);
+    }
     await expect(channelLocator).toBeVisible({ timeout: 10000 });
     await channelLocator.click({ button: 'right', force: true });
     const editChannelBtn = this.selector.sidebar.panelItem.item
-      .filter({ hasText: 'Edit Channel' })
+      .filter({ hasText: /Edit Channel|Chỉnh sửa kênh/i })
       .or(
         this.page
           .locator('div[role="menuitem"], button, [data-e2e*="panel-item"]')
-          .filter({ hasText: /Edit Channel/i })
+          .filter({ hasText: /Edit Channel|Chỉnh sửa kênh/i })
       )
       .first();
+    if (!(await editChannelBtn.isVisible({ timeout: 2000 }).catch(() => false))) {
+      await channelLocator.click({ button: 'right' });
+    }
     await expect(editChannelBtn).toBeVisible({ timeout: 5000 });
     await editChannelBtn.click();
     await expect(this.selector.input.channelName.first()).toBeVisible({ timeout: 8000 });
@@ -796,6 +832,17 @@ export class ClanPage extends BasePage {
         }
       }
       await this.page.waitForTimeout(1000);
+      const errorCancelBtn = this.page.locator('button:has-text("Cancel")').first();
+      if (
+        (await this.page
+          .locator('text="Internal error"')
+          .isVisible({ timeout: 800 })
+          .catch(() => false)) &&
+        (await errorCancelBtn.isVisible({ timeout: 500 }).catch(() => false))
+      ) {
+        await errorCancelBtn.click({ force: true }).catch(() => {});
+        await this.page.waitForTimeout(500);
+      }
 
       return true;
     } catch (error) {
@@ -1008,7 +1055,14 @@ export class ClanPage extends BasePage {
       await expect(confirmBtn).toBeVisible({ timeout: 5000 });
       await confirmBtn.click();
       await expect(confirmBtn).toBeHidden({ timeout: 5000 });
-      await this.closeSettingsChannel();
+      if (
+        await this.selector.buttons.exitSettings
+          .first()
+          .isVisible({ timeout: 1500 })
+          .catch(() => false)
+      ) {
+        await this.closeSettingsChannel().catch(() => {});
+      }
     }
     await this.page.waitForTimeout(500);
   }

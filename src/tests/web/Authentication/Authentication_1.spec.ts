@@ -3,6 +3,9 @@ import { AccountCredentials, WEBSITE_CONFIGS } from '@/config/environment';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 
+const SWITCH_PASSWORD_SELECTOR =
+  '#btnSwitchPassword, button:has-text("Password"), a:has-text("Password"), a[href*="login_type=password"]';
+
 test.describe('Authentication - Sign Up, Form Validations, Password Recovery & OTP Flows (TC-AUTH-01, 02, 03)', () => {
   const loginUrl = `${WEBSITE_CONFIGS.MEZON.baseURL}/login`;
 
@@ -107,9 +110,7 @@ test.describe('Authentication - Sign Up, Form Validations, Password Recovery & O
     `);
 
     await AllureReporter.step('Switch to password mode and enter short password', async () => {
-      const switchPasswordBtn = page
-        .locator('#btnSwitchPassword, button:has-text("Password")')
-        .first();
+      const switchPasswordBtn = page.locator(SWITCH_PASSWORD_SELECTOR).first();
       if (await switchPasswordBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await switchPasswordBtn.click();
         await page.waitForTimeout(500);
@@ -167,9 +168,7 @@ test.describe('Authentication - Sign Up, Form Validations, Password Recovery & O
     `);
 
     await AllureReporter.step('Switch to password input mode', async () => {
-      const switchPasswordBtn = page
-        .locator('#btnSwitchPassword, button:has-text("Password")')
-        .first();
+      const switchPasswordBtn = page.locator(SWITCH_PASSWORD_SELECTOR).first();
       if (await switchPasswordBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await switchPasswordBtn.click();
         await page.waitForTimeout(500);
@@ -303,9 +302,7 @@ test.describe('Authentication - Sign Up, Form Validations, Password Recovery & O
         .first();
       await emailInput.fill(AccountCredentials.account1.email);
 
-      const switchPasswordBtn = page
-        .locator('#btnSwitchPassword, button:has-text("Password")')
-        .first();
+      const switchPasswordBtn = page.locator(SWITCH_PASSWORD_SELECTOR).first();
       if (await switchPasswordBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await switchPasswordBtn.click();
         await page.waitForTimeout(500);
@@ -332,9 +329,7 @@ test.describe('Authentication - Sign Up, Form Validations, Password Recovery & O
     `);
 
     await AllureReporter.step('Toggle between password and OTP modes', async () => {
-      const switchPasswordBtn = page
-        .locator('#btnSwitchPassword, button:has-text("Password")')
-        .first();
+      const switchPasswordBtn = page.locator(SWITCH_PASSWORD_SELECTOR).first();
       if (await switchPasswordBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await switchPasswordBtn.click();
         await page.waitForTimeout(500);
