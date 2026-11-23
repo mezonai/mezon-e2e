@@ -4,7 +4,7 @@ import { AllureReporter } from '@/utils/allureHelpers';
 import { expect, test } from '@playwright/test';
 
 const SWITCH_PASSWORD_SELECTOR =
-  '#btnSwitchPassword, button:has-text("Password"), a:has-text("Password"), a[href*="login_type=password"]';
+  '#linkSwitchPassword, a#linkSwitchPassword, a[href$="login_type=password"], a:has-text("Email & Password"), a:has-text("Email and Password")';
 
 test.describe('Authentication - Sign Up, Form Validations, Password Recovery & OTP Flows (TC-AUTH-01, 02, 03)', () => {
   const loginUrl = `${WEBSITE_CONFIGS.MEZON.baseURL}/login`;
