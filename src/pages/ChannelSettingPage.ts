@@ -69,6 +69,12 @@ export class ChannelSettingPage extends BasePage {
     await expect(this.selector.category.dropdown).toBeVisible({ timeout: 5000 });
   }
 
+  async openQuickActionsTab(): Promise<void> {
+    await expect(this.selector.side_bar_buttons.quick_menu).toBeVisible({ timeout: 5000 });
+    await this.selector.side_bar_buttons.quick_menu.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async verifyCategoryChannelName(channelName: string): Promise<void> {
     await expect(this.selector.category.channelName).toHaveText(channelName);
   }

@@ -47,6 +47,13 @@ export default class ChannelSettingSelector {
         )} textarea, ${OVERVIEW_PANEL_SELECTOR} textarea`
       )
       .first(),
+    ageRestrictedSwitch: this.page
+      .locator('input[type="checkbox"], [role="switch"], [data-e2e*="age_restricted"]')
+      .first(),
+    hideInactivityDropdown: this.page
+      .locator('div[class*="select"], button, [data-e2e*="inactivity"]')
+      .filter({ hasText: /Week|Day|Hour/i })
+      .first(),
   };
 
   readonly category = {
