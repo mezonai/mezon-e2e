@@ -14,7 +14,7 @@ export class LoginPage extends BasePage {
       'button[id="sendOtpBtn"], button:has-text("Verify OTP"), button:has-text("Login"), button:has-text("Đăng nhập"), button[type="submit"], button:has-text("Verify"), button:has-text("Xác nhận"), button[aria-label*="Verify OTP"], button[aria-label*="Verify OTP code"], [data-testid="login-btn"]',
 
     loginWithPasswordLink:
-      '#btnSwitchPassword, button:has-text("Password"), a:has-text("Password"), a[href*="login_type=password"]',
+      '#linkSwitchPassword, a#linkSwitchPassword, a[href$="login_type=password"], a:has-text("Email & Password"), a:has-text("Email and Password")',
     passwordInput: '#passwordId, input[name="login_password"], input[type="password"]',
 
     loadingSpinner: '.loading, .spinner, [data-testid="loading"]',
