@@ -132,6 +132,15 @@ export class ClanFactory {
       throw new Error(`Failed to create clan: ${clanName}`);
     }
 
+    const clanLocator = (await clanPage.selector.findClanByTitle(clanName)).first();
+    if (await clanLocator.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await clanLocator.click({ force: true }).catch(() => {});
+      await page
+        .waitForURL(url => url.pathname.includes('/clans/'), { timeout: 8000 })
+        .catch(() => {});
+      await page.waitForTimeout(1000);
+    }
+
     this.clanUrl = page.url();
     this.clanName = clanName;
     this.isReused = shouldReuse;
