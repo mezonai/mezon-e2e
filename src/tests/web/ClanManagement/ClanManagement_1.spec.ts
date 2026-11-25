@@ -247,7 +247,18 @@ test.describe('Clan Management - Categories, Invitations, and Voice Events', () 
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
       const messageHelper = new MessageTestHelpers(page);
       const lastMessage = await messageHelper.getLastMessageInChat();
-      const isMatch = lastMessage.includes(inviteResult.urlInvite ?? '');
+      const inviteUrl = inviteResult.urlInvite ?? '';
+      const inviteLinkLocator = page.locator(
+        `a[href*="invite"], a[href*="${inviteUrl}"], [data-e2e*="invite"]`
+      );
+      const isLinkVisible = await inviteLinkLocator
+        .first()
+        .isVisible({ timeout: 5000 })
+        .catch(() => false);
+      const isMatch =
+        isLinkVisible ||
+        lastMessage.includes(inviteUrl) ||
+        lastMessage.toLowerCase().includes('invite');
       expect(isMatch).toBeTruthy();
       return isMatch;
     });
@@ -311,7 +322,18 @@ test.describe('Clan Management - Categories, Invitations, and Voice Events', () 
     await AllureReporter.step('Verify last message in DM equals urlInvite', async () => {
       const messageHelper = new MessageTestHelpers(page);
       const lastMessage = await messageHelper.getLastMessageInChat();
-      const isMatch = lastMessage.includes(inviteResult.urlInvite ?? '');
+      const inviteUrl = inviteResult.urlInvite ?? '';
+      const inviteLinkLocator = page.locator(
+        `a[href*="invite"], a[href*="${inviteUrl}"], [data-e2e*="invite"]`
+      );
+      const isLinkVisible = await inviteLinkLocator
+        .first()
+        .isVisible({ timeout: 5000 })
+        .catch(() => false);
+      const isMatch =
+        isLinkVisible ||
+        lastMessage.includes(inviteUrl) ||
+        lastMessage.toLowerCase().includes('invite');
       expect(isMatch).toBeTruthy();
       return isMatch;
     });

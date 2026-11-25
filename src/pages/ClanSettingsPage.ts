@@ -140,11 +140,14 @@ export class ClanSettingsPage extends BasePage {
   }
 
   async createClanWebhookButton(): Promise<void> {
-    await this.selector.integrations.createWebhook.click();
-    await expect(this.selector.integrations.newWebhook).toBeVisible({ timeout: 5000 });
-    await this.selector.integrations.newWebhook.click();
-    await expect(this.selector.integrations.navigateWebhook).toBeVisible({ timeout: 5000 });
-    await this.selector.integrations.navigateWebhook.click();
+    await this.dismissPermissionOrUnsavedModal();
+    const createBtn = this.selector.integrations.createWebhook.first();
+    await createBtn.scrollIntoViewIfNeeded().catch(() => {});
+    await createBtn.click({ force: true });
+    await expect(this.selector.integrations.newWebhook.first()).toBeVisible({ timeout: 5000 });
+    await this.selector.integrations.newWebhook.first().click({ force: true });
+    await expect(this.selector.integrations.navigateWebhook.first()).toBeVisible({ timeout: 5000 });
+    await this.selector.integrations.navigateWebhook.first().click({ force: true });
   }
 
   async clickUploadEmoji(): Promise<void> {

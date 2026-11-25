@@ -1389,17 +1389,29 @@ export class MessageTestHelpers extends MessageContentHelpers {
   async forwardAllMessages(destination: string) {
     const messages = this.selector.messages.first();
     await messages.click({ button: 'right' });
-    await expect(this.selector.forwardAllMessagesButton).toBeVisible({ timeout: 3000 });
-    await this.selector.forwardAllMessagesButton.click();
-    await expect(this.selector.searchUserOnForwardMessageModal).toBeVisible({ timeout: 3000 });
+    const forwardBtn = this.selector.forwardAllMessagesButton
+      .or(
+        this.page
+          .locator('div[role="menuitem"], button')
+          .filter({ hasText: /Forward (All|Message)/i })
+      )
+      .first();
+    await expect(forwardBtn).toBeVisible({ timeout: 5000 });
+    await forwardBtn.click();
+    await expect(this.selector.searchUserOnForwardMessageModal).toBeVisible({ timeout: 5000 });
     await this.selector.searchUserOnForwardMessageModal.fill(destination);
     const channelItemLocator = this.selector.modalForwardMessage
       .locator(generateE2eSelector('suggest_item'), {
         hasText: destination,
       })
+      .or(
+        this.page
+          .locator('[data-e2e*="suggest"], div[class*="item"]')
+          .filter({ hasText: destination })
+      )
       .last();
     await channelItemLocator.waitFor({ state: 'visible', timeout: 5000 });
-    await channelItemLocator.last().click();
+    await channelItemLocator.click();
     await this.selector.sendForwardMessageButton.click();
   }
 

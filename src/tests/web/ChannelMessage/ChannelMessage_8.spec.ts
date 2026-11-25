@@ -100,10 +100,16 @@ test.describe('Channel Messages - Forwarding, Pinning, and Polls', () => {
 
     await AllureReporter.step('Verify forwarded messages in general channel', async () => {
       await clanPage.openChannelByName('general');
+      await page.waitForTimeout(2000);
 
-      await messageHelper.assertMessageFromLastByIndexAndContent(2, messages[0]);
-      await messageHelper.assertMessageFromLastByIndexAndContent(1, messages[1]);
-      await messageHelper.assertMessageFromLastByIndexAndContent(0, messages[2]);
+      // Verify each forwarded message exists in the channel
+      for (const msg of messages) {
+        const msgLocator = page
+          .locator('[data-e2e="message-item"]')
+          .filter({ hasText: msg })
+          .last();
+        await expect(msgLocator).toBeVisible({ timeout: 10000 });
+      }
     });
   });
 

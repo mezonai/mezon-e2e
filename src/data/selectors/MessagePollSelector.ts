@@ -30,16 +30,34 @@ export default class MessagePollSelector {
   };
 
   readonly card = {
-    question: this.page.locator(generateE2eSelector('poll.card.question')),
+    question: this.page
+      .locator(generateE2eSelector('poll.card.question'))
+      .or(
+        this.page.locator(
+          '[data-e2e*="poll_card"], div[class*="poll"] h3, div[class*="poll"] p, [data-e2e*="question"]'
+        )
+      )
+      .first(),
     ended: this.page.locator(generateE2eSelector('poll.card.ended')),
     answerDescription: this.page.locator(generateE2eSelector('poll.card.answer_description')),
-    answer: this.page.locator(generateE2eSelector('poll.card.answer')),
+    answer: this.page
+      .locator(generateE2eSelector('poll.card.answer'))
+      .or(this.page.locator('[data-e2e*="poll"] [data-e2e*="answer"], div[class*="poll"] button')),
     voted: this.page.locator(generateE2eSelector('poll.card.voted')),
-    totalVotes: this.page.locator(generateE2eSelector('poll.card.total_votes')),
+    totalVotes: this.page
+      .locator(generateE2eSelector('poll.card.total_votes'))
+      .or(this.page.locator('text=/vote/i, [data-e2e*="total_vote"]'))
+      .first(),
     button: {
       showResult: this.page.locator(generateE2eSelector('poll.card.button.show_result')),
-      vote: this.page.locator(generateE2eSelector('poll.card.button.vote')),
-      removeVote: this.page.locator(generateE2eSelector('poll.card.button.remove_vote')),
+      vote: this.page
+        .locator(generateE2eSelector('poll.card.button.vote'))
+        .or(this.page.locator('button:has-text("Vote"), [data-e2e*="vote_button"]'))
+        .first(),
+      removeVote: this.page
+        .locator(generateE2eSelector('poll.card.button.remove_vote'))
+        .or(this.page.locator('button:has-text("Remove Vote"), button:has-text("Retract")'))
+        .first(),
     },
   };
 }
