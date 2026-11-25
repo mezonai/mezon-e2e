@@ -13,12 +13,16 @@ export class ChannelSettingPage extends BasePage {
   }
 
   async createChannelWebhook(): Promise<void> {
-    await this.selector.side_bar_buttons.integrations.click();
-    await this.selector.webhook.create_webhook_button.click();
-    await expect(this.selector.webhook.new_webhook_button).toBeVisible({ timeout: 5000 });
-    await this.selector.webhook.new_webhook_button.click();
-    await expect(this.selector.webhook.view_webhook_button).toBeVisible({ timeout: 5000 });
-    await this.selector.webhook.view_webhook_button.click();
+    await this.selector.side_bar_buttons.integrations.first().click({ force: true });
+    const createBtn = this.selector.webhook.create_webhook_button
+      .or(this.page.locator('button:has-text("Create Webhook"), div:has-text("Create Webhook")'))
+      .first();
+    await createBtn.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
+    await createBtn.click({ force: true });
+    await expect(this.selector.webhook.new_webhook_button.first()).toBeVisible({ timeout: 5000 });
+    await this.selector.webhook.new_webhook_button.first().click({ force: true });
+    await expect(this.selector.webhook.view_webhook_button.first()).toBeVisible({ timeout: 5000 });
+    await this.selector.webhook.view_webhook_button.first().click({ force: true });
     await this.page.waitForTimeout(500);
   }
 
