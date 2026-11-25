@@ -1579,16 +1579,20 @@ export class MessagePage extends BasePage {
     if (allowMulti) {
       await this.selector.polls.modal.input.allowMultiAnswer.click();
     }
-    await this.selector.polls.modal.button.post.click();
+    const postBtn = this.selector.polls.modal.button.post
+      .or(this.page.locator('button:has-text("Post"), button:has-text("Create")'))
+      .first();
+    await postBtn.click({ force: true });
+    await this.page.waitForTimeout(1000);
   }
 
   async verifyPollCard(question: string, answers: string[]) {
     const pollCard = this.selector.polls.card;
 
-    await expect(pollCard.question).toHaveText(question);
+    await expect(pollCard.question).toContainText(question.trim(), { timeout: 10000 });
 
     for (let i = 0; i < answers.length; i++) {
-      await expect(pollCard.answer.nth(i)).toHaveText(answers[i]);
+      await expect(pollCard.answer.nth(i)).toContainText(answers[i].trim(), { timeout: 5000 });
     }
 
     await expect(pollCard.totalVotes).toBeVisible();

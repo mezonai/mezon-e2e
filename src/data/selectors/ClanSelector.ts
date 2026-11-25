@@ -341,17 +341,13 @@ export default class ClanSelector {
    */
   async findClanByTitle(clanName: string): Promise<Locator> {
     return this.page
-      .locator(`[data-e2e="clan_page-side_bar-clan_item"][title*="${clanName}"] button`)
-      .or(this.page.locator(`div[title*="${clanName}"] button`))
-      .or(
-        this.page.locator(
-          `${generateE2eSelector('clan_page.side_bar.clan_item')}[title="${clanName}"]`
-        )
+      .locator(
+        `[data-e2e="clan_page-side_bar-clan_item"][title*="${clanName}"], [data-e2e="clan_page-side_bar-clan_item"][aria-label*="${clanName}"]`
       )
       .or(
         this.page
           .locator(generateE2eSelector('clan_page.side_bar.clan_item'))
-          .filter({ has: this.page.locator(`[title="${clanName}"], [aria-label="${clanName}"]`) })
+          .filter({ has: this.page.locator(`[title*="${clanName}"], [aria-label*="${clanName}"]`) })
       )
       .or(
         this.page
