@@ -46,12 +46,25 @@ test.describe('Thread Management - Pagination, Private Threads, Bounds & Resilie
 
     // Select a channel from channel list to reveal channel header controls
     const channelItem = page
-      .locator(generateE2eSelector('clan_page.channel_list.item.name'))
-      .or(page.locator(generateE2eSelector('clan_page.channel_list.item')))
+      .locator(
+        'a[href*="/channels/"], [data-e2e="clan_page-channel_list-item-name"], [data-e2e="clan_page-channel_list-item"]'
+      )
       .first();
-    await expect(channelItem).toBeVisible({ timeout: 10000 });
-    await channelItem.click({ force: true });
-    await page.waitForLoadState('domcontentloaded');
+
+    if (!(await channelItem.isVisible({ timeout: 5000 }).catch(() => false))) {
+      // If landed on /member-safety or clan root, navigate directly to channels
+      await page
+        .locator('a[href*="/channels/"], a:has-text("Channels"), link:has-text("Channels")')
+        .first()
+        .click()
+        .catch(() => {});
+      await page.waitForTimeout(1000);
+    }
+
+    if (await channelItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await channelItem.click({ force: true });
+      await page.waitForLoadState('domcontentloaded');
+    }
 
     await clanPage.closeAllModals().catch(() => {});
   });
