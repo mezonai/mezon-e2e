@@ -9,7 +9,12 @@ export abstract class MessageReactionHelpers extends MessageEmojiHelpers {
   }
 
   async findAddReactionButton(messageElement: Locator): Promise<Locator | null> {
-    await messageElement.hover();
+    try {
+      await messageElement.hover({ timeout: 3000 });
+    } catch {
+      await this.page.keyboard.press('Escape').catch(() => {});
+      await messageElement.hover({ force: true }).catch(() => {});
+    }
     const selectors = [
       'button[aria-label*="Add reaction" i]',
       'button[title*="Add reaction" i]',
@@ -182,6 +187,9 @@ export abstract class MessageReactionHelpers extends MessageEmojiHelpers {
     if (await openPicker.isVisible({ timeout: 1000 }).catch(() => false)) {
       await this.page.keyboard.press('Escape').catch(() => {});
       await this.page.waitForTimeout(300);
+      if (await openPicker.isVisible({ timeout: 500 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape').catch(() => {});
+      }
     }
 
     try {

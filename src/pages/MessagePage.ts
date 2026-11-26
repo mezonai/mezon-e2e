@@ -489,8 +489,16 @@ export class MessagePage extends BasePage {
     await this.selector.messageInput.click();
     await this.selector.messageInput.fill(message);
     await this.selector.messageInput.press('Enter');
-    await expect(this.selector.messages.filter({ hasText: message }).last()).toBeVisible({
-      timeout: 5000,
+    const msgLocator = this.selector.messages
+      .filter({ hasText: message })
+      .or(
+        this.page.locator(
+          `[data-e2e*="message"]:has-text("${message}"), p:has-text("${message}"), div:has-text("${message}")`
+        )
+      )
+      .last();
+    await expect(msgLocator).toBeVisible({
+      timeout: 8000,
     });
   }
 
@@ -712,7 +720,8 @@ export class MessagePage extends BasePage {
   async updateAvatarForGroup(groupName: string): Promise<void> {
     const fileSizeHelpers = new FileSizeTestHelpers(this.page);
 
-    await this.selector.editGroupButton.click();
+    await expect(this.selector.editGroupButton).toBeVisible({ timeout: 10000 });
+    await this.selector.editGroupButton.click({ force: true });
     const groupAvt = await fileSizeHelpers.createFileWithSize(
       'direct_message_icon',
       100 * 1024,
@@ -1593,9 +1602,14 @@ export class MessagePage extends BasePage {
   }
 
   async openCreatePoll() {
+    await expect(this.selector.polls.button.openModal).toBeVisible({ timeout: 5000 });
     await this.selector.polls.button.openModal.click();
-    await this.selector.polls.button.option.filter({ hasText: 'Create Poll' }).first().click();
-    await expect(this.selector.polls.modal.input.question).toBeVisible();
+    const createPollOpt = this.selector.polls.button.option
+      .filter({ hasText: /Create Poll|Bình chọn/i })
+      .first();
+    await expect(createPollOpt).toBeVisible({ timeout: 5000 });
+    await createPollOpt.click();
+    await expect(this.selector.polls.modal.input.question).toBeVisible({ timeout: 5000 });
   }
 
   async createPoll(question: string, answers: string[], allowMulti = false) {

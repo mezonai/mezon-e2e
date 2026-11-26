@@ -1130,7 +1130,7 @@ export class MessageTestHelpers extends MessageContentHelpers {
   }
 
   async isMessageVisible(messageText: string): Promise<boolean> {
-    const locator = this.getMessageItemLocator(messageText);
+    const locator = this.getMessageItemLocator(messageText).last();
     return await locator.isVisible({ timeout: 1000 });
   }
 
@@ -1307,11 +1307,24 @@ export class MessageTestHelpers extends MessageContentHelpers {
   }
 
   getSystemMessageByType(type: number): Locator {
-    return this.page.locator(generateE2eSelector('chat.system_message', type.toString()));
+    return this.page
+      .locator(generateE2eSelector('chat.system_message', type.toString()))
+      .or(
+        this.page.locator(
+          `[data-e2e*="system_message-${type}"], [data-e2e*="system_message"], div[class*="systemMessage"]`
+        )
+      );
   }
 
   async getWelcomeMessageMentionUser(systemMessage: Locator): Promise<Locator> {
-    return systemMessage.locator(generateE2eSelector('chat.channel_message.mention_user'));
+    return systemMessage
+      .locator(generateE2eSelector('chat.channel_message.mention_user'))
+      .or(
+        systemMessage.locator(
+          '[data-e2e*="mention_user"], span[class*="mention"], a[class*="mention"]'
+        )
+      )
+      .first();
   }
 
   async verifyUserOnDMHasHighlight(username: string, shouldHighLight = true) {

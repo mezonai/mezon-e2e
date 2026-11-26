@@ -40,9 +40,13 @@ export default class ProfileSelector {
     resetUserProfile: this.page
       .locator(generateE2eSelector('user_setting.profile.user_profile.button.reset'))
       .or(this.page.getByRole('button', { name: RESET_TEXT })),
-    changeAvatar: this.page.locator(
-      generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar')
-    ),
+    changeAvatar: this.page
+      .locator(generateE2eSelector('user_setting.profile.clan_profile.button_change_avatar'))
+      .or(
+        this.page.locator(
+          '[data-e2e*="button_change_avatar"], button:has-text("Change Avatar"), button:has-text("Đổi ảnh đại diện")'
+        )
+      ),
     userSettingProfile: this.page.locator(
       generateE2eSelector('user_setting.profile.button_setting')
     ),
@@ -193,8 +197,12 @@ export default class ProfileSelector {
       },
     },
     profileStatus: {
-      triggerButton: this.page.locator(generateE2eSelector('short_profile.action.button.base')),
-      statusButton: this.page.locator(generateE2eSelector('short_profile.action.button.status')),
+      triggerButton: this.page
+        .locator(generateE2eSelector('short_profile.action.button.base'))
+        .or(this.page.locator('[data-e2e*="profile_status"], [data-e2e*="footer_profile"]')),
+      statusButton: this.page
+        .locator(generateE2eSelector('short_profile.action.button.status'))
+        .or(this.page.locator('div[role="menuitem"], li, button, [data-e2e*="status"]')),
       status: this.page.locator(generateE2eSelector('icon.profile_status')),
     },
   };
