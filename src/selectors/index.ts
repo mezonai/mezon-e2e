@@ -976,6 +976,13 @@ export const DATA_E2E_IDENTIFIER = {
         base: '',
       },
     },
+    message_action: {
+      button: {
+        give_coffee: '',
+        forward_all: '',
+        end_poll: '',
+      },
+    },
     topic: {
       header: {
         button: {

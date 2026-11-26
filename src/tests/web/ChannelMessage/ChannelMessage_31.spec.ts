@@ -3,7 +3,7 @@ import { AccountCredentials } from '@/config/environment';
 import { ClanFactory } from '@/data/factories/ClanFactory';
 import { ChannelSettingPage } from '@/pages/ChannelSettingPage';
 import { ClanPage } from '@/pages/Clan/ClanPage';
-import { ChannelType } from '@/types/clan-page.types';
+import { ChannelStatus, ChannelType } from '@/types/clan-page.types';
 import { AllureReporter } from '@/utils/allureHelpers';
 import { AuthHelper } from '@/utils/authHelper';
 import { ClanSetupHelper } from '@/utils/clanSetupHelper';
@@ -44,7 +44,7 @@ test.describe('Channel Message - Permission Fetch Guard (TC-CI-14 / Case 157)', 
     page,
   }) => {
     await AllureReporter.addLabels({
-      suite: AllureConfig.Suites.WORK_FLOW,
+      suite: AllureConfig.Suites.CHAT_PLATFORM,
       subSuite: 'ChannelMessage',
     });
 
@@ -53,7 +53,7 @@ test.describe('Channel Message - Permission Fetch Guard (TC-CI-14 / Case 157)', 
     const channelName = `restricted-${generateRandomString(6)}`;
 
     await AllureReporter.step('Create a private channel for permission guard test', async () => {
-      await clanPage.createNewChannel(ChannelType.TEXT, channelName, true);
+      await clanPage.createNewChannel(ChannelType.TEXT, channelName, ChannelStatus.PRIVATE);
       await page.waitForTimeout(1000);
     });
 

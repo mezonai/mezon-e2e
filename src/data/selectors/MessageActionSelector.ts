@@ -17,7 +17,9 @@ export default class MessageActionSelector {
   readonly delete = this.items.filter({ hasText: 'Delete Message' });
   readonly edit = this.items.filter({ hasText: 'Edit Message' });
   readonly forward = this.items.filter({ hasText: 'Forward Message' });
-  readonly forwardAll = this.items.filter({ hasText: 'Forward All' });
+  readonly forwardAll = this.page
+    .locator(generateE2eSelector('chat.message_action.button.forward_all'))
+    .or(this.items.filter({ hasText: /Forward All|Chuyển tiếp tất cả/i }));
   readonly createThread = this.items.filter({ hasText: 'Create Thread' });
   readonly confirmPin = this.page.locator(
     generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
@@ -27,5 +29,10 @@ export default class MessageActionSelector {
     generateE2eSelector('chat.message_action_modal.confirm_modal.button.confirm'),
     { hasText: 'Delete' }
   );
-  readonly sendCoffee = this.items.filter({ hasText: 'Give A Coffee' });
+  readonly sendCoffee = this.page
+    .locator(generateE2eSelector('chat.message_action.button.give_coffee'))
+    .or(this.items.filter({ hasText: /Give A Coffee|Tặng cà phê/i }));
+  readonly endPoll = this.page
+    .locator(generateE2eSelector('chat.message_action.button.end_poll'))
+    .or(this.items.filter({ hasText: /End Poll Now|Kết thúc bình chọn/i }));
 }
