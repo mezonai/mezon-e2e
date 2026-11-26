@@ -403,17 +403,17 @@ jobs:
 
           echo "dev-mezon.nccsoft.vn is accessible"
 
-          echo "=== Checking dev-mezon API (port 7305) ==="
+          echo "=== Checking dev-mezon API (port 7350) ==="
           API_HTTP_CODE=$(curl \
             -sS \
             -4 \
-            --resolve "dev-mezon.nccsoft.vn:7305:$DEV_HOST_IP" \
+            --resolve "dev-mezon.nccsoft.vn:7350:$DEV_HOST_IP" \
             -o /dev/null \
             -w "%{http_code}" \
             --connect-timeout 10 \
             --max-time 20 \
-            https://dev-mezon.nccsoft.vn:7305/) || {
-              echo "::error::Cannot connect to dev-mezon API on port 7305"
+            https://dev-mezon.nccsoft.vn:7350/) || {
+              echo "::error::Cannot connect to dev-mezon API on port 7350"
               exit 1
             }
 
