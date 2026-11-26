@@ -317,7 +317,7 @@ test.describe('Channel Messages - Flash Settings, Jump Navigation, and Voice Cha
 
     await AllureReporter.step('Go to DM list and return to the channel', async () => {
       await clanPage.gotoDM();
-      const clanItem = await clanPage.getClanItemByName(clanFactory.getClanName());
+      const clanItem = (await clanPage.getClanItemByName(clanFactory.getClanName())).first();
       await clanItem.click();
     });
 

@@ -46,19 +46,10 @@ test.describe('Discover Clan Management', () => {
   });
 
   test('Case 35: Discover: clan list pagination', async () => {
-    const pager = discoverPage.selectors.pagination;
-    const isPaginationVisible = await pager.container
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    if (!isPaginationVisible) {
-      test.skip(
-        true,
-        'Environment does not have enough public clans to render pagination navigation'
-      );
-      return;
-    }
+    await discoverPage.verifyClanListLoaded();
 
-    await expect(pager.container).toBeVisible({ timeout: 10000 });
+    const pager = discoverPage.selectors.pagination;
+    await expect(pager.container).toBeVisible({ timeout: 15000 });
 
     await expect(pager.previousButton).toBeDisabled();
 
