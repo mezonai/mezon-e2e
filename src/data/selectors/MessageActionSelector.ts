@@ -16,7 +16,12 @@ export default class MessageActionSelector {
   readonly copyText = this.items.filter({ hasText: 'Copy Text' });
   readonly delete = this.items.filter({ hasText: 'Delete Message' });
   readonly edit = this.items.filter({ hasText: 'Edit Message' });
-  readonly forward = this.items.filter({ hasText: 'Forward Message' });
+  readonly forward = this.page
+    .locator(generateE2eSelector('chat.channel_message.actions.forward_message'))
+    .or(this.items.filter({ hasText: /Forward Message|Chuyển tiếp tin nhắn|Forward/i }))
+    .or(
+      this.page.locator('div[role="menuitem"]:has-text("Forward"), [data-e2e*="forward_message"]')
+    );
   readonly forwardAll = this.page
     .locator(generateE2eSelector('chat.message_action.button.forward_all'))
     .or(this.items.filter({ hasText: /Forward All|Chuyển tiếp tất cả/i }));

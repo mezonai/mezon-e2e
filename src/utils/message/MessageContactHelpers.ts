@@ -19,6 +19,7 @@ export class MessageContactHelpers extends MessageInboxHelpers {
 
     let destinationItem = this.selector.contacts.modal.item
       .locator(generateE2eSelector('suggest_item'))
+      .or(this.selector.contacts.modal.item.locator('[data-e2e*="suggest_item"]'))
       .filter({ hasText: destination });
 
     if (clanName) {

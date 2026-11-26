@@ -9,7 +9,12 @@ export default class ClanMemberSelector {
   );
 
   readonly contextMenu = {
-    memberItems: this.page.locator(generateE2eSelector('chat.channel_message.member_list.item')),
+    memberItems: this.page
+      .locator(generateE2eSelector('chat.channel_message.member_list.item'))
+      .or(this.page.locator(generateE2eSelector('clan_page.secondary_side_bar.member')))
+      .or(
+        this.page.locator('[data-e2e*="member_list.item"], [data-e2e*="secondary_side_bar.member"]')
+      ),
     profileButton: this.actionItems.filter({ hasText: 'Profile' }),
     banButton: this.actionItems.filter({ hasText: 'Ban' }),
     kickButton: this.actionItems.filter({ hasText: 'Kick' }),
