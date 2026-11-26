@@ -237,7 +237,7 @@ export const updateSessionLocalStorage = async (page: Page, accountKey: AccountK
 
     const mezonSession = {
       host: 'dev-mezon.nccsoft.vn',
-      port: '7305',
+      port: '7350',
       ssl: true,
     };
 
@@ -440,7 +440,7 @@ export const getLocalAuthData = (accountKey: keyof typeof persistentAuthConfigs)
 export const getSessionConfig = () => {
   return {
     host: process.env.MEZON_SESSION_HOST || 'dev-mezon.nccsoft.vn',
-    port: process.env.MEZON_SESSION_PORT || '7305',
+    port: process.env.MEZON_SESSION_PORT || '7350',
     ssl: true,
   };
 };
