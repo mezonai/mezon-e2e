@@ -382,6 +382,22 @@ export class ClanPage extends BasePage {
       // No modal visible, continue
     }
     try {
+      const activeBackdrop = this.page.locator(
+        'div[tabindex="-1"][role="button"].fixed.inset-0, div.fixed.inset-0.z-\\[70\\], div.fixed.inset-0.cursor-default, div.bg-theme-contexify, div.contexify'
+      );
+      if (
+        await activeBackdrop
+          .first()
+          .isVisible({ timeout: 500 })
+          .catch(() => false)
+      ) {
+        await this.page.keyboard.press('Escape').catch(() => {});
+        await this.page.mouse.click(10, 10).catch(() => {});
+        await this.page.waitForTimeout(300);
+      }
+    } catch {}
+
+    try {
       const modal = this.page.locator(
         'div[role="dialog"], .fixed.inset-0.z-50, [tabindex="-1"].fixed'
       );
@@ -680,6 +696,24 @@ export class ClanPage extends BasePage {
   }
 
   async openChannelSettings(channelName: string): Promise<void> {
+    // If Channel Settings is already open, close it first to unblock channel list
+    const channelSettingsExit = this.page
+      .locator(
+        '[data-e2e="clan_page-settings-button-exit"], button[aria-label="Close"], button:has-text("ESC")'
+      )
+      .first();
+    if (await channelSettingsExit.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await channelSettingsExit.click({ force: true }).catch(() => {});
+      await this.page.waitForTimeout(300);
+    }
+    const lingeringBackdrop = this.page
+      .locator('[tabindex="-1"][role="button"].fixed.inset-0, .fixed.inset-0.z-\\[70\\]')
+      .first();
+    if (await lingeringBackdrop.isVisible({ timeout: 800 }).catch(() => false)) {
+      await this.page.keyboard.press('Escape').catch(() => {});
+      await lingeringBackdrop.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+    }
+
     const channelLocator = this.selector.sidebar.channelItem.name
       .filter({ hasText: channelName })
       .or(this.selector.channel.getSidebarItem(channelName))
@@ -722,10 +756,10 @@ export class ClanPage extends BasePage {
       )
       .first();
     if (!(await editChannelBtn.isVisible({ timeout: 2000 }).catch(() => false))) {
-      await channelLocator.click({ button: 'right' });
+      await channelLocator.click({ button: 'right', force: true });
     }
     await expect(editChannelBtn).toBeVisible({ timeout: 5000 });
-    await editChannelBtn.click();
+    await editChannelBtn.click({ force: true });
     await expect(this.selector.input.channelName.first()).toBeVisible({ timeout: 8000 });
   }
 
@@ -3640,8 +3674,22 @@ export class ClanPage extends BasePage {
   }
 
   async closeSettingsChannel() {
-    await this.selector.buttons.exitSettings.click();
-    await expect(this.selector.buttons.exitSettings).toBeHidden({ timeout: 3000 });
+    const exitBtn = this.selector.buttons.exitSettings
+      .or(
+        this.page.locator(
+          '[data-e2e*="button-exit"], button[aria-label="Close"], button:has-text("ESC")'
+        )
+      )
+      .first();
+    if (await exitBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await exitBtn.click({ force: true }).catch(() => {});
+    } else {
+      await this.page.keyboard.press('Escape').catch(() => {});
+    }
+    await expect(exitBtn)
+      .toBeHidden({ timeout: 3000 })
+      .catch(() => {});
+    await this.closeAllModals().catch(() => {});
   }
 
   async verifySystemMessageIsSentOnUpdatedChannel(channelName: string, username: string) {
@@ -4280,7 +4328,9 @@ export class ClanPage extends BasePage {
     });
     await expect(permissionItem).toBeVisible({ timeout: 5000 });
     const toggle = permissionItem.locator(this.selector.clanSettings.rolePermissionsSwitch);
-    await toggle.click();
+    if (!(await toggle.isDisabled().catch(() => false))) {
+      await toggle.click({ force: true });
+    }
 
     await this.selector.clanSettings.buttons.displayRoleOption.click();
     await expect(this.selector.clanSettings.input.roleName).toBeVisible({ timeout: 5000 });

@@ -379,6 +379,20 @@ export class ChannelSettingPage extends BasePage {
     await confirmButton.click();
 
     await expect(confirmButton).toBeHidden({ timeout: 8000 });
+    await expect(this.selector.side_bar_buttons.quick_menu)
+      .toBeHidden({ timeout: 5000 })
+      .catch(() => {});
+    const backdrop = this.page.locator(
+      'div[tabindex="-1"][role="button"].fixed.inset-0, div.fixed.inset-0.z-\\[70\\]'
+    );
+    if (
+      await backdrop
+        .first()
+        .isVisible({ timeout: 1000 })
+        .catch(() => false)
+    ) {
+      await this.page.keyboard.press('Escape').catch(() => {});
+    }
     await this.page.waitForTimeout(500);
   }
 
