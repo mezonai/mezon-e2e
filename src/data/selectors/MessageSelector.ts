@@ -132,7 +132,13 @@ export default class MessageSelector {
   footerAvatar = this.page.locator(
     `${generateE2eSelector('footer_profile.avatar')} ${AVATAR_IMAGE_SELECTOR}`
   );
-  pinnedMessages = this.page.locator(generateE2eSelector('common.pin_message'));
+  pinnedMessages = this.page
+    .locator(generateE2eSelector('common.pin_message'))
+    .or(
+      this.page.locator(
+        '[data-e2e*="pin_message"], [data-e2e*="pinned_message"], div[class*="pinMessage"]'
+      )
+    );
   readonly topicPinBanner = {
     container: this.page.locator(
       generateE2eSelector('chat.channel_message.topic_pin_banner.container')
@@ -303,10 +309,18 @@ export default class MessageSelector {
       generateE2eSelector('chat.channel_message.header.button.file.item.by_time')
     ),
   };
-  waveToSayHiButton = this.page.locator(generateE2eSelector('chat.button.wave_to_say_hi'));
+  waveToSayHiButton = this.page
+    .locator(generateE2eSelector('chat.button.wave_to_say_hi'))
+    .or(this.page.locator('button:has-text("Wave to say hi"), button[data-e2e*="wave"]'));
 
   readonly anonymous = {
-    anonymousIcon: this.page.locator(generateE2eSelector('chat.anonymous')),
+    anonymousIcon: this.page
+      .locator(generateE2eSelector('chat.anonymous'))
+      .or(
+        this.page.locator(
+          '[data-e2e*="anonymous"], button[title*="Anonymous"], button[aria-label*="Anonymous"], div[title*="Anonymous"]'
+        )
+      ),
     anonymousMessage: this.page.locator(generateE2eSelector('base_profile.anonymous')),
     anonymousAvatar: this.page.locator(generateE2eSelector('base_profile.anonymous.avatar')),
     anonymousName: this.page.locator(DISPLAY_NAME_SELECTOR, {

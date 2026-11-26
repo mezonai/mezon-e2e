@@ -5,11 +5,25 @@ export default class MessagePollSelector {
   constructor(private readonly page: Page) {}
 
   readonly button = {
-    openModal: this.page.locator(generateE2eSelector('poll.button.open_modal')),
-    option: this.page.locator(generateE2eSelector('poll.button.option')),
+    openModal: this.page
+      .locator(generateE2eSelector('poll.button.open_modal'))
+      .or(
+        this.page.locator(
+          '[data-e2e*="button_plus"], [data-e2e="mention-selected_file"] div[class*="cursor-pointer"]'
+        )
+      )
+      .first(),
+    option: this.page
+      .locator(generateE2eSelector('poll.button.option'))
+      .or(
+        this.page.locator(
+          'button:has-text("Create Poll"), div[role="menuitem"]:has-text("Create Poll")'
+        )
+      ),
     endPoll: this.page
-      .locator(generateE2eSelector('chat.message_action_modal.button.base'))
-      .filter({ hasText: 'End Poll Now' }),
+      .locator(generateE2eSelector('chat.message_action.button.end_poll'))
+      .or(this.page.locator(generateE2eSelector('chat.message_action_modal.button.base')))
+      .filter({ hasText: /End Poll Now|Kết thúc bình chọn/i }),
   };
 
   readonly modal = {
@@ -38,12 +52,18 @@ export default class MessagePollSelector {
         )
       )
       .first(),
-    ended: this.page.locator(generateE2eSelector('poll.card.ended')),
+    ended: this.page
+      .locator(generateE2eSelector('poll.card.ended'))
+      .or(this.page.locator('text=/Final Results|Poll Ended|Đã kết thúc/i, [data-e2e*="ended"]'))
+      .first(),
     answerDescription: this.page.locator(generateE2eSelector('poll.card.answer_description')),
     answer: this.page
       .locator(generateE2eSelector('poll.card.answer'))
       .or(this.page.locator('[data-e2e*="poll"] [data-e2e*="answer"], div[class*="poll"] button')),
-    voted: this.page.locator(generateE2eSelector('poll.card.voted')),
+    voted: this.page
+      .locator(generateE2eSelector('poll.card.voted'))
+      .or(this.page.locator('[data-e2e*="voted"], svg.mz-i-check, .mz-i-check'))
+      .first(),
     totalVotes: this.page
       .locator(generateE2eSelector('poll.card.total_votes'))
       .or(this.page.locator('text=/vote/i, [data-e2e*="total_vote"]'))

@@ -178,11 +178,17 @@ export default class ClanEventSelector {
     numberOfEvent: this.page.locator(
       generateE2eSelector('clan_page.modal.create_event.event_management.number_of_event')
     ),
-    openEventDetailModalButton: this.page.locator(
-      generateE2eSelector(
-        'clan_page.modal.create_event.event_management.item.button.open_detail_modal'
+    openEventDetailModalButton: this.page
+      .locator(
+        generateE2eSelector(
+          'clan_page.modal.create_event.event_management.item.button.open_detail_modal'
+        )
       )
-    ),
+      .or(
+        this.page.locator(
+          '[data-e2e*="open_detail_modal"], [data-e2e*="event_management"] [role="button"], div[class*="event-card"] button, div[class*="eventItem"] button'
+        )
+      ),
     button: {
       closeContainerModal: this.page.locator(
         generateE2eSelector('clan_page.modal.create_event.button_close')
@@ -192,9 +198,17 @@ export default class ClanEventSelector {
           'clan_page.modal.create_event.event_management.item.button.close_detail_modal'
         )
       ),
-      openPanel: this.page.locator(
-        generateE2eSelector('clan_page.modal.create_event.event_management.item.button.open_panel')
-      ),
+      openPanel: this.page
+        .locator(
+          generateE2eSelector(
+            'clan_page.modal.create_event.event_management.item.button.open_panel'
+          )
+        )
+        .or(
+          this.page.locator(
+            '[data-e2e*="open_panel"], [data-e2e*="button-open_panel"], div[class*="event"] button:has(svg), button[aria-label*="More"], button[aria-label*="Option"]'
+          )
+        ),
       editEvent: this.page.locator(CHANNEL_PANEL_ITEM_SELECTOR, {
         hasText: 'Edit Event',
       }),

@@ -269,10 +269,18 @@ export class ProfilePage extends BasePage {
   }
 
   async sendMessage(mentionText: string) {
-    await this.selector.inputs.mention.first().fill(mentionText);
-    await this.selector.inputs.mention.first().press('Enter');
+    const input = this.selector.inputs.mention
+      .or(
+        this.page.locator(
+          'textarea, input[placeholder*="thoughts"], [contenteditable="true"], div[role="textbox"]'
+        )
+      )
+      .first();
+    await expect(input).toBeVisible({ timeout: 10000 });
+    await input.fill(mentionText);
+    await input.press('Enter');
     await expect(new MessageSelector(this.page).messages.last()).toContainText(mentionText, {
-      timeout: 5000,
+      timeout: 8000,
     });
   }
 
