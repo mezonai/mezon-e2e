@@ -416,11 +416,11 @@ export const getBrowserConfig = () => ({
   args: isCI()
     ? ['--disable-dev-shm-usage', '--no-sandbox']
     : [
-      '--disable-clipboard-read-write',
-      '--disable-permissions-api',
-      '--disable-features=ClipboardReadWrite',
-      '--disable-clipboard-sanitization',
-    ],
+        '--disable-clipboard-read-write',
+        '--disable-permissions-api',
+        '--disable-features=ClipboardReadWrite',
+        '--disable-clipboard-sanitization',
+      ],
 });
 
 // Function to get auth data for specific account

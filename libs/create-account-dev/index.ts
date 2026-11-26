@@ -22,7 +22,7 @@ const promptOTP = (): Promise<string> => {
   });
 };
 
-(async () => {
+void (async () => {
   try {
     console.log(`Requesting OTP for email: ${email}`);
     const auth = await mezonClient.authenticateEmailOTPRequest(email, username);
