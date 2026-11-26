@@ -152,6 +152,7 @@ test.describe('Channel Management - Channel Name Auto Formatting', () => {
       await page.reload({ waitUntil: 'domcontentloaded' });
       await clanPage.openChannelSettings(updatedName);
       await channelSettingPage.verifyOverview(updatedName, testTopic);
+      await channelSettingPage.closeChannelSettings();
     });
 
     await AllureReporter.step('Delete channel to clean up', async () => {

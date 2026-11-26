@@ -405,6 +405,7 @@ jobs:
 
           echo "=== Checking dev-mezon API (port 7350) ==="
           API_HTTP_CODE=$(curl \
+            -k \
             -sS \
             -4 \
             --resolve "dev-mezon.nccsoft.vn:7350:$DEV_HOST_IP" \
