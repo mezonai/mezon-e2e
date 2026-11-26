@@ -92,11 +92,22 @@ export default class MessageSelector {
     generateE2eSelector('chat.direct_message.leave_group.button')
   );
   messagesInTopic = this.page.locator('.thread-scroll .text-theme-message');
-  editGroupButton = this.page.locator(generateE2eSelector('chat.direct_message.edit_group.button'));
-  groupNameInput = this.page.locator('input[placeholder="Enter group name"]');
-  saveGroupNameButton = this.page.locator(generateE2eSelector('button.base'), {
-    hasText: 'Save',
-  });
+  editGroupButton = this.page
+    .locator(generateE2eSelector('chat.direct_message.edit_group.button'))
+    .or(this.page.locator('[title*="edit group" i], [aria-label*="edit group" i]'))
+    .or(this.page.locator('generic[title*="edit group" i], button[title*="edit" i]'))
+    .or(this.page.locator(':has-text("Click to edit group")'))
+    .first();
+  groupNameInput = this.page
+    .locator(generateE2eSelector('chat.direct_message.edit_group.input'))
+    .or(this.page.locator('input[placeholder="Enter group name"]'))
+    .or(this.page.locator('input[placeholder*="group" i]'))
+    .first();
+  saveGroupNameButton = this.page
+    .locator(generateE2eSelector('chat.direct_message.edit_group.save_button'))
+    .or(this.page.locator(generateE2eSelector('button.base'), { hasText: 'Save' }))
+    .or(this.page.locator('button:has-text("Save")'))
+    .first();
   leaveGroupButtonInPopup = this.page.locator(
     generateE2eSelector('chat.direct_message.menu.leave_group.button')
   );
@@ -152,7 +163,11 @@ export default class MessageSelector {
   headerUserProfileButton = this.page.locator(
     `${generateE2eSelector('chat.direct_message.header.right_container.user_profile')}`
   );
-  groupName = this.page.locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'));
+  groupName = this.page
+    .locator(generateE2eSelector('chat.direct_message.chat_item.namegroup'))
+    .or(this.page.locator('[title*="edit group" i]'))
+    .or(this.page.locator(':has-text("Click to edit group")'))
+    .first();
 
   dmHeaderCallAction = this.page.locator(
     generateE2eSelector('chat.direct_message.header.right_container.call')
