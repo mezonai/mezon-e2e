@@ -712,16 +712,55 @@ export class ChannelSettingPage extends BasePage {
 
   async archiveChannel(channelName: string, isThread = false) {
     if (isThread) {
-      const threadItem = this.selector.sidebar.threadItem.name
-        .filter({ hasText: channelName })
-        .or(
-          this.page.locator(
-            `[data-e2e*="thread"]:has-text("${channelName}"), a[href*="thread"]:has-text("${channelName}")`
-          )
+      // If thread discussion modal/box is open, close it first
+      const closeThreadBtn = this.page
+        .locator(
+          '[data-e2e*="discussion-header-button-close"], [data-e2e*="thread.close"], [data-e2e*="discussion.header.button.close"], button[aria-label="Close"]'
         )
         .first();
-      await threadItem.scrollIntoViewIfNeeded().catch(() => {});
-      await threadItem.click({ button: 'right' });
+      if (await closeThreadBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await closeThreadBtn.click({ force: true }).catch(() => {});
+        await this.page.waitForTimeout(300);
+      }
+
+      // Close Threads popover header list if open, so that thread item in sidebar is visible and clickable
+      const threadsPopoverHeader = this.page
+        .locator('div, section')
+        .filter({ hasText: /^Threads$/ })
+        .first();
+      if (await threadsPopoverHeader.isVisible({ timeout: 1000 }).catch(() => false)) {
+        const headerThreadsBtn = this.page
+          .getByRole('button', { name: 'Threads', exact: true })
+          .or(this.page.locator('[data-e2e*="header.button.thread"]'))
+          .first();
+        if (await headerThreadsBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await headerThreadsBtn.click({ force: true }).catch(() => {});
+          await this.page.waitForTimeout(300);
+        }
+      }
+
+      // Find thread item in sidebar (or popover as fallback)
+      const threadInSidebar = this.page
+        .locator('button, a, div[role="button"]')
+        .filter({ hasText: channelName })
+        .first();
+
+      if (!(await threadInSidebar.isVisible({ timeout: 2000 }).catch(() => false))) {
+        await this.page
+          .evaluate(() => {
+            const scrollers = document.querySelectorAll(
+              '.thread-scroll, [class*="contain-strict"], div[class*="overflow-y"]'
+            );
+            scrollers.forEach(el => {
+              el.scrollTop = el.scrollHeight;
+            });
+          })
+          .catch(() => {});
+        await this.page.waitForTimeout(300);
+      }
+
+      await threadInSidebar.scrollIntoViewIfNeeded().catch(() => {});
+      await threadInSidebar.click({ button: 'right', force: true });
       const archiveThreadBtn = this.selector.archived_channels.archive_thread_button
         .or(
           this.page
@@ -730,7 +769,7 @@ export class ChannelSettingPage extends BasePage {
         )
         .first();
       await expect(archiveThreadBtn).toBeVisible({ timeout: 5000 });
-      await archiveThreadBtn.click();
+      await archiveThreadBtn.click({ force: true });
     } else {
       const channelItem = this.selector.sidebar.channelItem.item
         .filter({ hasText: channelName })
@@ -741,8 +780,20 @@ export class ChannelSettingPage extends BasePage {
           )
         )
         .first();
+      if (!(await channelItem.isVisible({ timeout: 2000 }).catch(() => false))) {
+        await this.page
+          .evaluate(() => {
+            const scrollers = document.querySelectorAll(
+              '.thread-scroll, [class*="contain-strict"]'
+            );
+            scrollers.forEach(el => {
+              el.scrollTop = el.scrollHeight;
+            });
+          })
+          .catch(() => {});
+      }
       await channelItem.scrollIntoViewIfNeeded().catch(() => {});
-      await channelItem.click({ button: 'right' });
+      await channelItem.click({ button: 'right', force: true });
       const archiveChannelBtn = this.selector.archived_channels.archive_channel_button
         .or(
           this.page
@@ -751,7 +802,7 @@ export class ChannelSettingPage extends BasePage {
         )
         .first();
       await expect(archiveChannelBtn).toBeVisible({ timeout: 5000 });
-      await archiveChannelBtn.click();
+      await archiveChannelBtn.click({ force: true });
     }
     const confirmButton = this.selector.archived_channels.modal.confirm_button
       .or(this.page.locator('button').filter({ hasText: /^Archive$/i }))
