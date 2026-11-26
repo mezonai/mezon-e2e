@@ -2,7 +2,7 @@ import { Client } from 'mezon-js';
 import * as readline from 'readline';
 
 const mezonClient = new Client('defaultkey', 'dev-mezon.nccsoft.vn', '8088', true);
-const apiClient = new Client('defaultkey', 'dev-mezon.nccsoft.vn', '7350', true);
+const apiClient = new Client('defaultkey', 'dev-mezon.nccsoft.vn', '7305', true);
 const email = `dung.buihuu+mb01@ncc.plus`;
 const username = email.split('@')[0];
 const password = 'Hello@123';
