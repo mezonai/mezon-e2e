@@ -175,8 +175,22 @@ export abstract class MessageReactionHelpers extends MessageEmojiHelpers {
     messageElement: Locator,
     preferredEmojis: string[] = ['🙂', '💯', '👍', '😊', '😂']
   ): Promise<string | null> {
-    await messageElement.hover();
-    await this.page.waitForTimeout(1500);
+    // If emoji picker or menu is still open from previous action, close it first
+    const openPicker = this.page
+      .locator('#emojiPicker, [id*="emojiPicker"], div[class*="emoji-picker"]')
+      .first();
+    if (await openPicker.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await this.page.keyboard.press('Escape').catch(() => {});
+      await this.page.waitForTimeout(300);
+    }
+
+    try {
+      await messageElement.hover({ timeout: 5000 });
+    } catch {
+      await this.page.keyboard.press('Escape').catch(() => {});
+      await messageElement.hover({ force: true }).catch(() => {});
+    }
+    await this.page.waitForTimeout(1000);
 
     const quick = await this.tryClickQuickReaction(messageElement, preferredEmojis);
     if (quick) {
@@ -185,16 +199,17 @@ export abstract class MessageReactionHelpers extends MessageEmojiHelpers {
 
     const addBtn = await this.findAddReactionButton(messageElement);
     if (addBtn) {
-      await addBtn.click();
+      await addBtn.click({ force: true });
       await this.page.waitForTimeout(1500);
 
       const picked = await this.selectEmojiFromPicker(preferredEmojis);
       if (picked) {
+        await this.page.keyboard.press('Escape').catch(() => {});
         return picked;
       }
     }
 
-    await messageElement.click({ button: 'right' });
+    await messageElement.click({ button: 'right', force: true });
     await this.page.waitForTimeout(1000);
 
     const contextReactionSelectors = [

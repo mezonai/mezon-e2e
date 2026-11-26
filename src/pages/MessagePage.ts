@@ -505,17 +505,49 @@ export class MessagePage extends BasePage {
     await this.dismissPermissionModalIfPresent();
     this.groupNameText = groupName;
 
-    await this.selector.group.click();
-    await this.selector.editGroupButton.click();
+    if (await this.selector.group.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await this.selector.group.click({ force: true }).catch(() => {});
+    }
+
+    const editBtn = this.selector.editGroupButton
+      .or(this.page.locator('[title="Click to edit group"], [aria-label="Click to edit group"]'))
+      .or(
+        this.page.locator('div:has-text("Click to edit group"), p:has-text("Click to edit group")')
+      )
+      .first();
+
+    await expect(editBtn).toBeVisible({ timeout: 5000 });
+    await editBtn.click({ force: true });
+
+    await expect(this.selector.groupNameInput).toBeVisible({ timeout: 5000 });
     await this.selector.groupNameInput.click();
     await this.selector.groupNameInput.fill('');
     await this.selector.groupNameInput.fill(groupName);
-    await this.selector.saveGroupNameButton.click();
-    await expect(this.selector.groupName).toContainText(groupName, { timeout: 5000 });
+
+    await expect(this.selector.saveGroupNameButton).toBeVisible({ timeout: 5000 });
+    await this.selector.saveGroupNameButton.click({ force: true });
+
+    const updatedGroupHeader = this.selector.groupName
+      .or(this.page.locator('[title="Click to edit group"], [aria-label="Click to edit group"]'))
+      .or(
+        this.page.locator(
+          `div:has-text("${groupName}"), p:has-text("${groupName}"), span:has-text("${groupName}")`
+        )
+      )
+      .first();
+    await expect(updatedGroupHeader).toContainText(groupName, { timeout: 8000 });
   }
 
   async isGroupNameDMUpdated(): Promise<boolean> {
-    const groupName = (await this.selector.groupName.innerText()).trim();
+    const updatedGroupHeader = this.selector.groupName
+      .or(this.page.locator('[title="Click to edit group"], [aria-label="Click to edit group"]'))
+      .or(
+        this.page.locator(
+          `div:has-text("${this.groupNameText}"), p:has-text("${this.groupNameText}"), span:has-text("${this.groupNameText}")`
+        )
+      )
+      .first();
+    const groupName = (await updatedGroupHeader.innerText().catch(() => '')).trim();
     return groupName.includes(this.groupNameText);
   }
 

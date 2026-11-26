@@ -3374,9 +3374,27 @@ export class ClanPage extends BasePage {
 
   async copyChannelLinkFromChannelList(channelName: string): Promise<string> {
     const channel = this.selector.channel.getSidebarItem(channelName);
+    if (!(await channel.isVisible({ timeout: 2000 }).catch(() => false))) {
+      await this.page
+        .evaluate(async name => {
+          const el = document.querySelector('.thread-scroll');
+          if (!el) return;
+          const maxScroll = el.scrollHeight;
+          for (let pos = 0; pos <= maxScroll; pos += 250) {
+            el.scrollTop = pos;
+            await new Promise(r => setTimeout(r, 60));
+            const match = Array.from(el.querySelectorAll('*')).find(
+              (e: any) => e.innerText && e.innerText.includes(name)
+            );
+            if (match) break;
+          }
+        }, channelName)
+        .catch(() => {});
+      await this.page.waitForTimeout(300);
+    }
     await channel.scrollIntoViewIfNeeded().catch(() => {});
     await expect(channel).toBeVisible({ timeout: 10000 });
-    await channel.click({ button: 'right' });
+    await channel.click({ button: 'right', force: true });
 
     const copyLinkAction = this.selector.sidebar.panelItem.item
       .filter({ hasText: 'Copy Link' })

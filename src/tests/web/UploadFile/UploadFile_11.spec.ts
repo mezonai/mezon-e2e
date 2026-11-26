@@ -40,7 +40,7 @@ test.describe('Upload File & Media - HLS Video Playback & Call Recording MP4 See
     page,
   }) => {
     await AllureReporter.addLabels({
-      suite: AllureConfig.Suites.WORK_FLOW,
+      suite: AllureConfig.Suites.CHAT_PLATFORM,
       subSuite: 'UploadFile',
     });
 
@@ -76,7 +76,7 @@ test.describe('Upload File & Media - HLS Video Playback & Call Recording MP4 See
     page,
   }) => {
     await AllureReporter.addLabels({
-      suite: AllureConfig.Suites.WORK_FLOW,
+      suite: AllureConfig.Suites.CHAT_PLATFORM,
       subSuite: 'UploadFile',
     });
 
