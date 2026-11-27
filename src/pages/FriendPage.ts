@@ -108,6 +108,11 @@ export class FriendPage extends BasePage {
   }
 
   async clickAddFriendButton(): Promise<void> {
+    const goToFriendBtn = this.page.locator('button:has-text("Go to Friend Page")').first();
+    if (await goToFriendBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+      await goToFriendBtn.click({ force: true }).catch(() => {});
+      await this.page.waitForTimeout(500);
+    }
     await this.selector.buttons.addFriend.click();
     await this.selector.inputs.addFriend.waitFor({ state: 'visible', timeout: 5000 });
   }

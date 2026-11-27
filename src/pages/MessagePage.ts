@@ -802,13 +802,12 @@ export class MessagePage extends BasePage {
     await expect(lastMsg).toBeVisible({ timeout: 10000 });
     await lastMsg.hover();
     await lastMsg.click({ button: 'right' });
-    if (
-      !(await this.selector.forwardMessageButton.isVisible({ timeout: 2000 }).catch(() => false))
-    ) {
+    const forwardBtn = this.selector.forwardMessageButton.first();
+    if (!(await forwardBtn.isVisible({ timeout: 2000 }).catch(() => false))) {
       await lastMsg.click({ button: 'right', force: true });
     }
-    await expect(this.selector.forwardMessageButton).toBeVisible({ timeout: 5000 });
-    await this.selector.forwardMessageButton.click();
+    await expect(forwardBtn).toBeVisible({ timeout: 5000 });
+    await forwardBtn.click();
     await expect(this.selector.modalForwardMessage).toBeVisible({ timeout: 5000 });
   }
 
@@ -980,7 +979,8 @@ export class MessagePage extends BasePage {
       return;
     }
 
-    while (true) {
+    let consecutiveFailures = 0;
+    while (consecutiveFailures < 3) {
       const group = chatList
         .filter({
           has: this.page.locator(generateE2eSelector('chat.direct_message.chat_item.group_name')),
@@ -993,20 +993,40 @@ export class MessagePage extends BasePage {
         break;
       }
 
-      await group.hover();
-      const leaveGroupButton = group.locator(CLOSE_DM_BUTTON_SELECTOR);
+      try {
+        await group.hover({ timeout: 5000 });
+        const leaveGroupButton = group.locator(CLOSE_DM_BUTTON_SELECTOR);
+        await leaveGroupButton.first().click({ force: true });
 
-      await leaveGroupButton.first().click({ force: true });
-      const confirmLeaveGroupButton = this.page.locator(
-        generateE2eSelector('chat.direct_message.leave_group.button')
-      );
-      if (await confirmLeaveGroupButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await confirmLeaveGroupButton.click({ force: true });
-        await expect(confirmLeaveGroupButton)
-          .toBeHidden({ timeout: 10000 })
-          .catch(async () => {
-            await this.page.keyboard.press('Escape');
-          });
+        const confirmLeaveGroupButton = this.page
+          .locator(generateE2eSelector('chat.direct_message.leave_group.button'))
+          .or(
+            this.page
+              .locator('.fixed.inset-0.z-50 div, .fixed.inset-0.z-50 button')
+              .filter({ hasText: /^Leave Group$/i })
+          )
+          .first();
+
+        if (await confirmLeaveGroupButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await confirmLeaveGroupButton.click({ force: true });
+          await expect(confirmLeaveGroupButton)
+            .toBeHidden({ timeout: 10000 })
+            .catch(async () => {
+              await this.page.keyboard.press('Escape');
+            });
+          consecutiveFailures = 0;
+        } else {
+          consecutiveFailures++;
+        }
+      } catch {
+        consecutiveFailures++;
+        const cancelBtn = this.page
+          .locator('.fixed.inset-0.z-50 div, .fixed.inset-0.z-50 button')
+          .filter({ hasText: /^Cancel$/i })
+          .first();
+        if (await cancelBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+          await cancelBtn.click({ force: true }).catch(() => {});
+        }
       }
     }
   }
@@ -1629,27 +1649,59 @@ export class MessagePage extends BasePage {
       .or(this.page.locator('button:has-text("Post"), button:has-text("Create")'))
       .first();
     await postBtn.click({ force: true });
+    const isModalHidden = await this.selector.polls.modal.input.question
+      .waitFor({ state: 'hidden', timeout: 4000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!isModalHidden && (await postBtn.isVisible().catch(() => false))) {
+      await postBtn.click({ force: true }).catch(() => {});
+      await this.selector.polls.modal.input.question
+        .waitFor({ state: 'hidden', timeout: 5000 })
+        .catch(() => {});
+    }
     await this.page.waitForTimeout(1000);
+  }
+
+  private async scrollChatToBottom(): Promise<void> {
+    await this.page
+      .evaluate(() => {
+        const scrollables = Array.from(document.querySelectorAll('*'));
+        for (const el of scrollables) {
+          if (el.scrollHeight > el.clientHeight && el.clientHeight > 200) {
+            el.scrollTop = el.scrollHeight;
+          }
+        }
+      })
+      .catch(() => {});
   }
 
   async verifyPollCard(question: string, answers: string[]) {
     const pollCard = this.selector.polls.card;
 
-    await expect(pollCard.question).toContainText(question.trim(), { timeout: 10000 });
+    await this.scrollChatToBottom();
+    await pollCard.question.scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {});
+    await expect(pollCard.question).toContainText(question.trim(), { timeout: 15000 });
 
     for (let i = 0; i < answers.length; i++) {
-      await expect(pollCard.answer.nth(i)).toContainText(answers[i].trim(), { timeout: 5000 });
+      const answerLocator = pollCard.answer.nth(i);
+      await answerLocator.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
+      await expect(answerLocator).toContainText(answers[i].trim(), { timeout: 5000 });
     }
 
+    await pollCard.totalVotes.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
     await expect(pollCard.totalVotes).toBeVisible();
     await expect(pollCard.button.vote).toBeVisible();
   }
 
   async votePollByIndex(answerIndex: number) {
     const answer = this.selector.polls.card.answer.nth(answerIndex);
+    await answer.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
     await expect(answer).toBeVisible();
     await answer.click();
 
+    await this.selector.polls.card.button.vote
+      .scrollIntoViewIfNeeded({ timeout: 3000 })
+      .catch(() => {});
     await this.selector.polls.card.button.vote.click();
   }
 
@@ -1676,13 +1728,19 @@ export class MessagePage extends BasePage {
   }
 
   async endPoll() {
-    await this.selector.polls.card.question.first().click({ button: 'right' });
+    await this.selector.polls.card.question
+      .scrollIntoViewIfNeeded({ timeout: 3000 })
+      .catch(() => {});
+    await this.selector.polls.card.question.click({ button: 'right' });
     await this.selector.polls.button.endPoll.click();
     await expect(this.selector.polls.card.ended).toBeVisible({ timeout: 5000 });
   }
 
   async verifyEndPollOptionVisible() {
-    await this.selector.polls.card.question.first().click({ button: 'right' });
+    await this.selector.polls.card.question
+      .scrollIntoViewIfNeeded({ timeout: 3000 })
+      .catch(() => {});
+    await this.selector.polls.card.question.click({ button: 'right' });
     const endPollButton = this.selector.polls.button.endPoll;
     return await endPollButton.isVisible({ timeout: 1000 });
   }

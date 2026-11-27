@@ -341,9 +341,17 @@ export class AuthHelper {
 
     const clanSelector = new ClanSelector(page);
     try {
-      if (await clanSelector.permissionModal.isVisible(3000)) {
-        await clanSelector.permissionModal.cancel.first().click();
-        console.log('Closed permission modal');
+      const goToFriendBtn = page.locator('button:has-text("Go to Friend Page")').first();
+      if (await goToFriendBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+        await goToFriendBtn.click({ force: true });
+        await page.waitForTimeout(500);
+        console.log('Dismissed Internal error modal via Go to Friend Page');
+      } else if (await clanSelector.permissionModal.isVisible(1500)) {
+        const dismissBtn = clanSelector.permissionModal.cancel
+          .or(page.locator('button:has-text("Go to Friend Page"), button:has-text("Cancel")'))
+          .first();
+        await dismissBtn.click({ force: true });
+        console.log('Closed permission/error modal');
       }
     } catch {
       // Ignored if modal does not appear

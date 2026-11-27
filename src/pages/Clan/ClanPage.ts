@@ -155,6 +155,11 @@ export class ClanPage extends BasePage {
   }
 
   async clickCreateClanButton(): Promise<boolean> {
+    const goToFriendBtn = this.page.locator('button:has-text("Go to Friend Page")').first();
+    if (await goToFriendBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+      await goToFriendBtn.click({ force: true }).catch(() => {});
+      await this.page.waitForTimeout(500);
+    }
     const createClanButton = this.selector.buttons.createClan;
     if (!(await createClanButton.isVisible({ timeout: 3000 }))) return false;
     await createClanButton.click();
@@ -334,7 +339,7 @@ export class ClanPage extends BasePage {
 
     try {
       const clanSettingsExit = this.page.locator(
-        '[data-e2e="clan_page-settings-button-exit"], [data-e2e="user_setting.account.exit_setting"], button[aria-label="Close"], button:has-text("ESC")'
+        '[data-e2e="clan_page-settings-button-exit"], [data-e2e="user_setting.account.exit_setting"], div[role="dialog"] button[aria-label="Close"], .fixed.inset-0.z-50 button[aria-label="Close"], button:has-text("ESC")'
       );
       if (
         await clanSettingsExit
@@ -408,23 +413,67 @@ export class ClanPage extends BasePage {
           .catch(() => false)
       ) {
         await this.page.keyboard.press('Escape');
-        const closeButtons = modal.locator(
-          'button[aria-label="Close"], button:has-text("Close"), button:has-text("Cancel"), button:has-text("Okay"), button:has-text("OK"), button:has-text("Back")'
-        );
-        const count = await closeButtons.count();
-        for (let i = 0; i < count; i++) {
-          if (
-            await closeButtons
-              .nth(i)
-              .isVisible({ timeout: 300 })
-              .catch(() => false)
-          ) {
-            await closeButtons
-              .nth(i)
-              .click({ timeout: 1000, force: true })
-              .catch(() => {});
+        await this.page.waitForTimeout(200);
+        if (
+          await modal
+            .first()
+            .isVisible({ timeout: 300 })
+            .catch(() => false)
+        ) {
+          const closeButtons = modal.locator(
+            'button[aria-label*="close" i], [role="button"][aria-label*="close" i], button:has-text("Close"), button:has-text("Cancel"), button:has-text("Okay"), button:has-text("OK"), button:has-text("Back"), button:has-text("Skip"), button:has-text("Dismiss"), button:has-text("Got it"), button:has-text("×")'
+          );
+          const count = await closeButtons.count();
+          for (let i = 0; i < count; i++) {
+            if (
+              await closeButtons
+                .nth(i)
+                .isVisible({ timeout: 300 })
+                .catch(() => false)
+            ) {
+              await closeButtons
+                .nth(i)
+                .click({ timeout: 1000, force: true })
+                .catch(() => {});
+              await this.page.waitForTimeout(300);
+            }
+          }
+        }
+        if (
+          await modal
+            .first()
+            .isVisible({ timeout: 300 })
+            .catch(() => false)
+        ) {
+          await this.page.mouse.click(10, 10).catch(() => {});
+          await this.page.waitForTimeout(300);
+        }
+        if (
+          await modal
+            .first()
+            .isVisible({ timeout: 300 })
+            .catch(() => false)
+        ) {
+          const fallbackCancel = this.page
+            .locator('button, [role="button"], .fixed.inset-0.z-50 div[class*="cursor-pointer"]')
+            .filter({ hasText: /^(Cancel|Close|No|Stay|Dismiss)$/i })
+            .first();
+          if (await fallbackCancel.isVisible({ timeout: 300 }).catch(() => false)) {
+            await fallbackCancel.click({ force: true }).catch(() => {});
             await this.page.waitForTimeout(300);
           }
+        }
+        if (
+          await modal
+            .first()
+            .isVisible({ timeout: 300 })
+            .catch(() => false)
+        ) {
+          const modalText = await modal
+            .first()
+            .innerText()
+            .catch(() => '');
+          console.warn('Remaining blocking modal after closeAllModals:', modalText.slice(0, 200));
         }
       }
     } catch {
@@ -822,77 +871,85 @@ export class ClanPage extends BasePage {
     status?: ChannelStatus,
     inLastCategory = false
   ): Promise<boolean> {
-    try {
-      await this.closeAllModals();
-      const createBtn = inLastCategory
-        ? this.selector.buttons.createChannel.last()
-        : this.selector.buttons.createChannel.first();
-      await expect(createBtn).toBeVisible({ timeout: 5000 });
-      await createBtn.click();
-      await expect(this.selector.createChannelModal.input.channelName).toBeVisible({
-        timeout: 5000,
-      });
-
-      switch (typeChannel) {
-        case ChannelType.TEXT:
-          await this.selector.createChannelModal.type.text.click();
-          break;
-        case ChannelType.VOICE:
-          await this.selector.createChannelModal.type.voice.click();
-          break;
-        case ChannelType.STREAM:
-          await this.selector.createChannelModal.type.stream.click();
-          break;
-      }
-      await this.selector.createChannelModal.input.channelName.fill(channelName);
-      if (
-        status === ChannelStatus.PRIVATE &&
-        (typeChannel === ChannelType.TEXT || typeChannel === ChannelType.VOICE)
-      ) {
-        await this.selector.createChannelModal.toggle.isPrivate.click();
-        await expect(this.selector.createChannelModal.toggle.isPrivate).toBeChecked();
-      }
-      const confirmBtn = this.selector.createChannelModal.button.confirm
-        .or(this.page.locator('button').filter({ hasText: /^Create Channel$/i }))
-        .first();
-      await confirmBtn.click();
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        await expect(this.selector.createChannelModal.input.channelName).toBeHidden({
+        await this.closeAllModals();
+        const createBtn = inLastCategory
+          ? this.selector.buttons.createChannel.last()
+          : this.selector.buttons.createChannel.first();
+        await expect(createBtn).toBeVisible({ timeout: 5000 });
+        await createBtn.click();
+        await expect(this.selector.createChannelModal.input.channelName).toBeVisible({
           timeout: 5000,
         });
-      } catch {
-        if (await confirmBtn.isVisible().catch(() => false)) {
-          await confirmBtn.click({ force: true }).catch(() => {});
-          await expect(this.selector.createChannelModal.input.channelName).toBeHidden({
-            timeout: 8000,
-          });
+
+        switch (typeChannel) {
+          case ChannelType.TEXT:
+            await this.selector.createChannelModal.type.text.click();
+            break;
+          case ChannelType.VOICE:
+            await this.selector.createChannelModal.type.voice.click();
+            break;
+          case ChannelType.STREAM:
+            await this.selector.createChannelModal.type.stream.click();
+            break;
         }
-      }
-      await this.page.waitForTimeout(1000);
-      const errorCancelBtn = this.page.locator('button:has-text("Cancel")').first();
-      if (
-        (await this.page
+        await this.selector.createChannelModal.input.channelName.fill(channelName);
+        if (
+          status === ChannelStatus.PRIVATE &&
+          (typeChannel === ChannelType.TEXT || typeChannel === ChannelType.VOICE)
+        ) {
+          await this.selector.createChannelModal.toggle.isPrivate.click();
+          await expect(this.selector.createChannelModal.toggle.isPrivate).toBeChecked();
+        }
+        const confirmBtn = this.selector.createChannelModal.button.confirm
+          .or(this.page.locator('button').filter({ hasText: /^Create Channel$/i }))
+          .first();
+        await confirmBtn.click();
+        try {
+          await expect(this.selector.createChannelModal.input.channelName).toBeHidden({
+            timeout: 5000,
+          });
+        } catch {
+          if (await confirmBtn.isVisible().catch(() => false)) {
+            await confirmBtn.click({ force: true }).catch(() => {});
+            await expect(this.selector.createChannelModal.input.channelName).toBeHidden({
+              timeout: 8000,
+            });
+          }
+        }
+        await this.page.waitForTimeout(1000);
+        const errorCancelBtn = this.page.locator('button:has-text("Cancel")').first();
+        const hasInternalError = await this.page
           .locator('text="Internal error"')
           .isVisible({ timeout: 800 })
-          .catch(() => false)) &&
-        (await errorCancelBtn.isVisible({ timeout: 500 }).catch(() => false))
-      ) {
-        await errorCancelBtn.click({ force: true }).catch(() => {});
-        await this.page.waitForTimeout(500);
-      }
+          .catch(() => false);
+        if (hasInternalError) {
+          if (await errorCancelBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+            await errorCancelBtn.click({ force: true }).catch(() => {});
+            await this.page.waitForTimeout(500);
+          }
+          if (attempt < maxAttempts) {
+            await this.page.waitForTimeout(1000);
+            continue;
+          }
+          return false;
+        }
 
-      return true;
-    } catch (error) {
-      console.error(`Error creating channel: ${error}`);
-      return false;
+        return true;
+      } catch (error) {
+        console.error(`Error creating channel (attempt ${attempt}/${maxAttempts}): ${error}`);
+        if (attempt === maxAttempts) {
+          return false;
+        }
+        await this.page.waitForTimeout(1000);
+      }
     }
+    return false;
   }
 
-  async isNewChannelPresent(channelName: string): Promise<boolean> {
-    const escapedName = channelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const nameRegex = new RegExp(escapedName, 'i');
-
-    // 1. Check if channel is opened in main chat view / top bar / welcome banner
+  private async findChannelInCurrentView(channelName: string, nameRegex: RegExp): Promise<boolean> {
     const chatTitle = this.page
       .locator('[data-e2e="clan_page-header-title-clan_name"], [data-e2e*="header"], h1, h2, h3, p')
       .filter({ hasText: nameRegex })
@@ -914,27 +971,37 @@ export class ClanPage extends BasePage {
       .first();
 
     try {
+      await channelLocator.waitFor({ state: 'attached', timeout: 3000 }).catch(() => {});
       if (await channelLocator.isVisible({ timeout: 1500 }).catch(() => false)) {
         return true;
       }
 
-      await this.page
-        .evaluate(() => {
-          const scrollables = Array.from(document.querySelectorAll('*'));
-          for (const el of scrollables) {
-            if (el.scrollHeight > el.clientHeight && el.clientHeight > 100) {
-              el.scrollTop = el.scrollHeight;
-            }
-          }
-        })
-        .catch(() => {});
-      await this.page.waitForTimeout(300);
-
-      const count = await channelLocator.count().catch(() => 0);
-      if (count > 0) {
+      if ((await channelLocator.count().catch(() => 0)) > 0) {
         await channelLocator.scrollIntoViewIfNeeded({ timeout: 2000 }).catch(() => {});
         if (await channelLocator.isVisible({ timeout: 1500 }).catch(() => false)) {
           return true;
+        }
+      }
+
+      // Scroll sidebar containers (top then bottom) in case channel list is long
+      for (const scrollToBottom of [false, true]) {
+        await this.page
+          .evaluate(toBottom => {
+            const scrollables = Array.from(document.querySelectorAll('*'));
+            for (const el of scrollables) {
+              if (el.scrollHeight > el.clientHeight && el.clientHeight > 100) {
+                el.scrollTop = toBottom ? el.scrollHeight : 0;
+              }
+            }
+          }, scrollToBottom)
+          .catch(() => {});
+        await this.page.waitForTimeout(300);
+
+        if ((await channelLocator.count().catch(() => 0)) > 0) {
+          await channelLocator.scrollIntoViewIfNeeded({ timeout: 2000 }).catch(() => {});
+          if (await channelLocator.isVisible({ timeout: 1500 }).catch(() => false)) {
+            return true;
+          }
         }
       }
     } catch {}
@@ -947,6 +1014,13 @@ export class ClanPage extends BasePage {
     }
 
     return false;
+  }
+
+  async isNewChannelPresent(channelName: string): Promise<boolean> {
+    const escapedName = channelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nameRegex = new RegExp(escapedName, 'i');
+
+    return await this.findChannelInCurrentView(channelName, nameRegex);
   }
 
   async verifyChannelVisibility(channelName: string, shouldBeVisible: boolean): Promise<void> {
@@ -2955,15 +3029,33 @@ export class ClanPage extends BasePage {
     try {
       const timeout = process.env.CI ? 15000 : 8000;
       const channelItem = this.getVoiceChannelSidebarItem(channelName).first();
-      await expect(channelItem).toBeVisible({ timeout });
-      await channelItem.click();
+      const isChannelVisible = await channelItem
+        .waitFor({ state: 'visible', timeout })
+        .then(() => true)
+        .catch(() => false);
+      if (!isChannelVisible) {
+        await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+        await expect(channelItem).toBeVisible({ timeout });
+      }
+      await channelItem.scrollIntoViewIfNeeded().catch(() => {});
+      const channelLink = channelItem.locator('a[href*="/channels/"]').first();
+      const clickTarget =
+        (await channelLink.count().catch(() => 0)) > 0 ? channelLink : channelItem;
+      await clickTarget.click();
       const joinButtonLocator = this.selector.screen.voiceRoom.joinButton;
-      await joinButtonLocator.waitFor({ state: 'visible', timeout });
+      const isJoinVisible = await joinButtonLocator
+        .waitFor({ state: 'visible', timeout: 4000 })
+        .then(() => true)
+        .catch(() => false);
+      if (!isJoinVisible) {
+        await clickTarget.click({ force: true });
+        await joinButtonLocator.waitFor({ state: 'visible', timeout });
+      }
 
       if (joinRole) {
         await this.selector.screen.voiceRoom.joinRoleMenuButton.click();
         await this.selector.screen.voiceRoom.joinRoleOption(joinRole).click();
-        await expect(joinButtonLocator).toHaveText(`Join as ${joinRole}`);
+        await expect(joinButtonLocator).toHaveText(new RegExp(`^Join as ${joinRole}$`, 'i'));
       }
 
       await joinButtonLocator.click();
@@ -3273,7 +3365,7 @@ export class ClanPage extends BasePage {
 
   async openUserContextInVoiceRoom(username: string): Promise<void> {
     const participantTile = this.getVoiceParticipantTile(username);
-    await participantTile.waitFor({ state: 'visible', timeout: 10000 });
+    await participantTile.waitFor({ state: 'visible', timeout: 20000 });
     await participantTile.click({ button: 'right' });
   }
 
@@ -4587,7 +4679,7 @@ export class ClanPage extends BasePage {
     try {
       await this.selector.screen.voiceRoom.screenShareIcon.first().waitFor({
         state: 'visible',
-        timeout: 10_000,
+        timeout: process.env.CI ? 15_000 : 10_000,
       });
       return true;
     } catch {

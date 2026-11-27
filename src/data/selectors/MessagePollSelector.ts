@@ -51,11 +51,12 @@ export default class MessagePollSelector {
           '[data-e2e*="poll_card"], div[class*="poll"] h3, div[class*="poll"] p, [data-e2e*="question"]'
         )
       )
-      .first(),
+      .last(),
     ended: this.page
       .locator(generateE2eSelector('poll.card.ended'))
-      .or(this.page.locator('text=/Final Results|Poll Ended|Đã kết thúc/i, [data-e2e*="ended"]'))
-      .first(),
+      .or(this.page.locator('text=/Final Results|Poll Ended|Đã kết thúc/i'))
+      .or(this.page.locator('[data-e2e*="ended"]'))
+      .last(),
     answerDescription: this.page.locator(generateE2eSelector('poll.card.answer_description')),
     answer: this.page
       .locator(generateE2eSelector('poll.card.answer'))
@@ -63,21 +64,22 @@ export default class MessagePollSelector {
     voted: this.page
       .locator(generateE2eSelector('poll.card.voted'))
       .or(this.page.locator('[data-e2e*="voted"], svg.mz-i-check, .mz-i-check'))
-      .first(),
+      .last(),
     totalVotes: this.page
       .locator(generateE2eSelector('poll.card.total_votes'))
-      .or(this.page.locator('text=/vote/i, [data-e2e*="total_vote"]'))
-      .first(),
+      .or(this.page.locator('text=/vote/i'))
+      .or(this.page.locator('[data-e2e*="total_vote"]'))
+      .last(),
     button: {
-      showResult: this.page.locator(generateE2eSelector('poll.card.button.show_result')),
+      showResult: this.page.locator(generateE2eSelector('poll.card.button.show_result')).last(),
       vote: this.page
         .locator(generateE2eSelector('poll.card.button.vote'))
         .or(this.page.locator('button:has-text("Vote"), [data-e2e*="vote_button"]'))
-        .first(),
+        .last(),
       removeVote: this.page
         .locator(generateE2eSelector('poll.card.button.remove_vote'))
         .or(this.page.locator('button:has-text("Remove Vote"), button:has-text("Retract")'))
-        .first(),
+        .last(),
     },
   };
 }
