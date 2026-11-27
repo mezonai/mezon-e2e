@@ -522,6 +522,12 @@ jobs:
       # 7. Run Playwright tests
       #    continue-on-error: true — test failures must NOT block report generation
       # -----------------------------------------------------------------------
+      - name: Clean leftover data before Web phase
+        if: steps.phase.outputs.phase == 'web'
+        timeout-minutes: 45
+        continue-on-error: true
+        run: npx playwright test --project cleanup --reporter=list
+
       - name: Clean previous test artifacts
         run: npm run clean
 

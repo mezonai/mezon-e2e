@@ -15,7 +15,7 @@ export class ChannelSettingPage extends BasePage {
   async createChannelWebhook(): Promise<void> {
     await this.selector.side_bar_buttons.integrations.first().click({ force: true });
     const createBtn = this.selector.webhook.create_webhook_button
-      .or(this.page.locator('button:has-text("Create Webhook"), div:has-text("Create Webhook")'))
+      .or(this.page.locator('button:has-text("Create Webhook")'))
       .first();
     await createBtn.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
     await createBtn.click({ force: true });

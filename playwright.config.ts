@@ -39,6 +39,27 @@ const getHostResolverArgs = (): string[] => {
   return rules.length > 0 ? [`--host-resolver-rules=${rules.join(',')}`] : [];
 };
 
+const getMediaAndBrowserArgs = (): string[] => [
+  '--disable-popup-blocking',
+  '--no-first-run',
+  '--no-default-browser-check',
+  '--disable-features=ExternalProtocolDialog',
+  '--lang=en-US',
+  '--use-fake-ui-for-media-stream',
+  '--use-fake-device-for-media-stream',
+  '--auto-select-desktop-capture-source=Entire screen',
+  '--enable-usermedia-screen-capturing',
+  '--allow-http-screen-capture',
+  '--autoplay-policy=no-user-gesture-required',
+  '--use-gl=angle',
+  '--use-angle=swiftshader',
+  '--enable-webgl',
+  '--ignore-gpu-blocklist',
+  ...(process.env.CI ? ['--disable-dev-shm-usage', '--no-sandbox'] : []),
+  ...getInsecureLocalOriginArgs(),
+  ...getHostResolverArgs(),
+];
+
 export default defineConfig({
   testDir: './src/tests',
   // testMatch: [
@@ -120,20 +141,9 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
         headless: true,
+        permissions: ['microphone', 'camera'],
         launchOptions: {
-          args: [
-            '--disable-popup-blocking',
-            '--no-first-run',
-            '--no-default-browser-check',
-            '--disable-features=ExternalProtocolDialog',
-            '--lang=en-US',
-            '--use-fake-ui-for-media-stream',
-            '--auto-select-desktop-capture-source=Entire screen',
-            '--use-fake-device-for-media-stream',
-            '--autoplay-policy=no-user-gesture-required',
-            ...getInsecureLocalOriginArgs(),
-            ...getHostResolverArgs(),
-          ],
+          args: getMediaAndBrowserArgs(),
         },
       },
       dependencies: ['setup'],
@@ -163,22 +173,9 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         ...getBrowserConfig(),
         headless: process.env.HEADLESS !== undefined ? process.env.HEADLESS === 'true' : false,
+        permissions: ['microphone', 'camera'],
         launchOptions: {
-          args: [
-            '--disable-popup-blocking',
-            '--no-first-run',
-            '--no-default-browser-check',
-            '--disable-features=ExternalProtocolDialog',
-            '--lang=en-US',
-
-            '--use-fake-ui-for-media-stream',
-
-            '--auto-select-desktop-capture-source=Entire screen',
-            '--use-fake-device-for-media-stream',
-            '--autoplay-policy=no-user-gesture-required',
-            ...getInsecureLocalOriginArgs(),
-            ...getHostResolverArgs(),
-          ],
+          args: getMediaAndBrowserArgs(),
         },
       },
       dependencies: ['setup'],

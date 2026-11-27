@@ -251,7 +251,7 @@ export default class ClanSelector {
       ),
       joinRoleMenuButton: this.page.getByRole('button', { name: 'Choose join role' }),
       joinRoleOption: (role: 'speaker' | 'audience') =>
-        this.page.getByRole('button', { name: `Join as ${role}`, exact: true }).last(),
+        this.page.getByRole('button', { name: new RegExp(`^Join as ${role}$`, 'i') }).last(),
       controlBar: this.page.locator(generateE2eSelector('clan_page.screen.voice_room.control_bar')),
       connectionStatus: this.page
         .locator('#mezonSfuRoom header span')
